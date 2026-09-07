@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Core Brand Colors */
+  --alsm-primary: #0652CC;
+  --alsm-electric: #0655FF;
+  --alsm-soft-blue: #E8F1FF;
+
+  /* Dark Navy Palette */
+  --alsm-navy: #091E42;
+  --alsm-deep-navy: #020817;
+
+  /* Background & Surfaces */
+  --alsm-background: #F7F9FC;
+  --alsm-surface: #FFFFFF;
+
+  /* Typography Colors */
+  --alsm-text-primary: #091E42;
+  --alsm-text-secondary: #42526E;
+  --alsm-text-muted: #6B778C;
+
+  /* Borders */
+  --alsm-border: #D9E2EC;
+  --alsm-border-subtle: #E5EAF0;
+
+  /* Semantic Colors */
+  --alsm-success: #10B981;
+  --alsm-success-bg: #ECFDF5;
+  --alsm-warning: #F59E0B;
+  --alsm-warning-bg: #FFFBEB;
+  --alsm-error: #EF4444;
+  --alsm-error-bg: #FEF2F2;
+  --alsm-info: #3B82F6;
+  --alsm-info-bg: #EFF6FF;
+
+  /* Border Radii */
+  --alsm-radius-card: 12px;
+  --alsm-radius-input: 8px;
+  --alsm-radius-button: 8px;
+  --alsm-radius-badge: 9999px;
+
+  /* Enterprise Shadows */
+  --alsm-shadow-sm: 0 1px 2px 0 rgba(9, 30, 66, 0.05);
+  --alsm-shadow-md: 0 4px 12px -2px rgba(9, 30, 66, 0.08), 0 2px 4px -1px rgba(9, 30, 66, 0.04);
+  --alsm-shadow-lg: 0 12px 24px -4px rgba(9, 30, 66, 0.12), 0 4px 6px -2px rgba(9, 30, 66, 0.04);
+
+  --sans: Inter, system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', Consolas, monospace;
+
+  font-family: var(--sans);
+  color-scheme: light;
+  color: var(--alsm-text-secondary);
+  background: var(--alsm-background);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  background-color: var(--alsm-background);
+  color: var(--alsm-text-secondary);
+  overflow-x: hidden;
+}
+
+code {
+  font-family: var(--mono);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #091E42;
+}
+::-webkit-scrollbar-thumb {
+  background: #0652CC;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0655FF;
+}
