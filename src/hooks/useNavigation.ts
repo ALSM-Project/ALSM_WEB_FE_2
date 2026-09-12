@@ -4,6 +4,10 @@ export function useNavigation() {
   const ctx = useNavigationContext();
 
   return {
+    pageTitle: ctx.pageTitle,
+    sectionTitle: ctx.sectionTitle,
+    breadcrumbs: ctx.breadcrumbs,
+    currentItem: ctx.currentItem,
     sidebarNav: ctx.sidebarNav,
     navigation: ctx.navigation,
     loading: ctx.loading,

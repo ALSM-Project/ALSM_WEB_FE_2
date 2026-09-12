@@ -5,20 +5,31 @@ export interface BreadcrumbNode {
   path?: string;
 }
 
-function findMenuBreadcrumbPath(
+export interface NavigationContextResult {
+  sectionTitle: string;
+  pageTitle: string;
+  breadcrumbs: BreadcrumbNode[];
+  currentItem: MenuItem | null;
+}
+
+function findMenuAncestors(
   items: MenuItem[],
-  currentPath: string,
+  targetPath: string,
   ancestors: MenuItem[] = []
 ): MenuItem[] | null {
   for (const item of items) {
     const currentAncestors = [...ancestors, item];
 
-    if (item.path && (item.path === currentPath || (item.path !== '/' && currentPath.startsWith(item.path)))) {
-      return currentAncestors;
+    if (item.path) {
+      const itemClean = item.path.replace(/\/+$/, '') || '/';
+      const targetClean = targetPath.replace(/\/+$/, '') || '/';
+      if (itemClean === targetClean) {
+        return currentAncestors;
+      }
     }
 
     if (item.children && item.children.length > 0) {
-      const found = findMenuBreadcrumbPath(item.children, currentPath, currentAncestors);
+      const found = findMenuAncestors(item.children, targetPath, currentAncestors);
       if (found) return found;
     }
   }
@@ -26,25 +37,84 @@ function findMenuBreadcrumbPath(
   return null;
 }
 
-export function getBreadcrumbsFromRoute(
-  pathname: string,
-  menuItems: MenuItem[] = []
-): BreadcrumbNode[] {
-  const menuMatch = findMenuBreadcrumbPath(menuItems, pathname);
-  if (menuMatch && menuMatch.length > 0) {
-    return menuMatch.map((item, index) => ({
+function findMenuAncestorsByPrefix(
+  items: MenuItem[],
+  targetPath: string,
+  ancestors: MenuItem[] = []
+): MenuItem[] | null {
+  let bestMatch: MenuItem[] | null = null;
+  let maxMatchLength = 0;
+
+  for (const item of items) {
+    const currentAncestors = [...ancestors, item];
+
+    if (item.path && item.path !== '/') {
+      const itemClean = item.path.replace(/\/+$/, '');
+      const targetClean = targetPath.replace(/\/+$/, '');
+      if (targetClean.startsWith(itemClean) && itemClean.length > maxMatchLength) {
+        bestMatch = currentAncestors;
+        maxMatchLength = itemClean.length;
+      }
+    }
+
+    if (item.children && item.children.length > 0) {
+      const childMatch = findMenuAncestorsByPrefix(item.children, targetPath, currentAncestors);
+      if (childMatch && childMatch.length > 0) {
+        const lastChild = childMatch[childMatch.length - 1];
+        if (lastChild.path) {
+          const childClean = lastChild.path.replace(/\/+$/, '');
+          if (childClean.length > maxMatchLength) {
+            bestMatch = childMatch;
+            maxMatchLength = childClean.length;
+          }
+        }
+      }
+    }
+  }
+
+  return bestMatch;
+}
+
+export function resolveNavigationContext(
+  sidebarNav: MenuItem[] = [],
+  pathname: string = '/'
+): NavigationContextResult {
+  const cleanPath = pathname.replace(/\/+$/, '') || '/';
+
+  let matchChain = findMenuAncestors(sidebarNav, cleanPath);
+  if (!matchChain) {
+    matchChain = findMenuAncestorsByPrefix(sidebarNav, cleanPath);
+  }
+
+  if (matchChain && matchChain.length > 0) {
+    const rootParent = matchChain[0];
+    const currentItem = matchChain[matchChain.length - 1];
+    const sectionTitle = rootParent.label;
+    const pageTitle = currentItem.label;
+
+    const breadcrumbs: BreadcrumbNode[] = matchChain.map((item, index) => ({
       label: item.label,
-      path: index < menuMatch.length - 1 ? item.path : undefined,
+      path: index < matchChain.length - 1 ? item.path : undefined,
     }));
+
+    return {
+      sectionTitle,
+      pageTitle,
+      breadcrumbs,
+      currentItem,
+    };
   }
 
-  const segments = pathname.split('/').filter(Boolean);
+  // Fallback for non-menu routes
+  const segments = cleanPath.split('/').filter(Boolean);
   if (segments.length === 0) {
-    return [{ label: 'Internal Dashboard' }];
+    return {
+      sectionTitle: 'Dashboard',
+      pageTitle: 'Dashboard',
+      breadcrumbs: [{ label: 'Dashboard' }],
+      currentItem: null,
+    };
   }
-
-  const result: BreadcrumbNode[] = [];
-  let accumulatedPath = '';
 
   const segmentLabels: Record<string, string> = {
     queue: 'Conversion Queue',
@@ -56,26 +126,50 @@ export function getBreadcrumbsFromRoute(
     teams: 'Teams',
     diagnostics: 'System Diagnostics',
     admin: 'Administration',
+    administration: 'Administration',
     'menu-builder': 'Menu Builder',
-    account: 'Account & Security',
+    roles: 'Roles & Permissions',
+    users: 'Users',
+    account: 'Staff Settings',
     security: 'Security',
     password: 'Password',
   };
 
-  segments.forEach((seg, index) => {
-    accumulatedPath += `/${seg}`;
-    const isLast = index === segments.length - 1;
+  const firstSeg = segments[0].toLowerCase();
+  const sectionTitle =
+    segmentLabels[firstSeg] ||
+    segments[0].charAt(0).toUpperCase() + segments[0].slice(1).replace(/-/g, ' ');
 
-    let label = segmentLabels[seg.toLowerCase()];
-    if (!label) {
-      label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' ');
-    }
+  const fallbackBreadcrumbs: BreadcrumbNode[] = [];
+  let accum = '';
+  segments.forEach((seg, idx) => {
+    accum += `/${seg}`;
+    const isLast = idx === segments.length - 1;
+    const label =
+      segmentLabels[seg.toLowerCase()] ||
+      seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' ');
 
-    result.push({
+    fallbackBreadcrumbs.push({
       label,
-      path: isLast ? undefined : accumulatedPath,
+      path: isLast ? undefined : accum,
     });
   });
 
-  return result;
+  const lastNode = fallbackBreadcrumbs[fallbackBreadcrumbs.length - 1];
+  const pageTitle = lastNode ? lastNode.label : sectionTitle;
+
+  return {
+    sectionTitle,
+    pageTitle,
+    breadcrumbs: fallbackBreadcrumbs,
+    currentItem: null,
+  };
 }
+
+export function getBreadcrumbsFromRoute(
+  pathname: string,
+  menuItems: MenuItem[] = []
+): BreadcrumbNode[] {
+  return resolveNavigationContext(menuItems, pathname).breadcrumbs;
+}
+
