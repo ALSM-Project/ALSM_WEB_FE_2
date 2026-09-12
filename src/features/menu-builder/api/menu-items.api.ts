@@ -44,7 +44,13 @@ export const menuItemsApi = {
   reorderMenuItems: async (items: Array<{ id: string; order: number }>): Promise<void> => {
     return apiClient.post('/menu-items/reorder', { items });
   },
-  moveMenuItem: async (id: string, parentId: string | null, targetOrder?: number): Promise<BackendNavItem> => {
-    return apiClient.post<BackendNavItem>(`/menu-items/${id}/move`, { parentId, targetOrder });
+  moveMenuItem: async (
+    id: string,
+    parentId: string | null,
+    targetOrder?: number,
+    targetId?: string,
+    placement?: 'before' | 'after' | 'inside',
+  ): Promise<BackendNavItem> => {
+    return apiClient.post<BackendNavItem>(`/menu-items/${id}/move`, { parentId, targetOrder, targetId, placement });
   },
 };
