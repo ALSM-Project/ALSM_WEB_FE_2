@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, PageHeader, Button } from '@/shared/ui';
+import { Card, PageHeader } from '@/shared/ui';
 import { Cpu, ShieldCheck, ClipboardCheck, Activity, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
