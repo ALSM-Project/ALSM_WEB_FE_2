@@ -41,33 +41,47 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     return null;
   }
 
-  const paddingLeftClass = depth === 0 ? 'px-3' : depth === 1 ? 'pl-8 pr-3' : 'pl-12 pr-3';
+  const paddingLeftClass = isCollapsed
+    ? 'justify-center px-0'
+    : depth === 0
+    ? 'px-3'
+    : depth === 1
+    ? 'pl-8 pr-3'
+    : 'pl-11 pr-3';
+
+  const groupMarginTop = depth === 0 && hasChildren ? 'mt-3' : 'mt-0.5';
 
   return (
-    <div className="w-full my-0.5">
+    <div className={`w-full ${groupMarginTop}`}>
       {hasChildren ? (
         <div className="flex flex-col">
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`w-full flex items-center justify-between py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${paddingLeftClass} ${
-              isActive ? 'text-white bg-[#0652CC]/40 font-bold' : 'text-[#E5EAF0] hover:bg-[#0652CC]/20 hover:text-white'
+            className={`w-full flex items-center ${
+              isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-semibold'
+            } rounded-lg transition-colors cursor-pointer ${paddingLeftClass} ${
+              isActive
+                ? 'text-white bg-white/10 font-bold'
+                : 'text-[#E5EAF0] hover:bg-white/10 hover:text-white'
             }`}
             title={isCollapsed ? item.label : undefined}
           >
             <div className="flex items-center space-x-2.5 truncate">
-              <DynamicIcon name={item.icon} className="w-4 h-4 shrink-0 text-[#94A3B8] group-hover:text-white" />
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
+              <div className="w-5 shrink-0 flex items-center justify-center">
+                <DynamicIcon name={item.icon} className="w-4 h-4 text-[#94A3B8] group-hover:text-white" />
+              </div>
+              {!isCollapsed && <span className="truncate text-xs font-semibold">{item.label}</span>}
             </div>
             {!isCollapsed && (
-              <span className="text-[#64748B]">
+              <span className="text-[#64748B] shrink-0 ml-1">
                 {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
               </span>
             )}
           </button>
 
           {!isCollapsed && isExpanded && item.children && (
-            <div className="flex flex-col mt-0.5 space-y-0.5">
+            <div className="flex flex-col mt-1 space-y-1">
               {item.children.map((child) => (
                 <SidebarItem key={child.id} item={child} isCollapsed={isCollapsed} depth={depth + 1} />
               ))}
@@ -78,16 +92,20 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
         <NavLink
           to={item.path || '#'}
           className={({ isActive: linkActive }) =>
-            `flex items-center justify-between py-2 text-xs font-medium rounded-lg transition-all ${paddingLeftClass} ${
+            `flex items-center ${
+              isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-medium'
+            } rounded-lg transition-all ${paddingLeftClass} ${
               linkActive
                 ? 'bg-[#0652CC] text-white font-semibold shadow-xs'
-                : 'text-[#94A3B8] hover:bg-[#0652CC]/20 hover:text-white'
+                : 'text-[#94A3B8] hover:bg-white/10 hover:text-white'
             }`
           }
           title={isCollapsed ? item.label : undefined}
         >
           <div className="flex items-center space-x-2.5 truncate">
-            <DynamicIcon name={item.icon} className="w-4 h-4 shrink-0" />
+            <div className="w-5 shrink-0 flex items-center justify-center">
+              <DynamicIcon name={item.icon} className="w-4 h-4" />
+            </div>
             {!isCollapsed && <span className="truncate">{item.label}</span>}
           </div>
           {!isCollapsed && item.badge && (
