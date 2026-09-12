@@ -6,3 +6,4 @@ export * from './Select';
 export * from './Toggle';
 export * from './Tooltip';
 export * from './Badge';
+export * from './Modal';
