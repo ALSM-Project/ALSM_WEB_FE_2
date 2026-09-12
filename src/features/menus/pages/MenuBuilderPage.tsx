@@ -5,10 +5,9 @@ import { MenuItemEditor } from '../components/MenuItemEditor';
 import { LivePreviewPanel } from '../components/LivePreviewPanel';
 import { Button, Input, Card } from '@/shared/ui';
 import { MenuItem } from '../types/menu';
+import { findSiblingsOfItem } from '../utils/navigationTreeUtils';
 import {
   Plus,
-  RotateCcw,
-  Check,
   Search,
   Maximize2,
   Minimize2,
@@ -32,10 +31,12 @@ export const MenuBuilderPage: React.FC = () => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isExpandedAll, setIsExpandedAll] = useState<boolean | undefined>(undefined);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Convert backend nodes into MenuItem UI format
-  const mappedTree: MenuItem[] = menuTree.map((item) => ({
+  // Convert backend nodes into MenuItem UI format recursively
+  const mapNavNodeToMenuItem = (item: any): MenuItem => ({
     id: item.id,
     label: item.label,
     icon: item.icon,
@@ -44,17 +45,10 @@ export const MenuBuilderPage: React.FC = () => {
     order: item.order,
     isVisible: item.visibility,
     permissions: item.requiredPermissions,
-    children: item.children?.map((child) => ({
-      id: child.id,
-      label: child.label,
-      icon: child.icon,
-      path: child.route || '',
-      parentId: child.parentId || undefined,
-      order: child.order,
-      isVisible: child.visibility,
-      permissions: child.requiredPermissions,
-    })),
-  }));
+    children: item.children && item.children.length > 0 ? item.children.map(mapNavNodeToMenuItem) : undefined,
+  });
+
+  const mappedTree: MenuItem[] = menuTree.map(mapNavNodeToMenuItem);
 
   const handleAddRootItem = async () => {
     try {
@@ -103,10 +97,13 @@ export const MenuBuilderPage: React.FC = () => {
           route: updates.path,
           order: updates.order,
           visibility: updates.isVisible,
+          permissions: updates.permissions,
         },
       });
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Failed to update menu item');
+      const msg = err.response?.data?.message || 'Failed to update menu item';
+      setErrorMsg(msg);
+      throw err;
     }
   };
 
@@ -129,18 +126,73 @@ export const MenuBuilderPage: React.FC = () => {
     return { success: true };
   };
 
+  const handleDropOnItem = async (draggedId: string, targetId: string, placement: 'before' | 'after' | 'inside') => {
+    try {
+      setErrorMsg(null);
+      await moveMenuItem({
+        id: draggedId,
+        parentId: placement === 'inside' ? targetId : null,
+        targetId,
+        placement,
+      });
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Failed to move menu item');
+    }
+  };
+
+  const handleDropToRoot = async (draggedId: string) => {
+    try {
+      setErrorMsg(null);
+      await moveMenuItem({
+        id: draggedId,
+        parentId: null,
+      });
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || 'Failed to promote menu item to root level');
+    }
+  };
+
+  const handleReorderSibling = async (id: string, direction: 'up' | 'down') => {
+    const res = findSiblingsOfItem(mappedTree, id);
+    if (!res) return;
+    const { siblings, index } = res;
+
+    if (direction === 'up' && index > 0) {
+      const prevItem = siblings[index - 1];
+      try {
+        setErrorMsg(null);
+        await moveMenuItem({
+          id,
+          parentId: siblings[index].parentId || null,
+          targetId: prevItem.id,
+          placement: 'before',
+        });
+      } catch (err: any) {
+        setErrorMsg(err.response?.data?.message || 'Failed to move item up');
+      }
+    } else if (direction === 'down' && index < siblings.length - 1) {
+      const nextItem = siblings[index + 1];
+      try {
+        setErrorMsg(null);
+        await moveMenuItem({
+          id,
+          parentId: siblings[index].parentId || null,
+          targetId: nextItem.id,
+          placement: 'after',
+        });
+      } catch (err: any) {
+        setErrorMsg(err.response?.data?.message || 'Failed to move item down');
+      }
+    }
+  };
+
   return (
-    <div className="space-y-6 max-w-[1440px] mx-auto py-2">
+    <div className="space-y-6 w-full">
       {/* Title Bar with Application Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">Menu Builder</h1>
-            <span className="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-semibold">
-              Live Backend (Single Source of Truth)
-            </span>
-          </div>
-          <p className="text-xs text-[#6B778C] mt-0.5">
+          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">Menu Builder</h1>
+          <p className="text-xs text-[#6B778C] mt-1">
             Backend-managed navigation hierarchy stored in MongoDB for {selectedApp}.
           </p>
         </div>
@@ -169,7 +221,7 @@ export const MenuBuilderPage: React.FC = () => {
       )}
 
       {/* 3-Column Workspace Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,0.9fr)_minmax(420px,1.4fr)_minmax(320px,1fr)] gap-6 items-start">
         {/* COLUMN 1: Navigation Tree */}
         <Card variant="default" padding="md" className="h-[640px] flex flex-col justify-between">
           <div>
@@ -195,19 +247,27 @@ export const MenuBuilderPage: React.FC = () => {
                 <span>Add Menu Item</span>
               </Button>
               <Button
-                variant="outline"
+                variant={isExpandedAll === true ? 'secondary' : 'outline'}
                 size="sm"
                 onClick={() => setIsExpandedAll(true)}
-                className="flex items-center space-x-1 text-xs text-[#42526E]"
+                className={`flex items-center space-x-1 text-xs transition-all ${
+                  isExpandedAll === true
+                    ? 'bg-[#E8F1FF] border-[#0652CC] text-[#0652CC] font-bold shadow-xs ring-2 ring-[#0652CC]/20'
+                    : 'text-[#42526E]'
+                }`}
               >
                 <Maximize2 className="w-3 h-3" />
                 <span>Expand All</span>
               </Button>
               <Button
-                variant="outline"
+                variant={isExpandedAll === false ? 'secondary' : 'outline'}
                 size="sm"
                 onClick={() => setIsExpandedAll(false)}
-                className="flex items-center space-x-1 text-xs text-[#42526E]"
+                className={`flex items-center space-x-1 text-xs transition-all ${
+                  isExpandedAll === false
+                    ? 'bg-[#E8F1FF] border-[#0652CC] text-[#0652CC] font-bold shadow-xs ring-2 ring-[#0652CC]/20'
+                    : 'text-[#42526E]'
+                }`}
               >
                 <Minimize2 className="w-3 h-3" />
                 <span>Collapse All</span>
@@ -237,7 +297,7 @@ export const MenuBuilderPage: React.FC = () => {
                   No menu items found in MongoDB for {selectedApp}.
                 </div>
               ) : (
-                mappedTree.map((item) => (
+                mappedTree.map((item, idx) => (
                   <MenuTreeItem
                     key={item.id}
                     item={item}
@@ -246,11 +306,38 @@ export const MenuBuilderPage: React.FC = () => {
                     onAddChild={handleAddChildItem}
                     onDelete={(id) => handleDeleteItem(id)}
                     onDuplicate={() => {}}
-                    onReorder={() => {}}
+                    onReorder={handleReorderSibling}
                     searchTerm={searchTerm}
                     isExpandedAll={isExpandedAll}
+                    onClearExpandAll={() => setIsExpandedAll(undefined)}
+                    activeDropdownId={activeDropdownId}
+                    onToggleDropdown={setActiveDropdownId}
+                    isBottomHalf={idx >= Math.max(0, mappedTree.length - 2)}
+                    draggedItemId={draggedItemId}
+                    onDragStartItem={setDraggedItemId}
+                    onDragEndItem={() => setDraggedItemId(null)}
+                    onDropOnItem={handleDropOnItem}
+                    entireTree={mappedTree}
                   />
                 ))
+              )}
+
+              {draggedItemId && (
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDropToRoot(draggedItemId);
+                    setDraggedItemId(null);
+                  }}
+                  className="mt-3 p-3 border-2 border-dashed border-[#0652CC] bg-[#E8F1FF]/60 rounded-xl text-center text-xs font-bold text-[#0652CC] animate-pulse cursor-pointer shadow-xs"
+                >
+                  Drop here to promote to Root Level (parentId: null)
+                </div>
               )}
             </div>
           </div>
