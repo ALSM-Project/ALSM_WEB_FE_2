@@ -5,10 +5,48 @@ import { findMenuItemInTree } from '../utils/navigationTreeUtils';
 import { DynamicIcon } from '@/components/Sidebar/IconResolver';
 import { Card } from '@/shared/ui';
 
+import logo from '@/assets/logo.png';
+
 export interface LivePreviewPanelProps {
   sidebarNav: MenuItem[];
   selectedItemId: string | null;
 }
+
+const PreviewSidebarItem: React.FC<{ item: MenuItem; selectedItemId: string | null; depth?: number }> = ({
+  item,
+  selectedItemId,
+  depth = 0,
+}) => {
+  if (item.isVisible === false) return null;
+  const isSelected = selectedItemId === item.id;
+  const hasChildren = Boolean(item.children && item.children.length > 0);
+
+  return (
+    <div className="flex flex-col">
+      <div
+        className={`flex items-center space-x-1.5 px-2 py-1 rounded-lg text-[10px] transition-colors ${
+          isSelected
+            ? 'bg-[#0652CC] text-white font-semibold'
+            : 'text-[#94A3B8] hover:text-white'
+        }`}
+        style={{ marginLeft: `${depth * 6}px` }}
+      >
+        <DynamicIcon name={item.icon} className="w-3 h-3 shrink-0" />
+        <span className="truncate">{item.label}</span>
+      </div>
+
+      {hasChildren && (
+        <div className="ml-2 pl-1 border-l border-[#0652CC]/30 space-y-0.5 mt-0.5">
+          {item.children!
+            .filter((c) => c.isVisible !== false)
+            .map((child) => (
+              <PreviewSidebarItem key={child.id} item={child} selectedItemId={selectedItemId} depth={depth + 1} />
+            ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
   sidebarNav,
@@ -47,60 +85,20 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         <div className="border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-xs bg-[#F7F9FC]">
           <div className="flex h-[420px]">
             {/* Sidebar Preview */}
-            <div className="w-36 bg-[#091E42] text-white p-2.5 flex flex-col space-y-1.5 shrink-0 border-r border-[#020817]">
-              {/* Logo */}
+            <div className="w-36 bg-[#091E42] text-white p-2.5 flex flex-col space-y-1.5 shrink-0 border-r border-[#020817] overflow-y-auto max-h-[420px]">
+              {/* Logo matching Sidebar */}
               <div className="flex items-center space-x-2 pb-2 mb-1 border-b border-[#020817]">
-                <div className="w-5 h-5 rounded-lg bg-[#0652CC] text-white font-extrabold flex items-center justify-center text-[10px]">
-                  ⚡
-                </div>
-                <span className="font-extrabold text-xs tracking-tight">ALSM</span>
+                <img src={logo} alt="ALSM" className="h-6 w-auto object-contain" />
+                <span className="font-extrabold text-xs tracking-tight text-white">ALSM</span>
               </div>
+
 
               {/* Sidebar Menu Items */}
               {sidebarNav
                 .filter((item) => item.isVisible !== false)
-                .map((item) => {
-                  const isSelected = selectedItemId === item.id;
-                  const hasChildren = item.children && item.children.length > 0;
-
-                  return (
-                    <div key={item.id} className="flex flex-col">
-                      <div
-                        className={`flex items-center space-x-1.5 px-2 py-1 rounded-lg text-[10px] transition-colors ${
-                          isSelected
-                            ? 'bg-[#0652CC] text-white font-semibold'
-                            : 'text-[#94A3B8] hover:text-white'
-                        }`}
-                      >
-                        <DynamicIcon name={item.icon} className="w-3 h-3 shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                      </div>
-
-                      {hasChildren && (
-                        <div className="ml-2 pl-1 border-l border-[#0652CC]/30 space-y-0.5 mt-0.5">
-                          {item.children
-                            ?.filter((c) => c.isVisible !== false)
-                            .map((child) => {
-                              const isChildSelected = selectedItemId === child.id;
-                              return (
-                                <div
-                                  key={child.id}
-                                  className={`flex items-center space-x-1 px-1.5 py-0.5 rounded-md text-[9px] ${
-                                    isChildSelected
-                                      ? 'bg-[#0652CC] text-white font-semibold'
-                                      : 'text-[#64748B] hover:text-white'
-                                  }`}
-                                >
-                                  <DynamicIcon name={child.icon} className="w-2.5 h-2.5 shrink-0" />
-                                  <span className="truncate">{child.label}</span>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                .map((item) => (
+                  <PreviewSidebarItem key={item.id} item={item} selectedItemId={selectedItemId} />
+                ))}
             </div>
 
             {/* Page Workspace Preview with skeleton lines matching screenshot */}

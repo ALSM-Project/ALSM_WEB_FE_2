@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Search, Plus } from 'lucide-react';
 import { Card, Input, Select } from '@/shared/ui';
 import { DynamicIcon } from '@/components/Sidebar/IconResolver';
-import { MenuItem } from '../types/menu';
 
 export interface AvailablePage {
   id: string;

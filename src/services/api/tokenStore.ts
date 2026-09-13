@@ -1,10 +1,24 @@
-let inMemoryAccessToken: string | null = null;
+const ACCESS_TOKEN_KEY = 'alsm_staff_access_token';
 const REFRESH_TOKEN_KEY = 'alsm_staff_refresh_token';
 
 export const tokenStore = {
-  getAccessToken: (): string | null => inMemoryAccessToken,
+  getAccessToken: (): string | null => {
+    try {
+      return localStorage.getItem(ACCESS_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
   setAccessToken: (token: string | null) => {
-    inMemoryAccessToken = token;
+    try {
+      if (token) {
+        localStorage.setItem(ACCESS_TOKEN_KEY, token);
+      } else {
+        localStorage.removeItem(ACCESS_TOKEN_KEY);
+      }
+    } catch {
+      // ignore
+    }
   },
   getRefreshToken: (): string | null => {
     try {
@@ -25,8 +39,8 @@ export const tokenStore = {
     }
   },
   clear: () => {
-    inMemoryAccessToken = null;
     try {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
     } catch {
       // ignore

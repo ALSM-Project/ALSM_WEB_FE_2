@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
-import { getBreadcrumbsFromRoute, BreadcrumbNode } from './breadcrumbUtils';
+import { BreadcrumbNode } from './breadcrumbUtils';
 
 export interface BreadcrumbProps {
   customItems?: BreadcrumbNode[];
@@ -10,10 +10,9 @@ export interface BreadcrumbProps {
 }
 
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className = '' }) => {
-  const location = useLocation();
-  const { sidebarNav } = useNavigation();
+  const { breadcrumbs } = useNavigation();
 
-  const items = customItems || getBreadcrumbsFromRoute(location.pathname, sidebarNav);
+  const items = customItems || breadcrumbs;
 
   if (!items || items.length === 0) {
     return null;

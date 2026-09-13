@@ -119,6 +119,24 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
         badge: 'Admin Tool',
         badgeColor: '#8B5CF6',
       },
+      {
+        id: 'roles',
+        label: 'Roles',
+        icon: 'Shield',
+        path: '/admin/roles',
+        parentId: 'admin',
+        isVisible: true,
+        order: 2,
+      },
+      {
+        id: 'users',
+        label: 'Users',
+        icon: 'Users',
+        path: '/admin/users',
+        parentId: 'admin',
+        isVisible: true,
+        order: 3,
+      },
     ],
   },
   {
@@ -195,4 +213,18 @@ export function insertItemInTree(items: MenuItem[], itemToInsert: MenuItem, pare
 
     return item;
   });
+}
+
+export function findSiblingsOfItem(items: MenuItem[], id: string): { siblings: MenuItem[]; index: number } | null {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      return { siblings: items, index: i };
+    }
+    const children = items[i].children;
+    if (children && children.length > 0) {
+      const found = findSiblingsOfItem(children, id);
+      if (found) return found;
+    }
+  }
+  return null;
 }
