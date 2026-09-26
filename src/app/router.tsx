@@ -4,6 +4,7 @@ import StaffDashboardPage from '@/features/dashboard/pages/StaffDashboardPage';
 import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
+import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -19,6 +20,10 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <StaffDashboardPage /> },
+      {
+        path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
+        element: <AdminQualityReviewPage />,
+      },
       { 
         path: '/admin/menu-builder', 
         element: (
