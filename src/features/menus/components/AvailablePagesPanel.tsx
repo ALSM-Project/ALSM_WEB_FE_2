@@ -16,6 +16,7 @@ const AVAILABLE_PAGES_LIBRARY: AvailablePage[] = [
   { id: 'page-users', label: 'Users', module: 'User Management', icon: 'User', path: '/users' },
   { id: 'page-roles', label: 'Roles', module: 'User Management', icon: 'Shield', path: '/roles' },
   { id: 'page-permissions', label: 'Permissions', module: 'User Management', icon: 'Lock', path: '/permissions' },
+  { id: 'page-partners', label: 'Partners', module: 'Organization', icon: 'Briefcase', path: '/organisations/partners' },
   { id: 'page-departments', label: 'Departments', module: 'Organization', icon: 'GitFork', path: '/organisations/departments' },
   { id: 'page-teams', label: 'Teams', module: 'Organization', icon: 'Users', path: '/organisations/teams' },
   { id: 'page-positions', label: 'Positions', module: 'Organization', icon: 'Briefcase', path: '/organisations/positions' },

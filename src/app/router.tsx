@@ -4,6 +4,8 @@ import StaffDashboardPage from '@/features/dashboard/pages/StaffDashboardPage';
 import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
+import { PartnersPage } from '@/features/partners/pages/PartnersPage';
+import { CreatePartnerPage } from '@/features/partners/pages/CreatePartnerPage';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -47,7 +49,22 @@ export const router = createBrowserRouter([
       { path: '/validation', element: <StaffDashboardPage /> },
       { path: '/review', element: <StaffDashboardPage /> },
       { path: '/organisations', element: <StaffDashboardPage /> },
-      { path: '/organisations/partners', element: <StaffDashboardPage /> },
+      {
+        path: '/organisations/partners',
+        element: (
+          <PermissionGuard permission="partners.view">
+            <PartnersPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/organisations/partners/new',
+        element: (
+          <PermissionGuard permission="partners.manage">
+            <CreatePartnerPage />
+          </PermissionGuard>
+        ),
+      },
       { path: '/organisations/departments', element: <StaffDashboardPage /> },
       { path: '/organisations/teams', element: <StaffDashboardPage /> },
       { path: '/diagnostics', element: <StaffDashboardPage /> },
