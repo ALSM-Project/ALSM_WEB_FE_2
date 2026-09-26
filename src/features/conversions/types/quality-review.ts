@@ -1,14 +1,17 @@
-export enum ConversionQualityReviewStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  NEEDS_REWORK = 'NEEDS_REWORK',
-  FLAGGED = 'FLAGGED',
-}
+export const ConversionQualityReviewStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  NEEDS_REWORK: 'NEEDS_REWORK',
+  FLAGGED: 'FLAGGED',
+} as const;
+
+export type ConversionQualityReviewStatus =
+  (typeof ConversionQualityReviewStatus)[keyof typeof ConversionQualityReviewStatus];
 
 export type HumanQualityReviewTargetStatus =
-  | ConversionQualityReviewStatus.ACCEPTED
-  | ConversionQualityReviewStatus.NEEDS_REWORK
-  | ConversionQualityReviewStatus.FLAGGED;
+  | typeof ConversionQualityReviewStatus.ACCEPTED
+  | typeof ConversionQualityReviewStatus.NEEDS_REWORK
+  | typeof ConversionQualityReviewStatus.FLAGGED;
 
 export interface ConversionQualityReviewRecord {
   id?: string;
