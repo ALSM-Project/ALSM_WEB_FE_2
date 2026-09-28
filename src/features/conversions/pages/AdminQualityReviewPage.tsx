@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
   AlertTriangle,
@@ -14,19 +15,22 @@ import {
 import { adminQualityReviewService } from '../services/quality-review.service';
 import {
   ConversionQualityReviewStatus,
-  type ConversionQualityReviewResponse,
   type HumanQualityReviewTargetStatus,
+  type SubmitQualityReviewPayload,
 } from '../types/quality-review';
 
+// ─── Query key factory ────────────────────────────────────────────────────────
+const adminQualityReviewKeys = {
+  all: ['admin-quality-reviews'] as const,
+  byJob: (projectId: string, conversionJobId: string) =>
+    [...adminQualityReviewKeys.all, projectId, conversionJobId] as const,
+};
+
+// ─── Component ────────────────────────────────────────────────────────────────
 export const AdminQualityReviewPage: React.FC = () => {
   const { projectId = '', conversionJobId = '' } = useParams();
   const navigate = useNavigate();
-
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<ConversionQualityReviewResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Form states
   const [overrideStatus, setOverrideStatus] = useState<HumanQualityReviewTargetStatus>(
@@ -34,73 +38,125 @@ export const AdminQualityReviewPage: React.FC = () => {
   );
   const [adminNote, setAdminNote] = useState('');
   const [adminScore, setAdminScore] = useState<number | undefined>(undefined);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [conflictError, setConflictError] = useState(false);
+  const [formInitialized, setFormInitialized] = useState(false);
 
-  const fetchReview = async () => {
-    if (!projectId || !conversionJobId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await adminQualityReviewService.getQualityReview(projectId, conversionJobId);
-      setData(res);
-      if (res.review.status && res.review.status !== ConversionQualityReviewStatus.PENDING) {
-        setOverrideStatus(res.review.status as HumanQualityReviewTargetStatus);
-      }
-      if (res.review.qualityScore !== undefined) {
-        setAdminScore(res.review.qualityScore);
-      }
-      if (res.review.reviewNote) {
-        setAdminNote(res.review.reviewNote);
-      }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load quality review');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ─── Query: fetch review ──────────────────────────────────────────────────
+  const {
+    data,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+    isFetching,
+  } = useQuery({
+    queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId),
+    queryFn: () => adminQualityReviewService.getQualityReview(projectId, conversionJobId),
+    enabled: Boolean(projectId && conversionJobId),
+    retry: 1,
+  });
 
+  // Populate form from existing review (once)
   useEffect(() => {
-    fetchReview();
-  }, [projectId, conversionJobId]);
+    if (data?.review && !formInitialized) {
+      if (data.review.status && data.review.status !== ConversionQualityReviewStatus.PENDING) {
+        setOverrideStatus(data.review.status as HumanQualityReviewTargetStatus);
+      }
+      if (data.review.qualityScore !== undefined) {
+        setAdminScore(data.review.qualityScore);
+      }
+      if (data.review.reviewNote) {
+        setAdminNote(data.review.reviewNote);
+      }
+      setFormInitialized(true);
+    }
+  }, [data, formInitialized]);
 
-  const handleAdminSubmit = async () => {
-    if (!projectId || !conversionJobId) return;
-    setError(null);
-    setSuccessMessage(null);
+  // ─── Mutation: submit override ────────────────────────────────────────────
+  const submitMutation = useMutation({
+    mutationFn: (payload: SubmitQualityReviewPayload) =>
+      adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload),
+    onSuccess: () => {
+      // Invalidate cache so the query re-fetches updated state
+      queryClient.invalidateQueries({
+        queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId),
+      });
+      setConflictError(false);
+      setValidationError(null);
+    },
+    onError: (err: any) => {
+      const status = err?.status ?? err?.response?.status;
+      const message = err?.message ?? err?.response?.data?.message;
+      if (status === 409) {
+        setConflictError(true);
+        refetch();
+      } else if (status === 403) {
+        setValidationError('You do not have permission to override this quality review decision.');
+      } else {
+        setValidationError(
+          message || 'Failed to update review decision. Please check your permissions or resolve conflicts.',
+        );
+      }
+    },
+  });
+
+  // ─── Submit handler ───────────────────────────────────────────────────────
+  const handleAdminSubmit = () => {
+    setValidationError(null);
+    setConflictError(false);
 
     if (
       (overrideStatus === ConversionQualityReviewStatus.NEEDS_REWORK ||
         overrideStatus === ConversionQualityReviewStatus.FLAGGED) &&
       !adminNote.trim()
     ) {
-      setError('A review note is required when setting status to Needs Rework or Flagged.');
+      setValidationError('A review note is required when setting status to Needs Rework or Flagged.');
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const updated = await adminQualityReviewService.submitQualityReview(projectId, conversionJobId, {
-        status: overrideStatus,
-        qualityScore: adminScore,
-        reviewNote: adminNote.trim() || undefined,
-      });
-      setSuccessMessage(`Quality review updated to ${updated.status} successfully.`);
-      fetchReview();
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          'Failed to update review decision. Please check your permissions or resolve conflicts.',
-      );
-    } finally {
-      setSubmitting(false);
+    if (adminNote.length > 2000) {
+      setValidationError('Admin note must not exceed 2000 characters.');
+      return;
     }
+
+    submitMutation.mutate({
+      status: overrideStatus,
+      qualityScore: adminScore,
+      reviewNote: adminNote.trim() || undefined,
+    });
   };
 
-  if (loading && !data) {
+  // ─── Render: Loading ──────────────────────────────────────────────────────
+  if (isLoading) {
     return (
       <div className="p-8 max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <LoaderCircle className="w-8 h-8 text-blue-600 animate-spin" />
         <p className="text-sm font-medium text-slate-600">Loading conversion review details...</p>
+      </div>
+    );
+  }
+
+  // ─── Render: Fetch error ──────────────────────────────────────────────────
+  if (isError) {
+    const message = (queryError as any)?.message || 'Failed to load quality review.';
+    return (
+      <div className="p-8 max-w-5xl mx-auto space-y-4">
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-6 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm">Failed to Load Review</p>
+            <p className="text-xs text-rose-700 mt-0.5">{message}</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-3 inline-flex items-center space-x-1.5 text-xs font-semibold text-rose-700 underline"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Try again</span>
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -136,32 +192,47 @@ export const AdminQualityReviewPage: React.FC = () => {
 
         <button
           type="button"
-          onClick={fetchReview}
-          disabled={loading}
-          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
           <span>Refresh</span>
         </button>
       </div>
 
-      {/* Messages */}
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-4 flex items-start space-x-3 text-sm">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold">Operation Notice</p>
-            <p className="text-xs text-rose-700 mt-0.5">{error}</p>
+      {/* Alerts */}
+      {conflictError && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 flex items-start space-x-3 text-sm">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Review Modified Concurrently</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Another admin submitted changes to this quality review. The latest state has been reloaded.
+            </p>
           </div>
         </div>
       )}
 
-      {successMessage && (
+      {validationError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-4 flex items-start space-x-3 text-sm">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold">Operation Notice</p>
+            <p className="text-xs text-rose-700 mt-0.5">{validationError}</p>
+          </div>
+        </div>
+      )}
+
+      {submitMutation.isSuccess && (
         <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl p-4 flex items-start space-x-3 text-sm">
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
+          <div>
             <p className="font-semibold">Review Updated</p>
-            <p className="text-xs text-emerald-700 mt-0.5">{successMessage}</p>
+            <p className="text-xs text-emerald-700 mt-0.5">
+              Quality review updated to{' '}
+              <span className="font-bold">{review?.status}</span> successfully.
+            </p>
           </div>
         </div>
       )}
@@ -249,7 +320,8 @@ export const AdminQualityReviewPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setOverrideStatus(ConversionQualityReviewStatus.ACCEPTED)}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            disabled={submitMutation.isPending}
+            className={`p-3 rounded-xl border text-left transition-all disabled:opacity-60 ${
               overrideStatus === ConversionQualityReviewStatus.ACCEPTED
                 ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500'
                 : 'bg-white border-slate-200 hover:bg-slate-50'
@@ -265,7 +337,8 @@ export const AdminQualityReviewPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setOverrideStatus(ConversionQualityReviewStatus.NEEDS_REWORK)}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            disabled={submitMutation.isPending}
+            className={`p-3 rounded-xl border text-left transition-all disabled:opacity-60 ${
               overrideStatus === ConversionQualityReviewStatus.NEEDS_REWORK
                 ? 'bg-amber-50 border-amber-500 ring-2 ring-amber-500'
                 : 'bg-white border-slate-200 hover:bg-slate-50'
@@ -281,7 +354,8 @@ export const AdminQualityReviewPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setOverrideStatus(ConversionQualityReviewStatus.FLAGGED)}
-            className={`p-3 rounded-xl border text-left transition-all ${
+            disabled={submitMutation.isPending}
+            className={`p-3 rounded-xl border text-left transition-all disabled:opacity-60 ${
               overrideStatus === ConversionQualityReviewStatus.FLAGGED
                 ? 'bg-rose-50 border-rose-500 ring-2 ring-rose-500'
                 : 'bg-white border-slate-200 hover:bg-slate-50'
@@ -304,7 +378,8 @@ export const AdminQualityReviewPage: React.FC = () => {
                 key={s}
                 type="button"
                 onClick={() => setAdminScore(adminScore === s ? undefined : s)}
-                className={`w-9 h-9 rounded-lg border font-bold text-xs transition-colors ${
+                disabled={submitMutation.isPending}
+                className={`w-9 h-9 rounded-lg border font-bold text-xs transition-colors disabled:opacity-60 ${
                   adminScore === s
                     ? 'bg-blue-600 text-white border-blue-600'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
@@ -319,15 +394,28 @@ export const AdminQualityReviewPage: React.FC = () => {
         {/* Admin note */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-bold text-slate-700">Admin Justification Note</label>
-            <span className="text-[11px] text-slate-400">{adminNote.length} / 2000</span>
+            <label className="text-xs font-bold text-slate-700">
+              Admin Justification Note
+              <span className="text-slate-400 font-normal ml-1">(Required for Rework or Flag)</span>
+            </label>
+            <span
+              className={`text-[11px] ${
+                adminNote.length > 2000 ? 'text-rose-600 font-bold' : 'text-slate-400'
+              }`}
+            >
+              {adminNote.length} / 2000
+            </span>
           </div>
           <textarea
             rows={3}
             value={adminNote}
-            onChange={(e) => setAdminNote(e.target.value)}
+            onChange={(e) => {
+              setAdminNote(e.target.value);
+              if (validationError) setValidationError(null);
+            }}
+            disabled={submitMutation.isPending}
             placeholder="Explain why this status was set or overridden..."
-            className="w-full text-xs font-mono p-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full text-xs font-mono p-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-50 disabled:text-slate-400"
           />
         </div>
 
@@ -335,10 +423,10 @@ export const AdminQualityReviewPage: React.FC = () => {
           <button
             type="button"
             onClick={handleAdminSubmit}
-            disabled={submitting}
+            disabled={submitMutation.isPending}
             className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors disabled:opacity-60 flex items-center space-x-2"
           >
-            {submitting ? (
+            {submitMutation.isPending ? (
               <>
                 <LoaderCircle className="w-4 h-4 animate-spin" />
                 <span>Saving decision...</span>
