@@ -20,9 +20,14 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <StaffDashboardPage /> },
+      // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
       {
         path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
-        element: <AdminQualityReviewPage />,
+        element: (
+          <PermissionGuard permission="quality-review.manage">
+            <AdminQualityReviewPage />
+          </PermissionGuard>
+        ),
       },
       { 
         path: '/admin/menu-builder', 
