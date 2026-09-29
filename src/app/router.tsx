@@ -5,6 +5,7 @@ import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
+import { UsageDashboardPage } from '@/features/billing';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -62,6 +63,9 @@ export const router = createBrowserRouter([
       { path: '/organisations/teams', element: <StaffDashboardPage /> },
       { path: '/diagnostics', element: <StaffDashboardPage /> },
       { path: '/account/security/password', element: <StaffDashboardPage /> },
+      // UC-35: Service Usage & Quotas
+      { path: '/billing/usage', element: <UsageDashboardPage /> },
+      { path: '/admin/billing/usage', element: <UsageDashboardPage /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },
