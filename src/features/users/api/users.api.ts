@@ -22,7 +22,6 @@ export const usersApi = {
     email: string;
     fullName: string;
     role: string;
-    temporaryPassword: string;
     organizationId?: string;
   }): Promise<UserSummaryDto> => {
     return apiClient.post<UserSummaryDto>('/users', data);

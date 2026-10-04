@@ -17,7 +17,6 @@ export const UserRolesPage: React.FC = () => {
   const [onboardEmail, setOnboardEmail] = useState('');
   const [onboardFullName, setOnboardFullName] = useState('');
   const [onboardRole, setOnboardRole] = useState('');
-  const [onboardPassword, setOnboardPassword] = useState('');
   const [onboardSubmitting, setOnboardSubmitting] = useState<boolean>(false);
   const [onboardError, setOnboardError] = useState<string | null>(null);
   const [onboardSuccess, setOnboardSuccess] = useState<string | null>(null);
@@ -88,7 +87,6 @@ export const UserRolesPage: React.FC = () => {
     if (!onboardEmail.includes('@')) return setOnboardError('A valid email is required');
     if (!onboardFullName.trim()) return setOnboardError('Full name is required');
     if (!onboardRole) return setOnboardError('Please select a role');
-    if (onboardPassword.length < 8) return setOnboardError('Temporary password must be at least 8 characters');
 
     setOnboardSubmitting(true);
     try {
@@ -96,13 +94,11 @@ export const UserRolesPage: React.FC = () => {
         email: onboardEmail.trim(),
         fullName: onboardFullName.trim(),
         role: onboardRole,
-        temporaryPassword: onboardPassword,
       });
-      setOnboardSuccess('Staff account created successfully');
+      setOnboardSuccess('Staff account created and invitation email sent');
       setOnboardEmail('');
       setOnboardFullName('');
       setOnboardRole('');
-      setOnboardPassword('');
       await loadData();
     } catch (err: any) {
       const code = err?.code || err?.response?.data?.code;
@@ -333,16 +329,6 @@ export const UserRolesPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">Temporary Password</label>
-                <input
-                  type="text"
-                  value={onboardPassword}
-                  onChange={(e) => setOnboardPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                  className="mt-1 w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
-                />
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5EAF0]">
