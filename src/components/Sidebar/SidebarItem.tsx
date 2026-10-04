@@ -33,9 +33,9 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 
   useEffect(() => {
     if (isActive) {
-      setIsExpanded(true);
+      setIsExpanded((prev) => (prev ? prev : true));
     }
-  }, [location.pathname, isActive]);
+  }, [location.pathname]);
 
   if (item.isVisible === false) {
     return null;
