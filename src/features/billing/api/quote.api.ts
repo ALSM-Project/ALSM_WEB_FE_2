@@ -17,10 +17,13 @@ export const quoteApi = {
     );
   },
 
-  updateQuoteStatus: (id: string, status: 'CONTACTED' | 'CLOSED'): Promise<QuoteRequest> => {
+  updateQuoteStatus: (id: string, status: 'CONTACTED' | 'APPROVED' | 'SUSPENDED' | 'REJECTED' | 'CLOSED', reason?: string): Promise<QuoteRequest> => {
     return apiClient.patch<QuoteRequest>(
       `/billing/enterprise/quote-requests/${id}/status`,
-      { status }
+      { status, ...(reason ? { reason } : {}) }
     );
   },
+
+  resolveAppeal: (id: string, decision: 'APPROVED' | 'DECLINED', response?: string): Promise<QuoteRequest> =>
+    apiClient.patch<QuoteRequest>(`/billing/enterprise/quote-requests/${id}/appeal`, { decision, ...(response ? { response } : {}) }),
 };

@@ -22,23 +22,31 @@ export const AdminQuoteRequestsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedStatus, setSelectedStatus] = useState<QuoteStatus | ''>('');
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
   // Fetch list of quote requests
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: ['billing', 'quote-requests', selectedStatus],
-    queryFn: () => quoteApi.listQuoteRequests({ status: selectedStatus }),
+    queryKey: ['billing', 'quote-requests', selectedStatus, page],
+    queryFn: () => quoteApi.listQuoteRequests({ status: selectedStatus, page, limit: 10 }),
     staleTime: 1000 * 30, // 30 seconds
   });
 
   // Mutation to update quote status
   const updateMutation = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'CONTACTED' | 'CLOSED' }) =>
-      quoteApi.updateQuoteStatus(id, status),
+    mutationFn: ({ id, status, reason }: { id: string; status: 'CONTACTED' | 'APPROVED' | 'SUSPENDED' | 'REJECTED'; reason?: string }) =>
+      quoteApi.updateQuoteStatus(id, status, reason),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['billing', 'quote-requests'] });
-      const statusLabel = updated.status === 'CONTACTED' ? 'Marked as Contacted' : 'Closed';
+      const statusLabel: Record<QuoteStatus, string> = {
+        CONTACTED: 'Marked as Contacted',
+        APPROVED: 'Approved and Enterprise activated',
+        SUSPENDED: 'Enterprise access suspended',
+        REJECTED: 'Rejected',
+        PENDING: 'Pending review',
+        CLOSED: 'Closed',
+      };
       setActionSuccessMessage(`Successfully updated request ${updated.id} to ${statusLabel}!`);
       setTimeout(() => setActionSuccessMessage(null), 5000);
     },
@@ -48,9 +56,20 @@ export const AdminQuoteRequestsPage: React.FC = () => {
     },
   });
 
-  const allItems: QuoteRequest[] = data?.items || [];
-  const pendingCount = allItems.filter((item) => item.status === 'PENDING').length;
+  const appealMutation = useMutation({
+    mutationFn: ({ id, decision, response }: { id: string; decision: 'APPROVED' | 'DECLINED'; response?: string }) =>
+      quoteApi.resolveAppeal(id, decision, response),
+    onSuccess: (updated, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['billing', 'quote-requests'] });
+      setActionSuccessMessage(variables.decision === 'APPROVED'
+        ? `Appeal approved; Enterprise restored for ${updated.companyName}.`
+        : `Appeal declined; ${updated.companyName} remains suspended.`);
+      setTimeout(() => setActionSuccessMessage(null), 5000);
+    },
+    onError: (err: any) => alert(`Error: ${err?.response?.data?.message || err?.message || 'Failed to resolve appeal'}`),
+  });
 
+  const allItems: QuoteRequest[] = data?.items || [];
   const filteredItems = allItems.filter((item) => {
     if (!searchTerm.trim()) return true;
     const term = searchTerm.toLowerCase();
@@ -117,30 +136,30 @@ export const AdminQuoteRequestsPage: React.FC = () => {
         <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold text-slate-600">
           <button
             type="button"
-            onClick={() => setSelectedStatus('')}
+            onClick={() => { setSelectedStatus(''); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
               selectedStatus === '' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
-            All Requests ({allItems.length})
+            All Requests ({data?.total ?? 0})
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus('PENDING')}
+            onClick={() => { setSelectedStatus('PENDING'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
               selectedStatus === 'PENDING' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             <span>Pending Review</span>
-            {pendingCount > 0 && (
+            {selectedStatus === 'PENDING' && (data?.total ?? 0) > 0 && (
               <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
-                {pendingCount}
+                {data?.total}
               </span>
             )}
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus('CONTACTED')}
+            onClick={() => { setSelectedStatus('CONTACTED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
               selectedStatus === 'CONTACTED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
             }`}
@@ -149,7 +168,34 @@ export const AdminQuoteRequestsPage: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={() => setSelectedStatus('CLOSED')}
+            onClick={() => { setSelectedStatus('APPROVED'); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${
+              selectedStatus === 'APPROVED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+            }`}
+          >
+            Approved
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedStatus('REJECTED'); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${
+              selectedStatus === 'REJECTED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+            }`}
+          >
+            Rejected
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedStatus('SUSPENDED'); setPage(1); }}
+            className={`px-3 py-1.5 rounded-lg transition-colors ${
+              selectedStatus === 'SUSPENDED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+            }`}
+          >
+            Suspended
+          </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedStatus('CLOSED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
               selectedStatus === 'CLOSED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
             }`}
@@ -204,6 +250,9 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             const isPending = req.status === 'PENDING';
             const isContacted = req.status === 'CONTACTED';
             const isClosed = req.status === 'CLOSED';
+            const isApproved = req.status === 'APPROVED';
+            const isSuspended = req.status === 'SUSPENDED';
+            const isRejected = req.status === 'REJECTED';
 
             return (
               <Card
@@ -243,10 +292,13 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                           CLOSED
                         </Badge>
                       )}
+                      {isApproved && <Badge variant="success">APPROVED · ENTERPRISE ACTIVE</Badge>}
+                      {isSuspended && <Badge variant="danger">SUSPENDED</Badge>}
+                      {isRejected && <Badge variant="secondary">REJECTED</Badge>}
 
                       {req.currentPlanTier && (
                         <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                          Plan: {req.currentPlanTier}
+                          Plan when requested: {req.currentPlanTier}
                         </span>
                       )}
                     </div>
@@ -278,6 +330,17 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                         <span className="italic">{req.message}</span>
                       </div>
                     )}
+                    {req.statusReason && (
+                      <div className="mt-2 text-xs text-rose-700 bg-rose-50 rounded-lg p-2.5 border border-rose-100">
+                        <strong>Status reason:</strong> {req.statusReason}
+                      </div>
+                    )}
+                    {req.appealMessage && (
+                      <div className={`mt-2 text-xs rounded-lg p-2.5 border flex items-start gap-2 ${req.appealStatus === 'PENDING' ? 'text-amber-900 bg-amber-50 border-amber-200' : 'text-slate-600 bg-slate-50 border-slate-100'}`}>
+                        <MessageSquare className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span><strong>Customer appeal {req.appealStatus?.toLowerCase()}:</strong> {req.appealMessage}{req.appealResponse && <><br /><strong>Admin response:</strong> {req.appealResponse}</>}</span>
+                      </div>
+                    )}
 
                     <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
                       <span className="flex items-center gap-1">
@@ -290,8 +353,9 @@ export const AdminQuoteRequestsPage: React.FC = () => {
 
                   {/* Right: Actions */}
                   <div className="flex flex-row lg:flex-col items-end justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100">
-                    {isPending && (
+                    {(isPending || isContacted) && (
                       <>
+                        {isPending && (
                         <button
                           type="button"
                           disabled={updateMutation.isPending}
@@ -301,36 +365,33 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                           <PhoneCall className="w-3.5 h-3.5" />
                           Mark as Contacted
                         </button>
+                        )}
                         <button
                           type="button"
                           disabled={updateMutation.isPending}
                           onClick={() => {
-                            if (window.confirm(`Close and approve quote request for ${req.companyName}?`)) {
-                              updateMutation.mutate({ id: req.id, status: 'CLOSED' });
+                            if (window.confirm(`Approve the Enterprise upgrade for ${req.companyName}?`)) {
+                              updateMutation.mutate({ id: req.id, status: 'APPROVED' });
                             }
                           }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors disabled:opacity-50"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          Approve & Close
+                          Approve & Activate Enterprise
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updateMutation.isPending}
+                          onClick={() => {
+                            if (window.confirm(`Reject quote request for ${req.companyName}?`)) {
+                              updateMutation.mutate({ id: req.id, status: 'REJECTED' });
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition-colors disabled:opacity-50"
+                        >
+                          Reject Request
                         </button>
                       </>
-                    )}
-
-                    {isContacted && (
-                      <button
-                        type="button"
-                        disabled={updateMutation.isPending}
-                        onClick={() => {
-                          if (window.confirm(`Close quote request for ${req.companyName}?`)) {
-                            updateMutation.mutate({ id: req.id, status: 'CLOSED' });
-                          }
-                        }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Complete & Close
-                      </button>
                     )}
 
                     {isClosed && (
@@ -339,11 +400,70 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                         Request finalized
                       </div>
                     )}
+                    {isApproved && (
+                      <button
+                        type="button"
+                        disabled={updateMutation.isPending}
+                        onClick={() => {
+                          const reason = window.prompt(`Enter the policy violation reason for suspending ${req.companyName}:`);
+                          if (reason?.trim()) updateMutation.mutate({ id: req.id, status: 'SUSPENDED', reason: reason.trim() });
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                      >
+                        Suspend Enterprise
+                      </button>
+                    )}
+                    {isSuspended && (
+                      <>
+                      {req.appealStatus === 'PENDING' && <>
+                      <button
+                        type="button"
+                        disabled={appealMutation.isPending || updateMutation.isPending}
+                        onClick={() => appealMutation.mutate({ id: req.id, decision: 'APPROVED' })}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                      >Approve Appeal & Restore</button>
+                      <button
+                        type="button"
+                        disabled={appealMutation.isPending || updateMutation.isPending}
+                        onClick={() => {
+                          const response = window.prompt('Optional response to the customer:') || undefined;
+                          appealMutation.mutate({ id: req.id, decision: 'DECLINED', response });
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-bold disabled:opacity-50"
+                      >Decline Appeal</button>
+                      </>}
+                      {req.appealStatus !== 'PENDING' && <button
+                        type="button"
+                        disabled={updateMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(`Restore Enterprise access for ${req.companyName}?`)) {
+                            updateMutation.mutate({ id: req.id, status: 'APPROVED' });
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                      >
+                        Restore Enterprise
+                      </button>}
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
             );
           })}
+        </div>
+      )}
+      {(data?.total ?? 0) > 10 && (
+        <div className="flex items-center justify-between text-xs text-slate-500">
+          <span>Showing page {page} of {Math.ceil((data?.total ?? 0) / 10)} · {data?.total} requests</span>
+          <div className="flex items-center gap-2">
+            <Button variant="secondary" size="sm" disabled={page <= 1 || isFetching} onClick={() => setPage((current) => current - 1)}>
+              Previous
+            </Button>
+            <Button variant="secondary" size="sm" disabled={page >= Math.ceil((data?.total ?? 0) / 10) || isFetching} onClick={() => setPage((current) => current + 1)}>
+              Next
+            </Button>
+          </div>
         </div>
       )}
     </div>
