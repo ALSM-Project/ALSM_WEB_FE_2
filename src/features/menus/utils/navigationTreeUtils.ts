@@ -14,7 +14,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'Conversion Queue',
     icon: 'Cpu',
     path: '/queue',
-    isVisible: true,
+    isVisible: false,
     order: 2,
     badge: '12 Pending',
     badgeColor: '#0652CC',
@@ -24,7 +24,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'Rule & AI Validation',
     icon: 'ShieldCheck',
     path: '/validation',
-    isVisible: true,
+    isVisible: false,
     order: 3,
   },
   {
@@ -32,7 +32,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'Review Workflows',
     icon: 'ClipboardCheck',
     path: '/review',
-    isVisible: true,
+    isVisible: false,
     order: 4,
   },
   {
@@ -40,7 +40,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'Organisations & Partners',
     icon: 'Building2',
     path: '/organisations',
-    isVisible: true,
+    isVisible: false,
     order: 5,
     children: [
       {
@@ -97,7 +97,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'System Diagnostics',
     icon: 'Activity',
     path: '/diagnostics',
-    isVisible: true,
+    isVisible: false,
     order: 6,
   },
   {
@@ -144,7 +144,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     label: 'Staff Settings',
     icon: 'Settings',
     path: '/account/security/password',
-    isVisible: true,
+    isVisible: false,
     order: 8,
   },
 ];
