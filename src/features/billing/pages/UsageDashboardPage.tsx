@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
@@ -63,6 +64,7 @@ function getQuotaStatus(used: number, max: number): {
 }
 
 export const UsageDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['billing', 'usage'],
     queryFn: () => usageApi.getUsageStats(),
@@ -134,6 +136,14 @@ export const UsageDashboardPage: React.FC = () => {
           subtitle="Monitor organization resource consumption, quota limits, and conversion volume."
         />
         <div className="flex items-center gap-3">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/admin/billing/quotes')}
+            className="inline-flex items-center gap-1.5"
+          >
+            Enterprise Quotes (UC-32)
+          </Button>
           <Button
             variant="secondary"
             size="sm"
