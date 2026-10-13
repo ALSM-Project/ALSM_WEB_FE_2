@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Plus, RefreshCw, AlertCircle, ArrowLeft, FolderKanban } from 'lucide-react';
+import { Plus, RefreshCw, AlertCircle, ArrowLeft, FolderKanban, UploadCloud } from 'lucide-react';
 import { Card, Button, Badge, PageHeader } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { usePartnerQuery, usePartnerProjectsQuery } from '../hooks/usePartnersQuery';
@@ -78,9 +78,21 @@ export const PartnerProjectsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <span className="text-[11px] text-[#6B778C] shrink-0">
-                  {new Date(project.createdAt).toLocaleDateString()}
-                </span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className="text-[11px] text-[#6B778C]">
+                    {new Date(project.createdAt).toLocaleDateString()}
+                  </span>
+                  {canManage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/organisations/partners/${partnerId}/projects/${project.id}/upload`)}
+                    >
+                      <UploadCloud className="w-4 h-4 mr-1.5" />
+                      Upload Files
+                    </Button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
