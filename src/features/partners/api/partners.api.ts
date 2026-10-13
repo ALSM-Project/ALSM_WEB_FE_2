@@ -46,6 +46,23 @@ export interface CreatePartnerProjectRequest {
   conversionType: ConversionType;
 }
 
+export interface PartnerUploadedFileDto {
+  name: string;
+  sizeBytes: number;
+}
+
+export interface PartnerProjectSourceDto {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export interface UploadPartnerProjectSourceResult {
+  inputReference: string;
+  files: PartnerUploadedFileDto[];
+  screens: PartnerProjectSourceDto[];
+}
+
 export const partnersApi = {
   list: async (): Promise<PartnerDto[]> => {
     return apiClient.get<PartnerDto[]>('/partners');
@@ -65,5 +82,18 @@ export const partnersApi = {
 
   createProject: async (partnerId: string, data: CreatePartnerProjectRequest): Promise<PartnerProjectDto> => {
     return apiClient.post<PartnerProjectDto>(`/partners/${partnerId}/projects`, data);
+  },
+
+  uploadProjectSource: async (
+    partnerId: string,
+    projectId: string,
+    files: File[],
+  ): Promise<UploadPartnerProjectSourceResult> => {
+    const form = new FormData();
+    files.forEach((file) => form.append('files', file));
+    return apiClient.post<UploadPartnerProjectSourceResult>(
+      `/partners/${partnerId}/projects/${projectId}/source`,
+      form,
+    );
   },
 };
