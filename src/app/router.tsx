@@ -6,6 +6,8 @@ import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { PartnersPage } from '@/features/partners/pages/PartnersPage';
 import { CreatePartnerPage } from '@/features/partners/pages/CreatePartnerPage';
+import { PartnerProjectsPage } from '@/features/partners/pages/PartnerProjectsPage';
+import { CreatePartnerProjectPage } from '@/features/partners/pages/CreatePartnerProjectPage';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
@@ -73,6 +75,22 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="partners.manage">
             <CreatePartnerPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/organisations/partners/:partnerId/projects',
+        element: (
+          <PermissionGuard permission="partners.view">
+            <PartnerProjectsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/organisations/partners/:partnerId/projects/new',
+        element: (
+          <PermissionGuard permission="partners.manage">
+            <CreatePartnerProjectPage />
           </PermissionGuard>
         ),
       },
