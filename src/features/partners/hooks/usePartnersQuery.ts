@@ -47,3 +47,9 @@ export const useCreatePartnerProjectMutation = (partnerId: string | undefined) =
     },
   });
 };
+
+export const useUploadPartnerProjectSourceMutation = (partnerId: string | undefined, projectId: string | undefined) => {
+  return useMutation({
+    mutationFn: (files: File[]) => partnersApi.uploadProjectSource(partnerId!, projectId!, files),
+  });
+};
