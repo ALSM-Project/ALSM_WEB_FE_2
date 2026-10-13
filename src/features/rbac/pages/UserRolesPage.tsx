@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Check, UserCheck, RefreshCw } from 'lucide-react';
+import { Search, Check, UserCheck, RefreshCw, UserPlus, Ban, PlayCircle } from 'lucide-react';
 import { rbacApi, UserRbacDto, RoleDto } from '../api/rbac.api';
+import { usersApi } from '../../users/api/users.api';
 
 export const UserRolesPage: React.FC = () => {
   const [users, setUsers] = useState<UserRbacDto[]>([]);
@@ -10,6 +11,15 @@ export const UserRolesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Onboard (create staff) form state
+  const [showOnboard, setShowOnboard] = useState<boolean>(false);
+  const [onboardEmail, setOnboardEmail] = useState('');
+  const [onboardFullName, setOnboardFullName] = useState('');
+  const [onboardRole, setOnboardRole] = useState('');
+  const [onboardSubmitting, setOnboardSubmitting] = useState<boolean>(false);
+  const [onboardError, setOnboardError] = useState<string | null>(null);
+  const [onboardSuccess, setOnboardSuccess] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -69,6 +79,49 @@ export const UserRolesPage: React.FC = () => {
     }
   };
 
+  const handleOnboardSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOnboardError(null);
+    setOnboardSuccess(null);
+
+    if (!onboardEmail.includes('@')) return setOnboardError('A valid email is required');
+    if (!onboardFullName.trim()) return setOnboardError('Full name is required');
+    if (!onboardRole) return setOnboardError('Please select a role');
+
+    setOnboardSubmitting(true);
+    try {
+      await usersApi.onboardUser({
+        email: onboardEmail.trim(),
+        fullName: onboardFullName.trim(),
+        role: onboardRole,
+      });
+      setOnboardSuccess('Staff account created and invitation email sent');
+      setOnboardEmail('');
+      setOnboardFullName('');
+      setOnboardRole('');
+      await loadData();
+    } catch (err: any) {
+      const code = err?.code || err?.response?.data?.code;
+      setOnboardError(
+        code === 'EMAIL_ALREADY_REGISTERED'
+          ? 'This email is already registered'
+          : err?.message || 'Failed to create staff account',
+      );
+    } finally {
+      setOnboardSubmitting(false);
+    }
+  };
+
+  const handleToggleStatus = async (user: UserRbacDto) => {
+    const nextActive = !user.isActive;
+    try {
+      await usersApi.updateUserStatus(user.id, nextActive);
+      await loadData();
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Failed to update user status');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-96 w-full items-center justify-center space-x-2 text-xs text-[#6B778C]">
@@ -90,6 +143,17 @@ export const UserRolesPage: React.FC = () => {
             Assign operational roles to staff accounts. Role assignments are persisted directly in MongoDB.
           </p>
         </div>
+        <button
+          onClick={() => {
+            setOnboardError(null);
+            setOnboardSuccess(null);
+            setShowOnboard(true);
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors"
+        >
+          <UserPlus className="w-4 h-4" />
+          Onboard User
+        </button>
       </div>
 
       {errorMsg && (
@@ -174,12 +238,31 @@ export const UserRolesPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-3.5 px-4 text-right">
-                    <button
-                      onClick={() => setSelectedUser(user)}
-                      className="px-3 py-1.5 bg-white border border-[#D9E2EC] rounded-lg text-xs font-semibold text-[#091E42] hover:bg-[#E8F1FF] hover:text-[#0652CC] transition-colors"
-                    >
-                      Manage Roles
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setSelectedUser(user)}
+                        className="px-3 py-1.5 bg-white border border-[#D9E2EC] rounded-lg text-xs font-semibold text-[#091E42] hover:bg-[#E8F1FF] hover:text-[#0652CC] transition-colors"
+                      >
+                        Manage Roles
+                      </button>
+                      {!user.isPlatformAdmin && (
+                        <button
+                          onClick={() => handleToggleStatus(user)}
+                          disabled={isSaving}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors border ${
+                            user.isActive
+                              ? 'bg-white border-rose-200 text-rose-600 hover:bg-rose-50'
+                              : 'bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50'
+                          }`}
+                        >
+                          {user.isActive ? (
+                            <span className="flex items-center gap-1"><Ban className="w-3.5 h-3.5" /> Deactivate</span>
+                          ) : (
+                            <span className="flex items-center gap-1"><PlayCircle className="w-3.5 h-3.5" /> Activate</span>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -187,6 +270,87 @@ export const UserRolesPage: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Onboard User Modal */}
+      {showOnboard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl border border-[#E5EAF0] space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3">
+              <div>
+                <h3 className="text-base font-bold text-[#091E42]">Onboard Staff Account</h3>
+                <p className="text-xs text-[#6B778C]">Create an internal staff account and send an invite email.</p>
+              </div>
+              <UserPlus className="w-5 h-5 text-[#0652CC]" />
+            </div>
+
+            {onboardError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold">
+                {onboardError}
+              </div>
+            )}
+            {onboardSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-semibold">
+                {onboardSuccess}
+              </div>
+            )}
+
+            <form onSubmit={handleOnboardSubmit} className="space-y-3">
+              <div>
+                <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">Full Name</label>
+                <input
+                  type="text"
+                  value={onboardFullName}
+                  onChange={(e) => setOnboardFullName(e.target.value)}
+                  placeholder="Alex Vance"
+                  className="mt-1 w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">Email</label>
+                <input
+                  type="email"
+                  value={onboardEmail}
+                  onChange={(e) => setOnboardEmail(e.target.value)}
+                  placeholder="alex.vance@acmecorp.com"
+                  className="mt-1 w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">Role</label>
+                <select
+                  value={onboardRole}
+                  onChange={(e) => setOnboardRole(e.target.value)}
+                  className="mt-1 w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                >
+                  <option value="">Select a role…</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name} ({role.id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5EAF0]">
+                <button
+                  type="button"
+                  onClick={() => setShowOnboard(false)}
+                  className="px-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs font-semibold text-[#091E42] hover:bg-[#F7F9FC]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={onboardSubmitting}
+                  className="px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] disabled:opacity-50"
+                >
+                  {onboardSubmitting ? 'Creating…' : 'Create Account'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Manage User Roles Modal */}
       {selectedUser && (

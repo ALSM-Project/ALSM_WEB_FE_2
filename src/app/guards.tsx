@@ -13,8 +13,8 @@ export const AuthCallbackPage = () => {
     if (accessToken && refreshToken) {
       tokenStore.setAccessToken(accessToken);
       tokenStore.setRefreshToken(refreshToken);
-      // Redirect directly to admin roles management page
-      window.location.href = '/admin/roles';
+      // Redirect to the staff dashboard home.
+      window.location.href = '/';
     } else {
       const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
       window.location.href = `${loginUrl}/login`;

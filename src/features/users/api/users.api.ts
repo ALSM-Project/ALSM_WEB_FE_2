@@ -18,4 +18,15 @@ export const usersApi = {
   updateUserRoles: async (userId: string, roles: string[]): Promise<string[]> => {
     return apiClient.put<string[]>(`/users/${userId}/roles`, { roles });
   },
+  onboardUser: async (data: {
+    email: string;
+    fullName: string;
+    role: string;
+    organizationId?: string;
+  }): Promise<UserSummaryDto> => {
+    return apiClient.post<UserSummaryDto>('/users', data);
+  },
+  updateUserStatus: async (userId: string, isActive: boolean): Promise<{ ok: true }> => {
+    return apiClient.patch<{ ok: true }>(`/users/${userId}/status`, { isActive });
+  },
 };

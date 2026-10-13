@@ -6,6 +6,8 @@ import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { PartnersPage } from '@/features/partners/pages/PartnersPage';
 import { CreatePartnerPage } from '@/features/partners/pages/CreatePartnerPage';
+import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
+import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -21,6 +23,15 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <StaffDashboardPage /> },
+      // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
+      {
+        path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
+        element: (
+          <PermissionGuard permission="quality-review.manage">
+            <AdminQualityReviewPage />
+          </PermissionGuard>
+        ),
+      },
       { 
         path: '/admin/menu-builder', 
         element: (
@@ -69,6 +80,12 @@ export const router = createBrowserRouter([
       { path: '/organisations/teams', element: <StaffDashboardPage /> },
       { path: '/diagnostics', element: <StaffDashboardPage /> },
       { path: '/account/security/password', element: <StaffDashboardPage /> },
+      // UC-35: Service Usage & Quotas
+      { path: '/billing/usage', element: <UsageDashboardPage /> },
+      { path: '/admin/billing/usage', element: <UsageDashboardPage /> },
+      // UC-32: Enterprise Quote Requests Approval & Management
+      { path: '/billing/quotes', element: <AdminQuoteRequestsPage /> },
+      { path: '/admin/billing/quotes', element: <AdminQuoteRequestsPage /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

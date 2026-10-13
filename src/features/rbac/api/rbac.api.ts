@@ -26,6 +26,7 @@ export interface UserRbacDto {
   email: string;
   fullName: string;
   isPlatformAdmin: boolean;
+  isActive: boolean;
   roles: string[];
 }
 
