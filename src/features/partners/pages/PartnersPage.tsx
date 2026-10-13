@@ -47,7 +47,12 @@ export const PartnersPage: React.FC = () => {
         ) : (
           <div className="divide-y divide-[#E5EAF0]">
             {partners.map((partner) => (
-              <div key={partner.id} className="p-4 flex items-center justify-between gap-4">
+              <div
+                key={partner.id}
+                onClick={() => navigate(`/organisations/partners/${partner.id}/projects`)}
+                className="p-4 flex items-center justify-between gap-4 cursor-pointer hover:bg-[#F7F9FC] transition-colors"
+                title="View projects for this partner"
+              >
                 <div className="flex items-start gap-3 min-w-0">
                   <div className="w-9 h-9 rounded-lg bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center shrink-0">
                     <Building2 className="w-4 h-4" />
