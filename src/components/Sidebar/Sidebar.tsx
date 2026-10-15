@@ -1,7 +1,8 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import { useNavigation } from '@/hooks/useNavigation';
 import { SidebarItem } from './SidebarItem';
-import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LogOut, Zap, Video } from 'lucide-react';
 import logo from '@/assets/logo.png';
 interface SidebarProps {
   isCollapsed?: boolean;
@@ -60,6 +61,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <SidebarItem key={item.id} item={item} isCollapsed={isCollapsed} />
           ))
         )}
+
+        {/* Quick Access Shortcuts */}
+        <div className="pt-2 mt-2 border-t border-white/10 space-y-1">
+          <NavLink
+            to="/admin/billing/quotes"
+            className={({ isActive }) =>
+              `w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                isActive
+                  ? 'text-white bg-[#0652CC] font-bold'
+                  : 'text-[#E5EAF0] hover:bg-white/10 hover:text-white'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`
+            }
+            title={isCollapsed ? 'Enterprise Quotes (Duyệt báo giá)' : undefined}
+          >
+            <Zap className="w-4 h-4 shrink-0 text-amber-400" />
+            {!isCollapsed && <span>Enterprise Quotes</span>}
+          </NavLink>
+
+          <NavLink
+            to="/enterprise/meetings"
+            className={({ isActive }) =>
+              `w-full flex items-center space-x-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                isActive
+                  ? 'text-white bg-[#0652CC] font-bold'
+                  : 'text-[#E5EAF0] hover:bg-white/10 hover:text-white'
+              } ${isCollapsed ? 'justify-center px-0' : ''}`
+            }
+            title={isCollapsed ? 'Online Meetings (Phòng họp)' : undefined}
+          >
+            <Video className="w-4 h-4 shrink-0 text-emerald-400" />
+            {!isCollapsed && <span>Online Meeting</span>}
+          </NavLink>
+        </div>
       </nav>
 
       {/* Bottom Sidebar Footer */}

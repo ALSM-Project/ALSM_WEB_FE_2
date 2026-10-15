@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Search,
   User,
+  Video,
 } from 'lucide-react';
 import { Card, PageHeader, Badge, Button } from '@/shared/ui';
 import { quoteApi } from '../api/quote.api';
@@ -87,11 +88,20 @@ export const AdminQuoteRequestsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <PageHeader
-            title="Enterprise Quote Requests"
-            subtitle="Review, approve, and manage custom enterprise modernization requests (UC-32)."
+            title="Enterprise Quote Requests & Sales Meetings"
+            subtitle="Review, approve, and schedule Google Meet sessions with enterprise clients (UC-32 & UC-43)."
           />
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/enterprise/meetings/create')}
+            className="inline-flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+          >
+            <Video className="w-3.5 h-3.5" />
+            Create Google Meet
+          </Button>
           <Button
             variant="secondary"
             size="sm"
@@ -355,6 +365,17 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                   <div className="flex flex-row lg:flex-col items-end justify-end gap-2 shrink-0 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100">
                     {(isPending || isContacted) && (
                       <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const title = `Họp tư vấn Báo giá Enterprise - ${req.companyName || 'Khách hàng'}`;
+                            navigate(`/enterprise/meetings/create?email=${encodeURIComponent(req.email)}&title=${encodeURIComponent(title)}`);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          Tạo họp Google Meet
+                        </button>
                         {isPending && (
                         <button
                           type="button"
