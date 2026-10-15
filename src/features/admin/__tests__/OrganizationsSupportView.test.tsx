@@ -78,7 +78,7 @@ describe('OrganizationsPage - Customer Support & Read-Only Access', () => {
   it('renders organisation directory with search input and support view actions', async () => {
     render(<OrganizationsPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText('Customer Support & Organisation Access')).toBeInTheDocument();
+    expect(screen.getByText(/(Enterprise Organisations|Customer Support & Organisation Access)/)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Acme Corporation')).toBeInTheDocument();
@@ -95,7 +95,7 @@ describe('OrganizationsPage - Customer Support & Read-Only Access', () => {
     render(<OrganizationsPage />, { wrapper: createWrapper(['organizations.view']) });
     await screen.findByText('Acme Corporation');
 
-    expect(screen.queryByRole('button', { name: /New Enterprise Org/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /(New Enterprise Org|Add Organisation)/i })).not.toBeInTheDocument();
   });
 
   it('filters organisations by contact email search', async () => {

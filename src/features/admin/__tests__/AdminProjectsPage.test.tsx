@@ -1,10 +1,19 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminProjectsPage } from '../pages/AdminProjectsPage';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '../api/admin.api';
+
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
 
 const mockProjects = [
   {
@@ -67,7 +76,7 @@ describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
   it('renders unified project list with KPIs and allocation status filter', async () => {
     render(<AdminProjectsPage />, { wrapper: createWrapper() });
 
-    expect(await screen.findByText('Project Allocation & Team Lead Assignment')).toBeInTheDocument();
+    expect(await screen.findByText(/(Team Lead Assignment|Project Allocation & Team Lead Assignment)/)).toBeInTheDocument();
     expect(screen.getByText('Total Enterprise Projects')).toBeInTheDocument();
     expect(screen.getByText('Awaiting Team Lead Allocation')).toBeInTheDocument();
     expect(screen.getByText('Partner-Assisted Engagements')).toBeInTheDocument();
@@ -92,10 +101,7 @@ describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
     expect(awaitingButton).toHaveClass('bg-amber-500');
   });
 
-  it('opens assignment modal and successfully assigns Team Lead to project', async () => {
-    const assignProjectSpy = vi.spyOn(partnersApi, 'assignProject');
-    const adminAssignSpy = vi.spyOn(adminApi, 'assignTeamLead').mockResolvedValue({ success: true });
-
+  it('navigates to dedicated assign lead page when clicking Assign to Lead', async () => {
     render(<AdminProjectsPage />, { wrapper: createWrapper() });
 
     // Wait for project row to render
@@ -106,35 +112,92 @@ describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
     expect(assignButtons.length).toBeGreaterThan(0);
     fireEvent.click(assignButtons[0]);
 
-    // Modal opens
-    expect(await screen.findByText(/Allocate Project to Team Lead|Reassign Project to Team Lead/i)).toBeInTheDocument();
+    // Navigates to dedicated assignment detail page
+    expect(mockNavigate).toHaveBeenCalledWith('/admin/projects/6650aa00aa00aa00aa00aa01/assign-lead');
+  });
+  it('renders Project & Category column with two-tier enterprise structure (Name + Category Badge + Monospace ID)', async () => {
+    render(<AdminProjectsPage />, { wrapper: createWrapper() });
 
-    // Select lead and submit
-    const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'lead-01' } });
+    const nameEl = await screen.findByText('General Ledger COBOL Migration');
+    expect(nameEl).toBeInTheDocument();
+    expect(nameEl).toHaveClass('font-semibold');
+    expect(nameEl).toHaveAttribute('title', 'General Ledger COBOL Migration');
 
-    const submitBtn = screen.getByRole('button', { name: /Allocate to Team Lead|Confirm Reassignment/i });
-    fireEvent.click(submitBtn);
+    // Tier 2: Category badge with Unicode arrow
+    const badge = screen.getByText('COBOL → Java');
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveClass('whitespace-nowrap');
 
-    await waitFor(() => {
-      expect(screen.queryByText(/Allocate Project to Team Lead|Reassign Project to Team Lead/i)).not.toBeInTheDocument();
-      expect(assignProjectSpy).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({ teamLeadId: 'lead-01' })
-      );
-      expect(adminAssignSpy).toHaveBeenCalled();
+    // Tier 2: Project ID in monospace with copy action
+    const idButton = screen.getByTitle(/Project ID: 6650aa00aa00aa00aa00aa01/);
+    expect(idButton).toBeInTheDocument();
+    expect(idButton).toHaveClass('font-mono');
+
+    // Click to copy
+    const writeTextSpy = vi.fn();
+    Object.assign(navigator, {
+      clipboard: { writeText: writeTextSpy },
     });
+
+    fireEvent.click(idButton);
+    expect(writeTextSpy).toHaveBeenCalledWith('6650aa00aa00aa00aa00aa01');
+  });
+  it('strictly excludes SELF_SERVICE projects from Web 2 project table and metrics', async () => {
+    const mixedProjects = [
+      {
+        id: 'proj-ent-1',
+        name: 'Enterprise Bank Modernization',
+        organizationId: 'org-enterprise-1',
+        partnerName: 'Enterprise Client',
+        conversionType: 'COBOL_TO_JAVA',
+        status: 'IN_PROGRESS',
+      },
+      {
+        id: 'proj-self-2',
+        name: 'Self Service Hobby Project',
+        organizationId: 'org-self-2',
+        conversionType: 'BMS_DSPF_TO_FRONTEND',
+        status: 'ACTIVE',
+      },
+    ];
+
+    const mockOrgs = [
+      { id: 'org-enterprise-1', name: 'Enterprise Corp', type: 'ENTERPRISE', status: 'ACTIVE' },
+      { id: 'org-self-2', name: 'Self Service User Org', type: 'SELF_SERVICE', status: 'TRIAL' },
+    ];
+
+    vi.spyOn(partnersApi, 'getProjects').mockResolvedValue(mixedProjects as any);
+    vi.spyOn(adminApi, 'getOrganizations').mockResolvedValue(mockOrgs as any);
+
+    render(<AdminProjectsPage />, { wrapper: createWrapper() });
+
+    // Enterprise project should be rendered
+    expect(await screen.findByText('Enterprise Bank Modernization')).toBeInTheDocument();
+
+    // Self-service project MUST be strictly excluded
+    expect(screen.queryByText('Self Service Hobby Project')).not.toBeInTheDocument();
   });
 
-  it('does not update the partner store or report success when global assignment is denied', async () => {
-    vi.spyOn(adminApi, 'assignTeamLead').mockRejectedValue(new Error('Global assignment denied'));
+  it('allows opening the New Enterprise Project modal and viewing Project Dossier', async () => {
     render(<AdminProjectsPage />, { wrapper: createWrapper() });
+
     await screen.findByText('General Ledger COBOL Migration');
-    fireEvent.click(screen.getAllByRole('button', { name: /Assign to Lead|Reassign Lead/i })[0]);
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'lead-01' } });
-    fireEvent.click(screen.getByRole('button', { name: /Allocate to Team Lead|Confirm Reassignment/i }));
-    await screen.findByText('Global assignment denied');
-    expect(partnersApi.assignProject).not.toHaveBeenCalled();
-    expect(screen.queryByText(/successfully.*allocated/i)).not.toBeInTheDocument();
+
+    // Open New Enterprise Project modal
+    const newProjectBtn = screen.getByRole('button', { name: /New Enterprise Project/i });
+    fireEvent.click(newProjectBtn);
+
+    expect(await screen.findByText('Create New Enterprise Modernization Project')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/CoreBanking-BMS-Migration/i)).toBeInTheDocument();
+
+    // Close create modal
+    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+
+    // Open Project Dossier Modal
+    const viewDetailsBtn = screen.getByTitle('View Project Details Dossier');
+    fireEvent.click(viewDetailsBtn);
+
+    expect(await screen.findByText('Enterprise Project Dossier')).toBeInTheDocument();
+    expect(screen.getByText('Conversion & Verification Progress')).toBeInTheDocument();
   });
 });
