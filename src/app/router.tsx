@@ -4,17 +4,18 @@ import StaffDashboardPage from '@/features/dashboard/pages/StaffDashboardPage';
 import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
+import UserDetailPage from '@/features/users/pages/UserDetailPage';
 import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
 import { PullRequestStatusPage } from '@/features/ci-status/pages/PullRequestStatusPage';
 import TeamPerformancePage from '@/features/team-performance/pages/TeamPerformancePage';
-import { UsageDashboardPage, AdminQuoteRequestsPage, InvoicesPage } from '@/features/billing';
+import { InvoicesPage, OrganizationUsagePage, OrganizationUsageDetailPage, AmendQuotaPage } from '@/features/billing';
 import { Web3AdminPage } from '@/features/web3';
 import { SettingsPage } from '@/features/settings/pages/SettingsPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 import { ForbiddenPage } from '@/shared/pages/ForbiddenPage';
-import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
+import { CreateMeetingRoomPage, CreateMeetingRequestPage, MeetingsListPage, MeetingRequestsPage } from '@/features/meetings';
 import { LeadsListPage } from '@/features/leads';
 import {
   LeadListPage,
@@ -22,19 +23,29 @@ import {
   SalesPipelinePage,
   SalesReportsPage,
   DiscountApprovalPage,
-} from '@/features/crm';
+  ConversationsPage,
+  EnterpriseQuotesPage,
+  ServiceUsagePage,
+  } from '@/features/crm';
+import { CreateContractWizardPage, ContractDetailPage } from '@/features/contracts';
 import {
   OrganizationsPage,
   OrganizationDetailPage,
   AuditLogsPage,
   RevenueDashboardPage,
   AdminProjectsPage,
+  AdminProjectAssignLeadPage,
   EngagementTypesPage,
 } from '@/features/admin';
 import { TeamLeadProjectsPage } from '@/features/team-lead/pages/TeamLeadProjectsPage';
+import { ProjectStaffAllocationPage } from '@/features/team-lead/pages/ProjectStaffAllocationPage';
+import { TransferProjectOwnershipPage } from '@/features/team-lead/pages/TransferProjectOwnershipPage';
 import { ResourceTransferApprovalPage } from '@/features/team-lead/pages/ResourceTransferApprovalPage';
+import { ResourceTransferDetailPage } from '@/features/team-lead/pages/ResourceTransferDetailPage';
+import { CreateResourceTransferPage } from '@/features/team-lead/pages/CreateResourceTransferPage';
 import { UserOffboardingApprovalPage } from '@/features/team-lead/pages/UserOffboardingApprovalPage';
-import { EmployeeWorkQueuePage } from '@/features/employees/pages/EmployeeWorkQueuePage';
+import { CreateOffboardingRequestPage } from '@/features/team-lead/pages/CreateOffboardingRequestPage';
+import { OffboardingRequestDetailPage } from '@/features/team-lead/pages/OffboardingRequestDetailPage';
 import {
   PartnerListPage,
   PartnerDetailsPage,
@@ -47,6 +58,8 @@ import {
 } from '@/features/partners';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 import { SupportPortalPage } from '@/features/support/pages/SupportPortalPage';
+import { BankAccountsPage } from '@/features/bank-accounts';
+
 
 export const router = createBrowserRouter([
   {
@@ -104,6 +117,14 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ) 
       },
+      { 
+        path: '/admin/users/:id', 
+        element: (
+          <PermissionGuard permission="users.manage">
+            <UserDetailPage />
+          </PermissionGuard>
+        ) 
+      },
       {
         path: '/admin/temporary-roles',
         element: (
@@ -113,10 +134,26 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/admin/temporary-roles/grant',
+        element: (
+          <PermissionGuard permission="roles.temporary.grant">
+            <TemporaryRolesPage initialView="grant" />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: '/rbac/temporary-roles',
         element: (
           <PermissionGuard permission="roles.temporary.view">
             <TemporaryRolesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/rbac/temporary-roles/grant',
+        element: (
+          <PermissionGuard permission="roles.temporary.grant">
+            <TemporaryRolesPage initialView="grant" />
           </PermissionGuard>
         ),
       },
@@ -139,25 +176,41 @@ export const router = createBrowserRouter([
       },
       {
         path: '/my-work',
-        element: (
-          <PermissionGuard permission="conversions.view">
-            <EmployeeWorkQueuePage />
-          </PermissionGuard>
-        ),
+        element: <Navigate to="/partners/projects" replace />,
       },
       {
         path: '/employee/work-queue',
-        element: (
-          <PermissionGuard permission="conversions.view">
-            <EmployeeWorkQueuePage />
-          </PermissionGuard>
-        ),
+        element: <Navigate to="/partners/projects" replace />,
       },
       {
         path: '/team-lead/projects',
         element: (
           <PermissionGuard permission="teams.manage">
             <TeamLeadProjectsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/projects/:projectId/allocate',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <ProjectStaffAllocationPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/projects/:projectId/transfer',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <TransferProjectOwnershipPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/allocation/:projectId',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <ProjectStaffAllocationPage />
           </PermissionGuard>
         ),
       },
@@ -170,10 +223,66 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/team-lead/resource-transfers/new',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <CreateResourceTransferPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/resource-transfers/:transferId',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <ResourceTransferDetailPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/offboarding-approvals',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <UserOffboardingApprovalPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/offboarding-approvals/create',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <CreateOffboardingRequestPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/offboarding-approvals/:requestId',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <OffboardingRequestDetailPage />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: '/team-lead/offboarding-approvals',
         element: (
           <PermissionGuard permission="users.offboard">
             <UserOffboardingApprovalPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/offboarding-approvals/create',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <CreateOffboardingRequestPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/offboarding-approvals/:requestId',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <OffboardingRequestDetailPage />
           </PermissionGuard>
         ),
       },
@@ -185,7 +294,7 @@ export const router = createBrowserRouter([
         path: '/sales/leads',
         element: (
           <PermissionGuard permission="sales.leads.view">
-            <LeadsListPage />
+            <LeadListPage />
           </PermissionGuard>
         ),
       },
@@ -210,6 +319,22 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="sales.leads.view">
             <LeadDetailPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/crm/conversations',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <ConversationsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/conversations',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <ConversationsPage />
           </PermissionGuard>
         ),
       },
@@ -249,7 +374,15 @@ export const router = createBrowserRouter([
         path: '/reports/team-performance',
         element: (
           <PermissionGuard permission="sales.team-performance.view">
-            <TeamPerformancePage />
+            <SalesReportsPage initialTab="team" />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/team-performance',
+        element: (
+          <PermissionGuard permission="sales.team-performance.view">
+            <SalesReportsPage initialTab="team" />
           </PermissionGuard>
         ),
       },
@@ -268,6 +401,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="organizations.manage" platformAdminOnly>
             <AdminProjectsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/projects/:projectId/assign-lead',
+        element: (
+          <PermissionGuard permission="organizations.manage" platformAdminOnly>
+            <AdminProjectAssignLeadPage />
           </PermissionGuard>
         ),
       },
@@ -344,6 +485,30 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/admin/bank-accounts',
+        element: (
+          <PermissionGuard permission="bank_accounts.view">
+            <BankAccountsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/administration/finance/bank-accounts',
+        element: (
+          <PermissionGuard permission="bank_accounts.view">
+            <BankAccountsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/finance/bank-accounts',
+        element: (
+          <PermissionGuard permission="bank_accounts.view">
+            <BankAccountsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: '/admin/audit-logs',
         element: (
           <PermissionGuard permission="audit.view" platformAdminOnly>
@@ -362,7 +527,15 @@ export const router = createBrowserRouter([
       {
         path: '/admin/settings',
         element: (
-          <PermissionGuard permission="system.manage">
+          <PermissionGuard permission="organizations.manage">
+            <SettingsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/company-profile',
+        element: (
+          <PermissionGuard permission="organizations.manage">
             <SettingsPage />
           </PermissionGuard>
         ),
@@ -393,12 +566,44 @@ export const router = createBrowserRouter([
       { path: '/diagnostics', element: <StaffDashboardPage /> },
       { path: '/account/security/password', element: <StaffDashboardPage /> },
       
-      // UC-35: Service Usage & Quotas
+      // UC-35: Organization Usage & Quotas (Cross-Organization Capacity & Quotas Monitoring)
       {
         path: '/billing/usage',
         element: (
           <PermissionGuard permission="billing.usage.view">
-            <UsageDashboardPage />
+            <OrganizationUsagePage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/billing/usage/:orgId/amend-quota',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <AmendQuotaPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/billing/usage/:orgId',
+        element: (
+          <PermissionGuard permission="billing.usage.view">
+            <OrganizationUsageDetailPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/organizations/:orgId/amend-quota',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <AmendQuotaPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/organizations/:orgId/usage',
+        element: (
+          <PermissionGuard permission="billing.usage.view">
+            <OrganizationUsageDetailPage />
           </PermissionGuard>
         ),
       },
@@ -406,17 +611,73 @@ export const router = createBrowserRouter([
         path: '/admin/billing/usage',
         element: (
           <PermissionGuard permission="billing.usage.view">
-            <UsageDashboardPage />
+            <OrganizationUsagePage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/billing/service-usage',
+        element: (
+          <PermissionGuard permission="billing.usage.view">
+            <OrganizationUsagePage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/organization-usage',
+        element: (
+          <PermissionGuard permission="billing.usage.view">
+            <OrganizationUsagePage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/service-usage',
+        element: (
+          <PermissionGuard permission="billing.usage.view">
+            <ServiceUsagePage />
           </PermissionGuard>
         ),
       },
       
-      // UC-32: Enterprise Quote Requests Approval & Management
+      // UC-32: Meeting & Consultation Management (Customer Meetings)
+      {
+        path: '/sales/meeting-requests/new',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <CreateMeetingRequestPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/meeting-requests/create',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <CreateMeetingRequestPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/meeting-requests',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <MeetingRequestsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/consultations',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <MeetingRequestsPage />
+          </PermissionGuard>
+        ),
+      },
       {
         path: '/billing/quotes',
         element: (
           <PermissionGuard permission="billing.quotes.manage">
-            <AdminQuoteRequestsPage />
+            <MeetingRequestsPage />
           </PermissionGuard>
         ),
       },
@@ -424,7 +685,80 @@ export const router = createBrowserRouter([
         path: '/admin/billing/quotes',
         element: (
           <PermissionGuard permission="billing.quotes.manage">
-            <AdminQuoteRequestsPage />
+            <MeetingRequestsPage />
+          </PermissionGuard>
+        ),
+      },
+      // Commercial Quotes & Legal Contracts
+      {
+        path: '/sales/enterprise-quotes',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <EnterpriseQuotesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/quotes-contracts',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <EnterpriseQuotesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/quotes-contracts',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <EnterpriseQuotesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/quotes',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <EnterpriseQuotesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/contracts',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <EnterpriseQuotesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/contracts/new',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <CreateContractWizardPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/contracts/:id',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <ContractDetailPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/enterprise-quotes/new-contract',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <CreateContractWizardPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/enterprise-contracts/:id',
+        element: (
+          <PermissionGuard permission="billing.quotes.manage">
+            <ContractDetailPage />
           </PermissionGuard>
         ),
       },
@@ -455,6 +789,14 @@ export const router = createBrowserRouter([
       },
       {
         path: '/meetings/create',
+        element: (
+          <PermissionGuard permission="meetings.create">
+            <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/meetings/create',
         element: (
           <PermissionGuard permission="meetings.create">
             <CreateMeetingRoomPage />

@@ -27,11 +27,21 @@ import {
   DownloadCloud,
   Sparkles,
   Wrench,
+  Landmark,
+  MessageSquare,
+  TrendingUp,
   LucideProps,
 } from 'lucide-react';
 
 const iconRegistry: Record<string, React.FC<LucideProps>> = {
   // Navigation Mappings
+  landmark: Landmark,
+  Landmark: Landmark,
+
+  messagesquare: MessageSquare,
+  MessageSquare: MessageSquare,
+  trendingup: TrendingUp,
+  TrendingUp: TrendingUp,
   dashboard: LayoutDashboard,
   LayoutDashboard: LayoutDashboard,
   layoutdashboard: LayoutDashboard,
