@@ -42,7 +42,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 
   if (item.hideParentLabel && hasChildren && item.children) {
     return (
-      <div className="w-full flex flex-col space-y-1">
+      <div className="w-full flex flex-col space-y-0.5">
         {item.children.map((child) => (
           <SidebarItem
             key={child.id}
@@ -59,10 +59,10 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
   const paddingLeftClass = isCollapsed
     ? 'justify-center px-0'
     : depth === 0
-    ? 'px-2.5'
+    ? 'px-3'
     : depth === 1
-    ? 'pl-7 pr-2.5'
-    : 'pl-10 pr-2.5';
+    ? 'pl-7 pr-3'
+    : 'pl-10 pr-3';
 
   const groupMarginTop = depth === 0 && hasChildren ? 'mt-2.5' : 'mt-0.5';
 
@@ -74,22 +74,24 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
             className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center py-1.5' : 'justify-between py-1.5 text-xs font-semibold'
-            } rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 ${paddingLeftClass} ${
+              isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-semibold'
+            } rounded-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 ${paddingLeftClass} ${
               isBranchActive
-                ? 'text-white bg-white/10 font-bold'
-                : 'text-[#CBD5E1] hover:bg-white/8 hover:text-white'
+                ? 'text-white bg-[#203954] font-bold'
+                : 'text-[#CBD5E1] hover:bg-[#203954] hover:text-white'
             }`}
             title={isCollapsed ? item.label : undefined}
           >
-            <div className="flex items-center space-x-2.5 truncate">
-              <div className="w-4 h-4 shrink-0 flex items-center justify-center">
-                <DynamicIcon name={item.icon} className="w-4 h-4 text-[#94A3B8] group-hover:text-white" />
+            <div className="flex items-center space-x-2.5 min-w-0 truncate">
+              <div className="w-4 h-4 shrink-0 flex items-center justify-center text-[#8491A3]">
+                <DynamicIcon name={item.icon} className="w-4 h-4" />
               </div>
-              {!isCollapsed && <span className="truncate text-xs font-semibold">{item.label}</span>}
+              {!isCollapsed && (
+                <span className="truncate text-xs font-semibold tracking-tight">{item.label}</span>
+              )}
             </div>
             {!isCollapsed && (
-              <span className="text-[#64748B] shrink-0 ml-1">
+              <span className="text-[#8491A3] shrink-0 ml-1.5 flex items-center">
                 {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
               </span>
             )}
@@ -114,27 +116,29 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           to={item.path || '#'}
           target={item.openInNewTab ? '_blank' : undefined}
           rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+          style={{
+            backgroundColor: isSelfActive ? '#29466A' : undefined,
+          }}
           className={() =>
             `flex items-center ${
-              isCollapsed ? 'justify-center py-1.5' : 'justify-between py-1.5 text-xs font-medium'
-            } rounded-md transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/40 ${paddingLeftClass} ${
+              isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-medium'
+            } rounded-md transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30 ${paddingLeftClass} ${
               isSelfActive
-                ? 'bg-[#0652CC] text-white font-semibold shadow-xs'
-                : 'text-[#94A3B8] hover:bg-white/8 hover:text-white'
+                ? 'bg-[#29466A] bg-[#0652CC] text-white font-semibold shadow-xs'
+                : 'text-[#CBD5E1] hover:bg-[#203954] hover:text-white'
             }`
           }
           title={isCollapsed ? item.label : undefined}
         >
-          <div className="flex items-center space-x-2.5 truncate">
-            <div className="w-4 h-4 shrink-0 flex items-center justify-center">
+          <div className="flex items-center space-x-2.5 min-w-0 truncate">
+            <div className={`w-4 h-4 shrink-0 flex items-center justify-center ${isSelfActive ? 'text-white' : 'text-[#8491A3]'}`}>
               <DynamicIcon name={item.icon} className="w-4 h-4" />
             </div>
-            {!isCollapsed && <span className="truncate">{item.label}</span>}
+            {!isCollapsed && <span className="truncate leading-tight">{item.label}</span>}
           </div>
           {!isCollapsed && item.badge && (
             <span
-              className="text-[10px] px-1.5 py-0.2 rounded font-bold shrink-0 ml-1"
-              style={{ backgroundColor: item.badgeColor || '#0652CC' }}
+              className="text-[10px] px-1.5 py-0.5 rounded font-bold shrink-0 ml-1.5 bg-[#244A70] text-white border border-white/10"
             >
               {item.badge}
             </span>
