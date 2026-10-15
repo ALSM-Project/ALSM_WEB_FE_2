@@ -6,6 +6,7 @@ import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
+import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -69,6 +70,39 @@ export const router = createBrowserRouter([
       // UC-32: Enterprise Quote Requests Approval & Management
       { path: '/billing/quotes', element: <AdminQuoteRequestsPage /> },
       { path: '/admin/billing/quotes', element: <AdminQuoteRequestsPage /> },
+      // UC-43: Create Online Meeting Room
+      {
+        path: '/enterprise/meetings/create',
+        element: (
+          <PermissionGuard permission="meetings.create">
+            <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/enterprise/meetings',
+        element: (
+          <PermissionGuard permission="meetings.create">
+            <MeetingsListPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/meetings',
+        element: (
+          <PermissionGuard permission="meetings.create">
+            <MeetingsListPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/meetings/create',
+        element: (
+          <PermissionGuard permission="meetings.create">
+            <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },
