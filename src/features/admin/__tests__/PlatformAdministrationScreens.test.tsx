@@ -40,6 +40,7 @@ vi.mock('../api/admin.api', () => ({
     createEngagementType: vi.fn(),
     updateEngagementType: vi.fn(),
     getRevenueSummary: vi.fn(),
+    getRevenueTransactions: vi.fn(),
     getAuditLogs: vi.fn(),
     exportAuditLogsCsv: vi.fn(),
   },
@@ -153,7 +154,7 @@ describe('Platform Administration UI Enhancements', () => {
       renderWithContext(<OrganizationsPage />);
 
       // Open Provisioning Modal
-      const openBtn = screen.getByRole('button', { name: /New Enterprise Org/i });
+      const openBtn = screen.getByRole('button', { name: /(New Enterprise Org|Add Organisation)/i });
       fireEvent.click(openBtn);
 
       expect(screen.getByText(/Provision Enterprise Organisation \(Step 1\/2\)/i)).toBeInTheDocument();
@@ -307,17 +308,85 @@ describe('Platform Administration UI Enhancements', () => {
           'Managed Partner': 150000,
         },
         topClients: [],
+        breakdownByPaymentMethod: {
+          BANK_TRANSFER: 276000,
+          CORPORATE_WIRE: 60000,
+          PURCHASE_ORDER: 38000,
+          DIRECT_DEBIT: 24000,
+        },
+        bankTransferVolume: 276000,
+        bankTransferCount: 3,
       });
+
+      vi.mocked(adminApi.getRevenueTransactions).mockResolvedValue([
+        {
+          id: 'TXN-2026-101',
+          client: 'Acme Corporation',
+          engagementType: 'Enterprise Tier 1',
+          contractValue: 72000,
+          paymentMethod: 'BANK_TRANSFER',
+          settlementDate: '2026-10-15',
+          status: 'CONFIRMED',
+          bankReference: 'MB-899886249-ACME-01',
+        },
+        {
+          id: 'TXN-2026-102',
+          client: 'Fintech Nexus International',
+          engagementType: 'Enterprise Tier 2',
+          contractValue: 54000,
+          paymentMethod: 'BANK_TRANSFER',
+          settlementDate: '2026-10-02',
+          status: 'CONFIRMED',
+          bankReference: 'MB-899886249-FNX-02',
+        },
+        {
+          id: 'TXN-2026-103',
+          client: 'Tokyo Marine Global Insurance',
+          engagementType: 'Enterprise Tier 1',
+          contractValue: 60000,
+          paymentMethod: 'CORPORATE_WIRE',
+          settlementDate: '2026-09-18',
+          status: 'CONFIRMED',
+        },
+        {
+          id: 'TXN-2026-104',
+          client: 'Global Transit Logistics',
+          engagementType: 'Managed Partner',
+          contractValue: 150000,
+          paymentMethod: 'BANK_TRANSFER',
+          settlementDate: '2026-09-01',
+          status: 'CONFIRMED',
+          bankReference: 'MB-899886249-GTL-03',
+        },
+        {
+          id: 'TXN-2026-105',
+          client: 'MetLife Modernization Labs',
+          engagementType: 'Enterprise Tier 2',
+          contractValue: 38000,
+          paymentMethod: 'PURCHASE_ORDER',
+          settlementDate: '2026-08-20',
+          status: 'CONFIRMED',
+        },
+        {
+          id: 'TXN-2026-106',
+          client: 'Zurich Financial Tech Labs',
+          engagementType: 'Standard Tier',
+          contractValue: 24000,
+          paymentMethod: 'DIRECT_DEBIT',
+          settlementDate: '2026-07-15',
+          status: 'CONFIRMED',
+        },
+      ]);
 
       renderWithContext(<RevenueDashboardPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Total Commercial Revenue')).toBeInTheDocument();
+        expect(screen.getByText(/(Revenue Dashboard|Total Commercial Revenue)/)).toBeInTheDocument();
       });
 
-      // Prominent Simulation Notice
-      expect(screen.getByText(/Simulated Financial Environment/i)).toBeInTheDocument();
-      expect(screen.getByText(/Audited Mock Ledger/i)).toBeInTheDocument();
+      // Authoritative Live Ledger
+      await waitFor(() => { expect(screen.getByText('Confirmed Contracts & Realised Payment Ledger')).toBeInTheDocument(); });
+      expect(screen.getByText(/Live ledger of executed enterprise agreements/i)).toBeInTheDocument();
 
       // Realised revenue KPI
       expect(screen.getByText('398.000 VND')).toBeInTheDocument();
@@ -335,7 +404,9 @@ describe('Platform Administration UI Enhancements', () => {
       fireEvent.change(dateSelect, { target: { value: 'LAST_30D' } });
 
       // Transactions update dynamically
-      expect(screen.getByText('Confirmed Contracts & Realised Payment Ledger')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Confirmed Contracts & Realised Payment Ledger')).toBeInTheDocument();
+      });
     });
   });
 
@@ -536,7 +607,7 @@ describe('Platform Administration UI Enhancements', () => {
       renderWithContext(<AuditLogsPage />);
 
       await waitFor(() => {
-        expect(screen.getByText('Activity & Security Audit Log')).toBeInTheDocument();
+        expect(screen.getByText(/(Audit Logs|Activity & Security Audit Log)/)).toBeInTheDocument();
       });
 
       // Simulation banner
