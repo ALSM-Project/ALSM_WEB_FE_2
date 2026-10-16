@@ -293,29 +293,26 @@ export const EngagementTypesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">
-            Engagement Types & Plan Management
+          <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">
+            Engagement Types
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Configure commercial packages, trial quotas, Web 3 modernized usage limits, and COBOL capabilities.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={fetchTypes}
             disabled={loading}
             aria-busy={loading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#DCE3EC] bg-white px-4 py-2 text-xs font-semibold text-[#17263A] shadow-xs hover:bg-[#F8FAFC] transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 mr-1 text-[#244A70] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           {canManageEngagementTypes && (
             <button
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0652CC] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0543A8] transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#244A70] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#244A70] transition-colors cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
               Create Engagement Type
@@ -342,7 +339,7 @@ export const EngagementTypesPage: React.FC = () => {
       )}
 
       {/* Filter / Search Bar */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] p-4 shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-4 shadow-xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative w-full md:w-96">
             <input
@@ -350,13 +347,13 @@ export const EngagementTypesPage: React.FC = () => {
               placeholder="Search engagement plans by name, code or feature..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-[#6B778C]">COBOL Engine:</span>
+            <span className="text-xs font-semibold text-[#8491A3]">COBOL Engine:</span>
             {[
               { id: 'ALL', label: 'All Plans' },
               { id: 'COBOL_ONLY', label: 'COBOL Supported' },
@@ -367,8 +364,8 @@ export const EngagementTypesPage: React.FC = () => {
                 onClick={() => setCobolFilter(flt.id as any)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   cobolFilter === flt.id
-                    ? 'bg-[#0652CC] text-white shadow-xs'
-                    : 'bg-[#F7F9FC] text-[#091E42] hover:bg-[#E5EAF0]'
+                    ? 'bg-[#244A70] text-white shadow-xs'
+                    : 'bg-[#F8FAFC] text-[#17263A] hover:bg-[#DCE3EC]'
                 }`}
               >
                 {flt.label}
@@ -379,11 +376,11 @@ export const EngagementTypesPage: React.FC = () => {
       </div>
 
       {/* Engagement Types Table */}
-      <div className="rounded-2xl border border-[#E5EAF0] bg-white shadow-xs overflow-hidden">
+      <div className="rounded-2xl border border-[#DCE3EC] bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Plan Name & Code</th>
                 <th className="py-3 px-4">Annual Price</th>
                 <th className="py-3 px-4">Trial Limits (Scr/Prog/GB)</th>
@@ -393,29 +390,29 @@ export const EngagementTypesPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody aria-busy={loading} className="divide-y divide-[#E5EAF0]">
+            <tbody aria-busy={loading} className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Loading engagement types...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredTypes.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
-                    <Layers className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                    <Layers className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                     {errorMsg ? 'Engagement types could not be loaded. Use Refresh to try again.' : types.length === 0 ? 'No engagement types are available yet.' : 'No engagement types match the selected filter.'}
                   </td>
                 </tr>
               ) : (
                 filteredTypes.map((t) => (
-                  <tr key={t.id} className="hover:bg-[#F9FBFF] transition-colors">
+                  <tr key={t.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-[#091E42]">{t.name}</div>
-                      <div className="text-[10px] font-mono text-[#6B778C]">{t.code || t.name.toUpperCase()}</div>
+                      <div className="font-semibold text-[#17263A]">{t.name}</div>
+                      <div className="text-[10px] font-mono text-[#8491A3]">{t.code || t.name.toUpperCase()}</div>
                       {t.description && (
                         <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1 max-w-xs">{t.description}</div>
                       )}
@@ -423,18 +420,18 @@ export const EngagementTypesPage: React.FC = () => {
                     <td className="py-3.5 px-4 font-bold text-emerald-700 whitespace-nowrap">
                       {formatVnd(t.price ?? 18000)} <span className="text-[10px] text-slate-500 font-normal">/ yr</span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#091E42]">
+                    <td className="py-3.5 px-4 text-[#17263A]">
                       <div className="p-1.5 rounded-lg bg-amber-50/70 border border-amber-200/80 inline-block">
                         <span className="font-semibold text-amber-900">{t.trialLimits?.maxScreens ?? 15}</span> screens ·{' '}
                         <span className="font-semibold text-amber-900">{t.trialLimits?.maxPrograms ?? 8}</span> progs ·{' '}
                         <span className="font-semibold text-amber-900">{t.trialLimits?.maxStorageGb ?? 5}</span> GB
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-[#091E42]">
+                    <td className="py-3.5 px-4 text-[#17263A]">
                       <div className="p-1.5 rounded-lg bg-blue-50/70 border border-blue-200/80 inline-block">
-                        <span className="font-semibold text-[#0652CC]">{t.usageLimits?.maxScreens ?? 150}</span> screens ·{' '}
-                        <span className="font-semibold text-[#0652CC]">{t.usageLimits?.maxPrograms ?? 60}</span> progs ·{' '}
-                        <span className="font-semibold text-[#0652CC]">{t.usageLimits?.maxStorageGb ?? 50}</span> GB
+                        <span className="font-semibold text-[#244A70]">{t.usageLimits?.maxScreens ?? 150}</span> screens ·{' '}
+                        <span className="font-semibold text-[#244A70]">{t.usageLimits?.maxPrograms ?? 60}</span> progs ·{' '}
+                        <span className="font-semibold text-[#244A70]">{t.usageLimits?.maxStorageGb ?? 50}</span> GB
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
@@ -464,7 +461,7 @@ export const EngagementTypesPage: React.FC = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => openViewModal(t)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#E5EAF0] bg-white text-xs font-semibold text-[#091E42] hover:bg-[#F7F9FC] transition-colors"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F8FAFC] transition-colors"
                           title="View plan specifications"
                         >
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
@@ -473,7 +470,7 @@ export const EngagementTypesPage: React.FC = () => {
                         {canManageEngagementTypes && (
                           <button
                             onClick={() => openEditModal(t)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#0652CC] bg-white text-xs font-semibold text-[#0652CC] hover:bg-blue-50 transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#244A70] bg-white text-xs font-semibold text-[#244A70] hover:bg-blue-50 transition-colors"
                             title="Edit limits and configuration"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -514,7 +511,7 @@ export const EngagementTypesPage: React.FC = () => {
               </div>
 
               <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 space-y-1.5">
-                <span className="font-bold text-[#0652CC] block uppercase text-[10px]">Post-Upgrade Production Quotas</span>
+                <span className="font-bold text-[#244A70] block uppercase text-[10px]">Post-Upgrade Production Quotas</span>
                 <div className="text-slate-800 space-y-1">
                   <div>Max Screens: <strong>{viewingItem.usageLimits?.maxScreens}</strong></div>
                   <div>Max Programs: <strong>{viewingItem.usageLimits?.maxPrograms}</strong></div>
@@ -535,7 +532,7 @@ export const EngagementTypesPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-end pt-2 border-t border-[#DCE3EC]">
               <Button variant="outline" size="sm" onClick={() => setShowDetailModal(false)}>
                 Close
               </Button>
@@ -551,7 +548,7 @@ export const EngagementTypesPage: React.FC = () => {
         title={editingItem ? 'Edit Engagement Type' : 'Create New Engagement Type'}
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <p className="text-xs text-[#6B778C]">
+          <p className="text-xs text-[#8491A3]">
             Define pricing, Trial onboarding quotas, post-upgrade production usage limits, and COBOL capabilities.
           </p>
 
@@ -576,7 +573,7 @@ export const EngagementTypesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="engagement-name" className="block text-xs font-semibold text-[#091E42] mb-1">Plan Name *</label>
+              <label htmlFor="engagement-name" className="block text-xs font-semibold text-[#17263A] mb-1">Plan Name *</label>
               <Input
                 id="engagement-name"
                 required
@@ -587,7 +584,7 @@ export const EngagementTypesPage: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="engagement-code" className="block text-xs font-semibold text-[#091E42] mb-1">Plan Code</label>
+              <label htmlFor="engagement-code" className="block text-xs font-semibold text-[#17263A] mb-1">Plan Code</label>
               <Input
                 id="engagement-code"
                 placeholder="ENTERPRISE_PRO"
@@ -600,7 +597,7 @@ export const EngagementTypesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="engagement-price" className="block text-xs font-semibold text-[#091E42] mb-1">Annual Price (VND) *</label>
+              <label htmlFor="engagement-price" className="block text-xs font-semibold text-[#17263A] mb-1">Annual Price (VND) *</label>
               <Input
                 id="engagement-price"
                 type="number"
@@ -612,7 +609,7 @@ export const EngagementTypesPage: React.FC = () => {
               />
             </div>
             <div>
-              <label htmlFor="engagement-description" className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+              <label htmlFor="engagement-description" className="block text-xs font-semibold text-[#17263A] mb-1">Description</label>
               <Input
                 id="engagement-description"
                 placeholder="Targeted at tier-1 enterprise migrations"
@@ -630,7 +627,7 @@ export const EngagementTypesPage: React.FC = () => {
             </h4>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label htmlFor="trial-screens" className="block text-[11px] text-[#6B778C]">Trial Screens</label>
+                <label htmlFor="trial-screens" className="block text-[11px] text-[#8491A3]">Trial Screens</label>
                 <Input
                   id="trial-screens"
                   type="number"
@@ -641,7 +638,7 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="trial-programs" className="block text-[11px] text-[#6B778C]">Trial Programs</label>
+                <label htmlFor="trial-programs" className="block text-[11px] text-[#8491A3]">Trial Programs</label>
                 <Input
                   id="trial-programs"
                   type="number"
@@ -652,7 +649,7 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="trial-storage" className="block text-[11px] text-[#6B778C]">Trial Storage (GB)</label>
+                <label htmlFor="trial-storage" className="block text-[11px] text-[#8491A3]">Trial Storage (GB)</label>
                 <Input
                   id="trial-storage"
                   type="number"
@@ -667,12 +664,12 @@ export const EngagementTypesPage: React.FC = () => {
 
           {/* Usage Limits Group */}
           <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
-            <h4 className="text-[11px] font-bold text-[#0652CC] uppercase tracking-wider">
+            <h4 className="text-[11px] font-bold text-[#244A70] uppercase tracking-wider">
               2. Production Usage Limits (Post-Upgrade Production)
             </h4>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label htmlFor="usage-screens" className="block text-[11px] text-[#6B778C]">Usage Screens</label>
+                <label htmlFor="usage-screens" className="block text-[11px] text-[#8491A3]">Usage Screens</label>
                 <Input
                   id="usage-screens"
                   type="number"
@@ -683,7 +680,7 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="usage-programs" className="block text-[11px] text-[#6B778C]">Usage Programs</label>
+                <label htmlFor="usage-programs" className="block text-[11px] text-[#8491A3]">Usage Programs</label>
                 <Input
                   id="usage-programs"
                   type="number"
@@ -694,7 +691,7 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="usage-storage" className="block text-[11px] text-[#6B778C]">Usage Storage (GB)</label>
+                <label htmlFor="usage-storage" className="block text-[11px] text-[#8491A3]">Usage Storage (GB)</label>
                 <Input
                   id="usage-storage"
                   type="number"
@@ -709,7 +706,7 @@ export const EngagementTypesPage: React.FC = () => {
 
           {/* Included Features */}
           <div>
-            <label htmlFor="engagement-features" className="block text-xs font-semibold text-[#091E42] mb-1">
+            <label htmlFor="engagement-features" className="block text-xs font-semibold text-[#17263A] mb-1">
               Included Features (comma-separated)
             </label>
             <Input
@@ -728,14 +725,14 @@ export const EngagementTypesPage: React.FC = () => {
               id="cobolCheck"
               checked={includesCobol}
               onChange={(e) => setIncludesCobol(e.target.checked)}
-              className="rounded text-[#0652CC] focus:ring-[#0652CC]"
+              className="rounded text-[#244A70] focus:ring-[#244A70]"
             />
-            <label htmlFor="cobolCheck" className="text-xs font-semibold text-[#091E42] cursor-pointer">
+            <label htmlFor="cobolCheck" className="text-xs font-semibold text-[#17263A] cursor-pointer">
               Enable COBOL Modernization Availability (`includes_cobol_conversion: true`)
             </label>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#DCE3EC]">
             <Button type="button" variant="outline" size="sm" disabled={submitting} onClick={() => setShowModal(false)}>
               Cancel
             </Button>
@@ -744,7 +741,7 @@ export const EngagementTypesPage: React.FC = () => {
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
               {submitting ? 'Saving...' : editingItem ? 'Save Changes' : 'Create Engagement Type'}
