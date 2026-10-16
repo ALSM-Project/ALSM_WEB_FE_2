@@ -4,6 +4,7 @@ export * from './pages/OrganizationDetailPage';
 export * from './pages/AuditLogsPage';
 export * from './pages/RevenueDashboardPage';
 export * from './pages/AdminProjectsPage';
+export * from './pages/AdminProjectAssignLeadPage';
 export * from './pages/EngagementTypesPage';
 export * from './components/ImpersonationBanner';
 export * from './components/AuditDetailModal';

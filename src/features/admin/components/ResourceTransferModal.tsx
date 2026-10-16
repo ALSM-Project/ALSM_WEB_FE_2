@@ -133,23 +133,23 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
         )}
 
         {/* Resource Details Header */}
-        <div className="p-3.5 bg-[#F7F9FC] border border-[#E5EAF0] rounded-xl flex items-center justify-between">
+        <div className="p-3.5 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-[#0652CC]">
+            <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-100 text-[#244A70]">
               <FolderKanban className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-[#091E42] text-sm">{resource.name}</div>
-              <div className="text-[11px] text-[#6B778C] flex items-center gap-2 mt-0.5">
+              <div className="font-bold text-[#17263A] text-sm">{resource.name}</div>
+              <div className="text-[11px] text-[#8491A3] flex items-center gap-2 mt-0.5">
                 <span className="font-mono">{resource.id}</span>
                 <span>•</span>
-                <span className="font-medium text-[#091E42]">{resource.type}</span>
+                <span className="font-medium text-[#17263A]">{resource.type}</span>
               </div>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider block">Current Owner</span>
-            <span className="font-semibold text-[#091E42] mt-0.5 inline-block">
+            <span className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider block">Current Owner</span>
+            <span className="font-semibold text-[#17263A] mt-0.5 inline-block">
               {resource.currentOwnerName || 'Unassigned / System'}
             </span>
           </div>
@@ -157,7 +157,7 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
 
         {/* Select New Assignee (Single Assignee Rule Enforced) */}
         <div>
-          <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+          <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
             New Assignee (Eligible Internal Staff) *
           </label>
           <div className="space-y-1.5">
@@ -165,7 +165,7 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
               value={selectedAssigneeId}
               onChange={(e) => setSelectedAssigneeId(e.target.value)}
               required
-              className="w-full px-3.5 py-2.5 bg-white border border-[#D9E2EC] rounded-xl text-xs font-medium text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full px-3.5 py-2.5 bg-white border border-[#DCE3EC] rounded-xl text-xs font-medium text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
             >
               <option value="">Select single eligible successor assignee...</option>
               {eligibleCandidates.map((c) => {
@@ -208,13 +208,13 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
         {/* Reason for Transfer */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Reason for Transfer *
             </label>
             <select
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full px-3.5 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             >
               {COMMON_REASONS.map((r) => (
                 <option key={r} value={r}>{r}</option>
@@ -222,7 +222,7 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
             </select>
           </div>
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Reference / Note
             </label>
             <input
@@ -230,47 +230,47 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
               placeholder="e.g. Q4 workload rebalance, Ticket #402"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full px-3.5 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
           </div>
         </div>
 
         {/* Transfer Preview Card */}
         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
-          <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider block">
+          <span className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider block">
             Transfer Preview & Impact Assessment
           </span>
-          <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-[#E5EAF0]">
+          <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-[#DCE3EC]">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[#6B778C]">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[#8491A3]">
                 {(resource.currentOwnerName || 'U').charAt(0)}
               </div>
               <div>
-                <div className="text-[10px] text-[#6B778C]">Current Owner</div>
-                <div className="font-semibold text-[#091E42]">{resource.currentOwnerName || 'Unassigned'}</div>
+                <div className="text-[10px] text-[#8491A3]">Current Owner</div>
+                <div className="font-semibold text-[#17263A]">{resource.currentOwnerName || 'Unassigned'}</div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-[#0652CC] font-bold">
+            <div className="flex items-center gap-2 text-[#244A70] font-bold">
               <span className="text-[10px] uppercase font-mono tracking-wider">Transfer To</span>
               <ArrowRight className="w-4 h-4" />
             </div>
 
             <div className="flex items-center gap-2 text-right">
               <div>
-                <div className="text-[10px] text-[#6B778C]">New Assignee</div>
-                <div className="font-semibold text-[#091E42]">
+                <div className="text-[10px] text-[#8491A3]">New Assignee</div>
+                <div className="font-semibold text-[#17263A]">
                   {selectedCandidate ? selectedCandidate.fullName : 'Select above...'}
                 </div>
               </div>
-              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center font-bold text-[#0652CC]">
+              <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center font-bold text-[#244A70]">
                 {(selectedCandidate?.fullName || '?').charAt(0)}
               </div>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#6B778C] bg-white p-2.5 rounded-lg border border-[#E5EAF0] flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#0652CC] shrink-0" />
+          <div className="text-[11px] text-[#8491A3] bg-white p-2.5 rounded-lg border border-[#DCE3EC] flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#244A70] shrink-0" />
             <span>
               <strong>Impact Statement:</strong> Modernization queue items, active conversions, and repository access
               for <strong>"{resource.name}"</strong> will transition immediately to the designated successor.
@@ -294,16 +294,16 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-0.5 rounded border-slate-300 text-[#0652CC] focus:ring-[#0652CC]"
+              className="mt-0.5 rounded border-slate-300 text-[#244A70] focus:ring-[#244A70]"
             />
-            <span className="text-xs text-[#091E42] font-semibold leading-relaxed">
+            <span className="text-xs text-[#17263A] font-semibold leading-relaxed">
               I confirm the ownership transfer of this resource under reason "{reason}". The transfer will be logged in audit history.
             </span>
           </label>
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5EAF0]">
+        <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#DCE3EC]">
           <Button
             type="button"
             variant="outline"
@@ -315,7 +315,7 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
           <Button
             type="submit"
             disabled={submitting || !selectedAssigneeId || !confirmed}
-            className="bg-[#0652CC] text-white hover:bg-[#0543A8]"
+            className="bg-[#244A70] text-white hover:bg-[#244A70]"
           >
             {submitting ? 'Executing Transfer...' : 'Execute Ownership Transfer'}
           </Button>
