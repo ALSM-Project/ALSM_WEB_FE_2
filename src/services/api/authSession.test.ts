@@ -106,6 +106,26 @@ describe('refresh/logout coordination', () => {
     ).toHaveLength(1);
     expect(send.mock.calls.length).toBeLessThanOrEqual(2);
   });
+  it('rejects queued credential admission after logout starts', async () => {
+    const a = await tab(), b = await tab(); a.setTokens(pair('old'));
+    const response = deferred<ReturnType<typeof pair>>(); const send = vi.fn(() => response.promise);
+    const refreshing = a.refresh(send); await vi.waitFor(() => expect(send).toHaveBeenCalled());
+    const admission = b.acceptTokens(pair('stale-callback')).catch((error) => error);
+    const revoke = vi.fn().mockResolvedValue(undefined); const logout = a.logout(revoke);
+    response.resolve(pair('late')); await refreshing;
+    expect(await admission).toBeInstanceOf(Error); await logout;
+    expect(a.getAccessToken()).toBeNull(); expect(b.getRefreshToken()).toBeNull();
+    expect(revoke).toHaveBeenCalledWith('refresh-old');
+  });
+  it('hands off the current generation after waiting behind an ordinary refresh', async () => {
+    const store = await tab(); store.setTokens(pair('old'));
+    const response = deferred<ReturnType<typeof pair>>(); const send = vi.fn(() => response.promise);
+    const refreshing = store.refresh(send); await vi.waitFor(() => expect(send).toHaveBeenCalled());
+    const navigate = vi.fn(); const handoff = store.handoff(navigate);
+    response.resolve(pair('current')); await refreshing; await handoff;
+    expect(navigate).toHaveBeenCalledWith(expect.objectContaining(pair('current')));
+    expect(store.getRefreshToken()).toBeNull();
+  });
   it('retains this portal access-token storage policy', async () => {
     const store = await tab(); store.setTokens(pair('policy'));
     const persisted = Object.values(localStorage).join('');

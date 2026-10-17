@@ -132,7 +132,11 @@ export const tokenStore = {
     publish(tokens, epoch);
   },
   async acceptTokens(tokens: AuthTokens): Promise<void> {
-    await lock(async () => { tokenStore.setTokens(tokens); });
+    const epoch = tokenStore.epoch();
+    await lock(async () => {
+      if (epoch !== tokenStore.epoch()) throw new Error('Authentication was superseded');
+      tokenStore.setTokens(tokens);
+    });
   },
   async authenticate(send: () => Promise<AuthTokens>): Promise<AuthTokens> {
     const expected = tokenStore.snapshot();
@@ -195,9 +199,9 @@ export const tokenStore = {
     }); // On failure retain the proof + fence so logout can be retried truthfully.
   },
   async handoff(navigate: (tokens: AuthTokens) => void): Promise<void> {
-    const expected = tokenStore.snapshot();
+    const epoch = tokenStore.epoch();
     await lock(async () => {
-      if (expected !== tokenStore.snapshot()) return;
+      if (epoch !== tokenStore.epoch()) return;
       const tokens = currentPair();
       if (!tokens) return;
       clear();
