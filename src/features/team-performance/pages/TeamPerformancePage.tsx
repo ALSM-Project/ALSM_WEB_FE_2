@@ -1,9 +1,12 @@
 import { BarChart3, ShieldAlert } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import PageHeader from '@/shared/ui/PageHeader';
+import SalesTeamPerformancePage from './SalesTeamPerformancePage';
 
 export default function TeamPerformancePage() {
   const isMonitoring = useLocation().pathname.endsWith('/monitor');
+
+  if (!isMonitoring) return <SalesTeamPerformancePage />;
 
   return (
     <div className="space-y-6">
