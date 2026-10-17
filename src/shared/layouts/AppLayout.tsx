@@ -5,7 +5,6 @@ import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useNavigation } from '@/hooks/useNavigation';
-import { tokenStore } from '@/services/api/tokenStore';
 import { authApi } from '@/features/auth/api/auth.api';
 
 const getInitials = (name?: string) => {
@@ -49,14 +48,11 @@ export const AppLayout: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      const refreshToken = tokenStore.getRefreshToken();
-      if (refreshToken) {
-        await authApi.logout(refreshToken);
-      }
-    } finally {
-      tokenStore.clear();
+      await authApi.logout();
       const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
       window.location.href = `${loginUrl}/login`;
+    } catch {
+      window.alert('Sign out could not be confirmed. Please try Sign Out again.');
     }
   };
 
