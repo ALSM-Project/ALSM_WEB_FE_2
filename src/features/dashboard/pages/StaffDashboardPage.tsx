@@ -362,6 +362,14 @@ export const StaffDashboardPage: React.FC = () => {
             </button>
 
             <button
+              onClick={() => navigate('/team-performance')}
+              className="w-full p-3 rounded-lg border border-[#D9E2EC] hover:border-[#0652CC] flex items-center justify-between text-left"
+            >
+              <div><span className="text-xs font-bold">Team Performance</span><p className="text-[11px] text-[#6B778C]">View current availability and required team configuration</p></div>
+              <ArrowRight className="w-4 h-4 text-[#0652CC]" />
+            </button>
+
+            <button
               onClick={() => navigate('/admin/menu-builder')}
               className="w-full p-3 rounded-lg border border-[#D9E2EC] hover:border-[#0652CC] hover:bg-[#F7F9FC] flex items-center justify-between transition-colors text-left cursor-pointer"
             >
