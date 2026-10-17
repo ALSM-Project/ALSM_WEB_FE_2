@@ -32,6 +32,7 @@ export const StaffDashboardPage: React.FC = () => {
     data: quoteData,
     isLoading: isLoadingQuotes,
     isFetching: isFetchingQuotes,
+    isError: quoteError,
     refetch: refetchQuotes,
   } = useQuery({
     queryKey: ['billing', 'quote-requests-dashboard'],
@@ -92,8 +93,8 @@ export const StaffDashboardPage: React.FC = () => {
               <Cpu className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-[#091E42] mt-3">12 Pending</p>
-          <p className="text-xs text-[#6B778C] mt-1">BMS & COBOL in queue</p>
+          <button onClick={() => navigate('/queue')} className="text-lg font-bold text-blue-700 mt-3 underline">Open live queue</button>
+          <p className="text-xs text-[#6B778C] mt-1">Select a project to see persisted job statuses</p>
         </Card>
 
         {/* Card 2: Validation Rate */}
@@ -104,8 +105,8 @@ export const StaffDashboardPage: React.FC = () => {
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-[#091E42] mt-3">99.4% Pass</p>
-          <p className="text-xs text-[#6B778C] mt-1">Deterministic accuracy</p>
+          <p className="text-lg font-bold text-[#091E42] mt-3">Not available</p>
+          <p className="text-xs text-[#6B778C] mt-1">No aggregate validation metric is connected</p>
         </Card>
 
         {/* Card 3: Review Queue */}
@@ -116,8 +117,8 @@ export const StaffDashboardPage: React.FC = () => {
               <ClipboardCheck className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-[#091E42] mt-3">5 Needs Review</p>
-          <p className="text-xs text-[#6B778C] mt-1">Human review needed</p>
+          <p className="text-lg font-bold mt-3">Select completed jobs</p>
+          <p className="text-xs text-[#6B778C] mt-1">Inspect completed conversions and persisted decisions</p>
         </Card>
 
         {/* Card 4: Engine Health */}
@@ -128,8 +129,8 @@ export const StaffDashboardPage: React.FC = () => {
               <Activity className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-extrabold text-[#091E42] mt-3">Optimal</p>
-          <p className="text-xs text-[#6B778C] mt-1">Latency &lt; 150ms</p>
+          <p className="text-lg font-bold text-[#091E42] mt-3">Not monitored</p>
+          <p className="text-xs text-[#6B778C] mt-1">Use job details to inspect actual worker progress</p>
         </Card>
 
         {/* Card 5: Enterprise Quotes Approval */}
@@ -149,7 +150,7 @@ export const StaffDashboardPage: React.FC = () => {
           </div>
           <div className="flex items-baseline gap-2 mt-3">
             <p className={`text-2xl font-extrabold ${pendingQuotes.length > 0 ? 'text-amber-900' : 'text-[#091E42]'}`}>
-              {pendingQuotes.length} Chờ duyệt
+              {quoteError ? 'Unavailable' : isLoadingQuotes ? 'Loading...' : `${pendingQuotes.length} Chờ duyệt`}
             </p>
             {pendingQuotes.length > 0 && (
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -186,11 +187,11 @@ export const StaffDashboardPage: React.FC = () => {
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                     {pendingQuotes.length} yêu cầu cần duyệt
                   </span>
-                ) : (
+                ) : !quoteError && !isLoadingQuotes ? (
                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                     Đã duyệt hết
                   </span>
-                )}
+                ) : null}
               </div>
               <p className="text-xs text-[#6B778C]">
                 Xét duyệt và kích hoạt quyền lợi gói Enterprise trực tiếp cho khách hàng đăng ký từ cổng User (UC-32)
@@ -223,7 +224,7 @@ export const StaffDashboardPage: React.FC = () => {
 
         {/* Requests List */}
         <div className="mt-4">
-          {isLoadingQuotes ? (
+          {quoteError ? <p role="alert" className="p-6 text-rose-700">Không thể tải yêu cầu nâng cấp. Vui lòng thử làm mới.</p> : isLoadingQuotes ? (
             <div className="p-8 text-center text-xs text-slate-500">Đang kiểm tra yêu cầu...</div>
           ) : pendingQuotes.length === 0 ? (
             <div className="p-6 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200">
@@ -396,11 +397,11 @@ export const StaffDashboardPage: React.FC = () => {
             </div>
             <div className="flex justify-between py-1 border-b border-[#E5EAF0]">
               <span>Backend Auth</span>
-              <strong className="text-[#091E42]">Shared Auth Microservice Connection</strong>
+              <strong className="text-[#091E42]">Authenticated API requests</strong>
             </div>
             <div className="flex justify-between py-1">
               <span>Enterprise Module</span>
-              <strong className="text-emerald-700 font-semibold">Active (UC-32 Quotas & Approvals)</strong>
+              <strong className="text-[#091E42]">UC-32 Quotas & Approvals</strong>
             </div>
           </div>
         </Card>

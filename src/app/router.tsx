@@ -5,6 +5,7 @@ import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
+import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
 import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
@@ -55,7 +56,7 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ) 
       },
-      { path: '/queue', element: <StaffDashboardPage /> },
+      { path: '/queue', element: <ConversionQueuePage /> },
       { path: '/validation', element: <StaffDashboardPage /> },
       { path: '/review', element: <StaffDashboardPage /> },
       { path: '/organisations', element: <StaffDashboardPage /> },
