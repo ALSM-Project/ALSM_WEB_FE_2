@@ -23,5 +23,17 @@ describe('TeamPerformancePage', () => {
     expect(screen.getByRole('link', { name: 'View conversion queue' })).toHaveAttribute('href', '/queue');
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    if (path.endsWith('/monitor')) {
+      expect(screen.getByRole('heading', { name: 'Conversion workload unavailable' })).toBeInTheDocument();
+      expect(screen.getByText(/Job creators do not establish assignments/)).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Sales reporting unavailable' })).not.toBeInTheDocument();
+    } else {
+      expect(screen.getByRole('heading', { name: 'Sales reporting unavailable' })).toBeInTheDocument();
+      expect(screen.getByText(/Individual lead counts require persisted salesperson assignments/)).toBeInTheDocument();
+      expect(screen.getByText(/Sales conversion rates require assigned leads and verified customer-conversion outcomes/)).toBeInTheDocument();
+      expect(screen.getByText(/Revenue generated requires confirmed revenue linked to each salesperson/)).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Conversion workload unavailable' })).not.toBeInTheDocument();
+    }
   });
 });

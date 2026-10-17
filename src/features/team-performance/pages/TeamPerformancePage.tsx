@@ -9,7 +9,11 @@ export default function TeamPerformancePage() {
     <div className="space-y-6">
       <PageHeader
         title={isMonitoring ? 'Monitor Team Performance' : 'Team Performance'}
-        subtitle="Team reporting availability and required configuration."
+        subtitle={
+          isMonitoring
+            ? 'Team Lead workload monitoring.'
+            : 'Sales Manager reporting and employee comparison.'
+        }
       />
 
       <nav aria-label="Team performance views" className="flex gap-4 text-sm">
@@ -46,6 +50,25 @@ export default function TeamPerformancePage() {
             <p role="status" className="text-sm font-medium text-amber-900">
               No team metrics have been loaded. Totals, trends, and live monitoring are unavailable.
             </p>
+            {isMonitoring ? (
+              <div className="space-y-2 text-sm text-[#42526E]">
+                <h3 className="font-semibold text-[#091E42]">Conversion workload unavailable</h3>
+                <p>
+                  Assigned conversion jobs, queued work, and processing workload require verified
+                  staff assignments and team-lead access. Job creators do not establish assignments.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2 text-sm text-[#42526E]">
+                <h3 className="font-semibold text-[#091E42]">Sales reporting unavailable</h3>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>Individual lead counts require persisted salesperson assignments.</li>
+                  <li>Sales conversion rates require assigned leads and verified customer-conversion outcomes.</li>
+                  <li>Revenue generated requires confirmed revenue linked to each salesperson.</li>
+                  <li>Employee comparisons require verified teams and Sales Manager access.</li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </section>
