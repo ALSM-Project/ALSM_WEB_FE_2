@@ -3,7 +3,7 @@ import { apiClient } from '@/services/api/apiClient';
 export type TeamKind = 'SALES' | 'CONVERSION';
 export type ReportingDays = 7 | 30;
 export interface ManagedTeam { id: string; name: string; organizationId: string; kind: TeamKind; revision: number }
-export type SalesMetric = { available: false; reason: string } | { available: true; value: number };
+export type SalesMetric = { available: false; reason: string; code?: 'NO_ASSIGNED_LEADS' } | { available: true; value: number; unit?: 'COUNT' | 'PERCENT' | 'VND' };
 export interface SalesMetrics { leadCount: SalesMetric; conversionRate: SalesMetric; revenueGenerated: SalesMetric }
 export interface ReportPeriod { days: ReportingDays; start: string; end: string; basis: 'ROLLING_UTC'; boundaries: '[start,end)' }
 export interface SalesTeamReport {
@@ -11,7 +11,11 @@ export interface SalesTeamReport {
   period: ReportPeriod;
   asOf: string;
   metrics: SalesMetrics;
-  members: { userId: string; fullName: string; metrics: SalesMetrics }[];
+  cohort?: 'ASSIGNMENT_START';
+  conversionCredit?: 'ASSIGNEE_AT_CONVERSION';
+  revenueBasis?: 'CONFIRMED_PAYMENTS_WITH_EXPLICIT_SALESPERSON';
+  coverage?: 'RECORDED_EXPLICIT_SALES_ASSIGNMENTS';
+  members: { userId: string; fullName: string; currentMember?: boolean; metrics: SalesMetrics }[];
 }
 export interface WorkloadCounts { assignedJobs: number; processingJobs: number; completedJobs: number; failedJobs: number }
 export interface TeamWorkloadReport {

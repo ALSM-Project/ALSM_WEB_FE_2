@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -24,13 +24,35 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); clients.forEach((client) => client.clear()); clients.length = 0; });
 describe('persisted sales team reporting', () => {
+  it('shows server-computed distinct team totals, conversion credit and confirmed VND revenue', async () => {
+    const values = (count: number, rate: number, amount: number) => ({ leadCount: { available: true as const, value: count, unit: 'COUNT' as const }, conversionRate: { available: true as const, value: rate, unit: 'PERCENT' as const }, revenueGenerated: { available: true as const, value: amount, unit: 'VND' as const } });
+    vi.mocked(teamPerformanceService.sales).mockResolvedValue({ ...report, metrics: values(3, 200 / 3, 400000), members: [{ userId: 'a', fullName: 'Seller A', metrics: values(2, 0, 125000) }, { userId: 'b', fullName: 'Seller B', metrics: values(2, 100, 275000), currentMember: false }] });
+    show();
+    const totals = await screen.findByRole('row', { name: /Team totals/ });
+    expect(within(totals).getByText('3')).toBeInTheDocument();
+    expect(within(totals).getByText('66.67%')).toBeInTheDocument();
+    expect(within(totals).getByText('400,000 VND')).toBeInTheDocument();
+    expect(screen.getByRole('row', { name: /Seller A/ })).toHaveTextContent('0%');
+    expect(screen.getByRole('row', { name: /Seller B/ })).toHaveTextContent('100%');
+    expect(screen.getByText('Historical contributor')).toBeInTheDocument();
+    expect(screen.getByText(/A reassigned lead can appear/)).toBeInTheDocument();
+  });
+  it('distinguishes real zero data from an undefined conversion denominator', async () => {
+    vi.mocked(teamPerformanceService.sales).mockResolvedValue({ ...report, members: [], metrics: { leadCount: { available: true, value: 0, unit: 'COUNT' }, revenueGenerated: { available: true, value: 0, unit: 'VND' }, conversionRate: { available: false, code: 'NO_ASSIGNED_LEADS', reason: 'No distinct leads entered the cohort.' } } });
+    show();
+    const totals = await screen.findByRole('row', { name: /Team totals/ });
+    expect(within(totals).getByText('0')).toBeInTheDocument();
+    expect(within(totals).getByText('0 VND')).toBeInTheDocument();
+    expect(within(totals).getByText('Not applicable')).toHaveAttribute('title', 'No distinct leads entered the cohort.');
+    expect(screen.queryByText('0%')).not.toBeInTheDocument();
+  });
   it.each(['/team-performance', '/organisations/teams'])('integrates real API contracts and honest unavailable cells at %s', async (path) => {
     show(`${path}?teamId=team-a&days=7`);
     expect(await screen.findByText('Persisted salesperson')).toBeInTheDocument();
     expect(teamPerformanceService.listTeams).toHaveBeenCalledWith('SALES', undefined);
     expect(teamPerformanceService.sales).toHaveBeenCalledWith(team, 7);
-    expect(screen.getAllByText('Unavailable')).toHaveLength(3);
-    expect(screen.getByRole('region', { name: 'Sales metric availability' })).toHaveTextContent('converted leads / assigned leads × 100');
+    expect(screen.getAllByText('Unavailable')).toHaveLength(6);
+    expect(screen.getByRole('region', { name: 'Sales metric availability' })).toHaveTextContent('Conversion rate of leads assigned during the selected period');
     expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'View conversion queue' })).toHaveAttribute('href', '/queue');
   });
