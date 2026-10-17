@@ -13,8 +13,20 @@ export interface SalesTeamReport {
   metrics: SalesMetrics;
   members: { userId: string; fullName: string; metrics: SalesMetrics }[];
 }
+export interface WorkloadCounts { assignedJobs: number; processingJobs: number; completedJobs: number; failedJobs: number }
+export interface TeamWorkloadReport {
+  team: SalesTeamReport['team'];
+  period: ReportPeriod;
+  asOf: string;
+  coverage: 'EXPLICIT_ASSIGNMENTS_ONLY';
+  jobPeriodField: 'createdAt';
+  statusBasis: 'CURRENT';
+  totals: WorkloadCounts;
+  members: { userId: string; fullName: string; metrics: WorkloadCounts }[];
+}
 const organizationHeaders = (organizationId?: string) => organizationId ? { 'x-organization-id': organizationId } : undefined;
 export const teamPerformanceService = {
   listTeams: (kind: TeamKind, organizationId?: string) => apiClient.get<ManagedTeam[]>('/teams', { params: { kind }, headers: organizationHeaders(organizationId) }),
   sales: (team: ManagedTeam, days: ReportingDays) => apiClient.get<SalesTeamReport>(`/teams/${encodeURIComponent(team.id)}/performance`, { params: { days }, headers: organizationHeaders(team.organizationId) }),
+  workload: (team: ManagedTeam, days: ReportingDays) => apiClient.get<TeamWorkloadReport>(`/teams/${encodeURIComponent(team.id)}/workload`, { params: { days }, headers: organizationHeaders(team.organizationId) }),
 };

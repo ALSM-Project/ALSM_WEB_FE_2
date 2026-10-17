@@ -35,7 +35,7 @@ export default function TeamReportLayout({ kind, children }: { kind: TeamKind; c
         <label className="text-sm font-semibold">Team
           <select aria-label="Team" value={teamId} disabled={!canReport || teams.isFetching || teams.isError} className="block mt-1 border rounded-lg p-2 min-w-56" onChange={(event) => update('teamId', event.target.value)}>
             <option value="">Select an authorized team</option>
-            {!teams.isError && teams.data?.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
+            {canReport && !teams.isFetching && !teams.isError && teams.data?.map((team) => <option key={team.id} value={team.id}>{team.name}</option>)}
           </select>
         </label>
         <label className="text-sm font-semibold">Reporting period
