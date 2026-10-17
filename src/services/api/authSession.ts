@@ -147,7 +147,8 @@ export const tokenStore = {
     const started = state();
     if (!started.refreshToken || fence().blocked) return Promise.resolve(null);
     if (flight?.epoch === started.epoch) return flight.promise;
-    const promise = lock(async () => {
+    let sentToken: string | null = null;
+    const rotate = () => lock(async () => {
       if (fence().epoch !== started.epoch || fence().blocked) return null;
       if (state().refreshToken !== started.refreshToken) {
         const shared = await sharedPair();
@@ -156,16 +157,26 @@ export const tokenStore = {
       const current = state();
       if (!current.refreshToken || fence().blocked) return null;
       try {
+        sentToken = current.refreshToken;
         const tokens = await send(current.refreshToken);
-        if (fence().epoch !== started.epoch || fence().blocked || state().refreshToken !== current.refreshToken) return currentPair();
+        if (fence().epoch !== started.epoch || fence().blocked || state().refreshToken !== current.refreshToken) return sharedPair();
         return publish(tokens, started.epoch) ? tokens : null;
       } catch (error) {
-        if (fence().epoch !== started.epoch || fence().blocked || state().refreshToken !== current.refreshToken) return currentPair();
+        if (fence().epoch !== started.epoch || fence().blocked || state().refreshToken !== current.refreshToken) return sharedPair();
         const status = (error as { response?: { status?: number }; status?: number }).response?.status || (error as { status?: number }).status;
         if (status === 401 || status === 403) clearAtEpoch(started.epoch);
         throw error; // Connectivity/503 is never proof of revocation.
       }
     });
+    const promise = (async () => {
+      // A suspended/closing peer may miss BroadcastChannel delivery. Re-read a
+      // genuinely newer proof under the lock; never replay a consumed proof.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const tokens = await rotate();
+        if (tokens || fence().epoch !== started.epoch || fence().blocked || !state().refreshToken || state().refreshToken === sentToken) return tokens;
+      }
+      throw new Error('The session changed in another tab. Please retry.');
+    })();
     const tracked = promise.finally(() => { if (flight?.promise === tracked) flight = null; });
     flight = { epoch: started.epoch, promise: tracked };
     return tracked;

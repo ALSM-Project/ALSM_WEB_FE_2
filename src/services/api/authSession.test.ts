@@ -78,6 +78,34 @@ describe('refresh/logout coordination', () => {
     expect(store.requiresPasswordChange()).toBe(true); expect(store.hasPassword()).toBe(false);
     await store.completePasswordChange(); expect(store.requiresPasswordChange()).toBe(false); expect(store.hasPassword()).toBe(true);
   });
+  it("recovers from missed peer delivery using only a newer persisted proof", async () => {
+    vi.stubGlobal("BroadcastChannel", undefined);
+    const a = await tab(),
+      b = await tab();
+    a.setTokens(pair("old"));
+    Object.defineProperty(navigator, "locks", {
+      configurable: true,
+      value: {
+        request: (_name: string, work: () => Promise<unknown>) => work(),
+      },
+    });
+    const response = deferred<ReturnType<typeof pair>>();
+    const send = vi
+      .fn()
+      .mockImplementationOnce(() => response.promise)
+      .mockResolvedValue(pair("recovered"));
+    const pending = a.refresh(send);
+    await vi.waitFor(() => expect(send).toHaveBeenCalledTimes(1));
+    await b.refresh(async () => pair("peer"));
+    response.reject({ response: { status: 401 } });
+    const result = await pending;
+    expect(result?.refreshToken).not.toBe("refresh-old");
+    expect(result?.accessToken).toBeTruthy();
+    expect(
+      send.mock.calls.filter(([proof]) => proof === "refresh-old"),
+    ).toHaveLength(1);
+    expect(send.mock.calls.length).toBeLessThanOrEqual(2);
+  });
   it('retains this portal access-token storage policy', async () => {
     const store = await tab(); store.setTokens(pair('policy'));
     const persisted = Object.values(localStorage).join('');
