@@ -21,10 +21,12 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { quoteApi } from '@/features/billing/api/quote.api';
 import type { QuoteRequest } from '@/features/billing/types/quote';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const StaffDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
   const [approvalSuccess, setApprovalSuccess] = useState<string | null>(null);
 
   // Fetch pending enterprise quote requests
@@ -117,7 +119,7 @@ export const StaffDashboardPage: React.FC = () => {
               <ClipboardCheck className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-lg font-bold mt-3">Select completed jobs</p>
+          {hasPermission('quality-review.manage') ? <button onClick={() => navigate('/review')} className="text-lg font-bold text-blue-700 mt-3 underline">Open reviews</button> : <p className="text-lg font-bold mt-3">Permission required</p>}
           <p className="text-xs text-[#6B778C] mt-1">Inspect completed conversions and persisted decisions</p>
         </Card>
 

@@ -58,7 +58,7 @@ export const router = createBrowserRouter([
       },
       { path: '/queue', element: <ConversionQueuePage /> },
       { path: '/validation', element: <StaffDashboardPage /> },
-      { path: '/review', element: <StaffDashboardPage /> },
+      { path: '/review', element: <PermissionGuard permission="quality-review.manage"><ConversionQueuePage reviewOnly /></PermissionGuard> },
       { path: '/organisations', element: <StaffDashboardPage /> },
       { path: '/organisations/partners', element: <StaffDashboardPage /> },
       { path: '/organisations/departments', element: <StaffDashboardPage /> },
