@@ -67,7 +67,7 @@ export const invoicesApi = {
   getInvoices: async (query?: ListInvoicesQuery): Promise<InvoiceDto[]> => {
     try {
       const res = await apiClient.get<InvoiceDto[]>('/billing/invoices', { params: query });
-      if (Array.isArray(res) && res.length > 0) {
+      if (Array.isArray(res)) {
         return res;
       }
       return MOCK_INVOICES;
