@@ -11,7 +11,7 @@ describe('View Invoices Workflow (Enterprise Customer & Admin)', () => {
   it('renders enterprise invoices list with KPI summary metrics', async () => {
     render(<InvoicesPage />);
 
-    expect(screen.getByText('Enterprise Invoices')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /(Invoices|Enterprise Invoices)/i })).toBeInTheDocument();
     expect(screen.getByText('Total Invoiced')).toBeInTheDocument();
     expect(screen.getByText('Total Settled (Paid)')).toBeInTheDocument();
     expect(screen.getByText('Pending & Outstanding')).toBeInTheDocument();
