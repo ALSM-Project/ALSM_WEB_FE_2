@@ -112,20 +112,11 @@ export const InvoicesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DFE3E8]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E8F1FF] text-[#0652CC] uppercase tracking-wider">
-              Financial Administration
-            </span>
-            <span className="text-[11px] text-[#5E6C84]">Invoices & Receipts</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#172B4D] tracking-tight mt-1">
-            Enterprise Invoices
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Invoices
           </h1>
-          <p className="text-xs text-[#5E6C84] mt-1">
-            View generated subscription and screen conversion invoices, verify payment statuses, and download receipts.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -144,21 +135,21 @@ export const InvoicesPage: React.FC = () => {
 
       {/* KPI Overview Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#5E6C84]">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#8491A3]">
             <span>Total Invoiced</span>
-            <DollarSign className="w-4 h-4 text-[#0652CC]" />
+            <DollarSign className="w-4 h-4 text-[#244A70]" />
           </div>
-          <div className="mt-2 text-xl font-bold text-[#172B4D]">
+          <div className="mt-2 text-xl font-bold text-[#17263A]">
             ${totalBilled.toLocaleString()}
           </div>
-          <div className="text-[11px] text-[#5E6C84] mt-0.5">
+          <div className="text-[11px] text-[#8491A3] mt-0.5">
             Across {invoices.length} billed cycles
           </div>
         </Card>
 
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#5E6C84]">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#8491A3]">
             <span>Total Settled (Paid)</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
@@ -170,12 +161,12 @@ export const InvoicesPage: React.FC = () => {
           </div>
         </Card>
 
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
-          <div className="flex items-center justify-between text-xs font-semibold text-[#5E6C84]">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#8491A3]">
             <span>Pending & Outstanding</span>
             <Clock className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="mt-2 text-xl font-bold text-[#172B4D]">
+          <div className="mt-2 text-xl font-bold text-[#17263A]">
             ${totalOutstanding.toLocaleString()}
           </div>
           <div className="text-[11px] text-amber-800 mt-0.5 font-medium">
@@ -185,9 +176,9 @@ export const InvoicesPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#5E6C84]" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -203,8 +194,8 @@ export const InvoicesPage: React.FC = () => {
               onClick={() => setStatusFilter(status)}
               className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
                 statusFilter === status
-                  ? 'bg-[#0652CC] text-white shadow-xs'
-                  : 'bg-[#F7F9FC] text-[#5E6C84] hover:bg-[#E8F1FF] hover:text-[#0652CC]'
+                  ? 'bg-[#244A70] text-white shadow-xs'
+                  : 'bg-[#F8FAFC] text-[#8491A3] hover:bg-[#EEF1F6] hover:text-[#244A70]'
               }`}
             >
               {status === 'ALL' ? 'All Invoices' : status}
@@ -214,11 +205,11 @@ export const InvoicesPage: React.FC = () => {
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-white rounded-xl border border-[#DFE3E8] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#DFE3E8] text-[10px] font-bold text-[#5E6C84] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Invoice #</th>
                 <th className="py-3 px-4">Tenant / Customer</th>
                 <th className="py-3 px-4">Issue Date</th>
@@ -228,40 +219,40 @@ export const InvoicesPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#DFE3E8]">
+            <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#5E6C84]">
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                     <div className="flex items-center justify-center gap-2">
-                      <RefreshCw className="w-4 h-4 animate-spin text-[#0652CC]" />
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#244A70]" />
                       <span>Loading invoices...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#5E6C84]">
-                    <FileText className="w-8 h-8 mx-auto text-[#DFE3E8] mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                    <FileText className="w-8 h-8 mx-auto text-[#DCE3EC] mb-2" />
                     <div>No enterprise invoices found matching your criteria.</div>
                   </td>
                 </tr>
               ) : (
                 filteredInvoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-[#F7F9FC]/70 transition-colors">
-                    <td className="py-3 px-4 font-mono font-semibold text-[#0652CC]">
+                  <tr key={inv.id} className="hover:bg-[#F8FAFC]/70 transition-colors">
+                    <td className="py-3 px-4 font-mono font-semibold text-[#244A70]">
                       {inv.invoiceNumber}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-[#172B4D]">{inv.organizationName || 'Tenant'}</div>
-                      <div className="text-[10px] text-[#5E6C84]">{inv.customerEmail}</div>
+                      <div className="font-semibold text-[#17263A]">{inv.organizationName || 'Tenant'}</div>
+                      <div className="text-[10px] text-[#8491A3]">{inv.customerEmail}</div>
                     </td>
-                    <td className="py-3 px-4 text-[#5E6C84]">
+                    <td className="py-3 px-4 text-[#8491A3]">
                       {new Date(inv.issueDate).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-4 text-[#5E6C84]">
+                    <td className="py-3 px-4 text-[#8491A3]">
                       {new Date(inv.dueDate).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-4 font-bold text-[#172B4D]">
+                    <td className="py-3 px-4 font-bold text-[#17263A]">
                       ${inv.amount.toLocaleString()} {inv.currency}
                     </td>
                     <td className="py-3 px-4">{getStatusBadge(inv.status)}</td>
@@ -274,7 +265,7 @@ export const InvoicesPage: React.FC = () => {
                           className="h-7 px-2 text-xs"
                           title="View Invoice Details"
                         >
-                          <Eye className="w-3.5 h-3.5 mr-1 text-[#5E6C84]" />
+                          <Eye className="w-3.5 h-3.5 mr-1 text-[#8491A3]" />
                           <span>View</span>
                         </Button>
                         <Button
@@ -282,7 +273,7 @@ export const InvoicesPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleDownloadPdf(inv)}
                           disabled={downloadingId === inv.id}
-                          className="h-7 px-2 text-xs text-[#0652CC] border-[#0652CC]/30 hover:bg-[#E8F1FF]"
+                          className="h-7 px-2 text-xs text-[#244A70] border-[#244A70]/30 hover:bg-[#EEF1F6]"
                           title="Download Receipt PDF"
                         >
                           <Download className="w-3.5 h-3.5 mr-1" />
@@ -307,36 +298,36 @@ export const InvoicesPage: React.FC = () => {
         {selectedInvoice && (
           <div className="space-y-4 text-xs">
             {/* Header summary */}
-            <div className="p-3.5 bg-[#F7F9FC] border border-[#DFE3E8] rounded-xl flex items-center justify-between">
+            <div className="p-3.5 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-[10px] uppercase font-bold text-[#5E6C84]">Billed To</span>
-                <div className="font-bold text-sm text-[#172B4D]">
+                <span className="text-[10px] uppercase font-bold text-[#8491A3]">Billed To</span>
+                <div className="font-bold text-sm text-[#17263A]">
                   {selectedInvoice.organizationName || 'Enterprise Tenant'}
                 </div>
-                <div className="text-[11px] text-[#5E6C84]">{selectedInvoice.customerEmail}</div>
+                <div className="text-[11px] text-[#8491A3]">{selectedInvoice.customerEmail}</div>
               </div>
               <div className="text-right">
-                <span className="text-[10px] uppercase font-bold text-[#5E6C84]">Status</span>
+                <span className="text-[10px] uppercase font-bold text-[#8491A3]">Status</span>
                 <div className="mt-0.5">{getStatusBadge(selectedInvoice.status)}</div>
               </div>
             </div>
 
             {/* Dates */}
             <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-[#DFE3E8]">
-                <Calendar className="w-4 h-4 text-[#5E6C84]" />
+              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-[#DCE3EC]">
+                <Calendar className="w-4 h-4 text-[#8491A3]" />
                 <div>
-                  <div className="text-[10px] text-[#5E6C84]">Issue Date</div>
-                  <div className="font-semibold text-[#172B4D]">
+                  <div className="text-[10px] text-[#8491A3]">Issue Date</div>
+                  <div className="font-semibold text-[#17263A]">
                     {new Date(selectedInvoice.issueDate).toLocaleDateString()}
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-[#DFE3E8]">
-                <Calendar className="w-4 h-4 text-[#5E6C84]" />
+              <div className="flex items-center gap-2 p-2.5 rounded-lg border border-[#DCE3EC]">
+                <Calendar className="w-4 h-4 text-[#8491A3]" />
                 <div>
-                  <div className="text-[10px] text-[#5E6C84]">Due Date</div>
-                  <div className="font-semibold text-[#172B4D]">
+                  <div className="text-[10px] text-[#8491A3]">Due Date</div>
+                  <div className="font-semibold text-[#17263A]">
                     {new Date(selectedInvoice.dueDate).toLocaleDateString()}
                   </div>
                 </div>
@@ -345,10 +336,10 @@ export const InvoicesPage: React.FC = () => {
 
             {/* Line items table */}
             <div>
-              <div className="font-bold text-xs text-[#172B4D] mb-2">Itemized Deliverables</div>
-              <div className="border border-[#DFE3E8] rounded-xl overflow-hidden">
+              <div className="font-bold text-xs text-[#17263A] mb-2">Itemized Deliverables</div>
+              <div className="border border-[#DCE3EC] rounded-xl overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#F7F9FC] border-b border-[#DFE3E8] text-[10px] font-bold text-[#5E6C84] uppercase">
+                  <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase">
                     <tr>
                       <th className="py-2 px-3">Description</th>
                       <th className="py-2 px-3 text-center">Qty</th>
@@ -356,15 +347,15 @@ export const InvoicesPage: React.FC = () => {
                       <th className="py-2 px-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#DFE3E8]">
+                  <tbody className="divide-y divide-[#DCE3EC]">
                     {(selectedInvoice.items || []).map((item) => (
                       <tr key={item.id}>
-                        <td className="py-2 px-3 text-[#172B4D]">{item.description}</td>
-                        <td className="py-2 px-3 text-center text-[#5E6C84]">{item.quantity}</td>
-                        <td className="py-2 px-3 text-right text-[#5E6C84]">
+                        <td className="py-2 px-3 text-[#17263A]">{item.description}</td>
+                        <td className="py-2 px-3 text-center text-[#8491A3]">{item.quantity}</td>
+                        <td className="py-2 px-3 text-right text-[#8491A3]">
                           ${item.unitPrice.toLocaleString()}
                         </td>
-                        <td className="py-2 px-3 text-right font-semibold text-[#172B4D]">
+                        <td className="py-2 px-3 text-right font-semibold text-[#17263A]">
                           ${item.total.toLocaleString()}
                         </td>
                       </tr>
@@ -375,29 +366,29 @@ export const InvoicesPage: React.FC = () => {
             </div>
 
             {/* Financial Totals */}
-            <div className="p-3 bg-[#F7F9FC] border border-[#DFE3E8] rounded-xl space-y-1.5 text-xs">
-              <div className="flex justify-between text-[#5E6C84]">
+            <div className="p-3 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl space-y-1.5 text-xs">
+              <div className="flex justify-between text-[#8491A3]">
                 <span>Subtotal:</span>
-                <span className="font-semibold text-[#172B4D]">
+                <span className="font-semibold text-[#17263A]">
                   ${(selectedInvoice.subtotal || selectedInvoice.amount * 0.9).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between text-[#5E6C84]">
+              <div className="flex justify-between text-[#8491A3]">
                 <span>Applicable Tax / VAT:</span>
-                <span className="font-semibold text-[#172B4D]">
+                <span className="font-semibold text-[#17263A]">
                   ${(selectedInvoice.tax || selectedInvoice.amount * 0.1).toLocaleString()}
                 </span>
               </div>
-              <div className="flex justify-between pt-1.5 border-t border-[#DFE3E8] text-sm font-bold text-[#172B4D]">
+              <div className="flex justify-between pt-1.5 border-t border-[#DCE3EC] text-sm font-bold text-[#17263A]">
                 <span>Total Amount:</span>
-                <span className="text-[#0652CC]">
+                <span className="text-[#244A70]">
                   ${selectedInvoice.amount.toLocaleString()} {selectedInvoice.currency}
                 </span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#DFE3E8]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button
                 variant="outline"
                 size="sm"
@@ -409,7 +400,7 @@ export const InvoicesPage: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => handleDownloadPdf(selectedInvoice)}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 <Download className="w-3.5 h-3.5 mr-1.5" />
                 <span>Download Receipt PDF</span>
