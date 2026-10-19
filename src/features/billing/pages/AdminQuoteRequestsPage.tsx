@@ -1,3 +1,4 @@
+import { ScheduleCustomerConsultationModal, CustomerMeetingInfo } from '../components/ScheduleCustomerConsultationModal';
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +16,8 @@ import {
   User,
   Video,
 } from 'lucide-react';
-import { Card, PageHeader, Badge, Button } from '@/shared/ui';
+import { Card, PageHeader, Badge, Button, toast } from '@/shared/ui';
+import { ExternalLink } from 'lucide-react';
 import { quoteApi } from '../api/quote.api';
 import type { QuoteRequest, QuoteStatus } from '../types/quote';
 
@@ -32,6 +34,39 @@ export const AdminQuoteRequestsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [selectedQuoteForMeeting, setSelectedQuoteForMeeting] = useState<QuoteRequest | null>(null);
+  const [customerMeetings, setCustomerMeetings] = useState<Record<string, CustomerMeetingInfo>>(() => {
+    try {
+      const raw = localStorage.getItem('alsm_customer_quote_meetings');
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleMeetingScheduled = (meeting: CustomerMeetingInfo) => {
+    setCustomerMeetings((prev) => {
+      const next = { ...prev, [meeting.quoteId]: meeting };
+      try {
+        localStorage.setItem('alsm_customer_quote_meetings', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+    const targetQuote = allItems.find((q) => q.id === meeting.quoteId);
+    if (targetQuote && targetQuote.status === 'PENDING') {
+      updateMutation.mutate({
+        id: targetQuote.id,
+        status: 'CONTACTED',
+        reason: `Customer consultation scheduled for ${new Date(meeting.scheduledAt).toLocaleDateString()} via Google Meet.`,
+      });
+    }
+
+    setActionSuccessMessage(`Customer consultation scheduled for ${targetQuote?.companyName || 'customer'} via Google Meet!`);
+    setTimeout(() => setActionSuccessMessage(null), 6000);
+  };
 
   // Fetch list of quote requests
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -60,7 +95,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message || err?.message || 'Failed to update quote request status';
-      alert(`Error: ${msg}`);
+      toast.error(`Error: ${msg}`, { title: 'Update Failed' });
     },
   });
 
@@ -74,7 +109,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
         : `Appeal declined; ${updated.companyName} remains suspended.`);
       setTimeout(() => setActionSuccessMessage(null), 5000);
     },
-    onError: (err: any) => alert(`Error: ${err?.response?.data?.message || err?.message || 'Failed to resolve appeal'}`),
+    onError: (err: any) => toast.error(`Error: ${err?.response?.data?.message || err?.message || 'Failed to resolve appeal'}`, { title: 'Appeal Error' }),
   });
 
   const allItems: QuoteRequest[] = data?.items || [];
@@ -95,20 +130,11 @@ export const AdminQuoteRequestsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <PageHeader
-            title="Enterprise Quote Requests & Sales Meetings"
-            subtitle="Review, approve, and schedule Google Meet sessions with enterprise clients (UC-32 & UC-43)."
+            title="Quote Requests"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => navigate('/enterprise/meetings/create')}
-            className="inline-flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-          >
-            <Video className="w-3.5 h-3.5" />
-            Create Google Meet
-          </Button>
+          
           <Button
             variant="secondary"
             size="sm"
@@ -155,7 +181,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus(''); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === '' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === '' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             All Requests ({data?.total ?? 0})
@@ -164,7 +190,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('PENDING'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-              selectedStatus === 'PENDING' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'PENDING' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             <span>Pending Review</span>
@@ -178,7 +204,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('CONTACTED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === 'CONTACTED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'CONTACTED' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             Contacted
@@ -187,7 +213,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('APPROVED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === 'APPROVED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'APPROVED' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             Approved
@@ -196,7 +222,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('REJECTED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === 'REJECTED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'REJECTED' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             Rejected
@@ -205,7 +231,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('SUSPENDED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === 'SUSPENDED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'SUSPENDED' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             Suspended
@@ -214,7 +240,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             type="button"
             onClick={() => { setSelectedStatus('CLOSED'); setPage(1); }}
             className={`px-3 py-1.5 rounded-lg transition-colors ${
-              selectedStatus === 'CLOSED' ? 'bg-white text-[#091E42] shadow-xs' : 'hover:text-slate-900'
+              selectedStatus === 'CLOSED' ? 'bg-white text-[#17263A] shadow-xs' : 'hover:text-slate-900'
             }`}
           >
             Closed
@@ -229,7 +255,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search company, email, ID..."
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70]"
           />
         </div>
       </div>
@@ -262,9 +288,9 @@ export const AdminQuoteRequestsPage: React.FC = () => {
         </Card>
       ) : filteredItems.length === 0 ? (
         <Card variant="default" padding="lg">
-          <div className="flex flex-col items-center justify-center py-12 text-[#6B778C]">
+          <div className="flex flex-col items-center justify-center py-12 text-[#8491A3]">
             <Building2 className="w-10 h-10 mb-2 opacity-30" />
-            <p className="text-sm font-semibold text-[#091E42]">No quote requests found</p>
+            <p className="text-sm font-semibold text-[#17263A]">No quote requests found</p>
             <p className="text-xs mt-0.5">
               {searchTerm ? 'Try adjusting your search criteria.' : 'Enterprise quote requests submitted by customers will appear here.'}
             </p>
@@ -293,8 +319,8 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                   {/* Left: Company & Contact details */}
                   <div className="space-y-2 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-base font-extrabold text-[#091E42] flex items-center gap-1.5">
-                        <Building2 className="w-4 h-4 text-[#0652CC]" />
+                      <span className="text-base font-extrabold text-[#17263A] flex items-center gap-1.5">
+                        <Building2 className="w-4 h-4 text-[#244A70]" />
                         {req.companyName || 'Unknown Company'}
                       </span>
 
@@ -330,14 +356,14 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                     </div>
 
                     {/* Metadata items */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1 gap-x-4 text-xs text-[#6B778C]">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1 gap-x-4 text-xs text-[#8491A3]">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span className="font-semibold text-slate-800">{req.fullName}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <a href={`mailto:${req.email}`} className="text-[#0652CC] hover:underline">
+                        <a href={`mailto:${req.email}`} className="text-[#244A70] hover:underline">
                           {req.email}
                         </a>
                       </div>
@@ -368,6 +394,37 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                       </div>
                     )}
 
+{customerMeetings[req.id] && (
+                      <div className="mt-2.5 p-2.5 bg-emerald-50/80 border border-emerald-200 rounded-lg flex items-center justify-between text-xs text-emerald-950 flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <Video className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <div>
+                            <span className="font-bold text-emerald-900">Customer Consultation Scheduled: </span>
+                            <span className="font-semibold text-slate-800">
+                              {new Date(customerMeetings[req.id].scheduledAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })} ({customerMeetings[req.id].durationMinutes}m)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <a
+                            href={customerMeetings[req.id].meetingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Join Google Meet
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedQuoteForMeeting(req)}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded border border-emerald-300 hover:bg-emerald-100 text-emerald-800 text-[11px] font-semibold transition-colors cursor-pointer"
+                          >
+                            Reschedule
+                          </button>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 text-[11px] text-slate-400 pt-1">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -383,21 +440,18 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                       <>
                         <button
                           type="button"
-                          onClick={() => {
-                            const title = `Họp tư vấn Báo giá Enterprise - ${req.companyName || 'Khách hàng'}`;
-                            navigate(`/enterprise/meetings/create?email=${encodeURIComponent(req.email)}&title=${encodeURIComponent(title)}`);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+                          onClick={() => setSelectedQuoteForMeeting(req)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
                         >
                           <Video className="w-3.5 h-3.5" />
-                          Tạo họp Google Meet
+                          {customerMeetings[req.id] ? 'Reschedule Meeting' : 'Schedule Google Meet'}
                         </button>
                         {isPending && (
                         <button
                           type="button"
                           disabled={updateMutation.isPending}
                           onClick={() => updateMutation.mutate({ id: req.id, status: 'CONTACTED' })}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#0652CC] hover:bg-[#0448b3] text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold shadow-xs transition-colors disabled:opacity-50"
                         >
                           <PhoneCall className="w-3.5 h-3.5" />
                           Mark as Contacted
@@ -457,7 +511,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                         type="button"
                         disabled={appealMutation.isPending || updateMutation.isPending}
                         onClick={() => appealMutation.mutate({ id: req.id, decision: 'APPROVED' })}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold shadow-xs disabled:opacity-50"
                       >Approve Appeal & Restore</button>
                       <button
                         type="button"
@@ -477,7 +531,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
                             updateMutation.mutate({ id: req.id, status: 'APPROVED' });
                           }
                         }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold shadow-xs disabled:opacity-50"
                       >
                         Restore Enterprise
                       </button>}
@@ -503,6 +557,12 @@ export const AdminQuoteRequestsPage: React.FC = () => {
           </div>
         </div>
       )}
+      <ScheduleCustomerConsultationModal
+        isOpen={Boolean(selectedQuoteForMeeting)}
+        quote={selectedQuoteForMeeting}
+        onClose={() => setSelectedQuoteForMeeting(null)}
+        onScheduled={handleMeetingScheduled}
+      />
     </div>
   );
 };
