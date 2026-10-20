@@ -23,7 +23,7 @@ const NOTE_MAX_LENGTH = 1000;
 const EMPTY_RULE: SupportPatchRule = { sourceField: '', targetProperty: '', dataType: 'string', transformRule: '' };
 
 const inputClass =
-  'w-full rounded-md border border-[#D9E2EC] bg-white px-2 py-1.5 text-xs text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]';
+  'w-full rounded-md border border-[#DCE3EC] bg-white px-2 py-1.5 text-xs text-[#17263A] outline-none focus:ring-1 focus:ring-[#244A70]';
 
 function sameRules(a: SupportPatchRule[], b: SupportPatchRule[]): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -151,9 +151,9 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
 
       {saved.isSuccess && (
         <>
-          <div className="overflow-x-auto rounded-lg border border-[#E5EAF0]">
+          <div className="overflow-x-auto rounded-lg border border-[#DCE3EC]">
             <table className="w-full text-left">
-              <thead className="bg-[#F7F9FC] text-[11px] uppercase text-[#6B778C]">
+              <thead className="bg-[#F8FAFC] text-[11px] uppercase text-[#8491A3]">
                 <tr>
                   <th className="px-2 py-2">Legacy source field</th>
                   <th className="px-2 py-2">Target property</th>
@@ -171,7 +171,7 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
                   </tr>
                 )}
                 {rules.map((rule, index) => (
-                  <tr key={`${index}-${rule.sourceField}`} className="border-t border-[#E5EAF0]">
+                  <tr key={`${index}-${rule.sourceField}`} className="border-t border-[#DCE3EC]">
                     <td className="px-2 py-1.5 font-mono">{rule.sourceField}</td>
                     <td className="px-2 py-1.5">
                       <input
@@ -223,24 +223,24 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
           {canApply && (
             <form onSubmit={addRule} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end" aria-label="Add mapping rule">
               <label className="space-y-1">
-                <span className="text-[11px] text-[#6B778C]">Source field</span>
+                <span className="text-[11px] text-[#8491A3]">Source field</span>
                 <input className={`${inputClass} font-mono`} value={draft.sourceField}
                   onChange={(e) => setDraft({ ...draft, sourceField: e.target.value })} placeholder="CUST_BAL_AMT" />
               </label>
               <label className="space-y-1">
-                <span className="text-[11px] text-[#6B778C]">Target property</span>
+                <span className="text-[11px] text-[#8491A3]">Target property</span>
                 <input className={inputClass} value={draft.targetProperty}
                   onChange={(e) => setDraft({ ...draft, targetProperty: e.target.value })} placeholder="currentBalance" />
               </label>
               <label className="space-y-1">
-                <span className="text-[11px] text-[#6B778C]">Data type</span>
+                <span className="text-[11px] text-[#8491A3]">Data type</span>
                 <select className={inputClass} value={draft.dataType}
                   onChange={(e) => setDraft({ ...draft, dataType: e.target.value as SupportPatchDataType })}>
                   {SUPPORT_PATCH_DATA_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </label>
               <label className="space-y-1">
-                <span className="text-[11px] text-[#6B778C]">Transform rule</span>
+                <span className="text-[11px] text-[#8491A3]">Transform rule</span>
                 <input className={`${inputClass} font-mono`} value={draft.transformRule ?? ''}
                   onChange={(e) => setDraft({ ...draft, transformRule: e.target.value })} placeholder="optional" />
               </label>
