@@ -7,12 +7,12 @@ const CheckIcon = ({ variant = 'fail' }: { variant?: 'fail' | 'progress' }) => {
     <div
       className={[
         'flex h-7 w-7 items-center justify-center rounded-full border',
-        isFail ? 'border-[#d1242f] bg-[#fff1f2]' : 'border-[#d4a72c] bg-[#fff8db]',
+        isFail ? 'border-[#B91C1C] bg-[#fff1f2]' : 'border-[#d4a72c] bg-[#fff8db]',
       ].join(' ')}
       aria-hidden="true"
     >
       {isFail ? (
-        <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#cf222e]" fill="none" stroke="currentColor" strokeWidth="2.4">
+        <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#B91C1C]" fill="none" stroke="currentColor" strokeWidth="2.4">
           <path d="M5 5L15 15M15 5L5 15" strokeLinecap="round" />
         </svg>
       ) : (
@@ -50,16 +50,16 @@ const StatusRow = ({
         <GitHubCircle />
         <div className="min-w-0">
           <div className="truncate text-[22px] font-medium leading-snug text-[#1f2328]">{title}</div>
-          <div className="mt-1 text-[17px] leading-relaxed text-[#57606a]">{detail}</div>
+          <div className="mt-1 text-[17px] leading-relaxed text-[#8491A3]">{detail}</div>
         </div>
       </div>
     </div>
 
     <div className="flex shrink-0 items-center gap-3 pl-6">
-      <span className="inline-flex items-center rounded-full border border-[#d0d7de] bg-[#f6f8fa] px-3 py-1 text-[15px] font-medium text-[#57606a]">
+      <span className="inline-flex items-center rounded-full border border-[#d0d7de] bg-[#f6f8fa] px-3 py-1 text-[15px] font-medium text-[#8491A3]">
         Required
       </span>
-      <button type="button" aria-label="More actions" className="flex h-8 w-8 items-center justify-center rounded-md text-[#57606a] hover:bg-[#f6f8fa]">
+      <button type="button" aria-label="More actions" className="flex h-8 w-8 items-center justify-center rounded-md text-[#8491A3] hover:bg-[#f6f8fa]">
         <svg viewBox="0 0 20 20" className="h-5 w-5" fill="currentColor" aria-hidden="true">
           <circle cx="5" cy="10" r="1.3" />
           <circle cx="10" cy="10" r="1.3" />
@@ -93,11 +93,11 @@ export const PullRequestStatusPage: React.FC = () => {
                 <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[#1f2328] sm:text-[30px]">
                   Some checks were not successful
                 </h1>
-                <p className="mt-2 text-[18px] text-[#57606a]">1 failing, 1 in progress checks</p>
+                <p className="mt-2 text-[18px] text-[#8491A3]">1 failing, 1 in progress checks</p>
               </div>
             </div>
 
-            <button type="button" aria-label="Expand checks" className="flex h-10 w-10 items-center justify-center rounded-md text-[#57606a] hover:bg-[#f6f8fa]">
+            <button type="button" aria-label="Expand checks" className="flex h-10 w-10 items-center justify-center rounded-md text-[#8491A3] hover:bg-[#f6f8fa]">
               <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                 <path d="M5 7.5l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -106,13 +106,13 @@ export const PullRequestStatusPage: React.FC = () => {
 
           <div className="px-5 pb-4 pt-5">
             <div className="mb-4 flex items-center justify-between px-2">
-              <div className="flex items-center gap-2 text-[17px] font-medium text-[#57606a]">
+              <div className="flex items-center gap-2 text-[17px] font-medium text-[#8491A3]">
                 <span>1 failing check</span>
-                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#57606a]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#8491A3]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path d="M5 7.5l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <button type="button" aria-label="Check settings" className="flex h-8 w-8 items-center justify-center rounded-md text-[#57606a] hover:bg-[#f6f8fa]">
+              <button type="button" aria-label="Check settings" className="flex h-8 w-8 items-center justify-center rounded-md text-[#8491A3] hover:bg-[#f6f8fa]">
                 <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path d="M10.5 3.5h3l.6 2.4 2.5.8 2.4.6v3l-2.4.6-.8 2.5-.6 2.4h-3l-.6-2.4-2.5-.8-2.4-.6v-3l2.4-.6.8-2.5.6-2.4Zm1.5 6.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
@@ -126,9 +126,9 @@ export const PullRequestStatusPage: React.FC = () => {
             />
 
             <div className="mt-4 mb-3 flex items-center justify-between px-2 pt-2">
-              <div className="flex items-center gap-2 text-[17px] font-medium text-[#57606a]">
+              <div className="flex items-center gap-2 text-[17px] font-medium text-[#8491A3]">
                 <span>1 in progress check</span>
-                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#57606a]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#8491A3]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path d="M5 7.5l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
@@ -144,7 +144,7 @@ export const PullRequestStatusPage: React.FC = () => {
           <div className="border-t border-[#d8dee4] bg-[#f8fafc] px-6 py-8 sm:px-8">
             <div className="flex items-center justify-between gap-4 rounded-[10px] border border-[#d8dee4] bg-[#f6f8fa] px-5 py-4">
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f1f5f9] text-[#57606a]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#F4F7FB] text-[#8491A3]">
                   <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <path d="M12 3.5v8.4m0 0 3.5-3.5M12 11.9 8.5 8.4M12 20.5v-6.2m0 0 3.5 3.5M12 14.3l-3.5 3.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
@@ -154,7 +154,7 @@ export const PullRequestStatusPage: React.FC = () => {
                   <h2 className="text-[19px] font-semibold leading-tight tracking-[-0.02em] text-[#1f2328] sm:text-[22px]">
                     This branch is out-of-date with the base branch
                   </h2>
-                  <p className="mt-2 max-w-[820px] text-[16px] leading-7 text-[#57606a]">
+                  <p className="mt-2 max-w-[820px] text-[16px] leading-7 text-[#8491A3]">
                     Merge the latest changes from develop into this branch. This merge commit will be associated
                     with Nguyen-Cuong-333.
                   </p>
@@ -172,12 +172,12 @@ export const PullRequestStatusPage: React.FC = () => {
                 className="inline-flex items-center gap-2 rounded-lg border border-[#d0d7de] bg-white px-5 py-3 text-[18px] font-medium text-[#24292f] shadow-sm hover:bg-[#f6f8fa]"
               >
                 Merge pull request
-                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#57606a]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <svg viewBox="0 0 20 20" className="h-4 w-4 text-[#8491A3]" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
                   <path d="M5 7.5l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
 
-              <p className="text-center text-[16px] text-[#57606a]">
+              <p className="text-center text-[16px] text-[#8491A3]">
                 You can also merge this with the command line.
                 <a href="#" className="ml-1 font-medium text-[#0969da] hover:underline">View command line instructions.</a>
               </p>
