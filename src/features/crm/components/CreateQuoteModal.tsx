@@ -97,11 +97,11 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Modernization Plan</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Modernization Plan</label>
             <select
               value={plan}
               onChange={(e) => handlePlanChange(e.target.value)}
-              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
             >
               <option value="Pilot Sandbox">Pilot Sandbox (25,000 VND)</option>
               <option value="Professional">Professional Tier (45,000 VND)</option>
@@ -111,7 +111,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Base Price (VND)</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Base Price (VND)</label>
             <Input
               type="number"
               min="10000"
@@ -124,7 +124,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Project Scope & Deliverables</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Project Scope & Deliverables</label>
           <Input
             value={projectScope}
             onChange={(e) => setProjectScope(e.target.value)}
@@ -133,10 +133,10 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
           />
         </div>
 
-        <div className="p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0] space-y-3">
+        <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] space-y-3">
           <div className="flex items-center justify-between">
-            <label className="font-semibold text-[#091E42]">Discount Percentage (%)</label>
-            <span className="font-mono font-bold text-sm text-[#091E42]">{discountPercent}%</span>
+            <label className="font-semibold text-[#17263A]">Discount Percentage (%)</label>
+            <span className="font-mono font-bold text-sm text-[#17263A]">{discountPercent}%</span>
           </div>
 
           <input
@@ -146,12 +146,12 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
             step="5"
             value={discountPercent}
             onChange={(e) => setDiscountPercent(Number(e.target.value))}
-            className="w-full accent-[#0652CC] cursor-pointer"
+            className="w-full accent-[#244A70] cursor-pointer"
           />
 
-          <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E5EAF0]">
-            <span className="text-[#6B778C]">Effective Price:</span>
-            <span className="font-mono text-base font-extrabold text-[#0652CC]">
+          <div className="flex items-center justify-between text-xs pt-1 border-t border-[#DCE3EC]">
+            <span className="text-[#8491A3]">Effective Price:</span>
+            <span className="font-mono text-base font-extrabold text-[#244A70]">
               {formatVnd(finalPrice)}
             </span>
           </div>
@@ -176,7 +176,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-[#E5EAF0]">
+        <div className="flex items-center justify-between pt-3 border-t border-[#DCE3EC]">
           {onPreviewRequested && (
             <Button
               variant="outline"
@@ -192,7 +192,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
                   discountReason,
                 })
               }
-              className="text-[#0652CC] border-blue-200"
+              className="text-[#244A70] border-blue-200"
             >
               <FileText className="w-3.5 h-3.5 mr-1" />
               Preview Quote Sheet
@@ -207,7 +207,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
               size="sm"
               type="submit"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               {submitting ? 'Generating...' : 'Issue Quote'}
             </Button>
