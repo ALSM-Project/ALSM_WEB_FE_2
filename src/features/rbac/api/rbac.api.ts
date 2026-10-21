@@ -27,6 +27,9 @@ export interface UserRbacDto {
   fullName: string;
   isPlatformAdmin: boolean;
   isActive: boolean;
+  isLocked?: boolean;
+  lockReason?: string;
+  lockDuration?: string;
   roles: string[];
 }
 
@@ -69,7 +72,6 @@ export const rbacApi = {
   deletePermission: async (key: string): Promise<{ success: boolean }> => {
     return apiClient.delete<{ success: boolean }>(`/permissions/${key}`);
   },
-
 
   getRolePermissions: async (roleId: string): Promise<string[]> => {
     return apiClient.get<string[]>(`/roles/${roleId}/permissions`);
