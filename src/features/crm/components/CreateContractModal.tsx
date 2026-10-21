@@ -174,7 +174,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
         </div>
 
         <div>
-          <label htmlFor="contract-title" className="block font-semibold text-[#091E42] mb-1">Contract Title *</label>
+          <label htmlFor="contract-title" className="block font-semibold text-[#17263A] mb-1">Contract Title *</label>
           <Input
             id="contract-title"
             value={title}
@@ -187,7 +187,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
 
         {quotes.length > 0 && (
           <div>
-            <label htmlFor="contract-quote" className="block font-semibold text-[#091E42] mb-1">Associate Accepted Quote</label>
+            <label htmlFor="contract-quote" className="block font-semibold text-[#17263A] mb-1">Associate Accepted Quote</label>
             <select
               id="contract-quote"
               value={quoteId}
@@ -207,7 +207,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="contract-plan" className="block font-semibold text-[#091E42] mb-1">Modernization Tier / Plan</label>
+            <label htmlFor="contract-plan" className="block font-semibold text-[#17263A] mb-1">Modernization Tier / Plan</label>
             <select
               id="contract-plan"
               value={plan}
@@ -226,7 +226,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="contract-value" className="block font-semibold text-[#091E42] mb-1">Total Contract Value (VND) *</label>
+            <label htmlFor="contract-value" className="block font-semibold text-[#17263A] mb-1">Total Contract Value (VND) *</label>
             <div className="relative">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono">₫</span>
               <Input
@@ -245,7 +245,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="contract-effective-date" className="block font-semibold text-[#091E42] mb-1">Effective Date</label>
+            <label htmlFor="contract-effective-date" className="block font-semibold text-[#17263A] mb-1">Effective Date</label>
             <div className="relative">
               <Input
                 id="contract-effective-date"
@@ -257,7 +257,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
             </div>
           </div>
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Initial Status</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Initial Status</label>
             <div className="px-3 py-1.5 bg-slate-100 rounded-lg text-slate-700 font-medium">
               DRAFT (Awaiting E-Sign Dispatch)
             </div>
@@ -273,7 +273,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
             variant="primary"
             size="sm"
             disabled={submitting || !canCreateContract}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white"
           >
             <FileCheck2 className="w-3.5 h-3.5 mr-1" />
             {submitting ? 'Creating Draft...' : 'Generate Contract Draft'}
