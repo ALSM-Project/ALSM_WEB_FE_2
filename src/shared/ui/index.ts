@@ -7,3 +7,5 @@ export * from './Toggle';
 export * from './Tooltip';
 export * from './Badge';
 export * from './Modal';
+export * from './Tabs';
+export * from './ModernizationWorkflow';
