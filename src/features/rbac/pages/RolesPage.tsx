@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React, { useState, useEffect } from 'react';
 import {
   Plus,
@@ -7,7 +8,6 @@ import {
   RefreshCw,
   AlertCircle,
   Save,
-  Lock,
   KeyRound,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -91,6 +91,31 @@ export const RolesPage: React.FC = () => {
   const [deletingRole, setDeletingRole] = useState<RoleDto | null>(null);
 
   const [isUnsavedConfirmOpen, setIsUnsavedConfirmOpen] = useState(false);
+
+  const isAnyModalOpen = Boolean(
+    isCreatePermModalOpen ||
+    isEditPermModalOpen ||
+    isDeletePermModalOpen ||
+    isCreateModalOpen ||
+    isEditModalOpen ||
+    isDeleteModalOpen ||
+    isUnsavedConfirmOpen
+  );
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      if (isAnyModalOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'unset';
+      }
+    }
+    return () => {
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = 'unset';
+      }
+    };
+  }, [isAnyModalOpen]);
 
   // Mutations
   const createRoleMutation = useCreateRoleMutation();
@@ -413,45 +438,34 @@ export const RolesPage: React.FC = () => {
                     {canManage && (
                       <div className="flex items-center space-x-1 shrink-0">
                         {/* Edit Role Button */}
-                        {!role.isSystem && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingRole(role);
-                              setEditRoleName(role.name);
-                              setEditRoleDesc(role.description || '');
-                              setIsEditModalOpen(true);
-                            }}
-                            className="p-1.5 text-[#64748B] hover:text-[#0652CC] rounded-lg hover:bg-[#0652CC]/10 transition-colors"
-                            title="Edit Role Details"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingRole(role);
+                            setEditRoleName(role.name);
+                            setEditRoleDesc(role.description || '');
+                            setIsEditModalOpen(true);
+                          }}
+                          className="p-1.5 text-[#64748B] hover:text-[#0652CC] rounded-lg hover:bg-[#0652CC]/10 transition-colors cursor-pointer"
+                          title="Edit Role Details"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
 
                         {/* Delete Role Button */}
-                        {role.isSystem ? (
-                          <span
-                            className="p-1.5 text-[#CBD5E1] cursor-not-allowed"
-                            title="System roles cannot be deleted"
-                          >
-                            <Lock className="w-4 h-4" />
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingRole(role);
-                              setIsDeleteModalOpen(true);
-                            }}
-                            className="p-1.5 text-[#94A3B8] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                            title="Delete Role"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingRole(role);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="p-1.5 text-[#94A3B8] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Delete Role"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -485,6 +499,38 @@ export const RolesPage: React.FC = () => {
                     <span className="text-xs text-[#0652CC] font-semibold bg-[#E8F1FF] px-3 py-1.5 rounded-lg border border-[#B3D4FF]/40">
                       {unsavedPermissions.length} Active Permissions
                     </span>
+
+                    {canManage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingRole(selectedRole);
+                          setEditRoleName(selectedRole.name);
+                          setEditRoleDesc(selectedRole.description || '');
+                          setIsEditModalOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0652CC] bg-[#E8F1FF] hover:bg-[#D0E2FF] border border-[#B3D4FF] transition-colors cursor-pointer"
+                        title="Edit Role Details"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit Role</span>
+                      </button>
+                    )}
+
+                    {canManage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDeletingRole(selectedRole);
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                        title="Delete this role"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete Role</span>
+                      </button>
+                    )}
 
                     {canManage && (
                       <button
@@ -621,8 +667,8 @@ export const RolesPage: React.FC = () => {
       </div>
 
       {/* Modal: Create Permission */}
-      {isCreatePermModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isCreatePermModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Create New System Permission</h3>
             <form onSubmit={handleCreatePermissionSubmit} className="space-y-4">
@@ -688,11 +734,11 @@ export const RolesPage: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Edit Permission */}
-      {isEditPermModalOpen && editingPerm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isEditPermModalOpen && editingPerm && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Edit Permission Details</h3>
             <form onSubmit={handleEditPermissionSubmit} className="space-y-4">
@@ -753,11 +799,11 @@ export const RolesPage: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Delete Permission Confirmation */}
-      {isDeletePermModalOpen && deletingPerm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isDeletePermModalOpen && deletingPerm && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Delete Permission?</h3>
             <p className="text-xs text-[#6B778C]">
@@ -783,11 +829,11 @@ export const RolesPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Create Role */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isCreateModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Create New Custom Role</h3>
             <form onSubmit={handleCreateRoleSubmit} className="space-y-4">
@@ -842,14 +888,23 @@ export const RolesPage: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Edit Role */}
-      {isEditModalOpen && editingRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isEditModalOpen && editingRole && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Edit Role ({editingRole.id})</h3>
+            <h3 className="text-base font-bold text-[#091E42]">Edit Role: {editingRole.name}</h3>
             <form onSubmit={handleEditRoleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Key (Identifier)</label>
+                <input
+                  type="text"
+                  value={editingRole.id}
+                  disabled
+                  className="w-full px-3.5 py-2 border border-[#E5EAF0] bg-[#F7F9FC] rounded-xl text-xs text-[#6B778C] font-mono cursor-not-allowed select-all"
+                />
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Display Name</label>
                 <input
@@ -888,15 +943,15 @@ export const RolesPage: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Delete Role Confirmation */}
-      {isDeleteModalOpen && deletingRole && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isDeleteModalOpen && deletingRole && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Delete Role?</h3>
             <p className="text-xs text-[#6B778C]">
-              Are you sure you want to delete role <strong>{deletingRole.name}</strong> ({deletingRole.id})? This action cannot be undone.
+              Are you sure you want to delete role <strong>{deletingRole.name}</strong> ({deletingRole.id})? This will unassign it from all users and remove its permissions. This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
@@ -918,11 +973,11 @@ export const RolesPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal: Unsaved Changes Confirmation */}
-      {isUnsavedConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#091E42]/50 backdrop-blur-xs p-4">
+      {isUnsavedConfirmOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
             <h3 className="text-base font-bold text-[#091E42]">Unsaved Permission Changes</h3>
             <p className="text-xs text-[#6B778C]">
@@ -946,7 +1001,7 @@ export const RolesPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };

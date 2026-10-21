@@ -1,0 +1,81 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TeamLeadProjectsPage } from '../pages/TeamLeadProjectsPage';
+import { partnersApi } from '@/features/partners/api/partners.api';
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
+  queryClient.setQueryData(['currentUser'], {
+    id: 'lead-01',
+    fullName: 'Sarah Jenkins',
+    email: 'teamlead@alsm.io',
+    isPlatformAdmin: false,
+    effectivePermissions: ['teams.manage', 'projects.view'],
+  });
+
+  return ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={['/team-lead/projects']}>
+        {children}
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+};
+
+describe('TeamLeadProjectsPage - Team Projects & Staff Allocation', () => {
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
+
+  it('renders Team Lead dashboard with KPI metrics and project roster', async () => {
+    render(<TeamLeadProjectsPage />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('Team Modernization Projects & Staff Allocation')).toBeInTheDocument();
+    expect(await screen.findByText('General Ledger COBOL Migration')).toBeInTheDocument();
+    expect(screen.getByText('Supervised Projects')).toBeInTheDocument();
+    expect(screen.getAllByText('Awaiting Staff Allocation').length).toBeGreaterThan(0);
+    expect(screen.getByText('Conversion Staff Assigned')).toBeInTheDocument();
+
+    // Verify workspace launch buttons exist
+    const workspaceLinks = screen.getAllByRole('link', { name: /Open Workspace/i });
+    expect(workspaceLinks.length).toBeGreaterThan(0);
+    expect(workspaceLinks[0]).toHaveAttribute('href', expect.stringContaining('/workspace'));
+  });
+
+  it('opens staff allocation modal and assigns Conversion Staff to project', async () => {
+    const assignSpy = vi.spyOn(partnersApi, 'assignProject');
+
+    render(<TeamLeadProjectsPage />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('General Ledger COBOL Migration')).toBeInTheDocument();
+
+    // Click Allocate/Reallocate Staff
+    const allocateBtns = screen.getAllByRole('button', { name: /Allocate Staff|Reallocate Staff/i });
+    expect(allocateBtns.length).toBeGreaterThan(0);
+    fireEvent.click(allocateBtns[0]);
+
+    // Modal appears
+    expect(await screen.findByText('Allocate Conversion Staff to Project')).toBeInTheDocument();
+
+    // Select staff member
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'staff-02' } });
+
+    // Submit
+    const confirmBtn = screen.getByRole('button', { name: /Confirm Staff Allocation/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(assignSpy).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ staffId: 'staff-02' })
+      );
+      expect(screen.queryByText('Allocate Conversion Staff to Project')).not.toBeInTheDocument();
+    });
+  });
+});

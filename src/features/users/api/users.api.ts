@@ -5,6 +5,11 @@ export interface UserSummaryDto {
   email: string;
   fullName: string;
   isPlatformAdmin: boolean;
+  isActive: boolean;
+  isLocked?: boolean;
+  lockReason?: string;
+  lockedAt?: string;
+  lockedBy?: string;
   roles: string[];
 }
 
@@ -28,5 +33,25 @@ export const usersApi = {
   },
   updateUserStatus: async (userId: string, isActive: boolean): Promise<{ ok: true }> => {
     return apiClient.patch<{ ok: true }>(`/users/${userId}/status`, { isActive });
+  },
+  lockUser: async (userId: string, reason: string): Promise<{ ok: boolean; message: string }> => {
+    return apiClient.post<{ ok: boolean; message: string }>(`/admin/users/${userId}/lock`, { reason });
+  },
+  unlockUser: async (userId: string): Promise<{ ok: boolean; message: string }> => {
+    return apiClient.post<{ ok: boolean; message: string }>(`/admin/users/${userId}/unlock`, {});
+  },
+  offboardUser: async (
+    userId: string,
+    data: { transferToUserId: string; reason: string }
+  ): Promise<{ ok: boolean; message: string }> => {
+    return apiClient.post<{ ok: boolean; message: string }>(`/admin/users/${userId}/offboard`, data);
+  },
+  transferResource: async (data: {
+    fromUserId: string;
+    toUserId: string;
+    resourceType: 'PROJECT' | 'JOB';
+    resourceId: string;
+  }): Promise<{ ok: boolean; message: string }> => {
+    return apiClient.post<{ ok: boolean; message: string }>('/admin/resources/transfer', data);
   },
 };

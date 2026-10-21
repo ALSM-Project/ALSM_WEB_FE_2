@@ -11,7 +11,7 @@ export function useNavigation() {
     sidebarNav: ctx.sidebarNav,
     navigation: ctx.navigation,
     loading: ctx.loading,
-    error: null,
+    error: ctx.error,
     selectedItemId: ctx.selectedItemId,
     setSelectedItemId: ctx.setSelectedItemId,
     addItem: ctx.addItem,
@@ -23,7 +23,7 @@ export function useNavigation() {
     resetToDefault: ctx.resetToDefault,
     saveChanges: ctx.saveChanges,
     isDirty: ctx.isDirty,
-    refreshNavigation: ctx.saveChanges,
+    refreshNavigation: ctx.refreshNavigation,
   };
 }
 

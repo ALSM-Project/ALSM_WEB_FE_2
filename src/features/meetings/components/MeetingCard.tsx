@@ -84,7 +84,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({ meeting, onCopyLink })
     <Card
       variant="default"
       padding="md"
-      className="border border-[#D9E2EC] hover:border-[#0652CC] hover:shadow-md transition-all duration-200 bg-white flex flex-col justify-between"
+      className="border border-[#E5EAF0] rounded-xl hover:border-[#0652CC] hover:shadow-md transition-all duration-200 bg-white shadow-2xs flex flex-col justify-between"
       id={`meeting-card-${meeting.id}`}
     >
       <div>
