@@ -8,8 +8,19 @@ export interface ModalProps {
   title?: string;
   children: React.ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | string;
   className?: string;
 }
+
+const maxWidths = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
+};
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -17,6 +28,7 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   maxWidth = '2xl',
+  size,
   className = '',
 }) => {
   useEffect(() => {
@@ -34,16 +46,9 @@ export const Modal: React.FC<ModalProps> = ({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+  const effectiveMaxWidth = (size && size in maxWidths ? size : maxWidth) as keyof typeof maxWidths;
 
-  const maxWidths = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-    '3xl': 'max-w-3xl',
-    '4xl': 'max-w-4xl',
-  };
+  
 
   const modalContent = (
     <div
@@ -53,7 +58,7 @@ export const Modal: React.FC<ModalProps> = ({
       }}
     >
       <div
-        className={`w-full ${maxWidths[maxWidth] || 'max-w-2xl'} bg-white border border-[#D9E2EC] rounded-2xl sm:rounded-3xl shadow-[0_25px_60px_-15px_rgba(9,30,66,0.35)] overflow-hidden flex flex-col max-h-[90vh] ${className}`}
+        className={`w-full ${maxWidths[effectiveMaxWidth] || 'max-w-2xl'} bg-white border border-[#D9E2EC] rounded-2xl sm:rounded-3xl shadow-[0_25px_60px_-15px_rgba(9,30,66,0.35)] overflow-hidden flex flex-col max-h-[90vh] ${className}`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}

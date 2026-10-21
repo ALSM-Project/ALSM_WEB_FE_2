@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Layers, Plus, Edit3, RefreshCw, AlertTriangle, 
-  CheckCircle2, Check, X, Search, Eye, Sparkles, Shield,
-  ArrowRight, Info
+  CheckCircle2, Check, X, Search, Eye, 
 } from 'lucide-react';
 import { adminApi, EngagementTypeDto } from '../api/admin.api';
 import { Button, Modal, Input } from '@/shared/ui';

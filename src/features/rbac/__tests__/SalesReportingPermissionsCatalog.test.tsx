@@ -167,7 +167,7 @@ describe('Sales Reporting & Approval Permissions Catalog Integration', () => {
     });
 
     // Toggle off "Reject Discount Requests" checkbox
-    const rejectCheckbox = screen.getByLabelText((content, element) => {
+    const rejectCheckbox = screen.getByLabelText((_content, element) => {
       return element?.closest('div')?.textContent?.includes('sales.discounts.reject') ?? false;
     });
 

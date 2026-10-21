@@ -11,12 +11,11 @@ import {
   Cpu,
   Activity,
   ArrowRight,
-  ShieldAlert,
   Zap,
-  RefreshCw,
-} from 'lucide-react';
-import { Card, Button } from '@/shared/ui';
+  } from 'lucide-react';
+import { Button } from '@/shared/ui';
 import { adminApi } from '@/features/admin/api/admin.api';
+import { PartnerProject } from '@/features/partners/types/partner.types';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { quoteApi } from '@/features/billing/api/quote.api';
 
@@ -24,16 +23,16 @@ export const PlatformAdminOverview: React.FC = () => {
   const navigate = useNavigate();
 
   // 1. Fetch Organizations
-  const { data: orgs = [], isLoading: loadingOrgs, refetch: refetchOrgs } = useQuery({
+  const { data: orgs = [], isLoading: loadingOrgs } = useQuery({
     queryKey: ['admin', 'dashboard', 'orgs'],
     queryFn: adminApi.getOrganizations,
     staleTime: 30000,
   });
 
   // 2. Fetch Projects & Engagements
-  const { data: projects = [], isLoading: loadingProjects } = useQuery({
+  const { data: projects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['admin', 'dashboard', 'projects'],
-    queryFn: partnersApi.getProjects,
+    queryFn: () => partnersApi.getProjects(),
     staleTime: 30000,
   });
 
@@ -68,10 +67,10 @@ export const PlatformAdminOverview: React.FC = () => {
   const unallocatedProjects = projects.filter((p) => !p.assignedTeamLeadId).length;
 
   // Conversion items stats across projects
-  const totalItems = projects.reduce((acc, p) => acc + (p.totalItemsCount || 0), 0);
-  const convertedItems = projects.reduce((acc, p) => acc + (p.convertedItemsCount || 0), 0);
+  const totalItems = projects.reduce((acc, p) => acc + (p.screensTotal || 0) + (p.programsTotal || 0), 0);
+  const convertedItems = projects.reduce((acc, p) => acc + (p.screensCompleted || 0) + (p.programsCompleted || 0), 0);
   // Estimate or collect failed jobs
-  const failedJobsCount = projects.filter((p) => p.status === 'ON_HOLD').length;
+  const failedJobsCount = projects.filter((p) => p.status === 'FAILED').length;
 
   return (
     <div className="space-y-6">

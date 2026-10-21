@@ -4,18 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import {
   Briefcase,
   Cpu,
-  Clock,
   AlertTriangle,
-  CheckCircle2,
   ExternalLink,
   ArrowRight,
   ShieldCheck,
   FileCode,
-  Layers,
   Sparkles,
 } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { partnersApi } from '@/features/partners/api/partners.api';
+import { PartnerProject } from '@/features/partners/types/partner.types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const ConversionStaffOverview: React.FC = () => {
@@ -23,9 +21,9 @@ export const ConversionStaffOverview: React.FC = () => {
   const { user } = useAuth();
 
   // Load projects & conversion items
-  const { data: allProjects = [], isLoading: loadingProjects } = useQuery({
+  const { data: allProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['staff', 'dashboard', 'projects'],
-    queryFn: partnersApi.getProjects,
+    queryFn: () => partnersApi.getProjects(),
     staleTime: 15000,
   });
 
@@ -36,9 +34,8 @@ export const ConversionStaffOverview: React.FC = () => {
   );
 
   const activeProjects = myProjects.filter((p) => p.status === 'IN_PROGRESS');
-  const reviewProjects = myProjects.filter((p) => p.status === 'REVIEW');
-  const completedProjects = myProjects.filter((p) => p.status === 'COMPLETED');
-  const failedProjects = myProjects.filter((p) => p.status === 'ON_HOLD');
+  const reviewProjects = myProjects.filter((p) => p.status === 'READY_FOR_EXPORT');
+    const failedProjects = myProjects.filter((p) => p.status === 'FAILED');
 
   const web1Url = 'http://localhost:5173';
 
@@ -215,7 +212,7 @@ export const ConversionStaffOverview: React.FC = () => {
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                         p.status === 'IN_PROGRESS'
                           ? 'bg-blue-100 text-blue-800'
-                          : p.status === 'REVIEW'
+                          : p.status === 'READY_FOR_EXPORT'
                           ? 'bg-amber-100 text-amber-800'
                           : p.status === 'COMPLETED'
                           ? 'bg-emerald-100 text-emerald-800'

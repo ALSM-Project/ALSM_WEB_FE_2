@@ -4,22 +4,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   TrendingUp,
   DollarSign,
-  Users,
   Target,
-  FileCheck,
   Calendar,
-  AlertCircle,
   CheckCircle2,
   ArrowRight,
-  ShieldAlert,
   Percent,
   Check,
   X,
-  RefreshCw,
-  PhoneCall,
-  Clock,
-} from 'lucide-react';
-import { Button, Card } from '@/shared/ui';
+  } from 'lucide-react';
+import { Button } from '@/shared/ui';
 import { crmApi, LeadDto, PendingDiscountDto, SalesReportsDto } from '@/features/crm/api/crm.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -30,7 +23,7 @@ export const SalesOverview: React.FC = () => {
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
   // 1. Fetch Sales Reports
-  const { data: reports, isLoading: loadingReports } = useQuery<SalesReportsDto>({
+  const { data: reports } = useQuery<SalesReportsDto>({
     queryKey: ['sales', 'dashboard', 'reports'],
     queryFn: () => crmApi.getReports(),
     staleTime: 30000,
@@ -294,14 +287,14 @@ export const SalesOverview: React.FC = () => {
                 >
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-[#091E42]">{item.company}</span>
+                      <span className="font-bold text-[#091E42]">{item.leadCompany}</span>
                       <span className="px-2 py-0.5 rounded font-black bg-amber-200 text-amber-900 text-[11px]">
                         -{item.discountPercent}%
                       </span>
                     </div>
                     <p className="text-[11px] text-[#6B778C] mt-1">
-                      Sale Rep: <b className="text-[#091E42]">{item.requestedBy}</b> • Trị giá: $
-                      {item.dealValue?.toLocaleString()}
+                      Sale Rep: <b className="text-[#091E42]">{item.assignedToName || item.requestId}</b> • Trị giá: $
+                      {item.proposedFinalPrice?.toLocaleString()}
                     </p>
                   </div>
 
@@ -312,7 +305,8 @@ export const SalesOverview: React.FC = () => {
                         onClick={() =>
                           reviewMutation.mutate({
                             leadId: item.leadId,
-                            quoteId: item.quoteId,
+                            quoteId: item.quoteId || item.quote?.id || '',
+                            
                             approved: true,
                           })
                         }
@@ -328,7 +322,7 @@ export const SalesOverview: React.FC = () => {
                         onClick={() =>
                           reviewMutation.mutate({
                             leadId: item.leadId,
-                            quoteId: item.quoteId,
+                            quoteId: item.quoteId || item.quote?.id || '',
                             approved: false,
                             rejectionReason: 'Vượt trần ngân sách cho phép',
                           })

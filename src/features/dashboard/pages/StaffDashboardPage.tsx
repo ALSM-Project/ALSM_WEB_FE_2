@@ -5,9 +5,7 @@ import {
   Users,
   Briefcase,
   TrendingUp,
-  LayoutDashboard,
-  Sparkles,
-} from 'lucide-react';
+  } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PlatformAdminOverview } from '../components/PlatformAdminOverview';
 import { TeamLeadOverview } from '../components/TeamLeadOverview';

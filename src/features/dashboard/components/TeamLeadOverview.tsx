@@ -8,13 +8,11 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
-  ShieldCheck,
   UserPlus,
-  RefreshCw,
-  Zap,
-} from 'lucide-react';
+  } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { partnersApi } from '@/features/partners/api/partners.api';
+import { PartnerProject } from '@/features/partners/types/partner.types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const TeamLeadOverview: React.FC = () => {
@@ -22,15 +20,15 @@ export const TeamLeadOverview: React.FC = () => {
   const { user } = useAuth();
 
   // Fetch Projects & Staff Roster
-  const { data: allProjects = [], isLoading: loadingProjects } = useQuery({
+  const { data: allProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['team-lead', 'dashboard', 'projects'],
-    queryFn: partnersApi.getProjects,
+    queryFn: () => partnersApi.getProjects(),
     staleTime: 20000,
   });
 
   const { data: staffRoster = [], isLoading: loadingStaff } = useQuery({
     queryKey: ['team-lead', 'dashboard', 'staff'],
-    queryFn: partnersApi.getAssignableStaff,
+    queryFn: () => partnersApi.getAssignableStaff(),
     staleTime: 30000,
   });
 
@@ -42,9 +40,7 @@ export const TeamLeadOverview: React.FC = () => {
     : allProjects;
 
   const inProgressCount = teamProjects.filter((p) => p.status === 'IN_PROGRESS').length;
-  const reviewCount = teamProjects.filter((p) => p.status === 'REVIEW').length;
-  const completedCount = teamProjects.filter((p) => p.status === 'COMPLETED').length;
-  const blockedCount = teamProjects.filter((p) => p.status === 'ON_HOLD').length;
+      const blockedCount = teamProjects.filter((p) => p.status === 'FAILED').length;
 
   // Items / Projects awaiting assignment
   const unassignedProjects = teamProjects.filter((p) => !p.assignedStaffId && p.status !== 'COMPLETED');

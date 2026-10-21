@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, TrendingUp, Building, ArrowUpRight, 
-  RefreshCw, Landmark, CreditCard, Calendar, Filter, 
-  CheckCircle2, Info, FileSpreadsheet
-} from 'lucide-react';
+  RefreshCw, Landmark, CreditCard, Calendar, CheckCircle2, Info, } from 'lucide-react';
 import { adminApi, RevenueSummaryDto } from '../api/admin.api';
 import { Card } from '@/shared/ui';
 

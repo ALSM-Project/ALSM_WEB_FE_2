@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Globe, Mail, ArrowLeft, Edit3, Cpu, Building,
-  CheckCircle2, AlertTriangle, Users, Receipt, HardDrive,
-  BarChart3, ShieldCheck, Eye, RefreshCw
-} from 'lucide-react';
+  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, } from 'lucide-react';
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
 import { useSupportView } from '../context/SupportViewContext';
@@ -173,8 +170,11 @@ export const OrganizationDetailPage: React.FC = () => {
         ...defaultMockOrg(orgId),
         ...data,
         limits: {
-          ...defaultMockOrg(orgId).limits,
-          ...(data.limits || {}),
+          maxProjects: data.limits?.maxProjects ?? defaultMockOrg(orgId).limits!.maxProjects,
+          maxConversionsPerMonth: data.limits?.maxConversionsPerMonth ?? defaultMockOrg(orgId).limits!.maxConversionsPerMonth,
+          maxStorageGb: data.limits?.maxStorageGb ?? defaultMockOrg(orgId).limits!.maxStorageGb,
+          aiValidationEnabled: data.limits?.aiValidationEnabled ?? defaultMockOrg(orgId).limits!.aiValidationEnabled,
+          ...data.limits,
         },
         usageStats: data.usageStats || defaultMockOrg(orgId).usageStats,
         billingHistory: data.billingHistory || defaultMockOrg(orgId).billingHistory,

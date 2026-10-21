@@ -202,6 +202,13 @@ export const adminApi = {
     return apiClient.post<{ id: string; name: string; isDemo: boolean }>('/projects/demo', data);
   },
 
+  allocateProject: async (projectId: string, data: { teamLeadId: string; teamLeadName?: string }): Promise<{ success: boolean }> => {
+    return apiClient.post<{ success: boolean }>(`/projects/${projectId}/assign-team-lead`, {
+      teamLeadId: data.teamLeadId,
+      teamLeadUserId: data.teamLeadId,
+    });
+  },
+
   assignTeamLead: async (projectId: string, teamLeadUserId: string): Promise<{ success: boolean }> => {
     return apiClient.post<{ success: boolean }>(`/projects/${projectId}/assign-team-lead`, {
       teamLeadId: teamLeadUserId,

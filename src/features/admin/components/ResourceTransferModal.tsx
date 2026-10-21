@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  ArrowRight, ShieldCheck, AlertCircle, CheckCircle2, 
-  FolderKanban, User, Check, AlertTriangle, FileText
+  ArrowRight, AlertCircle, CheckCircle2, 
+  FolderKanban, Check, AlertTriangle, FileText
 } from 'lucide-react';
 import { Modal, Button } from '@/shared/ui';
 

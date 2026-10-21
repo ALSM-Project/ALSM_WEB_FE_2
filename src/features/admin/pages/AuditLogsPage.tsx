@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  FileSearch, Download, RefreshCw, User, Calendar, 
-  Shield, Filter, ArrowUpDown, ChevronLeft, ChevronRight,
+  FileSearch, Download, RefreshCw, User, ChevronLeft, ChevronRight,
   FileText, Info, CheckCircle2
 } from 'lucide-react';
 import { adminApi, AuditLogDto } from '../api/admin.api';

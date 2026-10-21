@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { 
-  UserMinus, AlertTriangle, ArrowRight, ArrowLeft, 
+  UserMinus, ArrowRight, ArrowLeft, 
   CheckCircle2, ShieldAlert, KeyRound, FolderKanban, 
-  Cpu, Users, RefreshCw, XCircle
+  RefreshCw, XCircle
 } from 'lucide-react';
 import { usersApi, UserSummaryDto } from '../api/users.api';
 import { Button, Modal, Input } from '@/shared/ui';

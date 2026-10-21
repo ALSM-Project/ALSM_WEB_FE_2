@@ -6,7 +6,6 @@ import { TemporaryRolesPage } from '../pages/TemporaryRolesPage';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
 import { OffboardingWizardModal } from '@/features/users/components/OffboardingWizardModal';
 import { rbacApi } from '../api/rbac.api';
-import { usersApi } from '@/features/users/api/users.api';
 import { temporaryRolesApi } from '../api/temporary-roles.api';
 
 // Mock Auth
