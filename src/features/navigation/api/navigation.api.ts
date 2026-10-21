@@ -13,6 +13,8 @@ export interface BackendNavItem {
   visibility: boolean;
   status: string;
   requiredPermissions: string[];
+  openInNewTab?: boolean;
+  hideParentLabel?: boolean;
   children?: BackendNavItem[];
 }
 
