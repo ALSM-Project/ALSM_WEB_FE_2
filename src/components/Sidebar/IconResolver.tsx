@@ -13,6 +13,20 @@ import {
   Workflow,
   KeyRound,
   Globe,
+  Zap,
+  Video,
+  CreditCard,
+  Layers,
+  FileCheck,
+  BarChart3,
+  FileText,
+  Headphones,
+  Calendar,
+  Building2,
+  UserPlus,
+  DownloadCloud,
+  Sparkles,
+  Wrench,
   LucideProps,
 } from 'lucide-react';
 
@@ -63,6 +77,50 @@ const iconRegistry: Record<string, React.FC<LucideProps>> = {
 
   globe: Globe,
   Globe: Globe,
+
+  zap: Zap,
+  Zap: Zap,
+
+  video: Video,
+  Video: Video,
+
+  creditcard: CreditCard,
+  CreditCard: CreditCard,
+
+  layers: Layers,
+  Layers: Layers,
+
+  filecheck: FileCheck,
+  FileCheck: FileCheck,
+
+  barchart: BarChart3,
+  barchart3: BarChart3,
+  BarChart3: BarChart3,
+
+  filetext: FileText,
+  FileText: FileText,
+
+  headphones: Headphones,
+  Headphones: Headphones,
+
+  calendar: Calendar,
+  Calendar: Calendar,
+
+  building: Building2,
+  building2: Building2,
+  Building2: Building2,
+
+  userplus: UserPlus,
+  UserPlus: UserPlus,
+
+  downloadcloud: DownloadCloud,
+  DownloadCloud: DownloadCloud,
+
+  sparkles: Sparkles,
+  Sparkles: Sparkles,
+
+  wrench: Wrench,
+  Wrench: Wrench,
 };
 
 export interface DynamicIconProps extends LucideProps {

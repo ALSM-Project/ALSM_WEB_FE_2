@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { MenuItem } from '@/features/menus/types/menu';
 import { DynamicIcon } from './IconResolver';
@@ -8,37 +8,52 @@ export interface SidebarItemProps {
   item: MenuItem;
   isCollapsed?: boolean;
   depth?: number;
+  activeItemId?: string | null;
 }
+
+const containsActive = (node: MenuItem, targetId?: string | null): boolean => {
+  if (!targetId) return false;
+  if (node.id === targetId) return true;
+  if (node.children) return node.children.some((c) => containsActive(c, targetId));
+  return false;
+};
 
 export const SidebarItem: React.FC<SidebarItemProps> = ({
   item,
   isCollapsed = false,
   depth = 0,
+  activeItemId = null,
 }) => {
-  const location = useLocation();
   const hasChildren = Boolean(item.children && item.children.length > 0);
+  const isBranchActive = containsActive(item, activeItemId);
+  const isSelfActive = Boolean(activeItemId && item.id === activeItemId);
 
-  const isChildActive = (node: MenuItem): boolean => {
-    if (node.path && (location.pathname === node.path || (node.path !== '/' && location.pathname.startsWith(node.path)))) {
-      return true;
-    }
-    if (node.children) {
-      return node.children.some(isChildActive);
-    }
-    return false;
-  };
-
-  const isActive = isChildActive(item);
-  const [isExpanded, setIsExpanded] = useState<boolean>(isActive);
+  const [isExpanded, setIsExpanded] = useState<boolean>(isBranchActive);
 
   useEffect(() => {
-    if (isActive) {
-      setIsExpanded((prev) => (prev ? prev : true));
+    if (isBranchActive) {
+      setIsExpanded(true);
     }
-  }, [location.pathname]);
+  }, [isBranchActive]);
 
   if (item.isVisible === false) {
     return null;
+  }
+
+  if (item.hideParentLabel && hasChildren && item.children) {
+    return (
+      <div className="w-full flex flex-col space-y-1">
+        {item.children.map((child) => (
+          <SidebarItem
+            key={child.id}
+            item={child}
+            isCollapsed={isCollapsed}
+            depth={depth}
+            activeItemId={activeItemId}
+          />
+        ))}
+      </div>
+    );
   }
 
   const paddingLeftClass = isCollapsed
@@ -61,7 +76,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
             className={`w-full flex items-center ${
               isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-semibold'
             } rounded-lg transition-colors cursor-pointer ${paddingLeftClass} ${
-              isActive
+              isBranchActive
                 ? 'text-white bg-white/10 font-bold'
                 : 'text-[#E5EAF0] hover:bg-white/10 hover:text-white'
             }`}
@@ -83,7 +98,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           {!isCollapsed && isExpanded && item.children && (
             <div className="flex flex-col mt-1 space-y-1">
               {item.children.map((child) => (
-                <SidebarItem key={child.id} item={child} isCollapsed={isCollapsed} depth={depth + 1} />
+                <SidebarItem
+                  key={child.id}
+                  item={child}
+                  isCollapsed={isCollapsed}
+                  depth={depth + 1}
+                  activeItemId={activeItemId}
+                />
               ))}
             </div>
           )}
@@ -91,11 +112,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       ) : (
         <NavLink
           to={item.path || '#'}
-          className={({ isActive: linkActive }) =>
+          target={item.openInNewTab ? '_blank' : undefined}
+          rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+          className={() =>
             `flex items-center ${
               isCollapsed ? 'justify-center py-2' : 'justify-between py-2 text-xs font-medium'
             } rounded-lg transition-all ${paddingLeftClass} ${
-              linkActive
+              isSelfActive
                 ? 'bg-[#0652CC] text-white font-semibold shadow-xs'
                 : 'text-[#94A3B8] hover:bg-white/10 hover:text-white'
             }`
