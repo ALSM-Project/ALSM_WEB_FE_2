@@ -15,7 +15,7 @@ export const crmApi = {
   getLeads: async (params?: { stage?: string; search?: string; assignedTo?: string }): Promise<LeadDto[]> => {
     try {
       const data = await apiClient.get<LeadDto[]>('/sales/crm/leads', { params });
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data)) return data;
     } catch {
       // Fallback to local CRM store
     }
@@ -25,13 +25,63 @@ export const crmApi = {
   getLeadById: async (id: string): Promise<LeadDto> => {
     try {
       const data = await apiClient.get<LeadDto>(`/sales/crm/leads/${id}`);
-      if (data && data.id) return data;
+      if (data && (data.id || (data as any)._id)) {
+        return {
+          ...data,
+          id: data.id || (data as any)._id,
+        };
+      }
     } catch {
       // Fallback to local CRM store
     }
     const local = crmStore.getLeadById(id);
     if (!local) throw new Error(`Lead with ID "${id}" not found.`);
     return local;
+  },
+
+  sendLeadEmail: async (
+    leadId: string,
+    data: { to?: string; subject: string; content: string }
+  ): Promise<{ success: boolean; recipient: string; deliveryStatus: string }> => {
+    try {
+      return await apiClient.post('/sales/crm/leads/' + leadId + '/send-email', data);
+    } catch (err: any) {
+      // If offline/fallback, log interaction locally
+      try {
+        crmStore.logInteraction(leadId, {
+          type: 'EMAIL',
+          summary: data.subject,
+          details: data.content,
+        });
+      } catch {
+        // ignore
+      }
+      throw err;
+    }
+  },
+
+  updateLead: async (id: string, data: Partial<LeadDto>): Promise<LeadDto> => {
+    try {
+      const updated = await apiClient.patch<LeadDto>('/sales/crm/leads/' + id, data);
+      if (updated && (updated.id || (updated as any)._id)) {
+        try {
+          crmStore.updateLead(id, updated);
+        } catch {
+          // ignore local store sync error
+        }
+        return {
+          ...updated,
+          id: updated.id || (updated as any)._id,
+        };
+      }
+    } catch (err: any) {
+      const local = crmStore.getLeadById(id);
+      if (local) {
+        return crmStore.updateLead(id, data);
+      }
+      throw new Error(err?.response?.data?.message || err?.message || `Failed to update lead ${id}`);
+    }
+    return crmStore.updateLead(id, data);
   },
 
   createLead: async (data: {
@@ -62,19 +112,30 @@ export const crmApi = {
     id: string,
     data: { stage: LeadDto['stage']; notes?: string; nextFollowUpAt?: string }
   ): Promise<LeadDto> => {
-    // If user attempts to set Won manually, crmStore will reject according to business rules
     if (data.stage === 'WON') {
-      return crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
+      try {
+        return crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
+      } catch (e: any) {
+        throw new Error(e.message || 'Cannot mark lead as Won directly without Customer Activation.');
+      }
     }
 
     try {
       const res = await apiClient.patch<LeadDto>(`/sales/crm/leads/${id}/stage`, data);
-      if (res && res.id) {
-        crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
+      if (res && (res.id || (res as any)._id)) {
+        try {
+          crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
+        } catch {
+          // ignore local sync error
+        }
         return res;
       }
-    } catch {
-      // Fallback to local CRM store
+    } catch (err: any) {
+      const local = crmStore.getLeadById(id);
+      if (local) {
+        return crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to update lead stage');
     }
     return crmStore.updateLeadStage(id, data.stage, data.notes, data.nextFollowUpAt);
   },
@@ -91,13 +152,21 @@ export const crmApi = {
     }
   ): Promise<LeadInteraction> => {
     try {
-      const res = await apiClient.post<LeadInteraction>(`/sales/crm/leads/${leadId}/interactions`, data);
-      if (res && res.id) {
-        crmStore.logInteraction(leadId, data);
+      const res = await apiClient.post<any>(`/sales/crm/leads/${leadId}/interactions`, data);
+      if (res) {
+        try {
+          crmStore.logInteraction(leadId, data);
+        } catch {
+          // ignore local sync error
+        }
         return res;
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      const local = crmStore.getLeadById(leadId);
+      if (local) {
+        return crmStore.logInteraction(leadId, data);
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to log interaction');
     }
     return crmStore.logInteraction(leadId, data);
   },
@@ -114,13 +183,43 @@ export const crmApi = {
     }
   ): Promise<LeadDemo> => {
     try {
-      const res = await apiClient.post<LeadDemo>(`/sales/crm/leads/${leadId}/demos`, data);
-      if (res && res.id) {
-        crmStore.scheduleDemo(leadId, data);
-        return res;
+      const payload = {
+        title: data.topic,
+        topic: data.topic,
+        scheduledAt: data.scheduledAt,
+        description: [data.agenda, data.notes].filter(Boolean).join('\n') || undefined,
+        durationMinutes: data.durationMinutes,
+        attendees: data.attendees,
+        agenda: data.agenda,
+        notes: data.notes,
+      };
+      const res = await apiClient.post<any>(`/sales/crm/leads/${leadId}/demos`, payload);
+      if (res) {
+        const scheduledDemo = Array.isArray(res.demos) ? res.demos[res.demos.length - 1] : res;
+        try {
+          crmStore.scheduleDemo(leadId, data);
+        } catch {
+          // ignore local sync error
+        }
+        return {
+          id: scheduledDemo?.id || `demo-${Date.now()}`,
+          topic: scheduledDemo?.title || scheduledDemo?.topic || data.topic,
+          scheduledAt: scheduledDemo?.scheduledAt || data.scheduledAt,
+          durationMinutes: scheduledDemo?.durationMinutes || data.durationMinutes || 45,
+          attendees: scheduledDemo?.attendees || data.attendees || [],
+          meetingLink: scheduledDemo?.meetLink || scheduledDemo?.meetingLink || 'https://meet.google.com',
+          status: scheduledDemo?.status || 'SCHEDULED',
+          agenda: data.agenda,
+          notes: data.notes,
+          createdBy: scheduledDemo?.scheduledBy || 'Current User',
+        };
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      const local = crmStore.getLeadById(leadId);
+      if (local) {
+        return crmStore.scheduleDemo(leadId, data);
+      }
+      throw new Error(err.response?.data?.message || err.message || 'Failed to schedule demo');
     }
     return crmStore.scheduleDemo(leadId, data);
   },
@@ -320,5 +419,21 @@ export const crmApi = {
       quoteId: data.quoteId,
       ...(data.reason ? { reason: data.reason } : {}),
     });
+  },
+
+  listQuotes: async (params?: { status?: string; search?: string; serviceType?: string }): Promise<any[]> => {
+    return apiClient.get<any[]>('/sales/crm/quotes', { params });
+  },
+
+  createEnterpriseQuote: async (data: any): Promise<any> => {
+    return apiClient.post<any>('/sales/crm/quotes', data);
+  },
+
+  convertQuoteToContract: async (quoteId: string): Promise<any> => {
+    return apiClient.post<any>(`/sales/crm/quotes/${encodeURIComponent(quoteId)}/convert-to-contract`, {});
+  },
+
+  getServiceUsage: async (params?: { status?: string; search?: string }): Promise<any> => {
+    return apiClient.get<any>('/sales/crm/service-usage', { params });
   },
 };
