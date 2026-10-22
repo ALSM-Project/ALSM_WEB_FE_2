@@ -1,6 +1,8 @@
 import type { AxiosProgressEvent } from 'axios';
 import { apiClient } from '@/services/api/apiClient';
-
+import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
+import { classifyFile, fileExtension } from '../utils/uploadValidation';
+import { PartnerApiError } from './partnerApiError';
 import {
   Partner,
   PartnerProject,
@@ -17,7 +19,91 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
+export { PartnerApiError, PartnerUploadError };
 
+/** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
+const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
+
+export interface SourceUploadResult {
+  /** SERVER: stored by the backend. LOCAL: project exists only in this browser's storage. */
+  mode: 'SERVER' | 'LOCAL';
+  registered: string[];
+  /** ZIP entries the server skipped because they are not source files for the project. */
+  ignoredEntries: string[];
+}
+
+interface ConversionSourceUploadResponse {
+  inputReference: string;
+  files: { name: string; sizeBytes: number }[];
+  screens: { id: string; name: string; sourceType: string }[];
+  ignoredEntries?: string[];
+}
+
+async function readFileText(file: File): Promise<string | undefined> {
+  try {
+    return typeof file.text === 'function' ? await file.text() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Shape returned by the backend's POST/GET /partners. */
+interface PartnerRecordDto {
+  id: string;
+  name: string;
+  contactEmail: string;
+  contactName: string;
+  primaryDomain: string;
+  engagementType?: string;
+  assignedStaffName?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
+}
+
+function toPartner(dto: PartnerRecordDto, existing?: Partner): Partner {
+  return {
+    id: dto.id,
+    name: dto.name,
+    companyName: dto.name,
+    contactName: dto.contactName,
+    contactEmail: dto.contactEmail,
+    domain: dto.primaryDomain,
+    engagementType: dto.engagementType,
+    assignedStaffName: dto.assignedStaffName,
+    status: dto.status === 'INACTIVE' ? 'SUSPENDED' : 'ACTIVE',
+    projectCount: existing?.projectCount ?? 0,
+    activeConversionCount: existing?.activeConversionCount ?? 0,
+    completedExportCount: existing?.completedExportCount ?? 0,
+    latestActivity: existing?.latestActivity,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt,
+  };
+}
+
+/** Turns an axios error into a user-safe PartnerApiError (no stack traces or internals). */
+function toPartnerApiError(err: unknown): PartnerApiError {
+  const response = (err as { response?: { status?: number; data?: { code?: string; message?: unknown } } })
+    ?.response;
+  if (!response) {
+    return new PartnerApiError(
+      'Cannot reach the server. The partner was not created - please try again.',
+    );
+  }
+  const { status } = response;
+  const code = response.data?.code;
+  const raw = response.data?.message;
+  const serverMessage = Array.isArray(raw) ? raw.join('; ') : typeof raw === 'string' ? raw : undefined;
+  if (status === 409) {
+    return new PartnerApiError(serverMessage || 'A partner with this contact email already exists', status, code);
+  }
+  if (status === 400) {
+    return new PartnerApiError(serverMessage || 'Some partner details are invalid', status, code);
+  }
+  if (status === 403) {
+    return new PartnerApiError('You do not have permission to create partners', status, code);
+  }
+  return new PartnerApiError('The partner could not be created. Please try again later.', status, code);
 }
 
 // Seed initial realistic partners
