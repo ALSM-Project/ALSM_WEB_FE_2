@@ -105,6 +105,31 @@ export interface ExportBundleInfo {
   excludedItems?: Array<{ name: string; reason: string }>;
   exportedAt: string;
   downloadUrl?: string;
-  notificationStatus: 'QUEUED' | 'SENT' | 'FAILED';
+  notificationStatus: ExportNotificationStatus;
+  /** Why the partner email did not go out (user-safe text from the server). */
+  notificationError?: string;
+  customNotes?: string;
   fileSizeBytes?: number;
+}
+
+export type ExportNotificationStatus = 'PENDING' | 'QUEUED' | 'SENT' | 'FAILED';
+
+/** UC-48 packaging options sent to the backend. */
+export interface PartnerExportOptions {
+  /** Empty means every screen/program of the project. */
+  selectedScreenIds: string[];
+  includeTypeScript: boolean;
+  includeUnitTests: boolean;
+  includeDocumentation: boolean;
+}
+
+/** What the server will package, before anything is released. */
+export interface PartnerExportPreview {
+  packageName: string;
+  targetFramework: 'React 19' | 'Spring Boot 3.3';
+  screensIncluded: number;
+  programsIncluded: number;
+  excludedItems: Array<{ name: string; reason: string }>;
+  totalFiles: number;
+  estimatedSizeKb: number;
 }
