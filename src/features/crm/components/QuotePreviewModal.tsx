@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal } from '@/shared/ui';
+import { Button, Modal, toast } from '@/shared/ui';
 import { 
   FileText, CheckCircle2, Send, 
   Printer, ArrowRight, ShieldCheck 
@@ -58,7 +58,7 @@ export const QuotePreviewModal: React.FC<QuotePreviewModalProps> = ({
       onQuoteUpdated?.(updated);
       setTimeout(() => setSuccessMessage(null), 3500);
     } catch (err: any) {
-      alert(err.message || 'Failed to accept quote.');
+      toast.error(err.message || 'Failed to accept quote.', { title: 'Quote Error' });
     } finally {
       setActing(false);
     }
@@ -83,7 +83,7 @@ export const QuotePreviewModal: React.FC<QuotePreviewModalProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Document Type</span>
-              <h3 className="text-sm font-bold text-[#091E42] flex items-center gap-2">
+              <h3 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
                 <FileText className="w-4 h-4 text-blue-600" />
                 Modernization Services & Platform Quotation
               </h3>
@@ -232,7 +232,7 @@ export const QuotePreviewModal: React.FC<QuotePreviewModalProps> = ({
                   onCreateContractFromQuote(quote);
                   onClose();
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-[#244A70] hover:bg-[#1B3856] text-white"
               >
                 Generate Contract
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />

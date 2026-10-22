@@ -72,7 +72,7 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
 
         {/* Interaction Type Selector */}
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1.5">Interaction Type</label>
+          <label className="block font-semibold text-[#17263A] mb-1.5">Interaction Type</label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
               { key: 'PHONE_CALL', label: 'Phone Call', icon: Phone },
@@ -88,8 +88,8 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
                   onClick={() => setType(t.key as any)}
                   className={`p-2.5 rounded-xl border flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer ${
                     type === t.key
-                      ? 'border-[#0652CC] bg-blue-50/70 text-[#0652CC] ring-1 ring-[#0652CC]'
-                      : 'border-[#E5EAF0] text-[#6B778C] hover:bg-[#F7F9FC]'
+                      ? 'border-[#244A70] bg-blue-50/70 text-[#244A70] ring-1 ring-[#244A70]'
+                      : 'border-[#DCE3EC] text-[#8491A3] hover:bg-[#F8FAFC]'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -102,7 +102,7 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Call Duration (Minutes)</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Call Duration (Minutes)</label>
             <Input
               type="number"
               min="1"
@@ -114,11 +114,11 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Outcome</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Outcome</label>
             <select
               value={outcome}
               onChange={(e) => setOutcome(e.target.value)}
-              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
             >
               <option value="Connected with Decision Maker">Connected with Decision Maker</option>
               <option value="Demo Agreed">Demo Agreed</option>
@@ -131,7 +131,7 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Summary *</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Summary *</label>
           <Input
             required
             value={summary}
@@ -142,7 +142,7 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Action Items / Next Steps</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Action Items / Next Steps</label>
           <Input
             value={actionItems}
             onChange={(e) => setActionItems(e.target.value)}
@@ -152,18 +152,18 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Detailed Discussion Notes</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Detailed Discussion Notes</label>
           <textarea
             rows={3}
             value={details}
             onChange={(e) => setDetails(e.target.value)}
             placeholder="Specific technical topics, decision makers involved, objections addressed..."
-            className="w-full text-xs p-2.5 rounded-xl border border-[#D9E2EC] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+            className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
           />
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-[#E5EAF0]">
-          <span className="text-[11px] text-[#6B778C]">
+        <div className="flex items-center justify-between pt-3 border-t border-[#DCE3EC]">
+          <span className="text-[11px] text-[#8491A3]">
             Updates the lead's <strong>Last Contacted</strong> timestamp.
           </span>
           <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export const LogInteractionModal: React.FC<LogInteractionModalProps> = ({
               size="sm"
               type="submit"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               {submitting ? 'Logging...' : 'Save Interaction'}
             </Button>
