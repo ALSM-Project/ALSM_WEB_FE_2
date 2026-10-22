@@ -2,6 +2,7 @@ import type { AxiosProgressEvent } from 'axios';
 import { apiClient } from '@/services/api/apiClient';
 import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
 import { PartnerConversionError, toPartnerConversionError } from './partnerConversionError';
+import { PartnerExportError, toPartnerExportError } from './partnerExportError';
 import { classifyFile, fileExtension } from '../utils/uploadValidation';
 import { PartnerApiError } from './partnerApiError';
 import {
@@ -13,7 +14,10 @@ import {
   ExportBundleInfo,
   ConversionType,
   ItemConversionStatus,
+  PartnerExportOptions,
+  PartnerExportPreview,
 } from '../types/partner.types';
+import { saveBlob } from '../utils/saveBlob';
 
 const STORAGE_PARTNERS_KEY = 'alsm_partner_records_v1';
 const STORAGE_PROJECTS_KEY = 'alsm_partner_projects_v1';
@@ -21,7 +25,7 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
-export { PartnerApiError, PartnerUploadError, PartnerConversionError };
+export { PartnerApiError, PartnerUploadError, PartnerConversionError, PartnerExportError };
 
 
 
@@ -31,6 +35,9 @@ const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
 export function isServerProject(projectId: string): boolean {
   return BACKEND_PROJECT_ID.test(projectId);
 }
+
+const LOCAL_PROJECT_EXPORT_MESSAGE =
+  'This demo project exists only in this browser, so it has no converted code to export. Exports run for projects stored on the server.';
 
 const LOCAL_PROJECT_CONVERSION_MESSAGE =
   'This demo project exists only in this browser, so its files cannot be converted. Conversions run for projects stored on the server.';
@@ -104,6 +111,65 @@ function toServerItem(
       : undefined,
     updatedAt: latest?.updatedAt ?? screen.updatedAt,
   };
+}
+
+/** A released bundle as returned by /projects/:id/partner-export (UC-48). */
+interface ExportBundleDto {
+  id: string;
+  projectId: string;
+  partnerId?: string;
+  partnerEmail: string;
+  packageName: string;
+  format: 'ZIP';
+  fileSizeBytes: number;
+  screensIncluded: number;
+  programsIncluded: number;
+  excludedItems: Array<{ name: string; reason: string }>;
+  customNotes?: string;
+  exportedAt: string;
+  notificationStatus: 'PENDING' | 'SENT' | 'FAILED';
+  notificationError?: string;
+  downloadUrl: string;
+}
+
+interface ExportPreviewDto {
+  packageName: string;
+  summary: {
+    targetFramework: 'React 19' | 'Spring Boot 3.3';
+    screensIncluded: number;
+    programsIncluded: number;
+    excludedItems: Array<{ name: string; reason: string }>;
+  };
+  metrics: { totalFiles: number; estimatedSizeKb: number };
+}
+
+function toExportBundleInfo(dto: ExportBundleDto, project: PartnerProject | null): ExportBundleInfo {
+  return {
+    id: dto.id,
+    projectId: dto.projectId,
+    projectName: project?.name ?? '',
+    partnerId: project?.partnerId ?? dto.partnerId ?? '',
+    partnerName: project?.partnerName ?? '',
+    partnerContactEmail: dto.partnerEmail,
+    conversionType:
+      project?.conversionType ?? (dto.programsIncluded > 0 ? 'COBOL_TO_JAVA' : 'BMS_DSPF_TO_FRONTEND'),
+    packageName: dto.packageName,
+    format: 'ZIP',
+    screensIncluded: dto.screensIncluded,
+    programsIncluded: dto.programsIncluded,
+    totalItems: dto.screensIncluded + dto.programsIncluded,
+    excludedItems: dto.excludedItems,
+    exportedAt: dto.exportedAt,
+    downloadUrl: dto.downloadUrl,
+    notificationStatus: dto.notificationStatus,
+    notificationError: dto.notificationError,
+    customNotes: dto.customNotes,
+    fileSizeBytes: dto.fileSizeBytes,
+  };
+}
+
+function requireServerProjectForExport(projectId: string): void {
+  if (!isServerProject(projectId)) throw new PartnerExportError(LOCAL_PROJECT_EXPORT_MESSAGE);
 }
 
 export interface SourceUploadResult {
@@ -724,7 +790,17 @@ export const partnersApi = {
         const merged = new Map<string, PartnerProject>();
         projects.forEach((p) => merged.set(p.id, p));
         beProjects.forEach((bp) => {
-          if (!merged.has(bp.id)) {
+          const cached = merged.get(bp.id);
+          if (cached) {
+            // Export state is owned by the server (UC-48); never keep a stale cached copy.
+            merged.set(bp.id, {
+              ...cached,
+              isExported: bp.isExported ?? cached.isExported,
+              exportedAt: bp.exportedAt ?? cached.exportedAt,
+              exportedBundleName: bp.exportedBundleName ?? cached.exportedBundleName,
+              status: bp.status === 'COMPLETED' ? 'COMPLETED' : cached.status,
+            });
+          } else {
             merged.set(bp.id, {
               id: bp.id,
               name: bp.name,
@@ -742,7 +818,9 @@ export const partnersApi = {
               lastUpdated: bp.updatedAt || new Date().toISOString(),
               createdAt: bp.createdAt || new Date().toISOString(),
               assignedTeamLeadName: bp.assignedTeamLead?.fullName || 'Sarah Jenkins',
-              isExported: false,
+              isExported: bp.isExported ?? false,
+              exportedAt: bp.exportedAt,
+              exportedBundleName: bp.exportedBundleName,
             });
           }
         });
@@ -1138,82 +1216,102 @@ export const partnersApi = {
   },
 
   async getExportBundleByProjectId(projectId: string): Promise<ExportBundleInfo | null> {
+    if (isServerProject(projectId)) {
+      try {
+        const [latest] = await apiClient.get<ExportBundleDto[]>(`/projects/${projectId}/partner-export/bundles`);
+        return latest ? toExportBundleInfo(latest, await this.getProjectById(projectId)) : null;
+      } catch {
+        // No conversion_result.export permission or server unreachable: no bundle to show.
+        return null;
+      }
+    }
     const list = await this.getExportBundles();
     return list.find((b) => b.projectId === projectId) || null;
   },
 
-  // 15. Create / Trigger Export Bundle with Partner Notification
-  async triggerExport(data: {
-    projectId: string;
-    projectName: string;
-    partnerId: string;
-    partnerName: string;
-    partnerContactEmail: string;
-    conversionType: ConversionType;
-    packageName: string;
-    screensIncluded: number;
-    programsIncluded: number;
-    excludedItems?: Array<{ name: string; reason: string }>;
-  }): Promise<ExportBundleInfo> {
-    const newBundle: ExportBundleInfo = {
-      id: `exp-${Date.now().toString(36)}`,
-      projectId: data.projectId,
-      projectName: data.projectName,
-      partnerId: data.partnerId,
-      partnerName: data.partnerName,
-      partnerContactEmail: data.partnerContactEmail,
-      conversionType: data.conversionType,
-      packageName: data.packageName,
-      format: 'ZIP',
-      screensIncluded: data.screensIncluded,
-      programsIncluded: data.programsIncluded,
-      totalItems: data.screensIncluded + data.programsIncluded,
-      excludedItems: data.excludedItems || [],
-      exportedAt: new Date().toISOString(),
-      notificationStatus: 'SENT',
-      downloadUrl: `#download-${data.projectId}`,
-      fileSizeBytes: (data.screensIncluded + data.programsIncluded) * 412000 + 1048576,
-    };
-
-    // Save bundle
-    const currentBundles = loadStore<ExportBundleInfo[]>(STORAGE_EXPORTS_KEY, INITIAL_EXPORTS);
-    saveStore(STORAGE_EXPORTS_KEY, [newBundle, ...currentBundles]);
-
-    // Mark project as exported
-    const projects = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
-    const updatedProjects = projects.map((p) => {
-      if (p.id === data.projectId) {
-        return {
-          ...p,
-          status: 'COMPLETED' as const,
-          isExported: true,
-          exportedBundleName: data.packageName,
-          exportedAt: newBundle.exportedAt,
-        };
-      }
-      return p;
-    });
-    saveStore(STORAGE_PROJECTS_KEY, updatedProjects);
-
-    // Update partner completed export count
-    const partners = loadStore<Partner[]>(STORAGE_PARTNERS_KEY, INITIAL_PARTNERS);
-    const updatedPartners = partners.map((p) => {
-      if (p.id === data.partnerId) {
-        return {
-          ...p,
-          completedExportCount: (p.completedExportCount || 0) + 1,
-          latestActivity: `Exported ${data.packageName}`,
-          updatedAt: new Date().toISOString(),
-        };
-      }
-      return p;
-    });
-    saveStore(STORAGE_PARTNERS_KEY, updatedPartners);
-
-    return newBundle;
+  // 15. Preview what the server will package (UC-48)
+  async previewExport(projectId: string, options: PartnerExportOptions): Promise<PartnerExportPreview> {
+    requireServerProjectForExport(projectId);
+    try {
+      const dto = await apiClient.post<ExportPreviewDto>(`/projects/${projectId}/partner-export/preview`, options);
+      return {
+        packageName: dto.packageName,
+        targetFramework: dto.summary.targetFramework,
+        screensIncluded: dto.summary.screensIncluded,
+        programsIncluded: dto.summary.programsIncluded,
+        excludedItems: dto.summary.excludedItems,
+        totalFiles: dto.metrics.totalFiles,
+        estimatedSizeKb: dto.metrics.estimatedSizeKb,
+      };
+    } catch (err) {
+      throw await toPartnerExportError(err);
+    }
   },
 
-  // 16. Assign Project to Team Lead & Staff Member (Stage 3)
+  // 16. Download the bundle ZIP to check it before releasing (nothing is published)
+  async downloadExportZip(projectId: string, options: PartnerExportOptions, filename: string): Promise<void> {
+    requireServerProjectForExport(projectId);
+    try {
+      const blob = await apiClient.post<Blob>(`/projects/${projectId}/partner-export/download`, options, {
+        responseType: 'blob',
+      });
+      saveBlob(blob, filename);
+    } catch (err) {
+      throw await toPartnerExportError(err);
+    }
+  },
+
+  // 17. Release the bundle and notify the partner. The server stores the ZIP, marks the project
+  // exported and emails the partner; notificationStatus says whether the email really went out.
+  async triggerExport(data: {
+    projectId: string;
+    partnerEmail: string;
+    customNotes?: string;
+    options: PartnerExportOptions;
+  }): Promise<ExportBundleInfo> {
+    requireServerProjectForExport(data.projectId);
+    let dto: ExportBundleDto;
+    try {
+      dto = await apiClient.post<ExportBundleDto>(`/projects/${data.projectId}/partner-export/publish-and-notify`, {
+        partnerEmail: data.partnerEmail.trim(),
+        customNotes: data.customNotes?.trim() || undefined,
+        options: data.options,
+      });
+    } catch (err) {
+      throw await toPartnerExportError(err);
+    }
+    return toExportBundleInfo(dto, await this.getProjectById(data.projectId));
+  },
+
+  // 18. Re-send the notification of a released bundle
+  async retryExportNotification(projectId: string, bundleId: string): Promise<ExportBundleInfo> {
+    requireServerProjectForExport(projectId);
+    let dto: ExportBundleDto;
+    try {
+      dto = await apiClient.post<ExportBundleDto>(`/projects/${projectId}/partner-export/bundles/${bundleId}/notify`);
+    } catch (err) {
+      throw await toPartnerExportError(err);
+    }
+    return toExportBundleInfo(dto, await this.getProjectById(projectId));
+  },
+
+  // 19. Download the exact ZIP that was released
+  async downloadReleasedBundle(
+    projectId: string,
+    bundle: Pick<ExportBundleInfo, 'id' | 'packageName'>,
+  ): Promise<void> {
+    requireServerProjectForExport(projectId);
+    try {
+      const blob = await apiClient.get<Blob>(`/projects/${projectId}/partner-export/bundles/${bundle.id}/download`, {
+        responseType: 'blob',
+      });
+      saveBlob(blob, bundle.packageName);
+    } catch (err) {
+      throw await toPartnerExportError(err);
+    }
+  },
+
+  // 20. Assign Project to Team Lead & Staff Member (Stage 3)
   async assignProject(
     projectId: string,
     data: {
