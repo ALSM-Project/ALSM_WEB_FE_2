@@ -1,8 +1,15 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversionItemReviewPage } from '../pages/staff/ConversionItemReviewPage';
+import { apiClient } from '@/services/api/apiClient';
+
+// Never hit a real backend from tests: every request fails like an offline server, so the
+// pages render their deterministic local data.
+vi.mock('@/services/api/apiClient', () => ({
+  apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
 
 const createWrapper = (
   permissions: string[] = [
@@ -34,6 +41,12 @@ const createWrapper = (
 };
 
 describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
+  beforeEach(() => {
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
+    vi.mocked(apiClient.post).mockRejectedValue(new Error('offline'));
+    vi.mocked(apiClient.patch).mockRejectedValue(new Error('offline'));
+  });
+
   afterEach(() => {
     cleanup();
   });
