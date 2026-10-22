@@ -1,7 +1,6 @@
 import type { AxiosProgressEvent } from 'axios';
 import { apiClient } from '@/services/api/apiClient';
-import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
-import { classifyFile, fileExtension } from '../utils/uploadValidation';
+
 import {
   Partner,
   PartnerProject,
@@ -18,32 +17,7 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
-export { PartnerUploadError };
 
-/** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
-const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
-
-export interface SourceUploadResult {
-  /** SERVER: stored by the backend. LOCAL: project exists only in this browser's storage. */
-  mode: 'SERVER' | 'LOCAL';
-  registered: string[];
-  /** ZIP entries the server skipped because they are not source files for the project. */
-  ignoredEntries: string[];
-}
-
-interface ConversionSourceUploadResponse {
-  inputReference: string;
-  files: { name: string; sizeBytes: number }[];
-  screens: { id: string; name: string; sourceType: string }[];
-  ignoredEntries?: string[];
-}
-
-async function readFileText(file: File): Promise<string | undefined> {
-  try {
-    return typeof file.text === 'function' ? await file.text() : undefined;
-  } catch {
-    return undefined;
-  }
 }
 
 // Seed initial realistic partners
@@ -488,8 +462,22 @@ export const partnersApi = {
   // 1. Get Partners List
   async getPartners(): Promise<Partner[]> {
     let localPartners = loadStore<Partner[]>(STORAGE_PARTNERS_KEY, INITIAL_PARTNERS);
+    // Both sources are requested in parallel so the list never waits on them one by one.
+    const partnersRequest = apiClient.get<PartnerRecordDto[]>('/partners');
+    const organizationsRequest = apiClient.get<any[]>('/admin/organizations');
+    // Real partner profiles (UC-44) come first, newest first as returned by the backend.
+    let backendPartners: Partner[] = [];
     try {
-      const beOrgs = await apiClient.get<any[]>('/admin/organizations');
+      const records = await partnersRequest;
+      if (Array.isArray(records)) {
+        const byId = new Map(localPartners.map((p) => [p.id, p]));
+        backendPartners = records.map((r) => toPartner(r, byId.get(r.id)));
+      }
+    } catch {
+      // No partner.view permission or backend unreachable: keep the other sources below.
+    }
+    try {
+      const beOrgs = await organizationsRequest;
       if (Array.isArray(beOrgs) && beOrgs.length > 0) {
         // Merge backend organizations
         const mergedMap = new Map<string, Partner>();
@@ -522,7 +510,8 @@ export const partnersApi = {
     } catch {
       // Offline fallback: keep localPartners
     }
-    return localPartners;
+    const backendIds = new Set(backendPartners.map((p) => p.id));
+    return [...backendPartners, ...localPartners.filter((p) => !backendIds.has(p.id))];
   },
 
   // 2. Get Single Partner
@@ -531,7 +520,9 @@ export const partnersApi = {
     return list.find((p) => p.id === partnerId) || null;
   },
 
-  // 3. Create Partner
+  // 3. Create Partner (UC-44) - persisted by the backend; throws PartnerApiError on failure.
+  // Nothing is stored locally when the request fails, so a rejected or unreachable create
+  // never shows up as a partner that does not really exist.
   async createPartner(data: {
     name: string;
     domain: string;
@@ -540,40 +531,20 @@ export const partnersApi = {
     engagementType?: string;
     assignedStaffName?: string;
   }): Promise<Partner> {
-    const newId = `partner-${Date.now().toString(36)}`;
-    const newPartner: Partner = {
-      id: newId,
-      name: data.name,
-      companyName: data.name,
-      contactName: data.contactName,
-      contactEmail: data.contactEmail,
-      domain: data.domain,
-      status: 'ACTIVE',
-      engagementType: data.engagementType || 'Dedicated Modernization',
-      projectCount: 0,
-      activeConversionCount: 0,
-      completedExportCount: 0,
-      latestActivity: 'Just now',
-      assignedStaffName: data.assignedStaffName || 'Sarah Jenkins (Sr. Conversion Specialist)',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+    let record: PartnerRecordDto;
     try {
-      await apiClient.post('/admin/organizations/enterprise', {
-        name: data.name,
-        domain: data.domain,
-        adminEmail: data.contactEmail,
-        engagementType: data.engagementType,
+      record = await apiClient.post<PartnerRecordDto>('/partners', {
+        name: data.name.trim(),
+        contactEmail: data.contactEmail.trim(),
+        contactName: data.contactName.trim(),
+        primaryDomain: data.domain.trim(),
+        engagementType: data.engagementType || undefined,
+        assignedStaffName: data.assignedStaffName || undefined,
       });
-    } catch {
-      // Backend create failed or not enterprise - handled locally
+    } catch (err) {
+      throw toPartnerApiError(err);
     }
-
-    const current = loadStore<Partner[]>(STORAGE_PARTNERS_KEY, INITIAL_PARTNERS);
-    const updated = [newPartner, ...current];
-    saveStore(STORAGE_PARTNERS_KEY, updated);
-    return newPartner;
+    return toPartner(record);
   },
 
   // 4. Get Partner Projects

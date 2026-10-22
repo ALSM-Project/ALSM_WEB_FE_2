@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, User, Layers } from 'lucide-react';
 import { Button, Input } from '@/shared/ui';
 import { partnersApi } from '../../api/partners.api';
+import {
+  PartnerFormErrors,
+  PartnerFormField,
+  partnerErrorToFormErrors,
+  validatePartnerForm,
+} from '../../utils/partnerForm';
 
 export const CreatePartnerPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,30 +20,26 @@ export const CreatePartnerPage: React.FC = () => {
   const [engagementType, setEngagementType] = useState('Dedicated Modernization');
   const [assignedStaff, setAssignedStaff] = useState('Sarah Jenkins (Sr. Conversion Specialist)');
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<PartnerFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Organization name is required';
-    if (!domain.trim()) errs.domain = 'Primary domain is required';
-    else if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain.trim())) {
-      errs.domain = 'Please enter a valid domain (e.g. partner.com)';
-    }
-
-    if (!contactName.trim()) errs.contactName = 'Primary contact name is required';
-    if (!contactEmail.trim()) errs.contactEmail = 'Contact email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
-      errs.contactEmail = 'Please enter a valid email address';
-    }
-
+    const errs = validatePartnerForm({ name, domain, contactName, contactEmail });
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  /** Editing a field clears its own error (and the server banner) so stale messages don't linger. */
+  const clearError = (field: PartnerFormField) => {
+    if (errors[field] || errors.form) {
+      setErrors(({ [field]: _removed, form: _form, ...rest }) => rest);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    // Guard against a second submit (e.g. Enter pressed again) while the request is in flight.
+    if (submitting || !validate()) return;
 
     try {
       setSubmitting(true);
@@ -49,7 +51,11 @@ export const CreatePartnerPage: React.FC = () => {
         engagementType,
         assignedStaffName: assignedStaff,
       });
-      navigate(`/partners/${newPartner.id}`);
+      navigate(`/partners/${newPartner.id}`, {
+        state: { notice: `Partner "${newPartner.name}" was created successfully.` },
+      });
+    } catch (err) {
+      setErrors(partnerErrorToFormErrors(err));
     } finally {
       setSubmitting(false);
     }
@@ -65,6 +71,15 @@ export const CreatePartnerPage: React.FC = () => {
       {/* Main Form Card */}
       <div className="rounded-2xl border border-[#D9E2EC] bg-white p-6 sm:p-7 shadow-2xs">
         <form onSubmit={handleSubmit} className="space-y-6">
+          {errors.form && (
+            <div
+              role="alert"
+              className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700"
+            >
+              {errors.form}
+            </div>
+          )}
+
           {/* Section: Organization Identity */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 pb-2 border-b border-[#E5EAF0]">
@@ -77,7 +92,10 @@ export const CreatePartnerPage: React.FC = () => {
                 <Input
                   label="Organization / Company Name *"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    clearError('name');
+                  }}
                   placeholder="e.g. Pacific Banking Systems Ltd."
                   error={errors.name}
                 />
@@ -87,7 +105,10 @@ export const CreatePartnerPage: React.FC = () => {
                 <Input
                   label="Primary Web Domain *"
                   value={domain}
-                  onChange={(e) => setDomain(e.target.value)}
+                  onChange={(e) => {
+                    setDomain(e.target.value);
+                    clearError('domain');
+                  }}
                   placeholder="e.g. pacificbanking.com"
                   error={errors.domain}
                 />
@@ -107,7 +128,10 @@ export const CreatePartnerPage: React.FC = () => {
                 <Input
                   label="Contact Representative Name *"
                   value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
+                  onChange={(e) => {
+                    setContactName(e.target.value);
+                    clearError('contactName');
+                  }}
                   placeholder="e.g. Jonathan Reynolds"
                   error={errors.contactName}
                 />
@@ -118,7 +142,10 @@ export const CreatePartnerPage: React.FC = () => {
                   label="Contact Email Address *"
                   type="email"
                   value={contactEmail}
-                  onChange={(e) => setContactEmail(e.target.value)}
+                  onChange={(e) => {
+                    setContactEmail(e.target.value);
+                    clearError('contactEmail');
+                  }}
                   placeholder="e.g. jreynolds@pacificbanking.com"
                   error={errors.contactEmail}
                 />
