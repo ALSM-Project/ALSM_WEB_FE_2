@@ -65,7 +65,7 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
     expect(progress).toHaveBeenCalledWith(100);
   });
 
-  it('registers the screens created by the server as workspace items and reports ignored zip entries', async () => {
+  it('reports the screens the server registered and the ignored zip entries, without writing local items', async () => {
     vi.mocked(apiClient.post).mockResolvedValue({
       inputReference: 'sources/p/uuid',
       files: [
@@ -80,12 +80,11 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
     });
 
     const result = await partnersApi.uploadSourceFiles(SERVER_PROJECT, [file('bundle.zip')]);
-    const items = await partnersApi.getProjectItems(SERVER_PROJECT);
 
+    expect(result.registered).toEqual(['LOGIN.bms', 'MENU.bms']);
     expect(result.ignoredEntries).toEqual(['bundle.zip/README.md']);
-    const uploaded = items.filter((i) => ['LOGIN.bms', 'MENU.bms'].includes(i.sourceFile));
-    expect(uploaded.map((i) => i.sourceFile).sort()).toEqual(['LOGIN.bms', 'MENU.bms']);
-    expect(uploaded.every((i) => i.status === 'PENDING')).toBe(true);
+    // Server projects read their workspace items from the backend, not the local store.
+    expect(localStorage.getItem('alsm_partner_items_v1') ?? '').not.toContain(SERVER_PROJECT);
   });
 
   it('maps a 400 rejection to a PartnerUploadError with the server message and stores nothing', async () => {
@@ -99,8 +98,7 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
 
     expect(error).toBeInstanceOf(PartnerUploadError);
     expect(error).toMatchObject({ status: 400, code: 'EMPTY_FILE', message: 'File "A.bms" is empty (0 bytes)' });
-    const items = await partnersApi.getProjectItems(SERVER_PROJECT);
-    expect(items.some((i) => i.sourceFile === 'A.bms')).toBe(false);
+    expect(localStorage.getItem('alsm_partner_items_v1') ?? '').not.toContain('A.bms');
   });
 
   it('gives user-safe messages for 403, 413 and an unreachable server', async () => {

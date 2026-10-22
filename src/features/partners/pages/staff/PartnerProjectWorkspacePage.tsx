@@ -16,14 +16,22 @@ import {
   Code2,
   Eye,
 } from 'lucide-react';
-import { partnersApi } from '../../api/partners.api';
+import { partnersApi, isServerProject } from '../../api/partners.api';
 import { PartnerProject, PartnerConversionItem, FieldMappingRule } from '../../types/partner.types';
 import { PartnerStatusBadge } from '../../components/PartnerStatusBadge';
+import { ConversionStatusBadge } from '../../components/ConversionStatusBadge';
 import { ProgressBar } from '../../components/ProgressBar';
 import { ExportDialog } from '../../components/ExportDialog';
 import { EditMappingModal } from '../../components/EditMappingModal';
 import { Button, Tabs, ModernizationWorkflow, StatusBadge } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+
+/** Refresh cadence while any item of a server project is still converting. */
+export const WORKSPACE_POLL_INTERVAL_MS = 3000;
+
+function safeMessage(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
 
 export const PartnerProjectWorkspacePage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
@@ -44,18 +52,19 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
   const [editingMappingItem, setEditingMappingItem] = useState<PartnerConversionItem | null>(null);
   const [editingMappings, setEditingMappings] = useState<FieldMappingRule[]>([]);
   const [runningBulk, setRunningBulk] = useState(false);
-  const [retryingItemId, setRetryingItemId] = useState<string | null>(null);
+  // Several rows can be triggered at once; each row only locks itself.
+  const [retryingItemIds, setRetryingItemIds] = useState<ReadonlySet<string>>(new Set());
+  const [notice, setNotice] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const loadWorkspace = useCallback(async () => {
     if (!projectId) return;
     try {
       setLoading(true);
-      const [proj, list] = await Promise.all([
-        partnersApi.getProjectById(projectId),
-        partnersApi.getProjectItems(projectId),
-      ]);
-      setProject(proj);
-      setItems(list);
+      setProject(await partnersApi.getProjectById(projectId));
+      setItems(await partnersApi.getProjectItems(projectId));
+    } catch (err) {
+      setActionError(safeMessage(err, 'The workspace could not be loaded. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -65,29 +74,74 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
     loadWorkspace();
   }, [loadWorkspace]);
 
-  const handleRunAll = async () => {
+  const refreshProject = useCallback(async () => {
     if (!projectId) return;
+    setProject(await partnersApi.getProjectById(projectId));
+  }, [projectId]);
+
+  // Live progress: queued/processing jobs finish in the background worker, so keep
+  // re-reading the items until nothing is in flight.
+  const hasInFlight = items.some((i) => i.status === 'PROCESSING');
+  useEffect(() => {
+    if (!projectId || !hasInFlight || !isServerProject(projectId)) return;
+    const timer = window.setInterval(() => {
+      if (document.hidden) return;
+      partnersApi
+        .getProjectItems(projectId)
+        .then((list) => setItems(list))
+        .catch(() => undefined);
+    }, WORKSPACE_POLL_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [projectId, hasInFlight]);
+
+  const handleRunAll = async () => {
+    if (!projectId || runningBulk) return;
+    setRunningBulk(true);
+    setActionError(null);
+    setNotice(null);
     try {
-      setRunningBulk(true);
+      const before = new Map(items.map((i) => [i.id, i.status]));
       const updated = await partnersApi.runAllConversions(projectId);
       setItems(updated);
-      const refreshedProj = await partnersApi.getProjectById(projectId);
-      setProject(refreshedProj);
+      const queued = updated.filter(
+        (i) => i.status === 'PROCESSING' && before.get(i.id) !== 'PROCESSING',
+      ).length;
+      const skipped = updated.filter((i) => i.lastSkipReason);
+      if (queued === 0 && skipped.length === 0) {
+        setNotice('Nothing to convert: every item is already converted or in progress.');
+      } else {
+        setNotice(
+          `${queued} item${queued === 1 ? '' : 's'} queued for conversion` +
+            (skipped.length > 0
+              ? `; ${skipped.length} skipped (${skipped.map((i) => i.lastSkipReason).join('; ')})`
+              : '.'),
+        );
+      }
+      await refreshProject();
+    } catch (err) {
+      setActionError(safeMessage(err, 'The conversions could not be started. Please try again.'));
     } finally {
       setRunningBulk(false);
     }
   };
 
   const handleConvertOrRetryItem = async (itemId: string) => {
-    if (!projectId) return;
+    if (!projectId || retryingItemIds.has(itemId)) return;
+    setRetryingItemIds((prev) => new Set(prev).add(itemId));
+    setActionError(null);
     try {
-      setRetryingItemId(itemId);
       const updated = await partnersApi.retryItemConversion(projectId, itemId);
       setItems((prev) => prev.map((i) => (i.id === itemId ? updated : i)));
-      const refreshedProj = await partnersApi.getProjectById(projectId);
-      setProject(refreshedProj);
+      setNotice(`${updated.sourceFile} queued for conversion.`);
+      await refreshProject();
+    } catch (err) {
+      setActionError(safeMessage(err, 'The conversion could not be started. Please try again.'));
     } finally {
-      setRetryingItemId(null);
+      setRetryingItemIds((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
   };
 
@@ -223,6 +277,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 size="sm"
                 onClick={handleRunAll}
                 isLoading={runningBulk}
+                disabled={runningBulk}
                 className="text-xs flex items-center gap-1.5 border-[#0652CC] text-[#0652CC] hover:bg-blue-50"
               >
                 <Play className="w-3.5 h-3.5" /> Run All Conversions
@@ -242,6 +297,46 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {actionError && (
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700"
+        >
+          <span className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
+            {actionError}
+          </span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            aria-label="Dismiss error"
+            className="text-rose-600 hover:text-rose-800"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {notice && (
+        <div
+          role="status"
+          className="flex items-start justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800"
+        >
+          <span className="flex items-start gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            {notice}
+          </span>
+          <button
+            type="button"
+            onClick={() => setNotice(null)}
+            aria-label="Dismiss notification"
+            className="text-emerald-700 hover:text-emerald-900"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* 2. Modernization Workflow Stepper */}
       <ModernizationWorkflow
@@ -433,6 +528,18 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           <span className="text-[10px] font-normal text-[#6B778C] block truncate">
                             {item.sourceFile}
                           </span>
+                          {item.lastSkipReason ? (
+                            <span className="mt-0.5 block whitespace-normal text-[10px] font-normal text-amber-700">
+                              {item.lastSkipReason}
+                            </span>
+                          ) : (
+                            item.safeErrorMessage &&
+                            (item.status === 'FAILED' || item.status === 'DEAD_LETTER') && (
+                              <span className="mt-0.5 block whitespace-normal text-[10px] font-normal text-rose-600">
+                                {item.safeErrorMessage}
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
                     </td>
@@ -444,7 +551,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
 
                     {/* 3. Status */}
                     <td className="py-3.5 px-4">
-                      <StatusBadge status={item.status} />
+                      <ConversionStatusBadge status={item.status} />
                     </td>
 
                     {/* 4. Validation */}
@@ -478,22 +585,31 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleConvertOrRetryItem(item.id)}
-                            disabled={retryingItemId === item.id}
-                            className={`inline-flex items-center space-x-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer ${
-                              item.status === 'FAILED'
+                            disabled={retryingItemIds.has(item.id) || item.status === 'PROCESSING'}
+                            aria-label={`${
+                              item.status === 'FAILED' || item.status === 'DEAD_LETTER' ? 'Retry' : 'Convert'
+                            } ${item.sourceFile}`}
+                            className={`inline-flex items-center space-x-1 text-xs font-semibold px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${
+                              item.status === 'FAILED' || item.status === 'DEAD_LETTER'
                                 ? 'text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100'
                                 : 'text-[#0652CC] bg-[#E8F1FF] border-blue-200 hover:bg-blue-100'
                             }`}
                             title="Run Conversion Algorithm"
                           >
-                            {retryingItemId === item.id ? (
+                            {retryingItemIds.has(item.id) || item.status === 'PROCESSING' ? (
                               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            ) : item.status === 'FAILED' ? (
+                            ) : item.status === 'FAILED' || item.status === 'DEAD_LETTER' ? (
                               <RotateCcw className="w-3.5 h-3.5" />
                             ) : (
                               <Play className="w-3.5 h-3.5" />
                             )}
-                            <span>{item.status === 'FAILED' ? 'Retry' : 'Convert'}</span>
+                            <span>
+                              {item.status === 'PROCESSING'
+                                ? 'Converting...'
+                                : item.status === 'FAILED' || item.status === 'DEAD_LETTER'
+                                  ? 'Retry'
+                                  : 'Convert'}
+                            </span>
                           </button>
                         )}
 
