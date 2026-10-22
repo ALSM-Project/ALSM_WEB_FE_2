@@ -20,17 +20,20 @@ export const TeamLeadOverview: React.FC = () => {
   const { user } = useAuth();
 
   // Fetch Projects & Staff Roster
-  const { data: allProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
+  const { data: rawProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['team-lead', 'dashboard', 'projects'],
     queryFn: () => partnersApi.getProjects(),
     staleTime: 20000,
   });
 
-  const { data: staffRoster = [], isLoading: loadingStaff } = useQuery({
+  const { data: rawStaff = [], isLoading: loadingStaff } = useQuery({
     queryKey: ['team-lead', 'dashboard', 'staff'],
     queryFn: () => partnersApi.getAssignableStaff(),
     staleTime: 30000,
   });
+
+  const allProjects = Array.isArray(rawProjects) ? rawProjects : [];
+  const staffRoster = Array.isArray(rawStaff) ? rawStaff : [];
 
   // Filter projects in this team's scope
   // If user is a specific team lead, filter by assignedTeamLeadId, else if admin or inspecting, show all

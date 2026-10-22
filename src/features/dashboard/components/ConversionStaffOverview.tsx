@@ -21,11 +21,13 @@ export const ConversionStaffOverview: React.FC = () => {
   const { user } = useAuth();
 
   // Load projects & conversion items
-  const { data: allProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
+  const { data: rawProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['staff', 'dashboard', 'projects'],
     queryFn: () => partnersApi.getProjects(),
     staleTime: 15000,
   });
+
+  const allProjects = Array.isArray(rawProjects) ? rawProjects : [];
 
   // Filter projects assigned to this staff member
   // If no assigned project is strictly filtered or user is test, show active projects

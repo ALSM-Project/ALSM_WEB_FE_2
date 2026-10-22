@@ -14,7 +14,7 @@ import {
   Zap,
   } from 'lucide-react';
 import { Button } from '@/shared/ui';
-import { adminApi } from '@/features/admin/api/admin.api';
+import { adminApi, AuditLogDto } from '@/features/admin/api/admin.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { quoteApi } from '@/features/billing/api/quote.api';
@@ -23,27 +23,27 @@ export const PlatformAdminOverview: React.FC = () => {
   const navigate = useNavigate();
 
   // 1. Fetch Organizations
-  const { data: orgs = [], isLoading: loadingOrgs } = useQuery({
+  const { data: rawOrgs = [], isLoading: loadingOrgs } = useQuery({
     queryKey: ['admin', 'dashboard', 'orgs'],
     queryFn: adminApi.getOrganizations,
     staleTime: 30000,
   });
 
   // 2. Fetch Projects & Engagements
-  const { data: projects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
+  const { data: rawProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
     queryKey: ['admin', 'dashboard', 'projects'],
     queryFn: () => partnersApi.getProjects(),
     staleTime: 30000,
   });
 
-  const { data: engagementTypes = [] } = useQuery({
+  const { data: rawEngagementTypes = [] } = useQuery({
     queryKey: ['admin', 'dashboard', 'engagement-types'],
     queryFn: adminApi.getEngagementTypes,
     staleTime: 60000,
   });
 
   // 3. Fetch Audit Logs
-  const { data: auditLogs = [], isLoading: loadingLogs } = useQuery({
+  const { data: rawAuditLogs = [], isLoading: loadingLogs } = useQuery({
     queryKey: ['admin', 'dashboard', 'audit-logs'],
     queryFn: () => adminApi.getAuditLogs({ limit: 6 }),
     staleTime: 15000,
@@ -56,6 +56,10 @@ export const PlatformAdminOverview: React.FC = () => {
     staleTime: 15000,
   });
 
+  const orgs = Array.isArray(rawOrgs) ? rawOrgs : [];
+  const projects = Array.isArray(rawProjects) ? rawProjects : [];
+  const engagementTypes = Array.isArray(rawEngagementTypes) ? rawEngagementTypes : [];
+  const auditLogs: AuditLogDto[] = Array.isArray(rawAuditLogs) ? rawAuditLogs : ((rawAuditLogs as any)?.items || []);
   const pendingQuotes = quoteData?.items || [];
 
   // Metrics Calculation
