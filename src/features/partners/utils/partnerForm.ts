@@ -1,4 +1,4 @@
-import { PartnerApiError } from '../api/partners.api';
+import { PartnerApiError } from '../api/partnerApiError';
 
 export const PARTNER_NAME_MAX_LENGTH = 200;
 
