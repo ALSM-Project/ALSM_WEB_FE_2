@@ -1,4 +1,7 @@
+import type { AxiosProgressEvent } from 'axios';
 import { apiClient } from '@/services/api/apiClient';
+import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
+import { classifyFile, fileExtension } from '../utils/uploadValidation';
 import { PartnerApiError } from './partnerApiError';
 import {
   Partner,
@@ -16,7 +19,33 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
-export { PartnerApiError };
+export { PartnerApiError, PartnerUploadError };
+
+/** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
+const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
+
+export interface SourceUploadResult {
+  /** SERVER: stored by the backend. LOCAL: project exists only in this browser's storage. */
+  mode: 'SERVER' | 'LOCAL';
+  registered: string[];
+  /** ZIP entries the server skipped because they are not source files for the project. */
+  ignoredEntries: string[];
+}
+
+interface ConversionSourceUploadResponse {
+  inputReference: string;
+  files: { name: string; sizeBytes: number }[];
+  screens: { id: string; name: string; sourceType: string }[];
+  ignoredEntries?: string[];
+}
+
+async function readFileText(file: File): Promise<string | undefined> {
+  try {
+    return typeof file.text === 'function' ? await file.text() : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 /** Shape returned by the backend's POST/GET /partners. */
 interface PartnerRecordDto {
@@ -900,6 +929,75 @@ export const partnersApi = {
 
     await this.recalculateProjectMetrics(projectId);
     return combined;
+  },
+
+  // 11b. Upload source files (UC-46). Real backend projects get a multipart POST to
+  // /projects/:id/conversion-sources (all files in one request so COBOL copybooks resolve
+  // against the whole bundle). Browser-only demo projects are registered locally and the
+  // result says so. Throws PartnerUploadError with a user-safe message on failure.
+  async uploadSourceFiles(
+    projectId: string,
+    files: File[],
+    onProgress?: (percent: number) => void,
+  ): Promise<SourceUploadResult> {
+    const project = await this.getProjectById(projectId);
+    const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
+
+    if (!BACKEND_PROJECT_ID.test(projectId)) {
+      if (files.some((f) => fileExtension(f.name) === 'zip')) {
+        throw new PartnerUploadError(
+          'ZIP archives can only be uploaded to projects stored on the server',
+        );
+      }
+      const items = await Promise.all(
+        files.map(async (f) => ({
+          name: f.name,
+          type: classifyFile(f.name, conversionType),
+          content: await readFileText(f),
+        })),
+      );
+      await this.addSourceFiles(projectId, items);
+      onProgress?.(100);
+      return { mode: 'LOCAL', registered: files.map((f) => f.name), ignoredEntries: [] };
+    }
+
+    const form = new FormData();
+    files.forEach((f) => form.append('files', f, f.name));
+    let response: ConversionSourceUploadResponse;
+    try {
+      response = await apiClient.post<ConversionSourceUploadResponse>(
+        `/projects/${projectId}/conversion-sources`,
+        form,
+        {
+          onUploadProgress: (event: AxiosProgressEvent) => {
+            if (!onProgress || !event.total) return;
+            onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));
+          },
+        },
+      );
+    } catch (err) {
+      throw toPartnerUploadError(err);
+    }
+
+    // The workspace lists items from the local store; mirror what the server accepted.
+    const byName = new Map(files.map((f) => [f.name, f]));
+    const items = await Promise.all(
+      response.screens.map(async (screen) => {
+        const original = byName.get(screen.name);
+        return {
+          name: screen.name,
+          type: classifyFile(screen.name, conversionType),
+          content: original ? await readFileText(original) : undefined,
+        };
+      }),
+    );
+    if (items.length > 0) await this.addSourceFiles(projectId, items);
+    onProgress?.(100);
+    return {
+      mode: 'SERVER',
+      registered: response.screens.map((s) => s.name),
+      ignoredEntries: response.ignoredEntries ?? [],
+    };
   },
 
   // 12. Validation Findings
