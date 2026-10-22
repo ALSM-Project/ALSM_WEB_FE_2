@@ -186,7 +186,24 @@ export const adminApi = {
     resourceType?: string;
     limit?: number;
   }): Promise<AuditLogDto[]> => {
-    return apiClient.get<AuditLogDto[]>('/admin/audit-logs', { params });
+    try {
+      const res = await apiClient.get<any>('/admin/audit-logs', { params });
+      const rawItems: any[] = Array.isArray(res) ? res : (Array.isArray(res?.items) ? res.items : []);
+      return rawItems.map((log: any) => ({
+        id: log._id?.toString() || log.id || String(Math.random()),
+        actor: typeof log.actorUserId === 'object' && log.actorUserId !== null
+          ? (log.actorUserId.fullName || log.actorUserId.email || 'System')
+          : (log.actor || 'System'),
+        action: log.action || 'Unknown Action',
+        resourceType: log.resourceType || 'SYSTEM',
+        resourceId: log.resourceId,
+        metadata: log.metadata,
+        timestamp: log.createdAt || log.timestamp || new Date().toISOString(),
+        ipAddress: log.ipAddress || log.metadata?.ip || '127.0.0.1',
+      }));
+    } catch {
+      return [];
+    }
   },
 
   exportAuditLogsCsv: async (): Promise<string> => {

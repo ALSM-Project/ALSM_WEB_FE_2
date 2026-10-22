@@ -30,18 +30,21 @@ export const SalesOverview: React.FC = () => {
   });
 
   // 2. Fetch Leads
-  const { data: leads = [], isLoading: loadingLeads } = useQuery<LeadDto[]>({
+  const { data: rawLeads = [], isLoading: loadingLeads } = useQuery<LeadDto[]>({
     queryKey: ['sales', 'dashboard', 'leads'],
     queryFn: () => crmApi.getLeads(),
     staleTime: 30000,
   });
 
   // 3. Fetch Pending Discounts
-  const { data: pendingDiscounts = [], isLoading: loadingDiscounts } = useQuery<PendingDiscountDto[]>({
+  const { data: rawPendingDiscounts = [], isLoading: loadingDiscounts } = useQuery<PendingDiscountDto[]>({
     queryKey: ['sales', 'dashboard', 'discounts'],
     queryFn: () => crmApi.getPendingDiscounts(),
     staleTime: 15000,
   });
+
+  const leads = Array.isArray(rawLeads) ? rawLeads : [];
+  const pendingDiscounts = Array.isArray(rawPendingDiscounts) ? rawPendingDiscounts : [];
 
   // Review Discount Mutation
   const reviewMutation = useMutation({
