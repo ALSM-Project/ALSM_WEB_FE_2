@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Filter,
   RefreshCw,
+  X,
 } from 'lucide-react';
 import { partnersApi } from '../../api/partners.api';
 import { Partner } from '../../types/partner.types';
@@ -35,6 +36,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(openCreateModalOnInit);
   const [selectedProjectPartner, setSelectedProjectPartner] = useState<Partner | null>(null);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
@@ -108,6 +110,26 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
           )}
         </div>
       </div>
+
+      {successNotice && (
+        <div
+          role="status"
+          className="flex items-start justify-between gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800"
+        >
+          <span className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            {successNotice}
+          </span>
+          <button
+            type="button"
+            onClick={() => setSuccessNotice(null)}
+            className="text-emerald-700 hover:text-emerald-900"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* KPI Metric Summary Cards - Clickable to filter & inspect */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -362,7 +384,8 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             navigate('/partners', { replace: true });
           }
         }}
-        onSuccess={async () => {
+        onSuccess={async (partner) => {
+          setSuccessNotice(`Partner "${partner.name}" was created successfully.`);
           await loadData();
         }}
       />
