@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RegisterPartnerModal } from '../components/RegisterPartnerModal';
 import { partnersApi } from '../api/partners.api';
+import { PartnerApiError } from '../api/partnerApiError';
 
 vi.mock('../api/partners.api', () => ({
   partnersApi: {
@@ -16,6 +17,21 @@ vi.mock('../api/partners.api', () => ({
     ),
   },
 }));
+
+function fillValidForm() {
+  fireEvent.change(screen.getByLabelText(/Organization \/ Company Name/i), {
+    target: { value: 'Horizon Banking Cloud' },
+  });
+  fireEvent.change(screen.getByLabelText(/Primary Web Domain/i), {
+    target: { value: 'horizoncloud.io' },
+  });
+  fireEvent.change(screen.getByLabelText(/Contact Representative Name/i), {
+    target: { value: 'Alex Morgan' },
+  });
+  fireEvent.change(screen.getByLabelText(/Contact Email Address/i), {
+    target: { value: 'alex@horizoncloud.io' },
+  });
+}
 
 describe('RegisterPartnerModal', () => {
   afterEach(() => {
@@ -100,6 +116,54 @@ describe('RegisterPartnerModal', () => {
       expect(handleSuccess).toHaveBeenCalled();
       expect(handleClose).toHaveBeenCalled();
     });
+  });
+
+  it('shows a 409 duplicate email under the field and keeps the modal open', async () => {
+    const message = "A partner with contact email 'alex@horizoncloud.io' already exists";
+    vi.mocked(partnersApi.createPartner).mockRejectedValueOnce(
+      new PartnerApiError(message, 409, 'PARTNER_ALREADY_EXISTS'),
+    );
+    const handleClose = vi.fn();
+    const handleSuccess = vi.fn();
+    render(<RegisterPartnerModal isOpen={true} onClose={handleClose} onSuccess={handleSuccess} />);
+
+    fillValidForm();
+    fireEvent.click(screen.getByRole('button', { name: /Register & Setup Partner/i }));
+
+    // Banner + inline message under Contact Email.
+    expect(await screen.findAllByText(message)).toHaveLength(2);
+    expect(handleSuccess).not.toHaveBeenCalled();
+    expect(handleClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('rejects a company name longer than 200 characters without calling the API', async () => {
+    render(<RegisterPartnerModal isOpen={true} onClose={vi.fn()} />);
+    fillValidForm();
+    fireEvent.change(screen.getByLabelText(/Organization \/ Company Name/i), {
+      target: { value: 'A'.repeat(201) },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Register & Setup Partner/i }));
+
+    expect(await screen.findByText(/at most 200 characters/i)).toBeInTheDocument();
+    expect(partnersApi.createPartner).not.toHaveBeenCalled();
+  });
+
+  it('disables the submit button while the request is in flight so it cannot be sent twice', async () => {
+    let resolveCreate: (value: unknown) => void = () => undefined;
+    vi.mocked(partnersApi.createPartner).mockImplementationOnce(
+      () => new Promise((resolve) => (resolveCreate = resolve)) as never,
+    );
+    render(<RegisterPartnerModal isOpen={true} onClose={vi.fn()} />);
+    fillValidForm();
+
+    const submitBtn = screen.getByRole('button', { name: /Register & Setup Partner/i });
+    fireEvent.click(submitBtn);
+    await waitFor(() => expect(submitBtn).toBeDisabled());
+    fireEvent.click(submitBtn);
+
+    expect(partnersApi.createPartner).toHaveBeenCalledTimes(1);
+    resolveCreate({ id: 'p-1', name: 'Horizon Banking Cloud' });
   });
 
   it('invokes onClose when clicking Cancel button', () => {
