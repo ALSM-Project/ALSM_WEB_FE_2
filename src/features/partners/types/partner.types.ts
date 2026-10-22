@@ -66,6 +66,8 @@ export interface PartnerConversionItem {
   updatedAt: string;
   generatedCode?: Record<string, string>;
   previewUrl?: string;
+  /** Why the last "Run All" did not queue this item (e.g. missing copybooks). */
+  lastSkipReason?: string;
 }
 
 export interface ValidationFinding {

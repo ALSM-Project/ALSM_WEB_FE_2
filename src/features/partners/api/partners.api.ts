@@ -1,6 +1,7 @@
 import type { AxiosProgressEvent } from 'axios';
 import { apiClient } from '@/services/api/apiClient';
 import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
+import { PartnerConversionError, toPartnerConversionError } from './partnerConversionError';
 import { classifyFile, fileExtension } from '../utils/uploadValidation';
 import {
   Partner,
@@ -10,6 +11,7 @@ import {
   FieldMappingRule,
   ExportBundleInfo,
   ConversionType,
+  ItemConversionStatus,
 } from '../types/partner.types';
 
 const STORAGE_PARTNERS_KEY = 'alsm_partner_records_v1';
@@ -18,10 +20,88 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
-export { PartnerUploadError };
+export { PartnerUploadError, PartnerConversionError };
 
 /** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
 const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
+
+export function isServerProject(projectId: string): boolean {
+  return BACKEND_PROJECT_ID.test(projectId);
+}
+
+const LOCAL_PROJECT_CONVERSION_MESSAGE =
+  'This demo project exists only in this browser, so its files cannot be converted. Conversions run for projects stored on the server.';
+
+interface ScreenDto {
+  id: string;
+  projectId: string;
+  name: string;
+  sourceType: string;
+  updatedAt: string;
+}
+
+type ConversionJobStatusDto = 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'DEAD' | 'CANCELLED';
+
+interface ConversionJobDto {
+  id: string;
+  screenId?: string;
+  status: ConversionJobStatusDto;
+  attemptCount: number;
+  maxAttempts: number;
+  errorCode?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BulkStartResponse {
+  jobs: ConversionJobDto[];
+  skipped: { screenId: string; code: string; message: string }[];
+}
+
+/** A queued job is already in flight from the user's point of view. */
+const ITEM_STATUS_BY_JOB_STATUS: Record<ConversionJobStatusDto, ItemConversionStatus> = {
+  QUEUED: 'PROCESSING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  DEAD: 'DEAD_LETTER',
+  CANCELLED: 'FAILED',
+};
+
+/** Job error codes mapped to user-safe text; a job's raw errorMessage can hold tool output. */
+const SAFE_JOB_ERRORS: Record<string, string> = {
+  COPYBOOK_DEPENDENCY_BLOCKED:
+    'Missing copybooks: upload the copybooks this program uses, then retry.',
+  CONVERSION_QUEUE_UNAVAILABLE: 'The conversion queue was unavailable. Please retry.',
+  CONVERSION_ENGINE_UNAVAILABLE:
+    'The converter could not convert this file. Check the source file, then retry.',
+};
+
+function toServerItem(
+  projectId: string,
+  screen: ScreenDto,
+  conversionType: ConversionType,
+  latest?: ConversionJobDto,
+): PartnerConversionItem {
+  const status: ItemConversionStatus = latest ? ITEM_STATUS_BY_JOB_STATUS[latest.status] : 'PENDING';
+  const failed = status === 'FAILED' || status === 'DEAD_LETTER';
+  return {
+    id: screen.id,
+    projectId,
+    name: screen.name.replace(/\.[^/.]+$/, '').toUpperCase(),
+    type: classifyFile(screen.name, conversionType),
+    sourceFile: screen.name,
+    status,
+    validationStatus: 'PENDING',
+    progress: status === 'COMPLETED' ? 100 : 0,
+    attemptCount: latest?.attemptCount ?? 0,
+    maxAttempts: latest?.maxAttempts ?? 3,
+    safeErrorMessage: failed
+      ? SAFE_JOB_ERRORS[latest?.errorCode ?? ''] ?? 'The conversion failed. Please retry.'
+      : undefined,
+    updatedAt: latest?.updatedAt ?? screen.updatedAt,
+  };
+}
 
 export interface SourceUploadResult {
   /** SERVER: stored by the backend. LOCAL: project exists only in this browser's storage. */
@@ -690,6 +770,7 @@ export const partnersApi = {
 
   // 7. Get Items in Project Workspace
   async getProjectItems(projectId: string): Promise<PartnerConversionItem[]> {
+    if (isServerProject(projectId)) return this.getServerProjectItems(projectId);
     const allStore = loadStore<Record<string, PartnerConversionItem[]>>(STORAGE_ITEMS_KEY, INITIAL_ITEMS);
     if (allStore[projectId]) {
       return allStore[projectId];
@@ -769,49 +850,72 @@ export const partnersApi = {
 
   // 9. Retry / Convert Item
   async retryItemConversion(projectId: string, itemId: string): Promise<PartnerConversionItem> {
-    const items = await this.getProjectItems(projectId);
-    const updated = items.map((i) => {
-      if (i.id === itemId) {
-        return {
-          ...i,
-          status: 'COMPLETED' as const,
-          validationStatus: 'PASSED' as const,
-          progress: 100,
-          attemptCount: (i.attemptCount || 1) + 1,
-          errorMessage: undefined,
-          safeErrorMessage: undefined,
-          updatedAt: new Date().toISOString(),
-        };
-      }
-      return i;
-    });
-
-    const allStore = loadStore<Record<string, PartnerConversionItem[]>>(STORAGE_ITEMS_KEY, INITIAL_ITEMS);
-    allStore[projectId] = updated;
-    saveStore(STORAGE_ITEMS_KEY, allStore);
-
-    // Update project metrics
-    await this.recalculateProjectMetrics(projectId);
-    return updated.find((i) => i.id === itemId)!;
+    if (!isServerProject(projectId)) {
+      throw new PartnerConversionError(LOCAL_PROJECT_CONVERSION_MESSAGE);
+    }
+    try {
+      await apiClient.post<ConversionJobDto>(`/projects/${projectId}/conversions/jobs`, {
+        screenId: itemId,
+      });
+    } catch (err) {
+      throw toPartnerConversionError(err);
+    }
+    const refreshed = await this.getServerProjectItems(projectId);
+    const item = refreshed.find((i) => i.id === itemId);
+    if (!item) throw new PartnerConversionError('This file is no longer part of the project');
+    return item;
   },
 
   // 10. Run All Conversions in Workspace
   async runAllConversions(projectId: string): Promise<PartnerConversionItem[]> {
-    const items = await this.getProjectItems(projectId);
-    const updated = items.map((i) => ({
-      ...i,
-      status: 'COMPLETED' as const,
-      validationStatus: i.validationStatus === 'FAILED' ? ('PASSED' as const) : i.validationStatus,
-      progress: 100,
-      updatedAt: new Date().toISOString(),
-    }));
+    if (!isServerProject(projectId)) {
+      throw new PartnerConversionError(LOCAL_PROJECT_CONVERSION_MESSAGE);
+    }
+    const current = await this.getServerProjectItems(projectId);
+    // Completed items keep their result and running ones are already in the queue.
+    const screenIds = current
+      .filter((i) => i.status !== 'COMPLETED' && i.status !== 'PROCESSING')
+      .map((i) => i.id);
+    if (screenIds.length === 0) return current;
 
-    const allStore = loadStore<Record<string, PartnerConversionItem[]>>(STORAGE_ITEMS_KEY, INITIAL_ITEMS);
-    allStore[projectId] = updated;
-    saveStore(STORAGE_ITEMS_KEY, allStore);
+    let result: BulkStartResponse;
+    try {
+      result = await apiClient.post<BulkStartResponse>(
+        `/projects/${projectId}/conversions/jobs/bulk`,
+        { screenIds },
+      );
+    } catch (err) {
+      throw toPartnerConversionError(err);
+    }
+    const skippedById = new Map(result.skipped.map((s) => [s.screenId, s.message]));
+    const refreshed = await this.getServerProjectItems(projectId);
+    return refreshed.map((i) =>
+      skippedById.has(i.id) ? { ...i, lastSkipReason: skippedById.get(i.id) } : i,
+    );
+  },
 
-    await this.recalculateProjectMetrics(projectId);
-    return updated;
+  /** Workspace items of a server project: one per uploaded screen/program, with the status
+   * and attempts of its most recent conversion job. */
+  async getServerProjectItems(projectId: string): Promise<PartnerConversionItem[]> {
+    let screens: ScreenDto[];
+    let jobs: ConversionJobDto[];
+    try {
+      [screens, jobs] = await Promise.all([
+        apiClient.get<ScreenDto[]>(`/projects/${projectId}/screens`),
+        apiClient.get<ConversionJobDto[]>(`/projects/${projectId}/conversions`),
+      ]);
+    } catch (err) {
+      throw toPartnerConversionError(err);
+    }
+    const project = await this.getProjectById(projectId);
+    const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
+    const latestByScreen = new Map<string, ConversionJobDto>();
+    for (const job of [...jobs].sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
+      if (job.screenId && !latestByScreen.has(job.screenId)) latestByScreen.set(job.screenId, job);
+    }
+    return screens.map((screen) =>
+      toServerItem(projectId, screen, conversionType, latestByScreen.get(screen.id)),
+    );
   },
 
   // Helper: Recalculate Project Completed Totals
@@ -922,19 +1026,7 @@ export const partnersApi = {
       throw toPartnerUploadError(err);
     }
 
-    // The workspace lists items from the local store; mirror what the server accepted.
-    const byName = new Map(files.map((f) => [f.name, f]));
-    const items = await Promise.all(
-      response.screens.map(async (screen) => {
-        const original = byName.get(screen.name);
-        return {
-          name: screen.name,
-          type: classifyFile(screen.name, conversionType),
-          content: original ? await readFileText(original) : undefined,
-        };
-      }),
-    );
-    if (items.length > 0) await this.addSourceFiles(projectId, items);
+    // Server projects list their items straight from the backend (getServerProjectItems).
     onProgress?.(100);
     return {
       mode: 'SERVER',
