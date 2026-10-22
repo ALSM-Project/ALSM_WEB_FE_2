@@ -21,6 +21,8 @@ const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
 const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
 
+export { PartnerApiError, PartnerUploadError, PartnerConversionError };
+
 
 
 /** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
