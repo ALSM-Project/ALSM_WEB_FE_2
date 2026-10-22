@@ -94,7 +94,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Demo Title / Topic *</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Demo Title / Topic *</label>
           <Input
             required
             value={topic}
@@ -105,7 +105,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Date & Time *</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Date & Time *</label>
             <Input
               type="datetime-local"
               required
@@ -116,11 +116,11 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Duration</label>
+            <label className="block font-semibold text-[#17263A] mb-1">Duration</label>
             <select
               value={durationMinutes}
               onChange={(e) => setDurationMinutes(Number(e.target.value))}
-              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
             >
               <option value={30}>30 Minutes</option>
               <option value={45}>45 Minutes (Recommended)</option>
@@ -131,7 +131,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Attendee Emails (comma-separated)</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Attendee Emails (comma-separated)</label>
           <Input
             value={attendees}
             onChange={(e) => setAttendees(e.target.value)}
@@ -141,28 +141,28 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Demo Agenda / Target Code</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Demo Agenda / Target Code</label>
           <textarea
             rows={2}
             value={agenda}
             onChange={(e) => setAgenda(e.target.value)}
-            className="w-full text-xs p-2.5 rounded-xl border border-[#D9E2EC] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+            className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-[#091E42] mb-1">Internal Preparation Notes</label>
+          <label className="block font-semibold text-[#17263A] mb-1">Internal Preparation Notes</label>
           <textarea
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Key technical risks, customer objections to address..."
-            className="w-full text-xs p-2.5 rounded-xl border border-[#D9E2EC] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+            className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
           />
         </div>
 
-        <div className="flex items-center justify-between pt-3 border-t border-[#E5EAF0]">
-          <span className="text-[11px] text-[#6B778C]">
+        <div className="flex items-center justify-between pt-3 border-t border-[#DCE3EC]">
+          <span className="text-[11px] text-[#8491A3]">
             Auto-advances lead stage to <strong>Qualified</strong>.
           </span>
           <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({
               size="sm"
               type="submit"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               {submitting ? 'Scheduling...' : 'Schedule Demo'}
             </Button>
