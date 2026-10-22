@@ -641,8 +641,18 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           onClose={() => setIsExportDialogOpen(false)}
           project={project}
           items={items}
-          onExportSuccess={() => {
-            setProject((prev) => (prev ? { ...prev, isExported: true, status: 'COMPLETED' } : prev));
+          onExportSuccess={(bundle) => {
+            setProject((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    isExported: true,
+                    status: 'COMPLETED',
+                    exportedBundleName: bundle.packageName,
+                    exportedAt: bundle.exportedAt,
+                  }
+                : prev,
+            );
           }}
         />
       )}
