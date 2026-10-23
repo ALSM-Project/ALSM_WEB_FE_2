@@ -254,6 +254,24 @@ function toPartnerApiError(err: unknown): PartnerApiError {
   return new PartnerApiError('The partner could not be created. Please try again later.', status, code);
 }
 
+function toPartnerProjectError(err: unknown): PartnerApiError {
+  const response = (err as { response?: { status?: number; data?: { code?: string; message?: unknown } } })
+    ?.response;
+  if (!response) {
+    return new PartnerApiError('Cannot reach the server. The project was not created - please try again.');
+  }
+  const { status } = response;
+  const raw = response.data?.message;
+  const serverMessage = Array.isArray(raw) ? raw.join('; ') : typeof raw === 'string' ? raw : undefined;
+  if (status === 400) {
+    return new PartnerApiError(serverMessage || 'Some project details are invalid', status, response.data?.code);
+  }
+  if (status === 403) {
+    return new PartnerApiError('You do not have permission to create projects', status, response.data?.code);
+  }
+  return new PartnerApiError('The project could not be created. Please try again later.', status, response.data?.code);
+}
+
 // Seed initial realistic partners
 const INITIAL_PARTNERS: Partner[] = [
   {
@@ -852,9 +870,21 @@ export const partnersApi = {
     conversionType: ConversionType;
     targetFramework: string;
   }): Promise<PartnerProject> {
-    const newId = `proj-${Date.now().toString(36)}`;
+    // The project must exist on the server: only server projects can receive uploads,
+    // be converted and be exported. A failed create is reported, never faked locally.
+    let created: { id: string };
+    try {
+      created = await apiClient.post<{ id: string }>('/projects', {
+        name: data.name.trim(),
+        description: data.description?.trim() || undefined,
+        conversionType: data.conversionType,
+      });
+    } catch (err) {
+      throw toPartnerProjectError(err);
+    }
+
     const newProject: PartnerProject = {
-      id: newId,
+      id: created.id,
       name: data.name,
       description: data.description,
       partnerId: data.partnerId,
@@ -863,26 +893,15 @@ export const partnersApi = {
       conversionType: data.conversionType,
       targetFramework: data.targetFramework,
       status: 'NOT_STARTED',
-      screensTotal: data.conversionType === 'BMS_DSPF_TO_FRONTEND' ? 3 : 0,
+      screensTotal: 0,
       screensCompleted: 0,
-      programsTotal: data.conversionType === 'COBOL_TO_JAVA' ? 3 : 0,
+      programsTotal: 0,
       programsCompleted: 0,
       lastUpdated: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       assignedTeamLeadName: 'Sarah Jenkins',
       isExported: false,
     };
-
-    try {
-      await apiClient.post('/projects', {
-        name: data.name,
-        organizationId: data.partnerId,
-        sourcePlatform: data.conversionType === 'COBOL_TO_JAVA' ? 'COBOL' : 'BMS',
-        targetPlatform: data.targetFramework,
-      });
-    } catch {
-      // Handled locally
-    }
 
     const current = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
     saveStore(STORAGE_PROJECTS_KEY, [newProject, ...current]);
