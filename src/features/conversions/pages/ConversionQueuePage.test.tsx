@@ -46,7 +46,7 @@ beforeEach(() => {
   records = [completed, { ...completed, id: 'job-2', status: 'QUEUED' }];
   jobsError = projectsError = retryError = null;
   vi.mocked(apiClient.get).mockImplementation(async (url) => {
-    if (url === '/projects') { if (projectsError) throw projectsError; return projects; }
+    if (url === '/conversion-queue/projects') { if (projectsError) throw projectsError; return projects; }
     if (url.match(/^\/projects\/[^/]+\/conversions$/)) {
       if (jobsError) throw jobsError;
       const project = url.split('/')[2];
@@ -70,7 +70,7 @@ describe('authoritative project conversion queue', () => {
     expect(await screen.findByRole('button', { name: 'View job job-1' })).toBeInTheDocument();
     expect(queueRequests()[0][0]).toBe('/projects/p1/conversions');
     expect(screen.getAllByText('real-submitter')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Review quality' })).toHaveAttribute('href', '/admin/projects/p1/conversions/job-1/quality-review');
+    expect(screen.getByRole('link', { name: 'Review quality' })).toHaveAttribute('href', '/admin/projects/p1/conversions/job-1/quality-review?organizationId=org-1');
     fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'QUEUED' } });
     expect(screen.queryByRole('button', { name: 'View job job-1' })).not.toBeInTheDocument();
     expect(screen.getByLabelText('Waiting jobs')).toHaveTextContent('1');
@@ -209,7 +209,7 @@ describe('authoritative project conversion queue', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Retry Conversion' }));
     fireEvent.click(screen.getByRole('button', { name: 'Confirm & Re-Queue Job' }));
     expect(await screen.findByText(/Retry accepted for job/)).toBeInTheDocument();
-    expect(apiClient.post).toHaveBeenCalledWith(`/conversions/${failed.id}/retry`);
+    expect(apiClient.post).toHaveBeenCalledWith(`/conversions/${failed.id}/retry`, undefined, { headers: { 'x-organization-id': 'org-1' } });
   });
   it('hides restricted actions and only shows completed jobs on Quality Review', async () => {
     auth.permissions = ['quality-review.manage'];
@@ -253,5 +253,29 @@ describe('authoritative project conversion queue', () => {
     show();
     expect(screen.getByRole('alert')).toHaveTextContent(mode === 'anonymous' ? 'Sign in' : 'permission');
     expect(apiClient.get).not.toHaveBeenCalled();
+  });
+  it('carries the assigned project organization to jobs, detail, retry, and review navigation', async () => {
+    projects = [{ id: 'p2', name: 'Assigned in another organization', organizationId: 'org-2' }];
+    records = [{ ...failed, projectId: 'p2', organizationId: 'org-2' }, { ...completed, projectId: 'p2', organizationId: 'org-2' }];
+    show('/queue?projectId=p2');
+    fireEvent.click(await screen.findByRole('button', { name: `View job ${failed.id}` }));
+    await screen.findByText('Persisted error');
+    const getCalls = vi.mocked(apiClient.get).mock.calls;
+    expect(getCalls.find(([url]) => url === '/projects/p2/conversions')?.[1]?.headers).toEqual({ 'x-organization-id': 'org-2' });
+    expect(getCalls.find(([url]) => url === `/conversions/${failed.id}`)?.[1]?.headers).toEqual({ 'x-organization-id': 'org-2' });
+    expect(screen.getByRole('link', { name: 'Review quality' })).toHaveAttribute('href', '/admin/projects/p2/conversions/job-1/quality-review?organizationId=org-2');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Retry Job' })[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm & Re-Queue Job' }));
+    await waitFor(() => expect(apiClient.post).toHaveBeenCalledWith(`/conversions/${failed.id}/retry`, undefined, { headers: { 'x-organization-id': 'org-2' } }));
+  });
+  it('clears cached jobs and details when refreshed assignments no longer include the project', async () => {
+    show();
+    fireEvent.click(await screen.findByRole('button', { name: 'View job job-1' }));
+    await screen.findByText('Not reported');
+    projects = [];
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('unavailable in your current authorized assignments');
+    expect(screen.queryByRole('button', { name: 'View job job-1' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Job Details: job-1')).not.toBeInTheDocument();
   });
 });

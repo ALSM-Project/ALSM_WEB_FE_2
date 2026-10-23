@@ -34,12 +34,15 @@ export interface FieldMappingEntry {
   transformRule?: string;
 }
 
+const organizationConfig = (organizationId?: string) => organizationId
+  ? { headers: { 'x-organization-id': organizationId } } : {};
+
 export const conversionQueueService = {
-  listProjects: (signal?: AbortSignal) => apiClient.get<QueueProject[]>('/projects', { signal }),
-  listJobs: (projectId: string, signal?: AbortSignal) => apiClient.get<QueueJob[]>(`/projects/${encodeURIComponent(projectId)}/conversions`, { signal }),
-  getJob: (jobId: string, signal?: AbortSignal) => apiClient.get<QueueJob>(`/conversions/${encodeURIComponent(jobId)}`, { signal }),
-  getResult: (jobId: string) => apiClient.get<ConversionResult>(`/conversions/${encodeURIComponent(jobId)}/result`),
-  retryJob: (jobId: string) => apiClient.post<QueueJob>(`/conversions/${encodeURIComponent(jobId)}/retry`),
+  listProjects: (signal?: AbortSignal) => apiClient.get<QueueProject[]>('/conversion-queue/projects', { signal }),
+  listJobs: (projectId: string, signal?: AbortSignal, organizationId?: string) => apiClient.get<QueueJob[]>(`/projects/${encodeURIComponent(projectId)}/conversions`, { signal, ...organizationConfig(organizationId) }),
+  getJob: (jobId: string, signal?: AbortSignal, organizationId?: string) => apiClient.get<QueueJob>(`/conversions/${encodeURIComponent(jobId)}`, { signal, ...organizationConfig(organizationId) }),
+  getResult: (jobId: string, organizationId?: string) => apiClient.get<ConversionResult>(`/conversions/${encodeURIComponent(jobId)}/result`, organizationConfig(organizationId)),
+  retryJob: (jobId: string, organizationId?: string) => apiClient.post<QueueJob>(`/conversions/${encodeURIComponent(jobId)}/retry`, undefined, organizationConfig(organizationId)),
   getFieldMapping: (projectId: string, screenId: string) =>
     apiClient.get<{ mappings: FieldMappingEntry[] }>(`/projects/${encodeURIComponent(projectId)}/screens/${encodeURIComponent(screenId)}/field-mapping`),
   applySupportPatch: async (projectId: string, screenId: string, jobId: string, mappings: FieldMappingEntry[]) => {

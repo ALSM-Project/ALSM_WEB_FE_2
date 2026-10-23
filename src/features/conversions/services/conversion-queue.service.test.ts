@@ -12,9 +12,9 @@ describe('conversion queue HTTP contracts', () => {
     await conversionQueueService.getResult('job/id');
     await conversionQueueService.retryJob('job/id');
     expect(vi.mocked(apiClient.get).mock.calls).toEqual([
-      ['/projects', { signal }], ['/projects/project%2Fid/conversions', { signal }], ['/conversions/job%2Fid', { signal }], ['/conversions/job%2Fid/result'],
+      ['/conversion-queue/projects', { signal }], ['/projects/project%2Fid/conversions', { signal }], ['/conversions/job%2Fid', { signal }], ['/conversions/job%2Fid/result', {}],
     ]);
-    expect(apiClient.post).toHaveBeenCalledWith('/conversions/job%2Fid/retry');
+    expect(apiClient.post).toHaveBeenCalledWith('/conversions/job%2Fid/retry', undefined, {});
   });
   it('propagates server failures and keeps appropriate validation feedback', async () => {
     const failure = { response: { status: 403, data: { message: 'Organization access denied' } } };
@@ -28,5 +28,15 @@ describe('conversion queue HTTP contracts', () => {
     expect(conversionError({ response: { status: 503, data: { message: 'secret DB string' } } })).toBe('Conversion service is unavailable. Please try again.');
     expect(conversionError(new Error('secret stack'))).not.toContain('secret');
     expect(conversionError({ response: { status: 401 } })).toContain('sign in again');
+  });
+  it('scopes every queue job read, result read and retry to the selected project organization', async () => {
+    await conversionQueueService.listJobs('project', undefined, 'assigned-org');
+    await conversionQueueService.getJob('job', undefined, 'assigned-org');
+    await conversionQueueService.getResult('job', 'assigned-org');
+    await conversionQueueService.retryJob('job', 'assigned-org');
+    for (const [, config] of vi.mocked(apiClient.get).mock.calls) {
+      expect(config?.headers).toEqual({ 'x-organization-id': 'assigned-org' });
+    }
+    expect(apiClient.post).toHaveBeenCalledWith('/conversions/job/retry', undefined, { headers: { 'x-organization-id': 'assigned-org' } });
   });
 });

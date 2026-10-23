@@ -14,10 +14,10 @@ const pending: ConversionQualityReviewResponse = {
   fileSummary: { fileCount: 1, totalLines: 2 },
 };
 const clients: QueryClient[] = [];
-function show() {
+function show(url = '/admin/projects/p/conversions/j/quality-review') {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   clients.push(client);
-  const router = createMemoryRouter([{ path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review', element: <AdminQualityReviewPage /> }], { initialEntries: ['/admin/projects/p/conversions/j/quality-review'] });
+  const router = createMemoryRouter([{ path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review', element: <AdminQualityReviewPage /> }], { initialEntries: [url] });
   render(<QueryClientProvider client={client}><RouterProvider router={router} /></QueryClientProvider>);
   return router;
 }
@@ -29,6 +29,14 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); clients.forEach((client) => client.clear()); });
 describe('quality review artifact and decision workflow', () => {
+  it('preserves the queue-selected organization for review, artifact reads and submission', async () => {
+    show('/admin/projects/p/conversions/j/quality-review?organizationId=assigned-org');
+    await screen.findByText('Main.java');
+    expect(adminQualityReviewService.getQualityReview).toHaveBeenCalledWith('p', 'j', 'assigned-org');
+    expect(conversionQueueService.getResult).toHaveBeenCalledWith('j', 'assigned-org');
+    fireEvent.click(screen.getByRole('button', { name: 'Save Admin Review Decision' }));
+    await waitFor(() => expect(adminQualityReviewService.submitQualityReview).toHaveBeenCalledWith('p', 'j', { status: 'ACCEPTED', reviewNote: undefined, qualityScore: undefined }, 'assigned-org'));
+  });
   it('loads generated files and shows a persisted successful decision', async () => {
     show();
     expect(await screen.findByText('Main.java')).toBeInTheDocument();

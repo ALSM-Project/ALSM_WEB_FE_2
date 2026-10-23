@@ -56,8 +56,8 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
   });
   const authorizedProject = projects.isSuccess ? projects.data.find((project) => project.id === projectId) : undefined;
   const jobs = useQuery({
-    queryKey: ['conversion-queue', identity, projectId],
-    queryFn: ({ signal }) => conversionQueueService.listJobs(projectId, signal),
+    queryKey: ['conversion-queue', identity, authorizedProject?.organizationId, projectId],
+    queryFn: ({ signal }) => conversionQueueService.listJobs(projectId, signal, authorizedProject?.organizationId),
     enabled: Boolean(authorizedProject),
     refetchInterval: 10000,
     retry: false,
@@ -68,8 +68,8 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
     : [];
   const selectedJob = rawDataset.find((job) => job.id === selectedJobId);
   const details = useQuery({
-    queryKey: ['conversion-job', identity, projectId, selectedJobId],
-    queryFn: ({ signal }) => conversionQueueService.getJob(selectedJobId, signal),
+    queryKey: ['conversion-job', identity, authorizedProject?.organizationId, projectId, selectedJobId],
+    queryFn: ({ signal }) => conversionQueueService.getJob(selectedJobId, signal, authorizedProject?.organizationId),
     enabled: Boolean(selectedJob),
     refetchInterval: 10000,
     retry: false,
@@ -95,7 +95,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
     setRetryingJobId(targetId);
     setActionMessage(null);
     try {
-      await conversionQueueService.retryJob(targetId);
+      await conversionQueueService.retryJob(targetId, authorizedProject?.organizationId);
       // Never infer the new status or attempts: the worker may already have advanced the record.
       const refreshed = await jobs.refetch();
       const refreshedDetail = selectedJobId === targetId ? await details.refetch() : undefined;
@@ -125,7 +125,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
       {/* Top Header */}
       <PageHeader 
         title={reviewOnly ? 'Conversion Quality Reviews' : 'Conversion Queue'} 
-        subtitle="Persisted conversion jobs for a selected project in your current authorized organization. Refreshes every 10 seconds."
+        subtitle="Persisted conversion jobs for authorized projects. Conversion Staff see explicitly assigned projects only. Refreshes every 10 seconds."
       />
 
       {/* Top Tab Bar: Queue Monitor vs Troubleshooting */}
@@ -346,7 +346,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
             
             {/* Project unavailable in current org alert */}
             {projects.isSuccess && projectId && !projects.data.some((project) => project.id === projectId) && (
-              <p role="alert" className="text-xs text-rose-600">This project is unavailable in your current organization.</p>
+              <p role="alert" className="text-xs text-rose-600">This project is unavailable in your current authorized assignments or organization.</p>
             )}
 
             {authorizedProject && jobs.isFetching && !jobs.data && <p role="status" className="text-xs text-slate-500">Loading conversion jobs...</p>}
@@ -522,7 +522,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                                     {job.status === 'COMPLETED' && hasPermission('quality-review.manage') && (
                                       <Link 
                                         className="text-xs text-[#0652CC] font-semibold hover:underline" 
-                                        to={`/admin/projects/${encodeURIComponent(job.projectId)}/conversions/${encodeURIComponent(job.id)}/quality-review`}
+                                        to={`/admin/projects/${encodeURIComponent(job.projectId)}/conversions/${encodeURIComponent(job.id)}/quality-review?organizationId=${encodeURIComponent(job.organizationId)}`}
                                       >
                                         Review quality
                                       </Link>
