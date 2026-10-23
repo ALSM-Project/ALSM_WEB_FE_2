@@ -37,12 +37,17 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
   const [selectedProjectPartner, setSelectedProjectPartner] = useState<Partner | null>(null);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const data = await partnersApi.getPartners();
       setPartners(data);
+    } catch (err) {
+      setPartners([]);
+      setLoadError(err instanceof Error ? err.message : 'The partner list could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -79,6 +84,11 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
 
   return (
     <div className="space-y-6">
+      {loadError && (
+        <div role="alert" className="p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-800">
+          {loadError}
+        </div>
+      )}
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -327,7 +337,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                     </td>
                     <td className="py-3.5 px-4 text-[#4A5568]">
                       <div className="font-medium text-[#091E42]">
-                        {partner.assignedStaffName || 'Sarah Jenkins'}
+                        {partner.assignedStaffName || 'Not assigned'}
                       </div>
                       <span className="text-[10px] text-[#6B778C]">SLA: 4h response</span>
                     </td>

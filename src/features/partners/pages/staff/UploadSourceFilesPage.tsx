@@ -9,7 +9,6 @@ import {
   RefreshCw,
   ArrowRight,
   AlertCircle,
-  Info,
 } from 'lucide-react';
 import { Button, ModernizationWorkflow } from '@/shared/ui';
 import { partnersApi, type SourceUploadResult } from '../../api/partners.api';
@@ -479,13 +478,6 @@ export const UploadSourceFilesPage: React.FC = () => {
                 {result.registered.length} source file{result.registered.length === 1 ? '' : 's'} uploaded
                 successfully. Opening the project workspace...
               </p>
-              {result.mode === 'LOCAL' && (
-                <p className="mt-1 flex items-start gap-1.5 text-emerald-900">
-                  <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                  This project exists only in this browser, so the files were registered locally and not
-                  sent to the server.
-                </p>
-              )}
               {result.ignoredEntries.length > 0 && (
                 <p className="mt-1 text-emerald-900">
                   {result.ignoredEntries.length} archive entr{result.ignoredEntries.length === 1 ? 'y was' : 'ies were'}{' '}

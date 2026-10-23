@@ -3,7 +3,7 @@ import { apiClient } from '@/services/api/apiClient';
 import { PartnerUploadError, toPartnerUploadError } from './partnerUploadError';
 import { PartnerConversionError, toPartnerConversionError } from './partnerConversionError';
 import { PartnerExportError, toPartnerExportError } from './partnerExportError';
-import { classifyFile, fileExtension } from '../utils/uploadValidation';
+import { classifyFile } from '../utils/uploadValidation';
 import { PartnerApiError } from './partnerApiError';
 import {
   Partner,
@@ -19,11 +19,11 @@ import {
 } from '../types/partner.types';
 import { saveBlob } from '../utils/saveBlob';
 
-const STORAGE_PARTNERS_KEY = 'alsm_partner_records_v1';
-const STORAGE_PROJECTS_KEY = 'alsm_partner_projects_v1';
-const STORAGE_ITEMS_KEY = 'alsm_partner_items_v1';
-const STORAGE_EXPORTS_KEY = 'alsm_partner_exports_v1';
+// Browser-only data: which partner a server project belongs to (the server has no such
+// field yet) and the review notes staff type in. Everything else comes from the server.
+const STORAGE_LINKS_KEY = 'alsm_partner_project_links_v1';
 const STORAGE_FINDINGS_KEY = 'alsm_partner_findings_v1';
+const STORAGE_MAPPINGS_KEY = 'alsm_field_mappings';
 
 export { PartnerApiError, PartnerUploadError, PartnerConversionError, PartnerExportError };
 
@@ -173,8 +173,6 @@ function requireServerProjectForExport(projectId: string): void {
 }
 
 export interface SourceUploadResult {
-  /** SERVER: stored by the backend. LOCAL: project exists only in this browser's storage. */
-  mode: 'SERVER' | 'LOCAL';
   registered: string[];
   /** ZIP entries the server skipped because they are not source files for the project. */
   ignoredEntries: string[];
@@ -187,14 +185,6 @@ interface ConversionSourceUploadResponse {
   ignoredEntries?: string[];
 }
 
-async function readFileText(file: File): Promise<string | undefined> {
-  try {
-    return typeof file.text === 'function' ? await file.text() : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 /** Shape returned by the backend's POST/GET /partners. */
 interface PartnerRecordDto {
   id: string;
@@ -205,11 +195,16 @@ interface PartnerRecordDto {
   engagementType?: string;
   assignedStaffName?: string;
   status: 'ACTIVE' | 'INACTIVE';
+  completedExportCount?: number;
+  latestActivity?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-function toPartner(dto: PartnerRecordDto, existing?: Partner): Partner {
+function toPartner(
+  dto: PartnerRecordDto,
+  counts: { projectCount: number; activeConversionCount: number },
+): Partner {
   return {
     id: dto.id,
     name: dto.name,
@@ -220,28 +215,39 @@ function toPartner(dto: PartnerRecordDto, existing?: Partner): Partner {
     engagementType: dto.engagementType,
     assignedStaffName: dto.assignedStaffName,
     status: dto.status === 'INACTIVE' ? 'SUSPENDED' : 'ACTIVE',
-    projectCount: existing?.projectCount ?? 0,
-    activeConversionCount: existing?.activeConversionCount ?? 0,
-    completedExportCount: existing?.completedExportCount ?? 0,
-    latestActivity: existing?.latestActivity,
+    projectCount: counts.projectCount,
+    activeConversionCount: counts.activeConversionCount,
+    completedExportCount: dto.completedExportCount ?? 0,
+    latestActivity: dto.latestActivity,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
   };
 }
 
 /** Turns an axios error into a user-safe PartnerApiError (no stack traces or internals). */
-function toPartnerApiError(err: unknown): PartnerApiError {
+function toPartnerApiError(err: unknown, action: 'create' | 'load' = 'create'): PartnerApiError {
   const response = (err as { response?: { status?: number; data?: { code?: string; message?: unknown } } })
     ?.response;
   if (!response) {
     return new PartnerApiError(
-      'Cannot reach the server. The partner was not created - please try again.',
+      action === 'load'
+        ? 'Cannot reach the server. Please try again.'
+        : 'Cannot reach the server. The partner was not created - please try again.',
     );
   }
   const { status } = response;
   const code = response.data?.code;
   const raw = response.data?.message;
   const serverMessage = Array.isArray(raw) ? raw.join('; ') : typeof raw === 'string' ? raw : undefined;
+  if (action === 'load') {
+    return new PartnerApiError(
+      status === 403
+        ? 'You do not have permission to view partners'
+        : 'The partner list could not be loaded. Please try again later.',
+      status,
+      code,
+    );
+  }
   if (status === 409) {
     return new PartnerApiError(serverMessage || 'A partner with this contact email already exists', status, code);
   }
@@ -254,11 +260,18 @@ function toPartnerApiError(err: unknown): PartnerApiError {
   return new PartnerApiError('The partner could not be created. Please try again later.', status, code);
 }
 
-function toPartnerProjectError(err: unknown): PartnerApiError {
+function toPartnerProjectError(
+  err: unknown,
+  action: 'create' | 'load' | 'assign' = 'create',
+): PartnerApiError {
   const response = (err as { response?: { status?: number; data?: { code?: string; message?: unknown } } })
     ?.response;
   if (!response) {
-    return new PartnerApiError('Cannot reach the server. The project was not created - please try again.');
+    return new PartnerApiError(
+      action === 'create'
+        ? 'Cannot reach the server. The project was not created - please try again.'
+        : 'Cannot reach the server. Please try again.',
+    );
   }
   const { status } = response;
   const raw = response.data?.message;
@@ -266,430 +279,19 @@ function toPartnerProjectError(err: unknown): PartnerApiError {
   if (status === 400) {
     return new PartnerApiError(serverMessage || 'Some project details are invalid', status, response.data?.code);
   }
+  const code = response.data?.code;
   if (status === 403) {
-    return new PartnerApiError('You do not have permission to create projects', status, response.data?.code);
+    const what = action === 'create' ? 'create projects' : action === 'assign' ? 'assign this project' : 'view projects';
+    return new PartnerApiError(`You do not have permission to ${what}`, status, code);
   }
-  return new PartnerApiError('The project could not be created. Please try again later.', status, response.data?.code);
+  const failed =
+    action === 'create'
+      ? 'The project could not be created'
+      : action === 'assign'
+        ? 'The project could not be assigned'
+        : 'The projects could not be loaded';
+  return new PartnerApiError(`${failed}. Please try again later.`, status, code);
 }
-
-// Seed initial realistic partners
-const INITIAL_PARTNERS: Partner[] = [
-  {
-    id: 'partner-fnx-001',
-    name: 'Fintech Nexus International',
-    companyName: 'Fintech Nexus International Ltd.',
-    contactName: 'Marcus Vance',
-    contactEmail: 'm.vance@fintechnexus.io',
-    domain: 'fintechnexus.io',
-    assignedStaffId: 'staff-lead-01',
-    assignedStaffName: 'Sarah Jenkins (Sr. Conversion Specialist)',
-    status: 'ACTIVE',
-    engagementType: 'Dedicated Modernization',
-    projectCount: 2,
-    activeConversionCount: 1,
-    completedExportCount: 1,
-    latestActivity: '2 hours ago',
-    createdAt: '2026-08-15T09:00:00Z',
-    updatedAt: '2026-10-18T14:30:00Z',
-  },
-  {
-    id: 'partner-ins-002',
-    name: 'Pacific Heritage Life & Annuity',
-    companyName: 'Pacific Heritage Insurance Group',
-    contactName: 'Elena Rostova',
-    contactEmail: 'erostova@pacificheritage.com',
-    domain: 'pacificheritage.com',
-    assignedStaffId: 'staff-lead-02',
-    assignedStaffName: 'David Chen (Conversion Engineer)',
-    status: 'ACTIVE',
-    engagementType: 'Enterprise SLA',
-    projectCount: 1,
-    activeConversionCount: 1,
-    completedExportCount: 0,
-    latestActivity: '1 day ago',
-    createdAt: '2026-09-01T10:15:00Z',
-    updatedAt: '2026-10-17T11:00:00Z',
-  },
-  {
-    id: 'partner-tri-003',
-    name: 'Apex Core Banking Solutions',
-    companyName: 'Apex Financial Technologies LLC',
-    contactName: 'Julian Croft',
-    contactEmail: 'jcroft@apexcorebank.com',
-    domain: 'apexcorebank.com',
-    assignedStaffId: 'staff-lead-01',
-    assignedStaffName: 'Sarah Jenkins (Sr. Conversion Specialist)',
-    status: 'TRIAL',
-    engagementType: 'Trial Modernization Tier',
-    projectCount: 1,
-    activeConversionCount: 0,
-    completedExportCount: 0,
-    latestActivity: '3 days ago',
-    createdAt: '2026-10-10T08:30:00Z',
-    updatedAt: '2026-10-15T16:20:00Z',
-  },
-];
-
-// Seed initial realistic partner projects
-const INITIAL_PROJECTS: PartnerProject[] = [
-  {
-    id: 'proj-fnx-core',
-    name: 'Core Banking Customer Portal',
-    description: 'BMS 3270 screen modernization to React 19 and Tailwind CSS with strict TypeScript validation.',
-    partnerId: 'partner-fnx-001',
-    partnerName: 'Fintech Nexus International',
-    organizationId: 'partner-fnx-001',
-    conversionType: 'BMS_DSPF_TO_FRONTEND',
-    targetFramework: 'React 19 + Tailwind CSS',
-    status: 'IN_PROGRESS',
-    screensTotal: 18,
-    screensCompleted: 14,
-    programsTotal: 0,
-    programsCompleted: 0,
-    lastUpdated: '2026-10-19T08:45:00Z',
-    createdAt: '2026-09-10T11:00:00Z',
-    assignedTeamLeadId: 'lead-01',
-    assignedTeamLeadName: 'Sarah Jenkins',
-    assignedStaffId: 'staff-01',
-    assignedStaffName: 'Marcus Vance',
-    isExported: false,
-  },
-  {
-    id: 'proj-fnx-ledger',
-    name: 'General Ledger COBOL Migration',
-    description: 'Batch COBOL transaction accounting programs migrated to Java 21 Spring Boot microservices.',
-    partnerId: 'partner-fnx-001',
-    partnerName: 'Fintech Nexus International',
-    organizationId: 'partner-fnx-001',
-    conversionType: 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.3 / Java 21',
-    status: 'READY_FOR_EXPORT',
-    screensTotal: 0,
-    screensCompleted: 0,
-    programsTotal: 12,
-    programsCompleted: 12,
-    lastUpdated: '2026-10-18T16:20:00Z',
-    createdAt: '2026-08-20T14:00:00Z',
-    assignedTeamLeadId: 'lead-01',
-    assignedTeamLeadName: 'Sarah Jenkins',
-    assignedStaffId: 'staff-02',
-    assignedStaffName: 'Alex Rivera',
-    isExported: true,
-    exportedBundleName: 'FNX-GL-Java21-Bundle-v1.zip',
-    exportedAt: '2026-10-18T16:30:00Z',
-  },
-  {
-    id: 'proj-ins-claims',
-    name: 'Claims Underwriting AS/400 DSPF Modernization',
-    description: 'IBM i DSPF display files converted to reactive web screens with live business rules validation.',
-    partnerId: 'partner-ins-002',
-    partnerName: 'Pacific Heritage Life & Annuity',
-    organizationId: 'partner-ins-002',
-    conversionType: 'BMS_DSPF_TO_FRONTEND',
-    targetFramework: 'React 19 + Tailwind CSS',
-    status: 'IN_PROGRESS',
-    screensTotal: 24,
-    screensCompleted: 19,
-    programsTotal: 0,
-    programsCompleted: 0,
-    lastUpdated: '2026-10-17T15:10:00Z',
-    createdAt: '2026-09-05T09:30:00Z',
-    assignedTeamLeadId: 'lead-02',
-    assignedTeamLeadName: 'David Chen',
-    assignedStaffId: 'staff-03',
-    assignedStaffName: 'Emily Zhao',
-    isExported: false,
-  },
-  {
-    id: 'proj-tri-demo',
-    name: 'Apex Loan Origination Pilot',
-    description: 'Pilot conversion demonstrating COBOL arithmetic precision mapping to Java BigDecimal.',
-    partnerId: 'partner-tri-003',
-    partnerName: 'Apex Core Banking Solutions',
-    organizationId: 'partner-tri-003',
-    conversionType: 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.3 / Java 21',
-    status: 'NOT_STARTED',
-    screensTotal: 0,
-    screensCompleted: 0,
-    programsTotal: 5,
-    programsCompleted: 0,
-    lastUpdated: '2026-10-15T16:20:00Z',
-    createdAt: '2026-10-10T10:00:00Z',
-    assignedTeamLeadId: 'lead-01',
-    assignedTeamLeadName: 'Sarah Jenkins',
-    isExported: false,
-  },
-];
-
-// Seed realistic conversion items
-const INITIAL_ITEMS: Record<string, PartnerConversionItem[]> = {
-  'proj-fnx-core': [
-    {
-      id: 'item-scr-001',
-      projectId: 'proj-fnx-core',
-      name: 'CUSTINQ (Customer Inquiry Screen)',
-      type: 'SCREEN',
-      sourceFile: 'CUSTINQ.bms',
-      sourceCode: `CUSTINQ  DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,             *
-               STORAGE=AUTO,TERM=3270,TIOAPFX=YES
-CUSTMAP  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1,CTRL=(FREEKB)
-TITLE    DFHMDF POS=(1,26),ATTRB=(ASKIP,BRT),                     *
-               INITIAL='CUSTOMER ACCOUNT INQUIRY SYSTEM'
-DATELBL  DFHMDF POS=(2,1),ATTRB=(ASKIP,NORM),INITIAL='DATE:'
-DATEOUT  DFHMDF POS=(2,7),ATTRB=(ASKIP,BRT),LENGTH=8
-CUSTLBL  DFHMDF POS=(4,2),ATTRB=(ASKIP,NORM),INITIAL='CUSTOMER ID:'
-CUSTINP  DFHMDF POS=(4,15),ATTRB=(UNPROT,IC),LENGTH=10
-NAMELBL  DFHMDF POS=(5,2),ATTRB=(ASKIP,NORM),INITIAL='FULL NAME  :'
-NAMEOUT  DFHMDF POS=(5,15),ATTRB=(ASKIP,BRT),LENGTH=35
-BALANLBL DFHMDF POS=(7,2),ATTRB=(ASKIP,NORM),INITIAL='CURR BALANCE:'
-BALANOUT DFHMDF POS=(7,16),ATTRB=(ASKIP,BRT),LENGTH=14
-MSGLBL   DFHMDF POS=(23,1),ATTRB=(ASKIP,BRT),LENGTH=70
-         DFHMSD TYPE=FINAL`,
-      status: 'COMPLETED',
-      validationStatus: 'WARNINGS',
-      progress: 100,
-      attemptCount: 1,
-      maxAttempts: 3,
-      updatedAt: '2026-10-19T08:30:00Z',
-      generatedCode: {
-        'CustomerInquiryScreen.tsx': `import React, { useState } from 'react';
-import { useCustomerInquiry } from './useCustomerInquiry';
-import { Card, Input, Button, Badge } from '@/shared/ui';
-
-export const CustomerInquiryScreen: React.FC = () => {
-  const [customerId, setCustomerId] = useState('');
-  const { data, loading, error, lookup } = useCustomerInquiry();
-
-  return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-[#091E42]">Customer Account Inquiry</h1>
-          <p className="text-sm text-[#6B778C]">Modernized from mainframe BMS 3270 CUSTINQ</p>
-        </div>
-        <Badge variant="success">Active Online</Badge>
-      </div>
-
-      <Card className="p-5 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Input
-            label="Customer ID"
-            value={customerId}
-            onChange={(e) => setCustomerId(e.target.value)}
-            placeholder="e.g. CUST-98231"
-            maxLength={10}
-            required
-          />
-          <div className="flex items-end">
-            <Button onClick={() => lookup(customerId)} isLoading={loading}>
-              Inquire Account
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {data && (
-        <Card className="p-5 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-xs text-[#6B778C] uppercase font-semibold">Customer Full Name</span>
-              <p className="text-base font-medium text-[#091E42]">{data.fullName}</p>
-            </div>
-            <div>
-              <span className="text-xs text-[#6B778C] uppercase font-semibold">Current Account Balance</span>
-              <p className="text-base font-mono font-bold text-[#00875A]">
-                \${Number(data.currentBalance).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </p>
-            </div>
-          </div>
-        </Card>
-      )}
-    </div>
-  );
-};`,
-        'CustomerInquiryScreen.types.ts': `export interface CustomerInquiryDto {
-  customerId: string;
-  fullName: string;
-  currentBalance: number;
-  currency: string;
-  accountStatus: 'ACTIVE' | 'DORMANT' | 'FROZEN';
-}`,
-        'CustomerInquiryScreen.test.tsx': `import { render, screen, fireEvent } from '@testing-library/react';
-import { CustomerInquiryScreen } from './CustomerInquiryScreen';
-
-describe('CustomerInquiryScreen Modernized Component', () => {
-  it('renders initial lookup inputs correctly', () => {
-    render(<CustomerInquiryScreen />);
-    expect(screen.getByLabelText(/Customer ID/i)).toBeInTheDocument();
-  });
-});`,
-      },
-    },
-    {
-      id: 'item-scr-002',
-      projectId: 'proj-fnx-core',
-      name: 'TXNLOG (Transaction Ledger Audit Screen)',
-      type: 'SCREEN',
-      sourceFile: 'TXNLOG.bms',
-      sourceCode: `TXNLOG   DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,             *
-               STORAGE=AUTO,TERM=3270,TIOAPFX=YES
-TXNMAP   DFHMDI SIZE=(24,80),LINE=1,COLUMN=1,CTRL=(FREEKB)
-TITLE    DFHMDF POS=(1,28),ATTRB=(ASKIP,BRT),INITIAL='TRANSACTION AUDIT'
-DATEF    DFHMDF POS=(3,2),ATTRB=(ASKIP,NORM),INITIAL='FROM DATE:'
-DATET    DFHMDF POS=(3,30),ATTRB=(ASKIP,NORM),INITIAL='TO DATE:'
-TXNLIST  DFHMDF POS=(6,1),ATTRB=(ASKIP,NORM),LENGTH=1800
-         DFHMSD TYPE=FINAL`,
-      status: 'COMPLETED',
-      validationStatus: 'PASSED',
-      progress: 100,
-      attemptCount: 1,
-      maxAttempts: 3,
-      updatedAt: '2026-10-18T14:15:00Z',
-    },
-    {
-      id: 'item-scr-003',
-      projectId: 'proj-fnx-core',
-      name: 'LOANAPP (Loan Underwriting Application Form)',
-      type: 'SCREEN',
-      sourceFile: 'LOANAPP.bms',
-      sourceCode: `LOANAPP  DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL
-LOANMAP  DFHMDI SIZE=(24,80),LINE=1,COLUMN=1
-TITLE    DFHMDF POS=(1,25),ATTRB=(ASKIP,BRT),INITIAL='MORTGAGE / LOAN APP'
-APNAM    DFHMDF POS=(4,2),ATTRB=(ASKIP,NORM),INITIAL='APPLICANT NAME:'
-APAMT    DFHMDF POS=(6,2),ATTRB=(ASKIP,NORM),INITIAL='REQUESTED AMT :'
-APTRM    DFHMDF POS=(8,2),ATTRB=(ASKIP,NORM),INITIAL='TERM (MONTHS) :'
-         DFHMSD TYPE=FINAL`,
-      status: 'FAILED',
-      validationStatus: 'FAILED',
-      progress: 0,
-      attemptCount: 2,
-      maxAttempts: 3,
-      errorMessage: 'Syntax error: Unterminated continuation character at row 14 col 72',
-      safeErrorMessage: 'Field mapping contains unsupported macro continuation formatting. Conversion team is adjusting parsing rules.',
-      updatedAt: '2026-10-19T07:20:00Z',
-    },
-  ],
-  'proj-fnx-ledger': [
-    {
-      id: 'item-cbl-001',
-      projectId: 'proj-fnx-ledger',
-      name: 'GLPOST01 (General Ledger Daily Posting Batch)',
-      type: 'PROGRAM',
-      sourceFile: 'GLPOST01.cbl',
-      sourceCode: `       IDENTIFICATION DIVISION.
-       PROGRAM-ID. GLPOST01.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 WS-TRANSACTION-RECORD.
-          05 WS-TXN-ID         PIC X(12).
-          05 WS-DEBIT-ACCT     PIC 9(10).
-          05 WS-CREDIT-ACCT    PIC 9(10).
-          05 WS-AMOUNT         PIC S9(11)V99 COMP-3.
-          05 WS-CURRENCY       PIC X(3).
-       PROCEDURE DIVISION.
-       0000-MAIN.
-          PERFORM 1000-VALIDATE-POSTING.
-          PERFORM 2000-UPDATE-BALANCES.
-          GOBACK.`,
-      status: 'COMPLETED',
-      validationStatus: 'PASSED',
-      progress: 100,
-      attemptCount: 1,
-      maxAttempts: 3,
-      updatedAt: '2026-10-18T16:00:00Z',
-      generatedCode: {
-        'GlPostingService.java': `package com.fintechnexus.ledger.service;
-
-import java.math.BigDecimal;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-@Service
-public class GlPostingService {
-
-    @Transactional
-    public void processDailyPosting(PostingRequest request) {
-        // High-precision monetary calculation migrated from COMP-3
-        BigDecimal amount = request.getAmount();
-        validateAccounts(request.getDebitAccount(), request.getCreditAccount());
-        applyLedgerEntries(request);
-    }
-}`,
-      },
-    },
-  ],
-};
-
-// Seed initial validation findings
-const INITIAL_FINDINGS: Record<string, ValidationFinding[]> = {
-  'item-scr-001': [
-    {
-      id: 'find-001',
-      severity: 'MEDIUM',
-      title: 'Monetary Field Mask Precision Truncation Warning',
-      fieldOrMethod: 'BALANOUT (POS 7,16)',
-      explanation: '3270 output field length 14 may cause currency symbol overflow when negative numbers use parentheses formatting.',
-      isAiAssisted: true,
-      status: 'PENDING',
-      ruleCode: 'VAL-BMS-041',
-    },
-    {
-      id: 'find-002',
-      severity: 'LOW',
-      title: 'Cursor Positioning Auto-Focus Recommendation',
-      fieldOrMethod: 'CUSTINP (POS 4,15)',
-      explanation: 'BMS IC (Insert Cursor) flag converted to autoFocus attribute on React input element.',
-      isAiAssisted: false,
-      status: 'CONFIRMED',
-      ruleCode: 'VAL-BMS-012',
-    },
-  ],
-  'item-scr-003': [
-    {
-      id: 'find-003',
-      severity: 'HIGH',
-      title: 'BMS Macro Statement Continuation Syntax Mismatch',
-      fieldOrMethod: 'LINE 14 (APTRM)',
-      explanation: 'Column 72 asterisks continuation was missing on line 14, causing parser token confusion.',
-      isAiAssisted: true,
-      status: 'PENDING',
-      ruleCode: 'VAL-SYN-001',
-    },
-  ],
-};
-
-// Seed field mappings for CUSTINQ
-const INITIAL_MAPPINGS: Record<string, FieldMappingRule[]> = {
-  'item-scr-001': [
-    { id: 'map-1', sourceField: 'CUSTINP', targetProperty: 'customerId', dataType: 'string', transformRule: 'trim().toUpperCase()' },
-    { id: 'map-2', sourceField: 'NAMEOUT', targetProperty: 'fullName', dataType: 'string', transformRule: 'capitalizeWords()' },
-    { id: 'map-3', sourceField: 'BALANOUT', targetProperty: 'currentBalance', dataType: 'number', transformRule: 'parseCurrency()' },
-    { id: 'map-4', sourceField: 'DATEOUT', targetProperty: 'inquiryDate', dataType: 'string', transformRule: 'formatIsoDate()' },
-  ],
-};
-
-// Seed initial export bundles
-const INITIAL_EXPORTS: ExportBundleInfo[] = [
-  {
-    id: 'exp-fnx-gl-001',
-    projectId: 'proj-fnx-ledger',
-    projectName: 'General Ledger COBOL Migration',
-    partnerId: 'partner-fnx-001',
-    partnerName: 'Fintech Nexus International',
-    partnerContactEmail: 'm.vance@fintechnexus.io',
-    conversionType: 'COBOL_TO_JAVA',
-    packageName: 'FNX-GL-Java21-Bundle-v1.zip',
-    format: 'ZIP',
-    screensIncluded: 0,
-    programsIncluded: 12,
-    totalItems: 12,
-    exportedAt: '2026-10-18T16:30:00Z',
-    downloadUrl: '#download-fnx-gl',
-    notificationStatus: 'SENT',
-    fileSizeBytes: 4892400,
-  },
-];
 
 // Helper to access LocalStorage safely
 function loadStore<T>(key: string, defaultValue: T): T {
@@ -710,60 +312,113 @@ function saveStore<T>(key: string, value: T): void {
   }
 }
 
+interface ProjectLink {
+  partnerId: string;
+  partnerName: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  assignedTeamLeadName?: string;
+}
+
+function loadLinks(): Record<string, ProjectLink> {
+  return loadStore<Record<string, ProjectLink>>(STORAGE_LINKS_KEY, {});
+}
+
+function saveLink(projectId: string, patch: Partial<ProjectLink>): void {
+  const links = loadLinks();
+  const current: ProjectLink = links[projectId] ?? { partnerId: '', partnerName: '' };
+  links[projectId] = { ...current, ...patch };
+  saveStore(STORAGE_LINKS_KEY, links);
+}
+
+/** A project as the backend stores it (GET /projects, GET /projects/:id). */
+interface ProjectDto {
+  id: string;
+  name: string;
+  description?: string;
+  organizationId: string;
+  conversionType: ConversionType;
+  status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
+  assignedTeamLeadId?: string;
+  isExported?: boolean;
+  exportedAt?: string;
+  exportedBundleName?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const TARGET_FRAMEWORK: Record<ConversionType, string> = {
+  BMS_DSPF_TO_FRONTEND: 'React 19 + Tailwind CSS',
+  COBOL_TO_JAVA: 'Spring Boot 3.3 / Java 21',
+};
+
+/** Project fields that need no extra request; item counts are filled in separately. */
+function toProject(dto: ProjectDto): PartnerProject {
+  const link = loadLinks()[dto.id];
+  return {
+    id: dto.id,
+    name: dto.name,
+    description: dto.description,
+    partnerId: link?.partnerId ?? '',
+    partnerName: link?.partnerName || 'Not linked to a partner',
+    organizationId: dto.organizationId,
+    conversionType: dto.conversionType,
+    targetFramework: TARGET_FRAMEWORK[dto.conversionType],
+    status: dto.status === 'COMPLETED' ? 'COMPLETED' : 'NOT_STARTED',
+    screensTotal: 0,
+    screensCompleted: 0,
+    programsTotal: 0,
+    programsCompleted: 0,
+    lastUpdated: dto.updatedAt,
+    createdAt: dto.createdAt,
+    assignedTeamLeadId: dto.assignedTeamLeadId,
+    assignedTeamLeadName: link?.assignedTeamLeadName,
+    assignedStaffId: link?.assignedStaffId,
+    assignedStaffName: link?.assignedStaffName,
+    isExported: dto.isExported ?? false,
+    exportedAt: dto.exportedAt,
+    exportedBundleName: dto.exportedBundleName,
+  };
+}
+
+/** Totals and status derived from the project's real screens/programs and conversion jobs. */
+function withItemCounts(project: PartnerProject, items: PartnerConversionItem[]): PartnerProject {
+  const screens = items.filter((i) => i.type === 'SCREEN');
+  const programs = items.filter((i) => i.type === 'PROGRAM');
+  const done = (list: PartnerConversionItem[]) => list.filter((i) => i.status === 'COMPLETED').length;
+  const relevant = project.conversionType === 'COBOL_TO_JAVA' ? programs : screens;
+  let status = project.status;
+  if (status !== 'COMPLETED') {
+    if (relevant.length > 0 && done(relevant) === relevant.length) status = 'READY_FOR_EXPORT';
+    else if (items.some((i) => i.status !== 'PENDING')) status = 'IN_PROGRESS';
+  }
+  return {
+    ...project,
+    status,
+    screensTotal: screens.length,
+    screensCompleted: done(screens),
+    programsTotal: programs.length,
+    programsCompleted: done(programs),
+  };
+}
+
 export const partnersApi = {
-  // 1. Get Partners List
+  // 1. Get Partners List - the partner profiles stored by the backend (UC-44).
   async getPartners(): Promise<Partner[]> {
-    let localPartners = loadStore<Partner[]>(STORAGE_PARTNERS_KEY, INITIAL_PARTNERS);
-    // Both sources are requested in parallel so the list never waits on them one by one.
-    const partnersRequest = apiClient.get<PartnerRecordDto[]>('/partners');
-    const organizationsRequest = apiClient.get<any[]>('/admin/organizations');
-    // Real partner profiles (UC-44) come first, newest first as returned by the backend.
-    let backendPartners: Partner[] = [];
+    let records: PartnerRecordDto[];
     try {
-      const records = await partnersRequest;
-      if (Array.isArray(records)) {
-        const byId = new Map(localPartners.map((p) => [p.id, p]));
-        backendPartners = records.map((r) => toPartner(r, byId.get(r.id)));
-      }
-    } catch {
-      // No partner.view permission or backend unreachable: keep the other sources below.
+      records = await apiClient.get<PartnerRecordDto[]>('/partners');
+    } catch (err) {
+      throw toPartnerApiError(err, 'load');
     }
-    try {
-      const beOrgs = await organizationsRequest;
-      if (Array.isArray(beOrgs) && beOrgs.length > 0) {
-        // Merge backend organizations
-        const mergedMap = new Map<string, Partner>();
-        localPartners.forEach((p) => mergedMap.set(p.id, p));
-        beOrgs.forEach((org) => {
-          if (org.type === 'ENTERPRISE' || org.name.toLowerCase().includes('partner') || !mergedMap.has(org.id)) {
-            const existing = mergedMap.get(org.id);
-            mergedMap.set(org.id, {
-              id: org.id,
-              name: org.name,
-              companyName: org.name,
-              contactName: existing?.contactName || org.adminEmail?.split('@')[0] || 'Partner Representative',
-              contactEmail: org.contactEmail || org.adminEmail || `partner@${org.domain || 'org.com'}`,
-              domain: org.domain,
-              status: org.status || 'ACTIVE',
-              engagementType: org.engagementType || existing?.engagementType || 'Enterprise Modernization',
-              projectCount: existing?.projectCount || 1,
-              activeConversionCount: existing?.activeConversionCount || 1,
-              completedExportCount: existing?.completedExportCount || 0,
-              latestActivity: existing?.latestActivity || 'Recent',
-              createdAt: org.createdAt || new Date().toISOString(),
-              updatedAt: org.updatedAt || new Date().toISOString(),
-              assignedStaffName: existing?.assignedStaffName || 'Assigned Conversion Lead',
-            });
-          }
-        });
-        localPartners = Array.from(mergedMap.values());
-        saveStore(STORAGE_PARTNERS_KEY, localPartners);
-      }
-    } catch {
-      // Offline fallback: keep localPartners
-    }
-    const backendIds = new Set(backendPartners.map((p) => p.id));
-    return [...backendPartners, ...localPartners.filter((p) => !backendIds.has(p.id))];
+    const projects = await this.listProjectsWithoutCounts().catch(() => [] as PartnerProject[]);
+    return records.map((r) => {
+      const own = projects.filter((p) => p.partnerId === r.id);
+      return toPartner(r, {
+        projectCount: own.length,
+        activeConversionCount: own.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
+      });
+    });
   },
 
   // 2. Get Single Partner
@@ -796,72 +451,56 @@ export const partnersApi = {
     } catch (err) {
       throw toPartnerApiError(err);
     }
-    return toPartner(record);
+    return toPartner(record, { projectCount: 0, activeConversionCount: 0 });
   },
 
-  // 4. Get Partner Projects
+  // 4. Get Partner Projects - every project stored on the server, with real item counts.
   async getProjects(partnerId?: string): Promise<PartnerProject[]> {
-    let projects = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
-    try {
-      const beProjects = await apiClient.get<any[]>('/projects');
-      if (Array.isArray(beProjects) && beProjects.length > 0) {
-        const merged = new Map<string, PartnerProject>();
-        projects.forEach((p) => merged.set(p.id, p));
-        beProjects.forEach((bp) => {
-          const cached = merged.get(bp.id);
-          if (cached) {
-            // Export state is owned by the server (UC-48); never keep a stale cached copy.
-            merged.set(bp.id, {
-              ...cached,
-              isExported: bp.isExported ?? cached.isExported,
-              exportedAt: bp.exportedAt ?? cached.exportedAt,
-              exportedBundleName: bp.exportedBundleName ?? cached.exportedBundleName,
-              status: bp.status === 'COMPLETED' ? 'COMPLETED' : cached.status,
-            });
-          } else {
-            merged.set(bp.id, {
-              id: bp.id,
-              name: bp.name,
-              description: bp.description || 'Legacy modernization project',
-              partnerId: bp.organizationId || 'partner-fnx-001',
-              partnerName: bp.organizationName || 'Fintech Nexus International',
-              organizationId: bp.organizationId || 'partner-fnx-001',
-              conversionType: bp.sourcePlatform === 'COBOL' ? 'COBOL_TO_JAVA' : 'BMS_DSPF_TO_FRONTEND',
-              targetFramework: bp.targetPlatform || 'React 19 + Tailwind CSS',
-              status: bp.status || 'IN_PROGRESS',
-              screensTotal: 10,
-              screensCompleted: 8,
-              programsTotal: bp.sourcePlatform === 'COBOL' ? 5 : 0,
-              programsCompleted: bp.sourcePlatform === 'COBOL' ? 4 : 0,
-              lastUpdated: bp.updatedAt || new Date().toISOString(),
-              createdAt: bp.createdAt || new Date().toISOString(),
-              assignedTeamLeadName: bp.assignedTeamLead?.fullName || 'Sarah Jenkins',
-              isExported: bp.isExported ?? false,
-              exportedAt: bp.exportedAt,
-              exportedBundleName: bp.exportedBundleName,
-            });
-          }
-        });
-        projects = Array.from(merged.values());
-        saveStore(STORAGE_PROJECTS_KEY, projects);
-      }
-    } catch {
-      // Keep projects from store
-    }
+    const projects = await this.listProjectsWithoutCounts();
+    const scoped = partnerId ? projects.filter((p) => p.partnerId === partnerId) : projects;
+    return Promise.all(
+      scoped.map(async (p) => {
+        try {
+          return withItemCounts(p, await this.getServerProjectItems(p.id));
+        } catch {
+          return p;
+        }
+      }),
+    );
+  },
 
-    if (partnerId) {
-      return projects.filter((p) => p.partnerId === partnerId || p.organizationId === partnerId);
+  async listProjectsWithoutCounts(): Promise<PartnerProject[]> {
+    let dtos: ProjectDto[];
+    try {
+      dtos = await apiClient.get<ProjectDto[]>('/projects');
+    } catch (err) {
+      throw toPartnerProjectError(err, 'load');
     }
-    return projects;
+    return dtos.map(toProject);
   },
 
   // 5. Get Project by ID
   async getProjectById(projectId: string): Promise<PartnerProject | null> {
-    const list = await this.getProjects();
-    return list.find((p) => p.id === projectId) || null;
+    const project = await this.fetchProject(projectId);
+    if (!project) return null;
+    try {
+      return withItemCounts(project, await this.getServerProjectItems(projectId));
+    } catch {
+      return project;
+    }
   },
 
-  // 6. Create Partner Project
+  /** The project without item counts (also what getServerProjectItems uses, to avoid a loop). */
+  async fetchProject(projectId: string): Promise<PartnerProject | null> {
+    if (!isServerProject(projectId)) return null;
+    try {
+      return toProject(await apiClient.get<ProjectDto>(`/projects/${projectId}`));
+    } catch {
+      return null;
+    }
+  },
+
+  // 6. Create Partner Project - created on the server; the partner link is kept in this browser.
   async createProject(data: {
     partnerId: string;
     partnerName: string;
@@ -870,132 +509,24 @@ export const partnersApi = {
     conversionType: ConversionType;
     targetFramework: string;
   }): Promise<PartnerProject> {
-    // The project must exist on the server: only server projects can receive uploads,
-    // be converted and be exported. A failed create is reported, never faked locally.
-    let created: { id: string };
+    let created: ProjectDto;
     try {
-      created = await apiClient.post<{ id: string }>('/projects', {
+      created = await apiClient.post<ProjectDto>('/projects', {
         name: data.name.trim(),
         description: data.description?.trim() || undefined,
         conversionType: data.conversionType,
       });
     } catch (err) {
-      throw toPartnerProjectError(err);
+      throw toPartnerProjectError(err, 'create');
     }
-
-    const newProject: PartnerProject = {
-      id: created.id,
-      name: data.name,
-      description: data.description,
-      partnerId: data.partnerId,
-      partnerName: data.partnerName,
-      organizationId: data.partnerId,
-      conversionType: data.conversionType,
-      targetFramework: data.targetFramework,
-      status: 'NOT_STARTED',
-      screensTotal: 0,
-      screensCompleted: 0,
-      programsTotal: 0,
-      programsCompleted: 0,
-      lastUpdated: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      assignedTeamLeadName: 'Sarah Jenkins',
-      isExported: false,
-    };
-
-    const current = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
-    saveStore(STORAGE_PROJECTS_KEY, [newProject, ...current]);
-
-    // Update partner project count
-    const partners = loadStore<Partner[]>(STORAGE_PARTNERS_KEY, INITIAL_PARTNERS);
-    const updatedPartners = partners.map((p) => {
-      if (p.id === data.partnerId) {
-        return {
-          ...p,
-          projectCount: p.projectCount + 1,
-          latestActivity: 'New project created',
-          updatedAt: new Date().toISOString(),
-        };
-      }
-      return p;
-    });
-    saveStore(STORAGE_PARTNERS_KEY, updatedPartners);
-
-    return newProject;
+    saveLink(created.id, { partnerId: data.partnerId, partnerName: data.partnerName });
+    return toProject(created);
   },
 
-  // 7. Get Items in Project Workspace
+  // 7. Get Items in Project Workspace - the screens/programs uploaded to the server.
   async getProjectItems(projectId: string): Promise<PartnerConversionItem[]> {
-    if (isServerProject(projectId)) return this.getServerProjectItems(projectId);
-    const allStore = loadStore<Record<string, PartnerConversionItem[]>>(STORAGE_ITEMS_KEY, INITIAL_ITEMS);
-    if (allStore[projectId]) {
-      return allStore[projectId];
-    }
-
-    // If project has no items stored, create default items based on project type
-    const project = await this.getProjectById(projectId);
-    const isCobol = project?.conversionType === 'COBOL_TO_JAVA';
-    const defaultItems: PartnerConversionItem[] = isCobol
-      ? [
-          {
-            id: `item-${projectId}-001`,
-            projectId,
-            name: 'BATCALC01 (Batch Interest Calculation)',
-            type: 'PROGRAM',
-            sourceFile: 'BATCALC01.cbl',
-            status: 'COMPLETED',
-            validationStatus: 'PASSED',
-            progress: 100,
-            attemptCount: 1,
-            maxAttempts: 3,
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: `item-${projectId}-002`,
-            projectId,
-            name: 'ACCTVAL02 (Account Validation Routine)',
-            type: 'PROGRAM',
-            sourceFile: 'ACCTVAL02.cbl',
-            status: 'COMPLETED',
-            validationStatus: 'WARNINGS',
-            progress: 100,
-            attemptCount: 1,
-            maxAttempts: 3,
-            updatedAt: new Date().toISOString(),
-          },
-        ]
-      : [
-          {
-            id: `item-${projectId}-001`,
-            projectId,
-            name: 'MAINMNU (Main System Navigation Menu)',
-            type: 'SCREEN',
-            sourceFile: 'MAINMNU.bms',
-            status: 'COMPLETED',
-            validationStatus: 'PASSED',
-            progress: 100,
-            attemptCount: 1,
-            maxAttempts: 3,
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: `item-${projectId}-002`,
-            projectId,
-            name: 'CUSTREG (Customer Registration Entry)',
-            type: 'SCREEN',
-            sourceFile: 'CUSTREG.bms',
-            status: 'PENDING',
-            validationStatus: 'PENDING',
-            progress: 0,
-            attemptCount: 0,
-            maxAttempts: 3,
-            updatedAt: new Date().toISOString(),
-          },
-        ];
-
-    allStore[projectId] = defaultItems;
-    saveStore(STORAGE_ITEMS_KEY, allStore);
-    return defaultItems;
+    if (!isServerProject(projectId)) return [];
+    return this.getServerProjectItems(projectId);
   },
 
   // 8. Get Single Item
@@ -1063,7 +594,7 @@ export const partnersApi = {
     } catch (err) {
       throw toPartnerConversionError(err);
     }
-    const project = await this.getProjectById(projectId);
+    const project = await this.fetchProject(projectId);
     const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
     const latestByScreen = new Map<string, ConversionJobDto>();
     for (const job of [...jobs].sort((a, b) => b.createdAt.localeCompare(a.createdAt))) {
@@ -1072,66 +603,6 @@ export const partnersApi = {
     return screens.map((screen) =>
       toServerItem(projectId, screen, conversionType, latestByScreen.get(screen.id)),
     );
-  },
-
-  // Helper: Recalculate Project Completed Totals
-  async recalculateProjectMetrics(projectId: string): Promise<void> {
-    const items = await this.getProjectItems(projectId);
-    const screens = items.filter((i) => i.type === 'SCREEN');
-    const programs = items.filter((i) => i.type === 'PROGRAM');
-
-    const screensCompleted = screens.filter((i) => i.status === 'COMPLETED').length;
-    const programsCompleted = programs.filter((i) => i.status === 'COMPLETED').length;
-
-    const projects = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
-    const updated = projects.map((p) => {
-      if (p.id === projectId) {
-        const total = p.conversionType === 'BMS_DSPF_TO_FRONTEND' ? screens.length : programs.length;
-        const comp = p.conversionType === 'BMS_DSPF_TO_FRONTEND' ? screensCompleted : programsCompleted;
-        const allDone = total > 0 && comp === total;
-        return {
-          ...p,
-          screensTotal: screens.length,
-          screensCompleted,
-          programsTotal: programs.length,
-          programsCompleted,
-          status: allDone ? ('READY_FOR_EXPORT' as const) : ('IN_PROGRESS' as const),
-          lastUpdated: new Date().toISOString(),
-        };
-      }
-      return p;
-    });
-    saveStore(STORAGE_PROJECTS_KEY, updated);
-  },
-
-  // 11. Add Source Files
-  async addSourceFiles(
-    projectId: string,
-    files: Array<{ name: string; type: 'SCREEN' | 'PROGRAM'; content?: string }>
-  ): Promise<PartnerConversionItem[]> {
-    const current = await this.getProjectItems(projectId);
-    const newItems: PartnerConversionItem[] = files.map((f, idx) => ({
-      id: `item-${Date.now()}-${idx}`,
-      projectId,
-      name: f.name.replace(/\.[^/.]+$/, '').toUpperCase(),
-      type: f.type,
-      sourceFile: f.name,
-      sourceCode: f.content || `* Source file uploaded: ${f.name}\n* Awaiting AST parsing`,
-      status: 'PENDING',
-      validationStatus: 'PENDING',
-      progress: 0,
-      attemptCount: 0,
-      maxAttempts: 3,
-      updatedAt: new Date().toISOString(),
-    }));
-
-    const combined = [...current, ...newItems];
-    const allStore = loadStore<Record<string, PartnerConversionItem[]>>(STORAGE_ITEMS_KEY, INITIAL_ITEMS);
-    allStore[projectId] = combined;
-    saveStore(STORAGE_ITEMS_KEY, allStore);
-
-    await this.recalculateProjectMetrics(projectId);
-    return combined;
   },
 
   // 11b. Upload source files (UC-46). Real backend projects get a multipart POST to
@@ -1143,25 +614,10 @@ export const partnersApi = {
     files: File[],
     onProgress?: (percent: number) => void,
   ): Promise<SourceUploadResult> {
-    const project = await this.getProjectById(projectId);
-    const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
-
-    if (!BACKEND_PROJECT_ID.test(projectId)) {
-      if (files.some((f) => fileExtension(f.name) === 'zip')) {
-        throw new PartnerUploadError(
-          'ZIP archives can only be uploaded to projects stored on the server',
-        );
-      }
-      const items = await Promise.all(
-        files.map(async (f) => ({
-          name: f.name,
-          type: classifyFile(f.name, conversionType),
-          content: await readFileText(f),
-        })),
+    if (!isServerProject(projectId)) {
+      throw new PartnerUploadError(
+        'This project is not stored on the server, so files cannot be uploaded to it. Create a new project and upload there.',
       );
-      await this.addSourceFiles(projectId, items);
-      onProgress?.(100);
-      return { mode: 'LOCAL', registered: files.map((f) => f.name), ignoredEntries: [] };
     }
 
     const form = new FormData();
@@ -1185,7 +641,6 @@ export const partnersApi = {
     // Server projects list their items straight from the backend (getServerProjectItems).
     onProgress?.(100);
     return {
-      mode: 'SERVER',
       registered: response.screens.map((s) => s.name),
       ignoredEntries: response.ignoredEntries ?? [],
     };
@@ -1193,7 +648,7 @@ export const partnersApi = {
 
   // 12. Validation Findings
   async getValidationFindings(itemId: string): Promise<ValidationFinding[]> {
-    const findingsStore = loadStore<Record<string, ValidationFinding[]>>(STORAGE_FINDINGS_KEY, INITIAL_FINDINGS);
+    const findingsStore = loadStore<Record<string, ValidationFinding[]>>(STORAGE_FINDINGS_KEY, {});
     return findingsStore[itemId] || [];
   },
 
@@ -1202,7 +657,7 @@ export const partnersApi = {
     findingId: string,
     status: 'CONFIRMED' | 'REJECTED' | 'NOT_APPLICABLE'
   ): Promise<ValidationFinding[]> {
-    const findingsStore = loadStore<Record<string, ValidationFinding[]>>(STORAGE_FINDINGS_KEY, INITIAL_FINDINGS);
+    const findingsStore = loadStore<Record<string, ValidationFinding[]>>(STORAGE_FINDINGS_KEY, {});
     const current = findingsStore[itemId] || [];
     const updated = current.map((f) => (f.id === findingId ? { ...f, status } : f));
     findingsStore[itemId] = updated;
@@ -1212,40 +667,43 @@ export const partnersApi = {
 
   // 13. Field Mappings
   async getFieldMappings(itemId: string): Promise<FieldMappingRule[]> {
-    const mappingsStore = loadStore<Record<string, FieldMappingRule[]>>('alsm_field_mappings', INITIAL_MAPPINGS);
-    return mappingsStore[itemId] || [
-      { id: 'm1', sourceField: 'FLDINP', targetProperty: 'fieldInput', dataType: 'string', transformRule: 'trim()' },
-    ];
+    const mappingsStore = loadStore<Record<string, FieldMappingRule[]>>(STORAGE_MAPPINGS_KEY, {});
+    return mappingsStore[itemId] || [];
   },
 
   async saveFieldMappings(itemId: string, mappings: FieldMappingRule[]): Promise<FieldMappingRule[]> {
-    const mappingsStore = loadStore<Record<string, FieldMappingRule[]>>('alsm_field_mappings', INITIAL_MAPPINGS);
+    const mappingsStore = loadStore<Record<string, FieldMappingRule[]>>(STORAGE_MAPPINGS_KEY, {});
     mappingsStore[itemId] = mappings;
-    saveStore('alsm_field_mappings', mappingsStore);
+    saveStore(STORAGE_MAPPINGS_KEY, mappingsStore);
     return mappings;
   },
 
-  // 14. Export Bundle History
+  // 14. Export Bundle History - bundles released from the partner's server projects, newest first.
   async getExportBundles(partnerId?: string): Promise<ExportBundleInfo[]> {
-    const list = loadStore<ExportBundleInfo[]>(STORAGE_EXPORTS_KEY, INITIAL_EXPORTS);
-    if (partnerId) {
-      return list.filter((b) => b.partnerId === partnerId);
-    }
-    return list;
+    const projects = await this.listProjectsWithoutCounts();
+    const scoped = partnerId ? projects.filter((p) => p.partnerId === partnerId) : projects;
+    const lists = await Promise.all(
+      scoped.map(async (project) => {
+        try {
+          const dtos = await apiClient.get<ExportBundleDto[]>(`/projects/${project.id}/partner-export/bundles`);
+          return dtos.map((dto) => toExportBundleInfo(dto, project));
+        } catch {
+          return [];
+        }
+      }),
+    );
+    return lists.flat().sort((a, b) => b.exportedAt.localeCompare(a.exportedAt));
   },
 
   async getExportBundleByProjectId(projectId: string): Promise<ExportBundleInfo | null> {
-    if (isServerProject(projectId)) {
-      try {
-        const [latest] = await apiClient.get<ExportBundleDto[]>(`/projects/${projectId}/partner-export/bundles`);
-        return latest ? toExportBundleInfo(latest, await this.getProjectById(projectId)) : null;
-      } catch {
-        // No conversion_result.export permission or server unreachable: no bundle to show.
-        return null;
-      }
+    if (!isServerProject(projectId)) return null;
+    try {
+      const [latest] = await apiClient.get<ExportBundleDto[]>(`/projects/${projectId}/partner-export/bundles`);
+      return latest ? toExportBundleInfo(latest, await this.fetchProject(projectId)) : null;
+    } catch {
+      // No conversion_result.export permission or server unreachable: no bundle to show.
+      return null;
     }
-    const list = await this.getExportBundles();
-    return list.find((b) => b.projectId === projectId) || null;
   },
 
   // 15. Preview what the server will package (UC-48)
@@ -1299,7 +757,7 @@ export const partnersApi = {
     } catch (err) {
       throw await toPartnerExportError(err);
     }
-    return toExportBundleInfo(dto, await this.getProjectById(data.projectId));
+    return toExportBundleInfo(dto, await this.fetchProject(data.projectId));
   },
 
   // 18. Re-send the notification of a released bundle
@@ -1311,7 +769,7 @@ export const partnersApi = {
     } catch (err) {
       throw await toPartnerExportError(err);
     }
-    return toExportBundleInfo(dto, await this.getProjectById(projectId));
+    return toExportBundleInfo(dto, await this.fetchProject(projectId));
   },
 
   // 19. Download the exact ZIP that was released
@@ -1330,7 +788,8 @@ export const partnersApi = {
     }
   },
 
-  // 20. Assign Project to Team Lead & Staff Member (Stage 3)
+  // 20. Assign Project to Team Lead & Staff Member. The team lead is saved on the server;
+  // the staff member is kept in this browser (the server has no field for it yet).
   async assignProject(
     projectId: string,
     data: {
@@ -1338,40 +797,28 @@ export const partnersApi = {
       teamLeadName?: string;
       staffId?: string;
       staffName?: string;
-    }
+    },
   ): Promise<PartnerProject> {
-    const projects = loadStore<PartnerProject[]>(STORAGE_PROJECTS_KEY, INITIAL_PROJECTS);
-    const updated = projects.map((p) => {
-      if (p.id === projectId) {
-        return {
-          ...p,
-          assignedTeamLeadId: data.teamLeadId ?? p.assignedTeamLeadId,
-          assignedTeamLeadName: data.teamLeadName ?? p.assignedTeamLeadName,
-          assignedStaffId: data.staffId ?? p.assignedStaffId,
-          assignedStaffName: data.staffName ?? p.assignedStaffName,
-          lastUpdated: new Date().toISOString(),
-        };
-      }
-      return p;
-    });
-    saveStore(STORAGE_PROJECTS_KEY, updated);
-
+    if (!isServerProject(projectId)) {
+      throw new PartnerApiError('This project is not stored on the server, so it cannot be assigned.');
+    }
     if (data.teamLeadId) {
       try {
-        await apiClient.post(`/projects/${projectId}/assign-team-lead`, {
-          teamLeadId: data.teamLeadId,
-        });
-      } catch {
-        // Backend assign-team-lead fallback
+        await apiClient.post(`/projects/${projectId}/assign-team-lead`, { teamLeadId: data.teamLeadId });
+      } catch (err) {
+        throw toPartnerProjectError(err, 'assign');
       }
     }
-
-    const found = updated.find((p) => p.id === projectId);
-    if (!found) throw new Error('Project not found');
-    return found;
+    saveLink(projectId, {
+      ...(data.teamLeadName ? { assignedTeamLeadName: data.teamLeadName } : {}),
+      ...(data.staffId ? { assignedStaffId: data.staffId, assignedStaffName: data.staffName } : {}),
+    });
+    const project = await this.getProjectById(projectId);
+    if (!project) throw new PartnerApiError('Project not found');
+    return project;
   },
 
-  // 17. Get Staff Roster with Real-Time Workloads for Team Lead Assignment
+  // 21. Staff roster for assignment, with the number of projects each person is assigned to.
   async getAssignableStaff(): Promise<
     Array<{
       id: string;
@@ -1381,27 +828,22 @@ export const partnersApi = {
       activeWorkload: number;
     }>
   > {
+    let users: any[];
     try {
-      const users = await apiClient.get<any[]>('/users');
-      if (Array.isArray(users) && users.length > 0) {
-        return users.map((u, idx) => ({
-          id: u.id || `staff-${idx}`,
-          fullName: u.fullName || u.name || u.email,
-          email: u.email,
-          role: u.roles?.[0] || 'CONVERSION_STAFF',
-          activeWorkload: (idx % 3) + 1,
-        }));
-      }
+      users = await apiClient.get<any[]>('/users');
     } catch {
-      // Fallback roster
+      return [];
     }
-
-    return [
-      { id: 'lead-01', fullName: 'Sarah Jenkins', email: 'teamlead@alsm.io', role: 'TEAM_LEAD', activeWorkload: 2 },
-      { id: 'lead-02', fullName: 'David Chen', email: 'd.chen@alsm.io', role: 'TEAM_LEAD', activeWorkload: 1 },
-      { id: 'staff-01', fullName: 'Marcus Vance', email: 'converter@alsm.io', role: 'CONVERSION_STAFF', activeWorkload: 3 },
-      { id: 'staff-02', fullName: 'Alex Rivera', email: 'alex.rivera@alsm.io', role: 'CONVERSION_STAFF', activeWorkload: 1 },
-      { id: 'staff-03', fullName: 'Emily Zhao', email: 'emily.zhao@alsm.io', role: 'CONVERSION_STAFF', activeWorkload: 2 },
-    ];
+    if (!Array.isArray(users)) return [];
+    const projects = await this.listProjectsWithoutCounts().catch(() => [] as PartnerProject[]);
+    return users.map((u) => ({
+      id: u.id,
+      fullName: u.fullName || u.name || u.email,
+      email: u.email,
+      role: u.roles?.[0] || 'CONVERSION_STAFF',
+      activeWorkload: projects.filter(
+        (p) => !p.isExported && (p.assignedStaffId === u.id || p.assignedTeamLeadId === u.id),
+      ).length,
+    }));
   },
 };

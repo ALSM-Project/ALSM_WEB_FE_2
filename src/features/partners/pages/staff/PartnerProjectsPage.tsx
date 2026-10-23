@@ -37,6 +37,7 @@ export const PartnerProjectsPage: React.FC = () => {
   const [projects, setProjects] = useState<PartnerProject[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | ConversionType>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -55,6 +56,7 @@ export const PartnerProjectsPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [allProjects, allPartners] = await Promise.all([
         partnersApi.getProjects(),
         partnersApi.getPartners(),
@@ -77,7 +79,8 @@ export const PartnerProjectsPage: React.FC = () => {
       setProjects(Array.from(projectMap.values()));
       setPartners(allPartners);
     } catch (err) {
-      console.error('Failed to load partner projects:', err);
+      setProjects([]);
+      setLoadError(err instanceof Error ? err.message : 'The projects could not be loaded.');
     } finally {
       setLoading(false);
     }
@@ -133,6 +136,11 @@ export const PartnerProjectsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {loadError && (
+        <div role="alert" className="p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-800">
+          {loadError}
+        </div>
+      )}
       {/* 1. Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div>
