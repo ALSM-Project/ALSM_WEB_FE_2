@@ -628,6 +628,10 @@ export const partnersApi = {
         `/projects/${projectId}/conversion-sources`,
         form,
         {
+          // apiClient defaults to application/json, and axios then serializes a FormData
+          // body to JSON - the files vanish and the server sees none. Declaring multipart
+          // keeps the body intact; the browser adds the boundary itself.
+          headers: { 'Content-Type': 'multipart/form-data' },
           onUploadProgress: (event: AxiosProgressEvent) => {
             if (!onProgress || !event.total) return;
             onProgress(Math.min(100, Math.round((event.loaded / event.total) * 100)));

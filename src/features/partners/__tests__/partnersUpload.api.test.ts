@@ -44,6 +44,10 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
     expect((body as FormData).getAll('files')).toHaveLength(1);
     expect(((body as FormData).get('files') as File).name).toBe('LOGIN.bms');
 
+    expect((config as { headers: Record<string, string> }).headers).toEqual({
+      'Content-Type': 'multipart/form-data',
+    });
+
     // Real progress events from the transport are forwarded as percentages.
     (config as { onUploadProgress: (e: unknown) => void }).onUploadProgress({ loaded: 25, total: 100 });
     expect(progress).toHaveBeenCalledWith(25);
