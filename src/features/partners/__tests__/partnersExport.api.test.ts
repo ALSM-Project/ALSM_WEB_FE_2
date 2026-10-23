@@ -15,6 +15,16 @@ const OPTIONS = {
   includeDocumentation: true,
 };
 
+const projectDto = {
+  id: PROJECT,
+  name: 'Core Banking Screens',
+  organizationId: 'org-1',
+  conversionType: 'BMS_DSPF_TO_FRONTEND',
+  status: 'ACTIVE',
+  createdAt: '2026-10-22T00:00:00Z',
+  updatedAt: '2026-10-22T00:00:00Z',
+};
+
 const bundleDto = {
   id: '6650ee00ee00ee00ee00ee01',
   projectId: PROJECT,
@@ -38,9 +48,7 @@ describe('partnersApi export (UC-48)', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
-      if (url === '/projects') {
-        return [{ id: PROJECT, name: 'Core Banking Screens', organizationId: 'org-1', sourcePlatform: 'BMS' }];
-      }
+      if (url === `/projects/${PROJECT}`) return projectDto;
       throw new Error('offline');
     });
   });
@@ -171,7 +179,7 @@ describe('partnersApi export (UC-48)', () => {
   it('reads the latest released bundle of a server project from the backend', async () => {
     vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
       if (url === `/projects/${PROJECT}/partner-export/bundles`) return [bundleDto];
-      if (url === '/projects') return [{ id: PROJECT, name: 'Core Banking Screens', organizationId: 'org-1' }];
+      if (url === `/projects/${PROJECT}`) return projectDto;
       throw new Error('offline');
     });
 
@@ -191,28 +199,43 @@ describe('partnersApi export (UC-48)', () => {
     expect(bundle.notificationStatus).toBe('SENT');
   });
 
-  it('takes the export state of a cached server project from the backend', async () => {
-    vi.mocked(apiClient.get).mockResolvedValueOnce([
-      { id: PROJECT, name: 'Core Banking Screens', organizationId: 'org-1', isExported: false },
-    ]);
-    await partnersApi.getProjects();
-    vi.mocked(apiClient.get).mockResolvedValueOnce([
-      {
-        id: PROJECT,
-        name: 'Core Banking Screens',
-        organizationId: 'org-1',
-        status: 'COMPLETED',
-        isExported: true,
-        exportedBundleName: 'core-banking-screens-modernized-bundle-v1.zip',
-      },
-    ]);
+  it('reads the export state of a project from the backend', async () => {
+    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
+      if (url === '/projects') {
+        return [
+          {
+            ...projectDto,
+            status: 'COMPLETED',
+            isExported: true,
+            exportedAt: '2026-10-22T10:00:00Z',
+            exportedBundleName: 'core-banking-screens-modernized-bundle-v1.zip',
+          },
+        ];
+      }
+      return [];
+    });
 
-    const project = (await partnersApi.getProjects()).find((p) => p.id === PROJECT);
+    const [project] = await partnersApi.getProjects();
 
     expect(project).toMatchObject({
       isExported: true,
       status: 'COMPLETED',
       exportedBundleName: 'core-banking-screens-modernized-bundle-v1.zip',
     });
+  });
+
+  it("lists a partner's released bundles from the server projects linked to it", async () => {
+    localStorage.setItem(
+      'alsm_partner_project_links_v1',
+      JSON.stringify({ [PROJECT]: { partnerId: 'partner-1', partnerName: 'Pacific Banking' } }),
+    );
+    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
+      if (url === '/projects') return [projectDto];
+      if (url === `/projects/${PROJECT}/partner-export/bundles`) return [bundleDto];
+      return [];
+    });
+
+    expect((await partnersApi.getExportBundles('partner-1')).map((b) => b.id)).toEqual([bundleDto.id]);
+    expect(await partnersApi.getExportBundles('someone-else')).toEqual([]);
   });
 });

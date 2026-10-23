@@ -6,6 +6,7 @@ import { PartnerApiError } from '../api/partnerApiError';
 
 vi.mock('../api/partners.api', () => ({
   partnersApi: {
+    getAssignableStaff: vi.fn().mockResolvedValue([]),
     createPartner: vi.fn().mockImplementation((data) =>
       Promise.resolve({
         id: 'new-partner-99',
@@ -108,7 +109,7 @@ describe('RegisterPartnerModal', () => {
         contactName: 'Alex Morgan',
         contactEmail: 'alex@horizoncloud.io',
         engagementType: 'Dedicated Modernization',
-        assignedStaffName: 'Sarah Jenkins (Sr. Conversion Specialist)',
+        assignedStaffName: '',
       });
     });
 

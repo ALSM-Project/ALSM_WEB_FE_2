@@ -57,10 +57,8 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
     }
   }, [isOpen, project]);
 
-  const teamLeads = roster.filter((m) => m.role === 'TEAM_LEAD' || m.id.startsWith('lead'));
-  const conversionStaff = roster.filter(
-    (m) => m.role === 'CONVERSION_STAFF' || m.id.startsWith('staff')
-  );
+  const teamLeads = roster.filter((m) => m.role === 'TEAM_LEAD');
+  const conversionStaff = roster.filter((m) => m.role === 'CONVERSION_STAFF');
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,9 +69,9 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
 
       const updated = await partnersApi.assignProject(project.id, {
         teamLeadId: selectedLeadId,
-        teamLeadName: leadObj?.fullName || 'Sarah Jenkins',
+        teamLeadName: leadObj?.fullName,
         staffId: selectedStaffId,
-        staffName: staffObj?.fullName || 'Marcus Vance',
+        staffName: staffObj?.fullName,
       });
 
       onAssigned(updated);

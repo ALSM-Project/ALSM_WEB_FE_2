@@ -39,12 +39,15 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
       } else if (partnersList.length > 0) {
         setSelectedPartnerId(partnersList[0].id);
       } else {
-        partnersApi.getPartners().then((list) => {
-          setAvailablePartners(list);
-          if (list.length > 0 && !selectedPartnerId) {
-            setSelectedPartnerId(list[0].id);
-          }
-        });
+        partnersApi
+          .getPartners()
+          .then((list) => {
+            setAvailablePartners(list);
+            if (list.length > 0 && !selectedPartnerId) {
+              setSelectedPartnerId(list[0].id);
+            }
+          })
+          .catch(() => setAvailablePartners([]));
       }
     }
   }, [isOpen, partner, partnersList]);

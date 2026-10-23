@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, User, Layers } from 'lucide-react';
 import { Button, Input } from '@/shared/ui';
@@ -18,7 +18,21 @@ export const CreatePartnerPage: React.FC = () => {
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [engagementType, setEngagementType] = useState('Dedicated Modernization');
-  const [assignedStaff, setAssignedStaff] = useState('Sarah Jenkins (Sr. Conversion Specialist)');
+  const [assignedStaff, setAssignedStaff] = useState('');
+  const [staffOptions, setStaffOptions] = useState<Awaited<ReturnType<typeof partnersApi.getAssignableStaff>>>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    partnersApi
+      .getAssignableStaff()
+      .then((list) => {
+        if (!cancelled) setStaffOptions(list);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [errors, setErrors] = useState<PartnerFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -188,15 +202,12 @@ export const CreatePartnerPage: React.FC = () => {
                   onChange={(e) => setAssignedStaff(e.target.value)}
                   className="w-full text-xs p-2.5 bg-[#F7F9FC] focus:bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]"
                 >
-                  <option value="Sarah Jenkins (Sr. Conversion Specialist)">
-                    Sarah Jenkins (Sr. Conversion Specialist)
-                  </option>
-                  <option value="David Chen (Conversion Engineer)">
-                    David Chen (Conversion Engineer)
-                  </option>
-                  <option value="Michael Rossi (Team Lead)">
-                    Michael Rossi (Team Lead)
-                  </option>
+                  <option value="">Not assigned</option>
+                  {staffOptions.map((m) => (
+                    <option key={m.id} value={m.fullName}>
+                      {m.fullName} ({m.email})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

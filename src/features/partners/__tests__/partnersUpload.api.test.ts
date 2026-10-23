@@ -20,20 +20,7 @@ function httpError(status: number, data: Record<string, unknown>) {
 describe('partnersApi.uploadSourceFiles (UC-46)', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
-      if (url === '/projects') {
-        return [
-          {
-            id: SERVER_PROJECT,
-            name: 'Core Banking Screens',
-            organizationId: 'org-1',
-            sourcePlatform: 'BMS',
-            targetPlatform: 'React',
-          },
-        ];
-      }
-      throw new Error('offline');
-    });
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
   });
 
   afterEach(() => {
@@ -65,7 +52,7 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
     (config as { onUploadProgress: (e: unknown) => void }).onUploadProgress({ loaded: 25, total: 100 });
     expect(progress).toHaveBeenCalledWith(25);
 
-    expect(result).toEqual({ mode: 'SERVER', registered: ['LOGIN.bms'], ignoredEntries: [] });
+    expect(result).toEqual({ registered: ['LOGIN.bms'], ignoredEntries: [] });
     expect(progress).toHaveBeenCalledWith(100);
   });
 
@@ -120,19 +107,14 @@ describe('partnersApi.uploadSourceFiles (UC-46)', () => {
     );
   });
 
-  it('registers files locally, without calling the server, for a browser-only demo project', async () => {
-    const result = await partnersApi.uploadSourceFiles(LOCAL_PROJECT, [file('CUSTREG.bms', 'DFHMSD')]);
+  it('refuses a project that is not stored on the server without calling it', async () => {
+    const error = await partnersApi
+      .uploadSourceFiles(LOCAL_PROJECT, [file('CUSTREG.bms', 'DFHMSD')])
+      .catch((e: unknown) => e);
 
+    expect(error).toBeInstanceOf(PartnerUploadError);
+    expect((error as Error).message).toMatch(/not stored on the server/i);
     expect(apiClient.post).not.toHaveBeenCalled();
-    expect(result).toEqual({ mode: 'LOCAL', registered: ['CUSTREG.bms'], ignoredEntries: [] });
-    const items = await partnersApi.getProjectItems(LOCAL_PROJECT);
-    expect(items.some((i) => i.sourceFile === 'CUSTREG.bms')).toBe(true);
-  });
-
-  it('refuses a ZIP for a browser-only project because it cannot be expanded locally', async () => {
-    await expect(partnersApi.uploadSourceFiles(LOCAL_PROJECT, [file('bundle.zip')])).rejects.toThrow(
-      /only be uploaded to projects stored on the server/i,
-    );
-    expect(apiClient.post).not.toHaveBeenCalled();
+    expect(await partnersApi.getProjectItems(LOCAL_PROJECT)).toEqual([]);
   });
 });

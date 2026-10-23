@@ -44,6 +44,8 @@ export const PartnerDetailsPage: React.FC = () => {
       setPartner(p);
       setProjects(projs);
       setExports(expList);
+    } catch {
+      setPartner(null);
     } finally {
       setLoading(false);
     }
@@ -265,7 +267,7 @@ export const PartnerDetailsPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-bold text-[#091E42]">
-                  {partner.assignedStaffName || 'Sarah Jenkins'}
+                  {partner.assignedStaffName || 'Not assigned'}
                 </p>
                 <p className="text-xs text-[#6B778C]">Senior Conversion & Modernization Specialist</p>
               </div>

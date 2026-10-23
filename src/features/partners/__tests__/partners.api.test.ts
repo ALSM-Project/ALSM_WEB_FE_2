@@ -96,15 +96,13 @@ describe('partnersApi (UC-44)', () => {
 
   it('does not invent a local partner when the server is unreachable', async () => {
     vi.mocked(apiClient.post).mockRejectedValue(new Error('Network Error'));
-    const before = await partnersApi.getPartners();
 
     const error = await partnersApi.createPartner(form).catch((e: unknown) => e);
 
     expect(error).toBeInstanceOf(PartnerApiError);
     expect((error as PartnerApiError).status).toBeUndefined();
     expect((error as PartnerApiError).message).toMatch(/was not created/i);
-    const after = await partnersApi.getPartners();
-    expect(after.map((p) => p.id)).toEqual(before.map((p) => p.id));
+    await expect(partnersApi.getPartners()).rejects.toBeInstanceOf(PartnerApiError);
   });
 
   it('lists backend partners first in the directory', async () => {
@@ -122,25 +120,34 @@ describe('partnersApi (UC-44)', () => {
 
 describe('partnersApi.createProject', () => {
   const input = {
-    partnerId: 'partner-fnx-001',
-    partnerName: 'Fintech Nexus International',
+    partnerId: 'partner-1',
+    partnerName: 'Pacific Banking Systems Ltd.',
     name: ' Ngan hang ',
     description: ' Core ',
     conversionType: 'BMS_DSPF_TO_FRONTEND' as const,
     targetFramework: 'React 19 + Tailwind CSS',
   };
+  const serverProject = {
+    id: '6650aa00aa00aa00aa00aa01',
+    name: 'Ngan hang',
+    description: 'Core',
+    organizationId: 'org-1',
+    conversionType: 'BMS_DSPF_TO_FRONTEND',
+    status: 'DRAFT',
+    createdAt: '2026-10-23T00:00:00Z',
+    updatedAt: '2026-10-23T00:00:00Z',
+  };
 
   beforeEach(() => {
     localStorage.clear();
-    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('creates the project on the server and keeps the server id, with no sample files', async () => {
-    vi.mocked(apiClient.post).mockResolvedValue({ id: '6650aa00aa00aa00aa00aa01' });
+  it('creates the project on the server and keeps the server id, with no sample files or totals', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue(serverProject);
 
     const project = await partnersApi.createProject(input);
 
@@ -149,8 +156,20 @@ describe('partnersApi.createProject', () => {
       description: 'Core',
       conversionType: 'BMS_DSPF_TO_FRONTEND',
     });
-    expect(project).toMatchObject({ id: '6650aa00aa00aa00aa00aa01', partnerId: 'partner-fnx-001', screensTotal: 0 });
-    expect((await partnersApi.getProjects('partner-fnx-001')).some((p) => p.id === project.id)).toBe(true);
+    expect(project).toMatchObject({
+      id: serverProject.id,
+      partnerId: 'partner-1',
+      partnerName: 'Pacific Banking Systems Ltd.',
+      screensTotal: 0,
+    });
+    // Listing re-reads the server and re-attaches the partner link kept in this browser.
+    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
+      if (url === '/projects') return [serverProject];
+      return [];
+    });
+    const listed = await partnersApi.getProjects('partner-1');
+    expect(listed.map((p) => p.id)).toEqual([serverProject.id]);
+    expect(await partnersApi.getProjects('someone-else')).toEqual([]);
   });
 
   it('does not create a browser-only project when the server rejects or is unreachable', async () => {
@@ -161,6 +180,41 @@ describe('partnersApi.createProject', () => {
     const error = await partnersApi.createProject(input).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(PartnerApiError);
     expect((error as Error).message).toMatch(/project was not created/i);
-    expect((await partnersApi.getProjects()).some((p) => p.name === 'Ngan hang')).toBe(false);
+    expect(localStorage.getItem('alsm_partner_project_links_v1')).toBeNull();
+  });
+});
+
+describe('partnersApi without sample data', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('lists nothing when the server has nothing, instead of seeded partners or projects', async () => {
+    localStorage.clear();
+    vi.mocked(apiClient.get).mockResolvedValue([]);
+
+    expect(await partnersApi.getPartners()).toEqual([]);
+    expect(await partnersApi.getProjects()).toEqual([]);
+    expect(await partnersApi.getExportBundles()).toEqual([]);
+    expect(await partnersApi.getProjectItems('proj-fnx-core')).toEqual([]);
+    expect(await partnersApi.getValidationFindings('item-1')).toEqual([]);
+    expect(await partnersApi.getFieldMappings('item-1')).toEqual([]);
+  });
+
+  it('counts only real projects and exports per partner', async () => {
+    localStorage.clear();
+    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
+      if (url === '/partners') return [{ ...record, completedExportCount: 2, latestActivity: 'Exported x.zip' }];
+      if (url === '/projects') return [];
+      throw new Error('offline');
+    });
+
+    const [partner] = await partnersApi.getPartners();
+
+    expect(partner).toMatchObject({
+      projectCount: 0,
+      completedExportCount: 2,
+      latestActivity: 'Exported x.zip',
+    });
   });
 });
