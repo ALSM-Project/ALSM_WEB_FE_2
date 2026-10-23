@@ -119,3 +119,48 @@ describe('partnersApi (UC-44)', () => {
     expect(partners.filter((p) => p.id === record.id)).toHaveLength(1);
   });
 });
+
+describe('partnersApi.createProject', () => {
+  const input = {
+    partnerId: 'partner-fnx-001',
+    partnerName: 'Fintech Nexus International',
+    name: ' Ngan hang ',
+    description: ' Core ',
+    conversionType: 'BMS_DSPF_TO_FRONTEND' as const,
+    targetFramework: 'React 19 + Tailwind CSS',
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('creates the project on the server and keeps the server id, with no sample files', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({ id: '6650aa00aa00aa00aa00aa01' });
+
+    const project = await partnersApi.createProject(input);
+
+    expect(apiClient.post).toHaveBeenCalledWith('/projects', {
+      name: 'Ngan hang',
+      description: 'Core',
+      conversionType: 'BMS_DSPF_TO_FRONTEND',
+    });
+    expect(project).toMatchObject({ id: '6650aa00aa00aa00aa00aa01', partnerId: 'partner-fnx-001', screensTotal: 0 });
+    expect((await partnersApi.getProjects('partner-fnx-001')).some((p) => p.id === project.id)).toBe(true);
+  });
+
+  it('does not create a browser-only project when the server rejects or is unreachable', async () => {
+    vi.mocked(apiClient.post).mockRejectedValueOnce(httpError(403, {}));
+    await expect(partnersApi.createProject(input)).rejects.toThrow(/permission to create projects/i);
+
+    vi.mocked(apiClient.post).mockRejectedValueOnce(new Error('Network Error'));
+    const error = await partnersApi.createProject(input).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(PartnerApiError);
+    expect((error as Error).message).toMatch(/project was not created/i);
+    expect((await partnersApi.getProjects()).some((p) => p.name === 'Ngan hang')).toBe(false);
+  });
+});
