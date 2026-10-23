@@ -1,9 +1,36 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TeamLeadProjectsPage } from '../pages/TeamLeadProjectsPage';
 import { partnersApi } from '@/features/partners/api/partners.api';
+
+const mockProjects = [
+  {
+    id: '6650aa00aa00aa00aa00aa01',
+    name: 'General Ledger COBOL Migration',
+    organizationId: 'org-fnx-prod',
+    partnerId: 'partner-01',
+    partnerName: 'Fintech Nexus International',
+    conversionType: 'COBOL_TO_JAVA',
+    targetFramework: 'Spring Boot 3.3',
+    status: 'IN_PROGRESS',
+    screensTotal: 0,
+    screensCompleted: 0,
+    programsTotal: 12,
+    programsCompleted: 8,
+    assignedTeamLeadId: 'lead-01',
+    assignedTeamLeadName: 'Sarah Jenkins',
+    assignedStaffId: undefined,
+    assignedStaffName: undefined,
+    createdAt: '2026-10-10T00:00:00.000Z',
+  },
+];
+
+const mockStaff = [
+  { id: 'staff-01', fullName: 'Alex Mercer', email: 'alex@alsm.io', role: 'CONVERSION_STAFF', activeWorkload: 2 },
+  { id: 'staff-02', fullName: 'David Chen', email: 'david@alsm.io', role: 'CONVERSION_STAFF', activeWorkload: 1 },
+];
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -27,6 +54,16 @@ const createWrapper = () => {
 };
 
 describe('TeamLeadProjectsPage - Team Projects & Staff Allocation', () => {
+  beforeEach(() => {
+    vi.spyOn(partnersApi, 'getProjects').mockResolvedValue(mockProjects as any);
+    vi.spyOn(partnersApi, 'getAssignableStaff').mockResolvedValue(mockStaff as any);
+    vi.spyOn(partnersApi, 'assignProject').mockResolvedValue({
+      ...mockProjects[0],
+      assignedStaffId: 'staff-02',
+      assignedStaffName: 'David Chen',
+    } as any);
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();

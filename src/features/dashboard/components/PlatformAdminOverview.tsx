@@ -77,27 +77,27 @@ export const PlatformAdminOverview: React.FC = () => {
   const failedJobsCount = projects.filter((p) => p.status === 'FAILED').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 animate-fade-in">
       {/* ── KPI Row: Toàn hệ thống ───────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Organizations */}
         <div
           role="button"
           tabIndex={0}
           onClick={() => navigate('/admin/organizations')}
-          className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs hover:border-[#0652CC] hover:shadow-md cursor-pointer transition-all"
+          className="alsm-metric-card cursor-pointer group"
+          title="Quản lý các tổ chức và đối tác doanh nghiệp"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">Organizations</span>
-            <div className="p-2.5 rounded-xl bg-blue-50 text-[#0652CC]">
-              <Building2 className="w-5 h-5" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Organizations</span>
+            <div className="w-8 h-8 rounded-md bg-blue-50 text-[#0652CC] flex items-center justify-center">
+              <Building2 className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#091E42] mt-3">{loadingOrgs ? '...' : totalOrgs}</p>
-          <div className="flex items-center gap-2 mt-2 text-xs text-[#6B778C]">
-            <span className="font-semibold text-emerald-600">{enterpriseOrgs} Active / Enterprise</span>
-            <span>•</span>
-            <span className="text-[#0652CC] hover:underline flex items-center">Xem chi tiết &rarr;</span>
+          <p className="text-2xl font-bold text-[#0F172A] mt-2">{loadingOrgs ? '...' : totalOrgs}</p>
+          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
+            <span className="font-medium text-emerald-600">{enterpriseOrgs} Active / Enterprise</span>
+            <span className="text-[#0652CC] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
 
@@ -106,19 +106,19 @@ export const PlatformAdminOverview: React.FC = () => {
           role="button"
           tabIndex={0}
           onClick={() => navigate('/admin/engagement-types')}
-          className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs hover:border-[#0652CC] hover:shadow-md cursor-pointer transition-all"
+          className="alsm-metric-card cursor-pointer group"
+          title="Cấu hình các loại hợp đồng và SLA"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">Engagements</span>
-            <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
-              <Layers className="w-5 h-5" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Engagements</span>
+            <div className="w-8 h-8 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center">
+              <Layers className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#091E42] mt-3">{engagementTypes.length || 4}</p>
-          <div className="flex items-center gap-2 mt-2 text-xs text-[#6B778C]">
-            <span className="font-semibold text-purple-700">Tiers & SLA Rules</span>
-            <span>•</span>
-            <span className="text-[#0652CC] hover:underline flex items-center">Cấu hình &rarr;</span>
+          <p className="text-2xl font-bold text-[#0F172A] mt-2">{engagementTypes.length || 4}</p>
+          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
+            <span className="font-medium text-purple-700">Tiers &amp; SLA Rules</span>
+            <span className="text-purple-700 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
 
@@ -127,19 +127,19 @@ export const PlatformAdminOverview: React.FC = () => {
           role="button"
           tabIndex={0}
           onClick={() => navigate('/admin/projects')}
-          className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs hover:border-[#0652CC] hover:shadow-md cursor-pointer transition-all"
+          className="alsm-metric-card cursor-pointer group"
+          title="Xem toàn bộ dự án trên nền tảng"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">Toàn bộ Projects</span>
-            <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
-              <FolderKanban className="w-5 h-5" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Toàn bộ Projects</span>
+            <div className="w-8 h-8 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <FolderKanban className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#091E42] mt-3">{loadingProjects ? '...' : totalProjects}</p>
-          <div className="flex items-center gap-2 mt-2 text-xs text-[#6B778C]">
-            <span className="font-semibold text-blue-600">{inProgressProjects} Đang chạy</span>
-            <span>•</span>
-            <span className="font-semibold text-emerald-600">{completedProjects} Hoàn thành</span>
+          <p className="text-2xl font-bold text-[#0F172A] mt-2">{loadingProjects ? '...' : totalProjects}</p>
+          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
+            <span className="font-medium text-[#0652CC]">{inProgressProjects} Đang chạy</span>
+            <span className="font-medium text-emerald-600">{completedProjects} Xong</span>
           </div>
         </div>
 
@@ -148,34 +148,34 @@ export const PlatformAdminOverview: React.FC = () => {
           role="button"
           tabIndex={0}
           onClick={() => navigate('/admin/users')}
-          className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs hover:border-[#0652CC] hover:shadow-md cursor-pointer transition-all"
+          className="alsm-metric-card cursor-pointer group"
+          title="Quản lý tài khoản và phân quyền hệ thống"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">System Users</span>
-            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
-              <Users className="w-5 h-5" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">System Users</span>
+            <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Users className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-3xl font-extrabold text-[#091E42] mt-3">24</p>
-          <div className="flex items-center gap-2 mt-2 text-xs text-[#6B778C]">
-            <span className="font-semibold text-amber-700">RBAC Multi-tenant</span>
-            <span>•</span>
-            <span className="text-[#0652CC] hover:underline flex items-center">Quản lý &rarr;</span>
+          <p className="text-2xl font-bold text-[#0F172A] mt-2">24</p>
+          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
+            <span className="font-medium text-amber-700">RBAC Multi-tenant</span>
+            <span className="text-amber-700 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
       </div>
 
       {/* ── Operational Status & Conversion Health ────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Tình trạng Conversion & Các Job Lỗi */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-[#E5EAF0] p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-4">
+        <div className="lg:col-span-2 bg-white rounded-lg border border-[#E2E8F0] p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3.5">
             <div>
-              <h3 className="text-base font-bold text-[#091E42] flex items-center gap-2">
-                <Cpu className="w-5 h-5 text-[#0652CC]" />
-                Tình trạng Conversion & Pipeline Lỗi
+              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-[#0652CC]" />
+                Tình trạng Conversion &amp; Pipeline Hệ Thống
               </h3>
-              <p className="text-xs text-[#6B778C] mt-0.5">
+              <p className="text-xs text-[#64748B] mt-0.5">
                 Giám sát quá trình chuyển đổi AST, AI Validation và tiến độ toàn hệ thống
               </p>
             </div>
@@ -190,49 +190,49 @@ export const PlatformAdminOverview: React.FC = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-            <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-0.5">
+            <div className="p-3.5 rounded-md bg-[#F8FAFC] border border-[#E2E8F0]">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-blue-900 uppercase">Tổng Screens/Items</span>
-                <Layers className="w-4 h-4 text-blue-600" />
+                <span className="text-[11px] font-semibold text-[#64748B] uppercase">Tổng Screens/Items</span>
+                <Layers className="w-4 h-4 text-[#0652CC]" />
               </div>
-              <p className="text-2xl font-black text-blue-950 mt-2">{totalItems}</p>
-              <p className="text-xs text-blue-700 mt-1">Trong {totalProjects} dự án hiện hành</p>
+              <p className="text-xl font-bold text-[#0F172A] mt-1.5">{totalItems}</p>
+              <p className="text-[11px] text-[#64748B] mt-1">Trong {totalProjects} dự án hiện hành</p>
             </div>
 
-            <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100">
+            <div className="p-3.5 rounded-md bg-emerald-50/50 border border-emerald-200/70">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-900 uppercase">Đã Convert Thành Công</span>
+                <span className="text-[11px] font-semibold text-emerald-800 uppercase">Đã Convert Thành Công</span>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               </div>
-              <p className="text-2xl font-black text-emerald-950 mt-2">{convertedItems}</p>
-              <p className="text-xs text-emerald-700 mt-1">
+              <p className="text-xl font-bold text-emerald-900 mt-1.5">{convertedItems}</p>
+              <p className="text-[11px] text-emerald-700 mt-1">
                 Tỷ lệ: {totalItems > 0 ? Math.round((convertedItems / totalItems) * 100) : 0}%
               </p>
             </div>
 
-            <div className="p-4 rounded-xl bg-rose-50/60 border border-rose-100">
+            <div className="p-3.5 rounded-md bg-rose-50/50 border border-rose-200/70">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-900 uppercase">Job Lỗi / Cần Hỗ Trợ</span>
+                <span className="text-[11px] font-semibold text-rose-800 uppercase">Job Lỗi / Cần Hỗ Trợ</span>
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
               </div>
-              <p className="text-2xl font-black text-rose-950 mt-2">{failedJobsCount}</p>
-              <p className="text-xs text-rose-700 mt-1">Cần can thiệp cấu hình hoặc mapping</p>
+              <p className="text-xl font-bold text-rose-900 mt-1.5">{failedJobsCount}</p>
+              <p className="text-[11px] text-rose-700 mt-1">Cần can thiệp cấu hình hoặc mapping</p>
             </div>
           </div>
 
           {/* Phân bổ dự án & Vận hành */}
-          <div className="mt-4 pt-4 border-t border-[#E5EAF0]">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-3">
+          <div className="pt-3.5 border-t border-[#E2E8F0]">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] mb-2.5">
               Thống Kê Phân Bổ Công Việc (Resource Allocation)
             </h4>
-            <div className="flex flex-col sm:flex-row items-center gap-4 bg-[#F7F9FC] p-4 rounded-xl border border-[#E5EAF0]">
-              <div className="flex-1">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#091E42] mb-1.5">
+            <div className="flex flex-col sm:flex-row items-center gap-3.5 bg-[#F8FAFC] p-3.5 rounded-md border border-[#E2E8F0]">
+              <div className="flex-1 w-full">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#0F172A] mb-1.5">
                   <span>Dự án đã gán Team Lead</span>
                   <span>{totalProjects - unallocatedProjects} / {totalProjects} ({totalProjects > 0 ? Math.round(((totalProjects - unallocatedProjects) / totalProjects) * 100) : 0}%)</span>
                 </div>
-                <div className="w-full h-2.5 bg-[#E5EAF0] rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-[#0652CC] rounded-full transition-all duration-500"
                     style={{ width: `${totalProjects > 0 ? ((totalProjects - unallocatedProjects) / totalProjects) * 100 : 0}%` }}
@@ -241,9 +241,9 @@ export const PlatformAdminOverview: React.FC = () => {
               </div>
               {unallocatedProjects > 0 && (
                 <div className="shrink-0">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
-                    {unallocatedProjects} Dự án chưa gán Team Lead
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    {unallocatedProjects} Dự án chờ gán Team Lead
                   </span>
                 </div>
               )}
@@ -252,14 +252,14 @@ export const PlatformAdminOverview: React.FC = () => {
         </div>
 
         {/* Cảnh Báo Hệ Thống & Hoạt Động Audit */}
-        <div className="bg-white rounded-2xl border border-[#E5EAF0] p-6 shadow-xs flex flex-col justify-between space-y-4">
+        <div className="bg-white rounded-lg border border-[#E2E8F0] p-5 shadow-xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3 mb-4">
-              <h3 className="text-base font-bold text-[#091E42] flex items-center gap-2">
-                <Activity className="w-5 h-5 text-[#0652CC]" />
-                Audit & Cảnh Báo Hệ Thống
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-3.5">
+              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#0652CC]" />
+                Audit &amp; Cảnh Báo Hệ Thống
               </h3>
-              <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 Live Status
               </span>
             </div>
@@ -270,44 +270,44 @@ export const PlatformAdminOverview: React.FC = () => {
                 role="button"
                 tabIndex={0}
                 onClick={() => navigate('/admin/billing/quotes')}
-                className="mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 hover:bg-amber-100/70 transition-all cursor-pointer"
+                className="mb-3.5 p-3 rounded-md bg-amber-50 border border-amber-200 hover:bg-amber-100/60 transition-colors cursor-pointer"
               >
                 <div className="flex items-center justify-between text-xs font-bold text-amber-900">
                   <span className="flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-amber-600 animate-pulse" />
+                    <Zap className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
                     Yêu Cầu Enterprise Chờ Duyệt
                   </span>
-                  <span className="bg-amber-200 px-2 py-0.5 rounded-full text-[10px]">
-                    {pendingQuotes.length} yêu cầu
+                  <span className="bg-amber-200/80 px-1.5 py-0.2 rounded text-[10px] font-bold">
+                    {pendingQuotes.length}
                   </span>
                 </div>
-                <p className="text-xs text-amber-800 mt-1">
-                  Có khách hàng đang chờ kích hoạt gói Enterprise từ Web 1. Bấm để duyệt ngay &rarr;
+                <p className="text-[11px] text-amber-800 mt-1">
+                  Có khách hàng đang chờ duyệt gói Enterprise. Bấm để duyệt ngay &rarr;
                 </p>
               </div>
             )}
 
             {/* Recent Audit Logs Stream */}
-            <div className="space-y-2.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B778C] block">
+            <div className="space-y-2">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B] block">
                 Hoạt động người dùng gần đây
               </span>
               {loadingLogs ? (
-                <div className="text-xs text-[#6B778C] py-4 text-center">Đang tải nhật ký...</div>
+                <div className="text-xs text-[#64748B] py-4 text-center">Đang tải nhật ký...</div>
               ) : auditLogs.length === 0 ? (
-                <div className="text-xs text-[#6B778C] py-4 text-center">Không có hoạt động audit gần đây</div>
+                <div className="text-xs text-[#64748B] py-4 text-center">Không có hoạt động audit gần đây</div>
               ) : (
                 auditLogs.map((log) => (
-                  <div key={log.id} className="p-2.5 rounded-lg bg-[#F7F9FC] border border-[#E5EAF0] text-xs">
-                    <div className="flex items-center justify-between font-semibold text-[#091E42]">
+                  <div key={log.id} className="p-2 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-xs">
+                    <div className="flex items-center justify-between font-semibold text-[#0F172A]">
                       <span className="truncate">{log.action}</span>
-                      <span className="text-[10px] text-[#6B778C] shrink-0 font-normal">
+                      <span className="text-[10px] text-[#64748B] shrink-0 font-normal">
                         {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between mt-1 text-[11px] text-[#6B778C]">
-                      <span>Actor: <b className="text-[#091E42]">{log.actor}</b></span>
-                      <span className="font-mono text-[10px]">{log.resourceType}</span>
+                    <div className="flex items-center justify-between mt-1 text-[11px] text-[#64748B]">
+                      <span>Actor: <b className="text-[#0F172A]">{log.actor}</b></span>
+                      <span className="font-mono text-[10px] text-[#94A3B8]">{log.resourceType}</span>
                     </div>
                   </div>
                 ))
@@ -315,7 +315,7 @@ export const PlatformAdminOverview: React.FC = () => {
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#E5EAF0]">
+          <div className="pt-2 border-t border-[#E2E8F0]">
             <Button
               variant="outline"
               size="sm"

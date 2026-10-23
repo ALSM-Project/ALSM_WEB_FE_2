@@ -58,17 +58,17 @@ export const Modal: React.FC<ModalProps> = ({
       }}
     >
       <div
-        className={`w-full ${maxWidths[effectiveMaxWidth] || 'max-w-2xl'} bg-white border border-[#D9E2EC] rounded-2xl sm:rounded-3xl shadow-[0_25px_60px_-15px_rgba(9,30,66,0.35)] overflow-hidden flex flex-col max-h-[90vh] ${className}`}
+        className={`w-full ${maxWidths[effectiveMaxWidth] || 'max-w-2xl'} bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] ${className}`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 sm:py-5 border-b border-[#E5EAF0] shrink-0 bg-white">
-            <h3 className="text-base sm:text-lg font-bold text-[#091E42] tracking-tight">{title}</h3>
+          <div className="flex items-center justify-between px-6 py-3.5 border-b border-slate-200 shrink-0 bg-slate-50/60">
+            <h3 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight">{title}</h3>
             <button
               onClick={onClose}
-              className="text-[#42526E] hover:text-[#091E42] p-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />

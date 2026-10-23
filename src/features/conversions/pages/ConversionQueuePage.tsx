@@ -200,14 +200,14 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
       />
 
       {/* Top Tab Bar: Queue Monitor vs Troubleshooting */}
-      <div className="flex items-center gap-1 border-b border-[#E5EAF0] text-xs">
+      <div className="flex items-center gap-1 border-b border-slate-200 text-xs sm:text-sm">
         <button
           type="button"
           onClick={() => setActivePageTab('queue')}
-          className={`px-4 py-2.5 font-semibold transition-all border-b-2 cursor-pointer ${
+          className={`px-4 py-2.5 font-medium transition-all border-b-2 cursor-pointer ${
             activePageTab === 'queue'
-              ? 'border-[#0652CC] text-[#0652CC] bg-blue-50/20'
-              : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+              ? 'border-[#0652CC] text-[#0652CC] font-semibold'
+              : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
           }`}
         >
           Queue Monitoring
@@ -216,16 +216,16 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
           <button
             type="button"
             onClick={() => setActivePageTab('troubleshoot')}
-            className={`px-4 py-2.5 font-semibold transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2.5 font-medium transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
               activePageTab === 'troubleshoot'
-                ? 'border-[#0652CC] text-[#0652CC] bg-blue-50/20'
-                : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+                ? 'border-[#0652CC] text-[#0652CC] font-semibold'
+                : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
             }`}
           >
             <Wrench className="w-3.5 h-3.5" />
-            Troubleshooting & Error Investigation
+            <span>Troubleshooting & Error Investigation</span>
             {deadLetterCount > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800">
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
                 {deadLetterCount}
               </span>
             )}
@@ -236,12 +236,12 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
       {/* TROUBLESHOOTING TAB: Failed conversions list across organizations */}
       {activePageTab === 'troubleshoot' && canTroubleshoot && (
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-[#E5EAF0] p-4 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-sm font-bold text-[#091E42] tracking-tight">
+              <h2 className="text-sm font-semibold text-slate-900 tracking-tight">
                 Failed Conversions & Dead-Letter Items
               </h2>
-              <p className="text-xs text-[#6B778C] mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 Inspect broken screen schemas, COBOL AST parser failures, and dead-letter queue items requiring support intervention.
               </p>
             </div>
@@ -251,64 +251,64 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                 placeholder="Filter failed items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#D9E2EC] rounded-xl outline-none focus:ring-2 focus:ring-[#0652CC]"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC] shadow-xs"
               />
-              <Search className="w-3.5 h-3.5 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
             </div>
           </div>
 
           {/* Failed Items Table */}
-          <div className="rounded-2xl border border-[#E5EAF0] bg-white shadow-xs overflow-hidden">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+          <div className="alsm-table-container rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden">
+            <table className="alsm-table w-full text-xs text-left border-collapse">
+              <thead className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-4">Organisation</th>
-                  <th className="py-3 px-4">Project</th>
-                  <th className="py-3 px-4">Screen / Program</th>
-                  <th className="py-3 px-4">Conversion Type</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Failure Reason</th>
-                  <th className="py-3 px-4">Last Attempt</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th className="py-2.5 px-3.5">Organisation</th>
+                  <th className="py-2.5 px-3.5">Project</th>
+                  <th className="py-2.5 px-3.5">Screen / Program</th>
+                  <th className="py-2.5 px-3.5">Conversion Type</th>
+                  <th className="py-2.5 px-3.5">Status</th>
+                  <th className="py-2.5 px-3.5">Failure Reason</th>
+                  <th className="py-2.5 px-3.5">Last Attempt</th>
+                  <th className="py-2.5 px-3.5 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF0]">
+              <tbody className="divide-y divide-slate-100">
                 {mockJobs.filter((j) => j.status === 'FAILED' || j.status === 'DEAD').map((job) => (
-                  <tr key={job.id} className="hover:bg-rose-50/20 transition-colors">
-                    <td className="py-3 px-4 font-semibold text-[#091E42]">
+                  <tr key={job.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-2.5 px-3.5 font-medium text-slate-900">
                       {job.organizationName || 'Acme Corporation'}
                     </td>
-                    <td className="py-3 px-4 text-[#6B778C]">
+                    <td className="py-2.5 px-3.5 text-slate-600">
                       {job.projectName || job.projectId}
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-[#091E42]">
+                    <td className="py-2.5 px-3.5 font-mono font-medium text-slate-900">
                       {job.screenId || job.programName || job.id}
                     </td>
-                    <td className="py-3 px-4 text-[#091E42]">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 font-mono">
+                    <td className="py-2.5 px-3.5 text-slate-700">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono">
                         {job.conversionType}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        job.status === 'DEAD' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
+                    <td className="py-2.5 px-3.5">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                        job.status === 'DEAD' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
                       }`}>
                         {job.status === 'DEAD' ? 'DEAD (DLQ)' : 'FAILED'}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-rose-700 max-w-xs truncate" title={job.errorMessage}>
+                    <td className="py-2.5 px-3.5 font-mono text-[11px] text-rose-700 max-w-xs truncate" title={job.errorMessage}>
                       {job.errorMessage || 'AST parsing syntax error'}
                     </td>
-                    <td className="py-3 px-4 text-[#6B778C]">
+                    <td className="py-2.5 px-3.5 text-slate-500">
                       Attempt {job.attemptCount}/{job.maxAttempts}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-2.5 px-3.5 text-right">
                       {canTroubleshoot && (
                         <Button
                           size="sm"
                           variant="primary"
                           onClick={() => handleOpenTroubleshooting(job)}
-                          className="text-xs bg-[#0652CC] hover:bg-[#0543A8] text-white py-1 px-3"
+                          className="text-xs py-1 px-2.5 rounded-md"
                         >
                           <Wrench className="w-3 h-3 mr-1" />
                           Troubleshoot
@@ -325,17 +325,17 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
 
       {/* QUEUE MONITOR TAB */}
       {activePageTab === 'queue' && (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* Main Control Card: Filters & Controls */}
-          <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs space-y-4">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-xs space-y-3.5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
               <div className="flex flex-wrap items-end gap-3">
-                <label className="text-xs font-semibold text-[#091E42]">
+                <label className="text-xs font-medium text-slate-700">
                   Project
                   <select 
                     aria-label="Project" 
                     value={projectId} 
-                    className="block mt-1 border border-[#E5EAF0] rounded-xl p-2 min-w-56 text-xs text-[#091E42] bg-white focus:outline-none focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 min-w-56 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
                     onChange={(event) => {
                       setSearchParams(event.target.value ? { projectId: event.target.value } : {});
                       setSelectedJobId('');
@@ -348,12 +348,12 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                   </select>
                 </label>
 
-                <label className="text-xs font-semibold text-[#091E42]">
+                <label className="text-xs font-medium text-slate-700">
                   Status
                   <select 
                     aria-label="Status" 
                     value={status} 
-                    className="block mt-1 border border-[#E5EAF0] rounded-xl p-2 text-xs text-[#091E42] bg-white focus:outline-none focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
                     onChange={(event) => setStatus(event.target.value as JobStatus | '')}
                   >
                     {!reviewOnly && <option value="">All statuses</option>}
@@ -363,12 +363,12 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                   </select>
                 </label>
 
-                <label className="text-xs font-semibold text-[#091E42]">
+                <label className="text-xs font-medium text-slate-700">
                   Job Type
                   <select 
                     aria-label="Job Type" 
                     value={typeFilter} 
-                    className="block mt-1 border border-[#E5EAF0] rounded-xl p-2 text-xs text-[#091E42] bg-white focus:outline-none focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
                     onChange={(event) => setTypeFilter(event.target.value)}
                   >
                     <option value="ALL">All Types</option>
@@ -388,45 +388,45 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                     if (projectId && projects.data?.some((project) => project.id === projectId)) void jobs.refetch();
                     if (selectedJobId) void details.refetch();
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5 mr-1" />
-                  Refresh
+                  <span>Refresh</span>
                 </button>
               </div>
             </div>
 
             {/* Search Input Filter Toolbar */}
-            <div className="pt-2">
+            <div className="pt-1">
               <div className="relative max-w-md">
                 <input
                   type="text"
                   placeholder="Search by job ID, screen name, or program name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC] outline-none shadow-xs"
                 />
-                <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2 pointer-events-none" />
               </div>
             </div>
 
-            {projects.isPending && <p role="status" className="text-xs text-[#6B778C]">Loading projects...</p>}
+            {projects.isPending && <p role="status" className="text-xs text-slate-500">Loading projects...</p>}
             {projects.isError && <p role="alert" className="text-xs text-rose-600">Unable to load projects: {conversionError(projects.error)}</p>}
-            {projects.isSuccess && projects.data.length === 0 && <p className="text-xs text-[#6B778C]">No accessible projects found.</p>}
+            {projects.isSuccess && projects.data.length === 0 && <p className="text-xs text-slate-500">No accessible projects found.</p>}
             
             {/* Project unavailable in current org alert */}
             {projects.isSuccess && projectId && !projects.data.some((project) => project.id === projectId) && (
               <p role="alert" className="text-xs text-rose-600">This project is unavailable in your current organization.</p>
             )}
 
-            {projectId && jobs.isFetching && !jobs.data && <p role="status" className="text-xs text-[#6B778C]">Loading conversion jobs...</p>}
+            {projectId && jobs.isFetching && !jobs.data && <p role="status" className="text-xs text-slate-500">Loading conversion jobs...</p>}
             {jobs.isError && <p role="alert" className="text-xs text-rose-600">Unable to load jobs: {conversionError(jobs.error)}</p>}
 
             {/* Summary Metrics Section */}
             {(jobs.isSuccess || !projectId) && (
               <>
-                <section aria-label="Project queue status summary" className="rounded-xl bg-[#F7F9FC] border border-[#E5EAF0] p-4 space-y-3">
-                  <h2 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
+                <section aria-label="Project queue status summary" className="rounded-lg bg-slate-50/80 border border-slate-200 p-3.5 space-y-2.5">
+                  <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                     Project: {projects.data?.find((project) => project.id === projectId)?.name || 'All Accessible Projects'}
                   </h2>
                   <p className="text-[11px] text-[#6B778C]">
@@ -436,7 +436,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                   {/* 5-Card Operational Metrics Grid */}
                   <dl className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
                     {/* Waiting Jobs */}
-                    <div className="bg-white p-3 rounded-xl border border-[#E5EAF0]">
+                    <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
                       <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Waiting (QUEUED)</dt>
                       <dd aria-label="Waiting jobs" className="text-2xl font-bold text-[#091E42] mt-0.5">
                         {jobCount(['QUEUED'])}
@@ -445,7 +445,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                     </div>
 
                     {/* Processing Jobs */}
-                    <div className="bg-white p-3 rounded-xl border border-[#E5EAF0]">
+                    <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
                       <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Processing (recorded)</dt>
                       <dd aria-label="Processing jobs" className="text-2xl font-bold text-amber-600 mt-0.5">
                         {jobCount(['PROCESSING'])}
@@ -454,7 +454,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                     </div>
 
                     {/* Failed or Dead Jobs */}
-                    <div className="bg-white p-3 rounded-xl border border-[#E5EAF0]">
+                    <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
                       <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Failed / dead (FAILED + DEAD)</dt>
                       <dd aria-label="Failed or dead jobs" className="text-2xl font-bold text-rose-600 mt-0.5">
                         {jobCount(['FAILED', 'DEAD'])}
@@ -463,7 +463,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                     </div>
 
                     {/* Dead Letter Queue */}
-                    <div className="bg-white p-3 rounded-xl border border-rose-200 bg-rose-50/20">
+                    <div className="bg-white p-3 rounded-md border border-rose-200 bg-rose-50/20 shadow-xs">
                       <dt className="text-[10px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3 text-rose-600" />
                         Dead-Letter (DLQ)
@@ -475,7 +475,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                     </div>
 
                     {/* Completed Jobs */}
-                    <div className="bg-white p-3 rounded-xl border border-[#E5EAF0]">
+                    <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
                       <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Completed</dt>
                       <dd className="text-2xl font-bold text-emerald-600 mt-0.5">
                         {jobCount(['COMPLETED'])}
@@ -499,11 +499,11 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                 {visibleJobs.length === 0 ? (
                   <p className="py-4 text-xs text-[#6B778C]">No conversion jobs match this selection.</p>
                 ) : (
-                  <div className="rounded-2xl border border-[#E5EAF0] bg-white shadow-xs overflow-hidden mt-4">
+                  <div className="alsm-table-container rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden mt-3">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left border-collapse">
+                      <table className="alsm-table w-full text-xs text-left border-collapse">
                         <thead>
-                          <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+                          <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                             <th className="py-3 px-4">Job ID / Target</th>
                             <th className="py-3 px-4">Status</th>
                             <th className="py-3 px-4">Type / Pipeline</th>
@@ -517,7 +517,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
                           {visibleJobs.map((job) => {
                             const isDead = job.status === 'DEAD' || job.attemptCount >= 3;
                             return (
-                              <tr key={job.id} className="hover:bg-[#F9FBFF] transition-colors align-top">
+                              <tr key={job.id} className="hover:bg-slate-50/80 transition-colors align-top">
                                 <td className="py-3.5 px-4 font-mono">
                                   <span className="font-semibold text-[#091E42]">{job.id}</span>
                                   <div className="text-[10px] text-[#6B778C]">
@@ -722,7 +722,7 @@ export default function ConversionQueuePage({ reviewOnly = false }: { reviewOnly
           >
             {retryTargetJob && (
               <div className="space-y-4">
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
+                <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
                   <div className="font-bold flex items-center gap-1.5 text-sm">
                     <AlertTriangle className="w-4 h-4 text-amber-700" />
                     Dead-Letter Re-queue Confirmation

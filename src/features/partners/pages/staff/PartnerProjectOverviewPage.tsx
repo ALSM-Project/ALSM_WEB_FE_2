@@ -65,7 +65,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
 
   if (!project) {
     return (
-      <div className="p-8 text-center bg-white rounded-xl border border-[#E5EAF0]">
+      <div className="p-8 text-center bg-white rounded-xl border border-slate-200">
         <FolderKanban className="w-8 h-8 text-gray-300 mx-auto mb-2" />
         <h3 className="text-sm font-bold text-[#091E42]">Project Not Found</h3>
         <p className="text-xs text-[#6B778C] mt-1">The specified project could not be located.</p>
@@ -87,7 +87,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
   return (
     <div className="w-full space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-xs text-[#6B778C]">
             <Link to="/partners" className="hover:text-[#0652CC] transition-colors">
@@ -102,7 +102,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl font-bold tracking-tight text-[#091E42]">{project.name}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">{project.name}</h1>
             <PartnerStatusBadge status={project.status} type="project" />
             <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-gray-100 text-[#4A5568]">
               {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
@@ -128,7 +128,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
             variant="primary"
             size="sm"
             onClick={() => navigate(`/partners/projects/${project.id}/workspace`)}
-            className="text-xs bg-[#0652CC] hover:bg-[#0655FF] flex items-center gap-1.5"
+            className="text-xs bg-[#0652CC] hover:bg-[#0544AB] flex items-center gap-1.5 shadow-xs rounded-md"
           >
             <Play className="w-3.5 h-3.5" />
             <span>Open Workspace</span>
@@ -137,8 +137,8 @@ export const PartnerProjectOverviewPage: React.FC = () => {
       </div>
 
       {/* Mandatory Workflow Journey Stage Tracker */}
-      <div className="bg-white border border-[#D9E2EC] rounded-xl p-4 shadow-2xs">
-        <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#E5EAF0]">
+      <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
+        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
           <span className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
             Project Lifecycle &amp; Delivery Workflow
           </span>
@@ -288,13 +288,13 @@ export const PartnerProjectOverviewPage: React.FC = () => {
         {/* Left Side: Scope & Items Table (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
           {/* Project Details Card */}
-          <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-2xs space-y-3">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
             <h2 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
               Project Configuration &amp; Scope
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF0]">
+              <div className="p-3 rounded-lg bg-slate-50/80 border border-slate-200">
                 <span className="text-[11px] text-[#6B778C]">Partner Organization:</span>
                 <p className="font-semibold text-[#091E42]">
                   <Link
@@ -306,7 +306,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E5EAF0]">
+              <div className="p-3 rounded-lg bg-slate-50/80 border border-slate-200">
                 <span className="text-[11px] text-[#6B778C]">Target Framework &amp; Stack:</span>
                 <p className="font-semibold text-[#091E42]">{project.targetFramework}</p>
               </div>
@@ -314,7 +314,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
 
             <div>
               <span className="text-xs font-semibold text-[#091E42]">Scope &amp; Architecture Notes:</span>
-              <p className="text-xs text-[#42526E] mt-1 leading-relaxed bg-[#F7F9FC] p-3 rounded-lg border border-[#E5EAF0]">
+              <p className="text-xs text-[#42526E] mt-1 leading-relaxed bg-slate-50/80 p-3 rounded-lg border border-slate-200">
                 {project.description || 'No additional scope notes provided for this project.'}
               </p>
             </div>
@@ -331,7 +331,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           </div>
 
           {/* Project Items Table */}
-          <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-2xs space-y-3">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
                 Conversion Items ({items.length})
@@ -347,7 +347,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
             </div>
 
             {items.length === 0 ? (
-              <div className="p-6 text-center border border-dashed border-[#D9E2EC] rounded-lg">
+              <div className="p-6 text-center border border-dashed border-slate-300 rounded-md">
                 <FileCode className="w-8 h-8 text-gray-300 mx-auto mb-1.5" />
                 <p className="text-xs font-semibold text-[#091E42]">No source files uploaded yet</p>
                 <p className="text-[11px] text-[#6B778C] mt-0.5">
@@ -363,7 +363,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 </Button>
               </div>
             ) : (
-              <div className="divide-y divide-[#E5EAF0] border border-[#E5EAF0] rounded-lg overflow-hidden">
+              <div className="divide-y divide-[#E5EAF0] border border-slate-200 rounded-lg overflow-hidden">
                 {items.slice(0, 5).map((item) => (
                   <div
                     key={item.id}
@@ -395,8 +395,8 @@ export const PartnerProjectOverviewPage: React.FC = () => {
         {/* Right Side: Team Lead Allocation (Stage 3) & Export Delivery (Stage 6) */}
         <div className="lg:col-span-5 space-y-5">
           {/* Stage 3: Team Lead Assignment Card */}
-          <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-2xs space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5EAF0]">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#0652CC]" />
                 <h3 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
@@ -415,7 +415,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
 
             <div className="space-y-2.5 text-xs">
               {/* Team Lead */}
-              <div className="p-3 rounded-lg border border-[#E5EAF0] bg-[#F7F9FC] flex items-center justify-between">
+              <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/80 flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-semibold text-[#6B778C] uppercase block">
                     Assigned Team Lead
@@ -433,7 +433,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
               </div>
 
               {/* Conversion Staff Engineer */}
-              <div className="p-3 rounded-lg border border-[#E5EAF0] bg-[#F7F9FC] flex items-center justify-between">
+              <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/80 flex items-center justify-between">
                 <div>
                   <span className="text-[11px] font-semibold text-[#6B778C] uppercase block">
                     Assigned Conversion Staff
@@ -457,8 +457,8 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           </div>
 
           {/* Stage 6: Export & Partner Delivery Card */}
-          <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-2xs space-y-3.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5EAF0]">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
               <div className="flex items-center gap-2">
                 <DownloadCloud className="w-4 h-4 text-emerald-600" />
                 <h3 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">
@@ -495,7 +495,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                   variant="primary"
                   size="sm"
                   onClick={() => setIsExportDialogOpen(true)}
-                  className="w-full bg-[#0652CC] hover:bg-[#0655FF] flex items-center justify-center gap-1.5"
+                  className="w-full bg-[#0652CC] hover:bg-[#0544AB] flex items-center justify-center gap-1.5 shadow-xs rounded-md"
                 >
                   <DownloadCloud className="w-3.5 h-3.5" />
                   <span>{project.isExported ? 'Re-Export Bundle' : 'Export & Notify Partner'}</span>

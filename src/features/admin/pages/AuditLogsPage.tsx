@@ -64,7 +64,7 @@ const MOCK_AUDIT_LOGS: AuditLogDto[] = [
     action: 'CONTRACT_SIGNED',
     resourceType: 'ORGANIZATION',
     resourceId: 'org-gtl',
-    ipAddress: '192.168.1.42',
+    ipAddress: '192.168.1.88',
     metadata: { annualValue: 150000, company: 'Global Transit Logistics' },
   },
   {
