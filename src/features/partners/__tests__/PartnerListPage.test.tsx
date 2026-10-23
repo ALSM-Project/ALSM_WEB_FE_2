@@ -4,9 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerListPage } from '../pages/staff/PartnerListPage';
 import { apiClient } from '@/services/api/apiClient';
+import { mockServer, serverPartner } from './serverFixture';
 
-// Never hit a real backend from tests: every request fails like an offline server, so the
-// pages render their deterministic local data.
+// Never hit a real backend from tests: the mocked client answers like a server holding fixed data.
 vi.mock('@/services/api/apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
@@ -32,7 +32,13 @@ const createWrapper = (permissions: string[] = ['partner.view', 'partner.create'
 describe('PartnerListPage', () => {
   beforeEach(() => {
     localStorage.clear();
-    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
+    mockServer({
+      partners: [
+        serverPartner,
+        { ...serverPartner, id: '6650cc00cc00cc00cc00cc02', name: 'Pacific Heritage Life & Annuity', contactEmail: 'a@pacificheritage.com', primaryDomain: 'pacificheritage.com' },
+      ],
+      projects: [],
+    });
     vi.mocked(apiClient.post).mockRejectedValue(new Error('offline'));
   });
 
@@ -111,10 +117,7 @@ describe('PartnerListPage', () => {
     await screen.findByText('Fintech Nexus International');
 
     // The backend now returns the new partner on the refresh that follows a create.
-    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
-      if (url === '/partners') return [created];
-      throw new Error('offline');
-    });
+    mockServer({ partners: [created], projects: [] });
     fireEvent.click(screen.getByRole('button', { name: /Add Partner/i }));
     fireEvent.change(screen.getByLabelText(/Organization \/ Company Name/i), {
       target: { value: 'Horizon Banking Cloud' },
@@ -135,5 +138,22 @@ describe('PartnerListPage', () => {
     ).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(await screen.findByText('Horizon Banking Cloud')).toBeInTheDocument();
+  });
+
+  it('shows an empty directory, not sample partners, when the server has none', async () => {
+    mockServer({ partners: [], projects: [] });
+    render(<PartnerListPage />, { wrapper: createWrapper() });
+
+    expect(await screen.findByText('Total Partners')).toBeInTheDocument();
+    expect(screen.queryByText('Fintech Nexus International')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pacific Heritage Life & Annuity')).not.toBeInTheDocument();
+  });
+
+  it('shows an error instead of sample data when the partner list cannot be loaded', async () => {
+    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
+    render(<PartnerListPage />, { wrapper: createWrapper() });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/cannot reach the server/i);
+    expect(screen.queryByText('Fintech Nexus International')).not.toBeInTheDocument();
   });
 });

@@ -4,9 +4,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversionItemReviewPage } from '../pages/staff/ConversionItemReviewPage';
 import { apiClient } from '@/services/api/apiClient';
+import { SCREEN_INQ_ID, SERVER_PROJECT_ID, linkProjectToPartner, mockServer } from './serverFixture';
 
-// Never hit a real backend from tests: every request fails like an offline server, so the
-// pages render their deterministic local data.
+// Never hit a real backend from tests: the mocked client answers like a server holding fixed data.
 vi.mock('@/services/api/apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
@@ -33,7 +33,7 @@ const createWrapper = (
 
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/partners/projects/proj-fnx-core/items/item-scr-001/review']}>
+      <MemoryRouter initialEntries={[`/partners/projects/${SERVER_PROJECT_ID}/items/${SCREEN_INQ_ID}/review`]}>
         {children}
       </MemoryRouter>
     </QueryClientProvider>
@@ -42,7 +42,9 @@ const createWrapper = (
 
 describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
   beforeEach(() => {
-    vi.mocked(apiClient.get).mockRejectedValue(new Error('offline'));
+    localStorage.clear();
+    linkProjectToPartner();
+    mockServer();
     vi.mocked(apiClient.post).mockRejectedValue(new Error('offline'));
     vi.mocked(apiClient.patch).mockRejectedValue(new Error('offline'));
   });
@@ -64,8 +66,8 @@ describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
 
     expect(await screen.findByRole('heading', { name: /CUSTINQ/i })).toBeInTheDocument();
     expect(screen.getByText(/Target: React 19 \+ TypeScript/i)).toBeInTheDocument();
-    expect(screen.getByText('Deterministic Generation Metrics')).toBeInTheDocument();
-    expect(screen.getByText('Lines of Code')).toBeInTheDocument();
+    // No generated files are loaded for the item, so no made-up size/line metrics are shown.
+    expect(screen.queryByText('Deterministic Generation Metrics')).not.toBeInTheDocument();
     expect(screen.getByText('Back to Conversion Workspace')).toBeInTheDocument();
   });
 
@@ -84,12 +86,11 @@ describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
 
     // Initially in UI Preview tab
     expect(screen.getByText('Interactive UI Preview')).toBeInTheDocument();
-    expect(screen.getByText(/Customer Account Inquiry/i)).toBeInTheDocument();
 
     // Switch to Code tab
     const codeTabBtn = screen.getByText('Modernized Code & Source');
     fireEvent.click(codeTabBtn);
-    expect((await screen.findAllByText(/CustomerInquiryScreen\.tsx/i)).length).toBeGreaterThan(0);
+    expect(await screen.findByText(/No output generated yet/i)).toBeInTheDocument();
 
     // Switch to Field Mapping tab
     const mappingTabBtn = screen.getByText(/Field Mapping/i);

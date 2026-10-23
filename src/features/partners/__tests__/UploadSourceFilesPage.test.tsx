@@ -62,7 +62,7 @@ describe('UploadSourceFilesPage (UC-46)', () => {
   beforeEach(() => {
     vi.mocked(partnersApi.getProjectById).mockResolvedValue(project());
     vi.mocked(partnersApi.uploadSourceFiles).mockResolvedValue({
-      mode: 'SERVER',
+
       registered: ['LOGIN.bms'],
       ignoredEntries: [],
     });
@@ -164,7 +164,7 @@ describe('UploadSourceFilesPage (UC-46)', () => {
   });
 
   it('shows per-file and overall progress and blocks a second submit while uploading', async () => {
-    let finish: (value: { mode: 'SERVER'; registered: string[]; ignoredEntries: string[] }) => void = () => undefined;
+    let finish: (value: { registered: string[]; ignoredEntries: string[] }) => void = () => undefined;
     let report: (percent: number) => void = () => undefined;
     vi.mocked(partnersApi.uploadSourceFiles).mockImplementation(
       (_id, _files, onProgress) =>
@@ -192,7 +192,7 @@ describe('UploadSourceFilesPage (UC-46)', () => {
     );
     expect(screen.getByRole('button', { name: 'Remove LOGIN.bms' })).toBeDisabled();
 
-    finish({ mode: 'SERVER', registered: ['LOGIN.bms'], ignoredEntries: [] });
+    finish({ registered: ['LOGIN.bms'], ignoredEntries: [] });
     expect(await screen.findByText(/uploaded successfully/i)).toBeInTheDocument();
   });
 
@@ -212,20 +212,6 @@ describe('UploadSourceFilesPage (UC-46)', () => {
     expect(within(screen.getByTestId('queued-GOOD.bms')).getByText('Ready')).toBeInTheDocument();
     expect(screen.queryByText('Workspace Page')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Retry Upload/i })).toBeEnabled();
-  });
-
-  it('shows a notice when the project is stored only in this browser', async () => {
-    vi.mocked(partnersApi.uploadSourceFiles).mockResolvedValue({
-      mode: 'LOCAL',
-      registered: ['LOGIN.bms'],
-      ignoredEntries: [],
-    });
-    renderPage();
-    await pickFiles(makeFile('LOGIN.bms'));
-
-    fireEvent.click(screen.getByRole('button', { name: /Upload & Open Workspace/i }));
-
-    expect(await screen.findByText(/exists only in this browser/i)).toBeInTheDocument();
   });
 
   it('shows Project Not Found when the project does not exist', async () => {
