@@ -83,27 +83,36 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
   const totalCompletedExports = partners.reduce((sum, p) => sum + (p.completedExportCount || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {loadError && (
-        <div role="alert" className="p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-800">
-          {loadError}
+        <div role="alert" className="p-3.5 rounded-lg border border-red-200 bg-red-50 text-xs text-red-800 flex items-center justify-between">
+          <span>{loadError}</span>
+          <Button variant="ghost" size="sm" onClick={loadData} className="text-red-700 hover:text-red-900 text-xs">
+            Retry
+          </Button>
         </div>
       )}
+
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
         <div>
-          <h1 className="text-xl font-bold text-[#091E42] tracking-tight">Partner Organizations</h1>
-          <p className="text-xs text-[#6B778C] mt-0.5">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Partner Organizations</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+              {partners.length} Total
+            </span>
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
             Manage enterprise partners, conversion accounts, assigned leads, and modernization pipelines.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={loadData}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 text-xs text-slate-700 border-slate-200 hover:bg-slate-50 h-8"
             title="Refresh partners"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
@@ -113,7 +122,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
               variant="primary"
               size="sm"
               onClick={() => setIsRegisterModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8]"
+              className="flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8] text-white text-xs font-medium h-8 shadow-xs"
             >
               <Plus className="w-4 h-4" /> Add Partner
             </Button>
@@ -141,8 +150,8 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
         </div>
       )}
 
-      {/* KPI Metric Summary Cards - Clickable to filter & inspect */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Metric Summary Cards - Filter Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Total Partners */}
         <div
           role="button"
@@ -151,19 +160,19 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             setSpecialFilter('ALL');
             setStatusFilter('ALL');
           }}
-          className={`p-4 rounded-xl bg-white border shadow-2xs space-y-1 cursor-pointer transition-all hover:border-[#0652CC] hover:shadow-md group ${
+          className={`p-4 rounded-lg bg-white border shadow-xs space-y-1.5 cursor-pointer transition-all hover:border-slate-300 group ${
             specialFilter === 'ALL' && statusFilter === 'ALL'
-              ? 'border-[#0652CC] ring-2 ring-[#0652CC]/20'
-              : 'border-[#E5EAF0]'
+              ? 'border-[#0652CC] ring-1 ring-[#0652CC] bg-blue-50/20'
+              : 'border-slate-200'
           }`}
           title="Click to view all partner accounts"
         >
-          <div className="flex items-center justify-between text-xs text-[#6B778C]">
-            <span className="font-semibold group-hover:text-[#0652CC] transition-colors">Total Partners</span>
-            <Building2 className="w-4 h-4 text-[#0652CC]" />
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold text-slate-600 group-hover:text-[#0652CC] transition-colors">Total Partners</span>
+            <Building2 className="w-4 h-4 text-slate-400 group-hover:text-[#0652CC] transition-colors" />
           </div>
-          <div className="text-2xl font-extrabold text-[#091E42]">{totalPartners}</div>
-          <div className="flex items-center justify-between text-[11px] text-[#6B778C]">
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{totalPartners}</div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
             <span>Registered enterprise accounts</span>
             <span className="text-[#0652CC] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
           </div>
@@ -177,19 +186,19 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             setSpecialFilter('ACTIVE');
             setStatusFilter('ACTIVE');
           }}
-          className={`p-4 rounded-xl bg-white border shadow-2xs space-y-1 cursor-pointer transition-all hover:border-emerald-500 hover:shadow-md group ${
+          className={`p-4 rounded-lg bg-white border shadow-xs space-y-1.5 cursor-pointer transition-all hover:border-emerald-300 group ${
             specialFilter === 'ACTIVE' || statusFilter === 'ACTIVE'
-              ? 'border-emerald-500 ring-2 ring-emerald-500/20'
-              : 'border-[#E5EAF0]'
+              ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/20'
+              : 'border-slate-200'
           }`}
           title="Click to view active modernization partners"
         >
-          <div className="flex items-center justify-between text-xs text-[#6B778C]">
-            <span className="font-semibold group-hover:text-emerald-700 transition-colors">Active Modernization</span>
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold text-slate-600 group-hover:text-emerald-700 transition-colors">Active Modernization</span>
             <Users className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-extrabold text-emerald-600">{activePartners}</div>
-          <div className="flex items-center justify-between text-[11px] text-emerald-700">
+          <div className="text-2xl font-bold text-emerald-600 tracking-tight">{activePartners}</div>
+          <div className="flex items-center justify-between text-[11px] text-emerald-700 pt-0.5">
             <span>Under active conversion SLA</span>
             <span className="font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Filter active →</span>
           </div>
@@ -203,19 +212,19 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             setSpecialFilter('HAS_PROJECTS');
             setStatusFilter('ALL');
           }}
-          className={`p-4 rounded-xl bg-white border shadow-2xs space-y-1 cursor-pointer transition-all hover:border-indigo-500 hover:shadow-md group ${
+          className={`p-4 rounded-lg bg-white border shadow-xs space-y-1.5 cursor-pointer transition-all hover:border-indigo-300 group ${
             specialFilter === 'HAS_PROJECTS'
-              ? 'border-indigo-500 ring-2 ring-indigo-500/20'
-              : 'border-[#E5EAF0]'
+              ? 'border-indigo-500 ring-1 ring-indigo-500 bg-indigo-50/20'
+              : 'border-slate-200'
           }`}
           title="Click to view partners with active projects"
         >
-          <div className="flex items-center justify-between text-xs text-[#6B778C]">
-            <span className="font-semibold group-hover:text-indigo-700 transition-colors">Total Projects</span>
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold text-slate-600 group-hover:text-indigo-700 transition-colors">Total Projects</span>
             <FolderKanban className="w-4 h-4 text-indigo-600" />
           </div>
-          <div className="text-2xl font-extrabold text-[#091E42]">{totalProjects}</div>
-          <div className="flex items-center justify-between text-[11px] text-[#6B778C]">
+          <div className="text-2xl font-bold text-slate-900 tracking-tight">{totalProjects}</div>
+          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
             <span>Across BMS & COBOL domains</span>
             <span className="text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">With projects →</span>
           </div>
@@ -229,19 +238,19 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             setSpecialFilter('HAS_EXPORTS');
             setStatusFilter('ALL');
           }}
-          className={`p-4 rounded-xl bg-white border shadow-2xs space-y-1 cursor-pointer transition-all hover:border-teal-500 hover:shadow-md group ${
+          className={`p-4 rounded-lg bg-white border shadow-xs space-y-1.5 cursor-pointer transition-all hover:border-teal-300 group ${
             specialFilter === 'HAS_EXPORTS'
-              ? 'border-teal-500 ring-2 ring-teal-500/20'
-              : 'border-[#E5EAF0]'
+              ? 'border-teal-500 ring-1 ring-teal-500 bg-teal-50/20'
+              : 'border-slate-200'
           }`}
           title="Click to view partners with delivered export bundles"
         >
-          <div className="flex items-center justify-between text-xs text-[#6B778C]">
-            <span className="font-semibold group-hover:text-teal-700 transition-colors">Completed Exports</span>
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span className="font-semibold text-slate-600 group-hover:text-teal-700 transition-colors">Completed Exports</span>
             <CheckCircle2 className="w-4 h-4 text-teal-600" />
           </div>
-          <div className="text-2xl font-extrabold text-teal-600">{totalCompletedExports}</div>
-          <div className="flex items-center justify-between text-[11px] text-teal-700">
+          <div className="text-2xl font-bold text-teal-600 tracking-tight">{totalCompletedExports}</div>
+          <div className="flex items-center justify-between text-[11px] text-teal-700 pt-0.5">
             <span>Delivered code bundles</span>
             <span className="font-semibold opacity-0 group-hover:opacity-100 transition-opacity">With exports →</span>
           </div>
@@ -249,26 +258,26 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-xl bg-white border border-[#E5EAF0] shadow-2xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, domain, email..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#F7F9FC] focus:bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] placeholder-[#8993A4] outline-none focus:ring-1 focus:ring-[#0652CC]"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#0652CC] rounded-md text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-[#0652CC] transition-colors"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <span className="text-xs text-[#6B778C] flex items-center gap-1">
-            <Filter className="w-3.5 h-3.5" /> Status:
+        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+          <span className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+            <Filter className="w-3.5 h-3.5 text-slate-400" /> Status:
           </span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-[#F7F9FC] border border-[#D9E2EC] rounded-lg px-2.5 py-1.5 text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]"
+            className="text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#0652CC] rounded-md px-2.5 py-1.5 text-slate-700 outline-none focus:ring-1 focus:ring-[#0652CC] font-medium transition-colors"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -279,110 +288,110 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       </div>
 
       {/* Partner Data Table */}
-      <div className="rounded-xl border border-[#E5EAF0] bg-white shadow-2xs overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#091E42]">
-            <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[#6B778C] uppercase font-semibold">
+      <div className="alsm-table-container">
+        <table className="alsm-table">
+          <thead>
+            <tr>
+              <th>Partner Name & Domain</th>
+              <th>Engagement Tier</th>
+              <th>Assigned Conversion Lead</th>
+              <th className="text-center">Projects</th>
+              <th>Status</th>
+              <th className="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                <th className="py-3 px-4">Partner Name & Domain</th>
-                <th className="py-3 px-4">Engagement Tier</th>
-                <th className="py-3 px-4">Assigned Conversion Lead</th>
-                <th className="py-3 px-4 text-center">Projects</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <div className="flex items-center justify-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#0652CC]" />
+                    <span className="text-xs">Loading partner accounts...</span>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#6B778C]">
-                    <div className="flex items-center justify-center gap-2">
-                      <RefreshCw className="w-4 h-4 animate-spin text-[#0652CC]" />
-                      <span>Loading partner accounts...</span>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <Building2 className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="font-semibold text-sm text-slate-800">No partner organizations found</p>
+                  <p className="text-xs text-slate-500 mt-1">Try adjusting your search criteria or register a new partner.</p>
+                </td>
+              </tr>
+            ) : (
+              filtered.map((partner) => (
+                <tr
+                  key={partner.id}
+                  onClick={() => navigate(`/partners/${partner.id}`)}
+                  className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                >
+                  <td className="py-3 px-4">
+                    <div>
+                      <button
+                        onClick={() => navigate(`/partners/${partner.id}`)}
+                        className="font-semibold text-sm text-slate-900 group-hover:text-[#0652CC] hover:underline text-left block transition-colors"
+                      >
+                        {partner.name}
+                      </button>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                        <span className="font-mono">{partner.domain || 'no-domain.com'}</span>
+                        <span className="text-slate-300">•</span>
+                        <span>{partner.contactEmail}</span>
+                      </div>
                     </div>
                   </td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#6B778C]">
-                    <Building2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                    <p className="font-semibold text-sm text-[#091E42]">No partner organizations found</p>
-                    <p className="text-xs mt-1">Try adjusting your search criteria or register a new partner.</p>
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((partner) => (
-                  <tr
-                    key={partner.id}
-                    onClick={() => navigate(`/partners/${partner.id}`)}
-                    className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
-                  >
-                    <td className="py-3.5 px-4">
-                      <div>
-                        <button
-                          onClick={() => navigate(`/partners/${partner.id}`)}
-                          className="font-bold text-sm text-[#0652CC] hover:underline text-left block"
-                        >
-                          {partner.name}
-                        </button>
-                        <div className="flex items-center gap-2 text-[11px] text-[#6B778C] mt-0.5">
-                          <span>{partner.domain || 'no-domain.com'}</span>
-                          <span>•</span>
-                          <span>{partner.contactEmail}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4 font-medium text-[#4A5568]">
+                  <td className="py-3 px-4 font-medium text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
                       {partner.engagementType || 'Dedicated Modernization'}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#4A5568]">
-                      <div className="font-medium text-[#091E42]">
-                        {partner.assignedStaffName || 'Not assigned'}
-                      </div>
-                      <span className="text-[10px] text-[#6B778C]">SLA: 4h response</span>
-                    </td>
-                    <td className="py-3.5 px-4 text-center">
-                      <span className="font-bold text-sm text-[#091E42]">{partner.projectCount}</span>
-                      <span className="text-[10px] text-[#6B778C] block">projects</span>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <PartnerStatusBadge status={partner.status} type="partner" />
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                    </span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="font-medium text-slate-800 text-xs">
+                      {partner.assignedStaffName || 'Not assigned'}
+                    </div>
+                    <span className="text-[10px] text-slate-400 font-mono">SLA: 4h response</span>
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <span className="font-bold text-sm text-slate-900">{partner.projectCount}</span>
+                    <span className="text-[10px] text-slate-400 block uppercase font-medium">projects</span>
+                  </td>
+                  <td className="py-3 px-4">
+                    <PartnerStatusBadge status={partner.status} type="partner" />
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/partners/${partner.id}`);
+                        }}
+                        className="text-xs text-[#0652CC] hover:bg-blue-50/60 transition-colors font-medium h-7"
+                      >
+                        View Details
+                      </Button>
+                      {hasPermission('partner_project.create') && (
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/partners/${partner.id}`);
+                            setSelectedProjectPartner(partner);
+                            setIsCreateProjectModalOpen(true);
                           }}
-                          className="text-xs text-[#0652CC] group-hover:bg-[#0652CC] group-hover:text-white transition-colors"
+                          className="text-xs flex items-center gap-1 border-slate-200 text-[#0652CC] hover:bg-blue-50/60 font-medium h-7"
                         >
-                          View Details
+                          <Plus className="w-3 h-3" /> New Project
                         </Button>
-                        {hasPermission('partner_project.create') && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedProjectPartner(partner);
-                              setIsCreateProjectModalOpen(true);
-                            }}
-                            className="text-xs flex items-center gap-1 border-[#0652CC]/30 text-[#0652CC] hover:bg-blue-50/50"
-                          >
-                            <Plus className="w-3 h-3" /> New Project
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Centered Register Partner Modal */}

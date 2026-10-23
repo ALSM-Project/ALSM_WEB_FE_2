@@ -1,10 +1,32 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminProjectsPage } from '../pages/AdminProjectsPage';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '../api/admin.api';
+
+const mockProjects = [
+  {
+    id: '6650aa00aa00aa00aa00aa01',
+    name: 'General Ledger COBOL Migration',
+    organizationId: 'org-fnx-prod',
+    partnerId: 'partner-01',
+    partnerName: 'Fintech Nexus International',
+    conversionType: 'COBOL_TO_JAVA',
+    targetFramework: 'Spring Boot 3.3',
+    status: 'IN_PROGRESS',
+    screensTotal: 0,
+    screensCompleted: 0,
+    programsTotal: 12,
+    programsCompleted: 8,
+    assignedTeamLeadId: undefined,
+    assignedTeamLeadName: undefined,
+    assignedStaffId: undefined,
+    assignedStaffName: undefined,
+    createdAt: '2026-10-10T00:00:00.000Z',
+  },
+];
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -28,6 +50,15 @@ const createWrapper = () => {
 };
 
 describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
+  beforeEach(() => {
+    vi.spyOn(partnersApi, 'getProjects').mockResolvedValue(mockProjects as any);
+    vi.spyOn(partnersApi, 'assignProject').mockResolvedValue({
+      ...mockProjects[0],
+      assignedTeamLeadId: 'lead-01',
+      assignedTeamLeadName: 'Sarah Jenkins',
+    } as any);
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();

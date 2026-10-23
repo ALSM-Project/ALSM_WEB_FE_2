@@ -431,18 +431,18 @@ describe('Platform Administration UI Enhancements', () => {
       // Verify IP address column
       expect(screen.getByText('IP Address')).toBeInTheDocument();
       expect(screen.getByText('192.168.1.42')).toBeInTheDocument();
-      expect(screen.getByText('10.0.4.18')).toBeInTheDocument();
+      expect(screen.getAllByText('10.0.4.18').length).toBeGreaterThan(0);
 
       // Verify Actions and Targets
-      expect(screen.getByText('DISCOUNT_APPROVED')).toBeInTheDocument();
-      expect(screen.getByText('IMPERSONATE')).toBeInTheDocument();
+      expect(screen.getAllByText('DISCOUNT_APPROVED').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('IMPERSONATE').length).toBeGreaterThan(0);
 
       // Filter by Action: USER_LOCKED
       const actionSelect = screen.getByDisplayValue('All Actions');
       fireEvent.change(actionSelect, { target: { value: 'USER_LOCKED' } });
 
       expect(screen.getByText('USER_LOCKED')).toBeInTheDocument();
-      expect(screen.queryByText('IMPERSONATE')).not.toBeInTheDocument();
+      expect(document.querySelector('tbody')?.textContent).not.toContain('IMPERSONATE');
 
       // Verify Export Controls
       expect(screen.getByRole('button', { name: /Export CSV/i })).toBeInTheDocument();

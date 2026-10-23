@@ -142,7 +142,7 @@ export const PartnerProjectsPage: React.FC = () => {
         </div>
       )}
       {/* 1. Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2 text-xs text-[#6B778C]">
             <Link to="/partners" className="hover:text-[#0652CC] transition-colors">
@@ -151,7 +151,7 @@ export const PartnerProjectsPage: React.FC = () => {
             <span>/</span>
             <span className="text-[#091E42] font-semibold">Partner Projects</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#091E42] mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] mt-1">
             Partner Modernization Projects
           </h1>
           <p className="text-xs text-[#6B778C] mt-1 max-w-3xl">
@@ -162,7 +162,7 @@ export const PartnerProjectsPage: React.FC = () => {
         <div className="flex items-center gap-2.5 flex-wrap">
           <Link
             to="/partners"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-3.5 py-2 text-xs font-semibold text-[#091E42] shadow-2xs hover:bg-[#F4F6F8] transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
             <Building2 className="w-3.5 h-3.5 text-[#0652CC]" />
             Partner Directory
@@ -170,7 +170,7 @@ export const PartnerProjectsPage: React.FC = () => {
 
           <button
             onClick={loadData}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-3.5 py-2 text-xs font-semibold text-[#091E42] shadow-2xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
             Refresh
@@ -235,7 +235,7 @@ export const PartnerProjectsPage: React.FC = () => {
               setScopeFilter('ALL');
             }
           }}
-          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-[#0652CC] hover:shadow-md ${
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-[#0652CC] ${
             statusFilter === 'ALL' && typeFilter === 'ALL' && scopeFilter === 'ALL'
               ? 'border-[#0652CC] ring-2 ring-[#0652CC]/15'
               : 'border-[#E5EAF0]'
@@ -258,7 +258,7 @@ export const PartnerProjectsPage: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setStatusFilter('ACTIVE');
           }}
-          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-blue-500 hover:shadow-md ${
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-blue-500 ${
             statusFilter === 'ACTIVE'
               ? 'border-blue-500 ring-2 ring-blue-400/20 bg-blue-50/10'
               : 'border-[#E5EAF0]'
@@ -281,7 +281,7 @@ export const PartnerProjectsPage: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setStatusFilter('READY');
           }}
-          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-amber-500 hover:shadow-md ${
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-amber-500 ${
             statusFilter === 'READY'
               ? 'border-amber-500 ring-2 ring-amber-400/20 bg-amber-50/10'
               : 'border-[#E5EAF0]'
@@ -304,7 +304,7 @@ export const PartnerProjectsPage: React.FC = () => {
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') setStatusFilter('COMPLETED');
           }}
-          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-emerald-500 hover:shadow-md ${
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-emerald-500 ${
             statusFilter === 'COMPLETED'
               ? 'border-emerald-500 ring-2 ring-emerald-400/20 bg-emerald-50/10'
               : 'border-[#E5EAF0]'
@@ -321,7 +321,7 @@ export const PartnerProjectsPage: React.FC = () => {
       </div>
 
       {/* 3. Search and Filters Bar */}
-      <div className="space-y-3 bg-white p-4 rounded-xl border border-[#E5EAF0] shadow-2xs">
+      <div className="space-y-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 min-w-64 max-w-md">
@@ -330,12 +330,12 @@ export const PartnerProjectsPage: React.FC = () => {
               placeholder="Search by project name, partner, target stack..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs h-9"
+              className="pl-9 text-xs h-9 border-slate-200 rounded-md shadow-xs"
             />
           </div>
 
           {/* Scope Filters: All vs Customer vs Demo */}
-          <div className="flex items-center gap-1 bg-[#F4F6F8] p-1 rounded-xl border border-[#E5EAF0]">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80">
             {[
               { key: 'ALL', label: 'All Projects' },
               { key: 'CUSTOMER', label: 'Customer Projects' },
@@ -357,7 +357,7 @@ export const PartnerProjectsPage: React.FC = () => {
           </div>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-1.5 bg-[#F4F6F8] p-1 rounded-xl border border-[#E5EAF0]">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200/80">
             {[
               { key: 'ALL', label: `All (${totalProjects})` },
               { key: 'ACTIVE', label: `Active (${activeCount})` },
@@ -381,7 +381,7 @@ export const PartnerProjectsPage: React.FC = () => {
         </div>
 
         {/* Secondary Filter: Conversion Stack */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#E5EAF0]">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-semibold text-[#6B778C]">Conversion Pipeline:</span>
             <div className="flex items-center gap-1">
@@ -414,11 +414,11 @@ export const PartnerProjectsPage: React.FC = () => {
       </div>
 
       {/* 4. Partner Projects Table */}
-      <div className="rounded-xl border border-[#E5EAF0] bg-white shadow-2xs overflow-hidden">
+      <div className="alsm-table-container rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse">
+          <table className="alsm-table w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 <th className="py-3 px-4">Project & Stack</th>
                 <th className="py-3 px-4">Associated Partner</th>
                 <th className="py-3 px-4">Supervising Lead</th>
@@ -428,7 +428,7 @@ export const PartnerProjectsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
@@ -451,7 +451,7 @@ export const PartnerProjectsPage: React.FC = () => {
                     <tr
                       key={p.id}
                       onClick={() => navigate(`/partners/projects/${p.id}/workspace`)}
-                      className="hover:bg-blue-50/40 cursor-pointer transition-colors group"
+                      className="hover:bg-slate-50/80 cursor-pointer transition-colors group"
                       title="Click to open Conversion Workspace"
                     >
                       {/* Project Name & Target Framework */}
@@ -569,7 +569,7 @@ export const PartnerProjectsPage: React.FC = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/partners/projects/${p.id}/workspace`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#0652CC] text-white text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-[#0652CC] text-white text-xs font-medium hover:bg-[#0544AB] transition-colors shadow-xs"
                             title="Open Full Conversion Workspace"
                           >
                             <Play className="w-3 h-3" />
@@ -579,7 +579,7 @@ export const PartnerProjectsPage: React.FC = () => {
                           {!isSupportReadOnly && (
                             <Link
                               to={`/partners/projects/${p.id}/upload`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#E5EAF0] bg-white text-[#091E42] text-xs font-semibold hover:bg-[#F4F6F8] transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-700 text-xs font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs"
                               title="Upload source files"
                             >
                               <UploadCloud className="w-3.5 h-3.5 text-[#6B778C]" />
