@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -10,8 +10,9 @@ import {
   FolderKanban,
   Search,
   ArrowRight,
-  Code2,
   KeyRound,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { partnersApi } from '@/features/partners/api/partners.api';
@@ -24,6 +25,8 @@ export const ConversionStaffOverview: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Load projects from API
   const { data: rawProjects = [], isLoading: loadingProjects } = useQuery<PartnerProject[]>({
@@ -82,54 +85,65 @@ export const ConversionStaffOverview: React.FC = () => {
     });
   }, [myProjects, searchTerm, statusFilter]);
 
+  // Reset to first page when filtering or searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredProjects.length);
+
+  const paginatedProjects = useMemo(() => {
+    return filteredProjects.slice(startIndex, endIndex);
+  }, [filteredProjects, startIndex, endIndex]);
+
   const web1Url = import.meta.env.VITE_CONVERSION_WORKSPACE_URL || 'http://localhost:5173';
 
   return (
     <div className="space-y-5 animate-fade-in">
       {/* ── 1. Compact Engineering Workspace Launch Bar ────────────────── */}
-      <div className="bg-white border border-[#E2E8F0] border-l-4 border-l-[#0652CC] rounded-lg p-4 sm:p-5 shadow-xs transition-all">
+      <div className="bg-white border border-[#DCE3EC] border-l-4 border-l-[#244A70] rounded-lg p-4 sm:p-5 shadow-xs transition-all">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-[#0F172A] tracking-tight">
+              <h2 className="text-base font-bold text-[#17263A] tracking-tight">
                 Web 1 Conversion Workspace
               </h2>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                 <span>Engine Ready</span>
               </span>
             </div>
-            <p className="text-xs text-[#475569] leading-relaxed max-w-2xl">
-              Truy cập trình phân tích cú pháp AST, cấu hình ánh xạ biến và kiểm tra mã nguồn chuyển đổi sang React &amp; Flutter.
-            </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+          <div className="flex items-center gap-2 shrink-0 self-start md:self-center flex-wrap">
             <button
               type="button"
               onClick={() => navigate('/admin/temporary-roles')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold bg-white border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
-              title="Yêu cầu vai trò tạm thời (UC-95)"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F4F7FB] transition-colors shadow-2xs cursor-pointer"
+              title="Request Temporary Role"
             >
-              <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Yêu cầu quyền tạm thời</span>
+              <KeyRound className="w-3.5 h-3.5 text-[#244A70]" />
+              <span>Request Elevation</span>
             </button>
             <a
               href={web1Url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold bg-[#0652CC] text-white hover:bg-[#0544AB] transition-colors shadow-xs"
-              title="Mở Conversion Workspace trên tab mới"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-xs font-semibold bg-[#244A70] text-white hover:bg-[#1B3856] transition-colors shadow-2xs"
+              title="Open Conversion Workspace in new tab"
             >
-              <span>Mở Web 1 Workspace</span>
+              <span>Open Workspace</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
             <button
               type="button"
               onClick={() => navigate('/employee/queue')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold bg-white border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F4F7FB] transition-colors shadow-2xs cursor-pointer"
             >
-              <span>Hàng đợi của tôi</span>
+              <span>My Work Queue</span>
             </button>
           </div>
         </div>
@@ -137,91 +151,91 @@ export const ConversionStaffOverview: React.FC = () => {
 
       {/* ── Active or Pending Temporary Role Notice (UC-95) ───────────── */}
       {activeElevation && (
-        <div className="bg-gradient-to-r from-indigo-50/90 to-blue-50/90 border border-indigo-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="bg-white border border-blue-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
+            <div className="w-8 h-8 rounded-md bg-[#EEF1F6] text-[#244A70] flex items-center justify-center font-bold shrink-0">
               <KeyRound className="w-4 h-4" />
             </div>
             <div>
-              <div className="font-bold text-xs text-indigo-950 flex flex-wrap items-center gap-2">
-                <span>Đang kích hoạt vai trò tạm thời:</span>
-                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200 text-xs font-bold">
+              <div className="font-bold text-xs text-[#17263A] flex flex-wrap items-center gap-2">
+                <span>Active Temporary Role:</span>
+                <span className="font-mono text-[#244A70] bg-[#EEF1F6] px-2 py-0.5 rounded border border-[#DCE3EC] text-xs font-bold">
                   {activeElevation.role}
                 </span>
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
-                  Đang hoạt động
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-[#244A70] border border-blue-200">
+                  Active
                 </span>
               </div>
-              <p className="text-[11px] text-indigo-800/90 mt-0.5">
-                Hiệu lực đến {new Date(activeElevation.expiresAt).toLocaleTimeString()} ({new Date(activeElevation.expiresAt).toLocaleDateString()}). Lý do: {activeElevation.reason}
+              <p className="text-xs text-slate-600 mt-0.5">
+                Expires at {new Date(activeElevation.expiresAt).toLocaleTimeString()} ({new Date(activeElevation.expiresAt).toLocaleDateString()}). Reason: {activeElevation.reason}
               </p>
             </div>
           </div>
           <button
             onClick={() => navigate('/admin/temporary-roles')}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer shrink-0"
+            className="text-xs font-semibold text-[#244A70] hover:underline cursor-pointer shrink-0"
           >
-            Quản lý vai trò &rarr;
+            Manage Roles &rarr;
           </button>
         </div>
       )}
 
       {pendingElevation && !activeElevation && (
-        <div className="bg-amber-50/90 border border-amber-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="bg-white border border-amber-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+            <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-800 flex items-center justify-center font-bold shrink-0">
               <KeyRound className="w-4 h-4" />
             </div>
             <div>
-              <div className="font-bold text-xs text-amber-950 flex flex-wrap items-center gap-2">
-                <span>Yêu cầu quyền tạm thời đang chờ duyệt:</span>
-                <span className="font-mono text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-300 text-xs font-bold">
+              <div className="font-bold text-xs text-[#17263A] flex flex-wrap items-center gap-2">
+                <span>Pending Elevation Request:</span>
+                <span className="font-mono text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-300 text-xs font-bold">
                   {pendingElevation.role} ({pendingElevation.durationHours}h)
                 </span>
-                <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                  Chờ duyệt
+                <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-800 border border-amber-300">
+                  Pending
                 </span>
               </div>
-              <p className="text-[11px] text-amber-800/90 mt-0.5">
-                Đã gửi yêu cầu lúc {new Date(pendingElevation.createdAt).toLocaleTimeString()} ({new Date(pendingElevation.createdAt).toLocaleDateString()}). Đang chờ Team Lead xem xét.
+              <p className="text-xs text-slate-600 mt-0.5">
+                Requested at {new Date(pendingElevation.createdAt).toLocaleTimeString()} ({new Date(pendingElevation.createdAt).toLocaleDateString()}). Awaiting Team Lead review.
               </p>
             </div>
           </div>
           <button
             onClick={() => navigate('/admin/temporary-roles')}
-            className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline cursor-pointer shrink-0"
+            className="text-xs font-semibold text-amber-800 hover:underline cursor-pointer shrink-0"
           >
-            Xem tiến độ &rarr;
+            View Request &rarr;
           </button>
         </div>
       )}
 
       {/* ── 2. KPI Metric Cards ────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Assigned Projects */}
         <div
           role="button"
           tabIndex={0}
           onClick={() => navigate('/employee/queue')}
           className="alsm-metric-card cursor-pointer group"
-          title="Xem toàn bộ dự án được phân công"
+          title="View all assigned projects"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-              Project Được Giao
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Assigned Projects
             </span>
-            <div className="w-8 h-8 rounded-md bg-blue-50 text-[#0652CC] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-[#EEF1F6] text-[#244A70] flex items-center justify-center">
               <Briefcase className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#0F172A] mt-2">
+          <div className="text-2xl font-bold text-[#17263A] mt-2">
             {loadingProjects ? '...' : myProjects.length}
           </div>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-[#0652CC]">
-              {activeProjects.length} Đang thực hiện
+          <div className="flex items-center justify-between text-xs text-slate-600 mt-2 pt-2 border-t border-[#EEF1F6]">
+            <span className="font-medium text-[#244A70]">
+              {activeProjects.length} In Progress
             </span>
-            <span className="text-[#0652CC] group-hover:translate-x-0.5 transition-transform">
+            <span className="text-[#244A70] group-hover:translate-x-0.5 transition-transform">
               &rarr;
             </span>
           </div>
@@ -233,24 +247,24 @@ export const ConversionStaffOverview: React.FC = () => {
           tabIndex={0}
           onClick={() => navigate('/queue')}
           className="alsm-metric-card cursor-pointer group"
-          title="Xem hàng đợi chuyển đổi"
+          title="View conversion queue"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-              Conversion Đang Chạy
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Active Conversions
             </span>
-            <div className="w-8 h-8 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-[#EEF1F6] text-[#244A70] flex items-center justify-center">
               <Cpu className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#0F172A] mt-2">
+          <div className="text-2xl font-bold text-[#17263A] mt-2">
             {activeProjects.length}
           </div>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-indigo-600">
+          <div className="flex items-center justify-between text-xs text-slate-600 mt-2 pt-2 border-t border-[#EEF1F6]">
+            <span className="font-medium text-[#17263A]">
               AST Parse &amp; Code Gen
             </span>
-            <span className="text-indigo-600 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-[#244A70] group-hover:translate-x-0.5 transition-transform">
               &rarr;
             </span>
           </div>
@@ -262,24 +276,24 @@ export const ConversionStaffOverview: React.FC = () => {
           tabIndex={0}
           onClick={() => navigate('/employee/queue')}
           className="alsm-metric-card cursor-pointer group hover:border-amber-300"
-          title="Kiểm tra các mục chờ nghiệm thu chất lượng"
+          title="Review quality validation items"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-              Cần Review &amp; Validate
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Pending Review
             </span>
-            <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-800 flex items-center justify-center">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#0F172A] mt-2">
+          <div className="text-2xl font-bold text-[#17263A] mt-2">
             {reviewProjects.length}
           </div>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-amber-700">
-              Kiểm tra AST &amp; Diff
+          <div className="flex items-center justify-between text-xs text-slate-600 mt-2 pt-2 border-t border-[#EEF1F6]">
+            <span className="font-medium text-amber-800">
+              AST &amp; Diff Review
             </span>
-            <span className="text-amber-700 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-amber-800 group-hover:translate-x-0.5 transition-transform">
               &rarr;
             </span>
           </div>
@@ -291,24 +305,24 @@ export const ConversionStaffOverview: React.FC = () => {
           tabIndex={0}
           onClick={() => navigate('/employee/queue')}
           className="alsm-metric-card cursor-pointer group hover:border-rose-300"
-          title="Xem các mục lỗi cần sửa rule mapping"
+          title="View conversion errors"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">
-              Conversion Gặp Lỗi
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Failed Conversions
             </span>
-            <div className="w-8 h-8 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-md bg-rose-50 text-rose-800 flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-[#0F172A] mt-2">
+          <div className="text-2xl font-bold text-[#17263A] mt-2">
             {failedProjects.length}
           </div>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-rose-700">
-              Cần sửa rule mapping
+          <div className="flex items-center justify-between text-xs text-slate-600 mt-2 pt-2 border-t border-[#EEF1F6]">
+            <span className="font-medium text-rose-800">
+              Requires Rule Fix
             </span>
-            <span className="text-rose-700 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-rose-800 group-hover:translate-x-0.5 transition-transform">
               &rarr;
             </span>
           </div>
@@ -317,11 +331,11 @@ export const ConversionStaffOverview: React.FC = () => {
 
       {/* ── 3. Actionable Priority Alert (Real Data Only) ──────────────── */}
       {(failedProjects.length > 0 || reviewProjects.length > 0) && (
-        <div className="bg-amber-50/60 border border-amber-200/80 rounded-lg p-3.5 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-3.5 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+            <AlertTriangle className="w-4 h-4 text-amber-800 shrink-0" />
             <span>
-              <strong>Tác vụ cần ưu tiên:</strong> Có <b>{failedProjects.length}</b> dự án gặp lỗi chuyển đổi và <b>{reviewProjects.length}</b> dự án cần kiểm tra chất lượng.
+              <strong>Priority Action:</strong> <b>{failedProjects.length}</b> failed conversions and <b>{reviewProjects.length}</b> items awaiting quality review.
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -329,18 +343,18 @@ export const ConversionStaffOverview: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setStatusFilter('FAILED')}
-                className="px-2.5 py-1 bg-white border border-amber-300 text-amber-800 rounded font-semibold text-[11px] hover:bg-amber-100/50 transition-colors cursor-pointer"
+                className="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded font-semibold text-xs hover:bg-amber-100/50 transition-colors cursor-pointer"
               >
-                Xem dự án lỗi
+                View Failed
               </button>
             )}
             {reviewProjects.length > 0 && (
               <button
                 type="button"
                 onClick={() => setStatusFilter('READY_FOR_EXPORT')}
-                className="px-2.5 py-1 bg-white border border-amber-300 text-amber-800 rounded font-semibold text-[11px] hover:bg-amber-100/50 transition-colors cursor-pointer"
+                className="px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded font-semibold text-xs hover:bg-amber-100/50 transition-colors cursor-pointer"
               >
-                Xem chờ review
+                View Pending Review
               </button>
             )}
           </div>
@@ -348,15 +362,15 @@ export const ConversionStaffOverview: React.FC = () => {
       )}
 
       {/* ── 4. Main Section: Data Table of Assigned Projects ──────────── */}
-      <div className="bg-white border border-[#E2E8F0] rounded-lg shadow-xs overflow-hidden">
+      <div className="bg-white border border-[#DCE3EC] rounded-lg shadow-xs overflow-hidden">
         {/* Table Toolbar */}
-        <div className="p-4 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="p-4 border-b border-[#EEF1F6] flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <FolderKanban className="w-4 h-4 text-[#0652CC]" />
-            <h3 className="text-sm font-bold text-[#0F172A]">
-              Danh Sách Dự Án Được Giao Cho Bạn
-            </h3>
-            <span className="text-xs text-[#64748B] font-medium ml-1">
+            <FolderKanban className="w-4 h-4 text-[#244A70]" />
+            <h2 className="text-base font-bold text-[#17263A]">
+              Assigned Modernization Projects
+            </h2>
+            <span className="text-xs text-slate-600 font-medium ml-1">
               ({filteredProjects.length}/{myProjects.length})
             </span>
           </div>
@@ -364,61 +378,61 @@ export const ConversionStaffOverview: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm dự án, đối tác, framework..."
-                className="w-full sm:w-60 pl-8 pr-3 py-1.5 text-xs bg-[#F8FAFC] border border-[#CBD5E1] rounded-md text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:border-[#0652CC] outline-none transition-colors"
+                placeholder="Search projects, partners, frameworks..."
+                className="w-full sm:w-60 pl-8 pr-3 py-1.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-md text-[#17263A] placeholder-[#8491A3] focus:bg-white focus:border-[#244A70] outline-none transition-colors"
               />
             </div>
 
             {/* Status Filter Tabs */}
-            <div className="inline-flex items-center p-0.5 rounded-md bg-[#F1F5F9] border border-[#E2E8F0] text-xs">
+            <div className="inline-flex items-center p-0.5 rounded-md bg-[#EEF1F6] border border-[#DCE3EC] text-xs">
               <button
                 type="button"
                 onClick={() => setStatusFilter('ALL')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                   statusFilter === 'ALL'
-                    ? 'bg-white text-[#0652CC] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    ? 'bg-white text-[#17263A] shadow-xs'
+                    : 'text-slate-600 hover:text-[#17263A]'
                 }`}
               >
-                Tất cả
+                All Projects
               </button>
               <button
                 type="button"
                 onClick={() => setStatusFilter('IN_PROGRESS')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                   statusFilter === 'IN_PROGRESS'
-                    ? 'bg-white text-[#0652CC] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    ? 'bg-white text-[#244A70] shadow-xs'
+                    : 'text-slate-600 hover:text-[#17263A]'
                 }`}
               >
-                Đang chạy
+                In Progress
               </button>
               <button
                 type="button"
                 onClick={() => setStatusFilter('READY_FOR_EXPORT')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                   statusFilter === 'READY_FOR_EXPORT'
-                    ? 'bg-white text-[#0652CC] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    ? 'bg-white text-[#244A70] shadow-xs'
+                    : 'text-slate-600 hover:text-[#17263A]'
                 }`}
               >
-                Chờ Review
+                Pending Review
               </button>
               <button
                 type="button"
                 onClick={() => setStatusFilter('FAILED')}
-                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                   statusFilter === 'FAILED'
-                    ? 'bg-white text-rose-600 shadow-xs'
-                    : 'text-[#64748B] hover:text-[#0F172A]'
+                    ? 'bg-white text-rose-700 shadow-xs'
+                    : 'text-slate-600 hover:text-[#17263A]'
                 }`}
               >
-                Lỗi
+                Failed
               </button>
             </div>
           </div>
@@ -426,127 +440,82 @@ export const ConversionStaffOverview: React.FC = () => {
 
         {/* Data Table */}
         <div className="overflow-x-auto">
-          <table className="alsm-table">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr>
-                <th className="w-1/3">Dự Án / Mã Hệ Thống</th>
-                <th>Đối Tác</th>
-                <th>Target Tech</th>
-                <th>Tiến Độ Màn Hình</th>
-                <th>Trạng Thái</th>
-                <th className="text-right">Thao Tác</th>
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC]">
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700 w-1/3">Project / System ID</th>
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700">Partner</th>
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700">Target Tech</th>
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700">Screen Progress</th>
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700">Status</th>
+                <th className="py-3 px-3.5 font-semibold text-xs uppercase tracking-wider text-slate-700 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-[#E8EDF4]">
               {loadingProjects ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-xs text-[#64748B]">
+                  <td colSpan={6} className="py-8 text-center text-xs text-slate-600">
                     <div className="flex items-center justify-center gap-2">
-                      <span className="w-3.5 h-3.5 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
-                      <span>Đang tải danh sách dự án...</span>
+                      <span className="w-3.5 h-3.5 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
+                      <span>Loading projects...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredProjects.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-xs text-[#64748B]">
-                    <div className="max-w-sm mx-auto space-y-1.5">
-                      <FolderKanban className="w-6 h-6 mx-auto text-[#94A3B8]" />
-                      <p className="font-semibold text-[#0F172A]">
-                        {searchTerm || statusFilter !== 'ALL'
-                          ? 'Không tìm thấy dự án phù hợp với bộ lọc'
-                          : 'Hiện tại bạn chưa được phân công dự án nào'}
-                      </p>
-                      <p className="text-[11px] text-[#64748B]">
-                        {searchTerm || statusFilter !== 'ALL'
-                          ? 'Thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc trạng thái.'
-                          : 'Vui lòng liên hệ Team Lead để nhận phân bổ dự án chuyển đổi mới.'}
-                      </p>
-                    </div>
+                  <td colSpan={6} className="py-8 text-center text-xs text-slate-600">
+                    No projects match the selected criteria.
                   </td>
                 </tr>
               ) : (
-                filteredProjects.map((p) => {
+                paginatedProjects.map((p) => {
                   const screensDone = p.screensCompleted || 0;
                   const screensTotal = p.screensTotal || 0;
-                  const percent = screensTotal > 0 ? Math.round((screensDone / screensTotal) * 100) : 0;
+                  const progressPct = screensTotal > 0 ? Math.round((screensDone / screensTotal) * 100) : 0;
 
                   return (
-                    <tr key={p.id} className="transition-colors">
-                      {/* Project Name & Code */}
-                      <td>
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-[#0F172A] hover:text-[#0652CC] transition-colors">
-                            {p.name}
-                          </span>
-                          <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-[#64748B]">
-                            <span className="font-mono text-[#94A3B8]">#{p.id.slice(0, 8)}</span>
-                            {p.conversionType && (
-                              <>
-                                <span>•</span>
-                                <span>{p.conversionType.replace(/_/g, ' ')}</span>
-                              </>
-                            )}
-                          </div>
+                    <tr
+                      key={p.id}
+                      className="hover:bg-[#F4F7FB] transition-colors"
+                    >
+                      <td className="py-3 px-3.5 font-semibold text-[#17263A]">
+                        <div>
+                          <p className="font-bold text-xs">{p.name}</p>
+                          <p className="text-xs font-mono text-slate-500 mt-0.5">ID: {p.id}</p>
                         </div>
                       </td>
-
-                      {/* Partner Name */}
-                      <td className="text-xs text-[#334155]">
-                        <span className="font-medium">{p.partnerName || 'Internal / ALSM'}</span>
-                      </td>
-
-                      {/* Target Tech */}
-                      <td>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1]">
-                          <Code2 className="w-3 h-3 mr-1 text-[#0652CC]" />
+                      <td className="py-3 px-3.5 text-xs text-[#17263A]">{p.partnerName || 'Not linked to partner'}</td>
+                      <td className="py-3 px-3.5">
+                        <span className="font-mono text-xs font-semibold text-[#244A70] bg-[#EEF1F6] px-2 py-0.5 rounded border border-[#DCE3EC]">
                           {p.targetFramework || 'React'}
                         </span>
                       </td>
-
-                      {/* Screen Progress */}
-                      <td>
-                        <div className="w-32 space-y-1">
-                          <div className="flex items-center justify-between text-[11px] text-[#475569]">
+                      <td className="py-3 px-3.5">
+                        <div className="w-32">
+                          <div className="flex justify-between text-xs text-slate-600 font-medium mb-1">
                             <span>{screensDone}/{screensTotal} screens</span>
-                            <span className="font-medium">{percent}%</span>
+                            <span>{progressPct}%</span>
                           </div>
-                          <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full h-1.5 bg-[#DCE3EC] rounded-full overflow-hidden">
                             <div
-                              className="bg-[#0652CC] h-full rounded-full transition-all duration-300"
-                              style={{ width: `${percent}%` }}
+                              className="h-full bg-[#244A70] rounded-full"
+                              style={{ width: `${progressPct}%` }}
                             />
                           </div>
                         </div>
                       </td>
-
-                      {/* Status Badge */}
-                      <td>
-                        <StatusBadge status={p.status} />
+                      <td className="py-3 px-3.5">
+                        <StatusBadge status={p.status || 'IN_PROGRESS'} />
                       </td>
-
-                      {/* Action Buttons */}
-                      <td className="text-right">
-                        <div className="inline-flex items-center gap-1.5 justify-end">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/partners/projects/${p.id}/workspace`)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-[#EFF6FF] text-[#0652CC] border border-[#BFDBFE] hover:bg-[#DBEAFE] transition-colors cursor-pointer"
-                            title="Mở Workspace dự án"
-                          >
-                            <span>Workspace</span>
-                          </button>
-                          <a
-                            href={`${web1Url}/projects/${p.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white text-[#0F172A] border border-[#CBD5E1] hover:bg-[#F8FAFC] transition-colors cursor-pointer"
-                            title="Mở chi tiết trên Web 1"
-                          >
-                            <span>Mở Web 1</span>
-                            <ExternalLink className="w-3 h-3 text-[#64748B]" />
-                          </a>
-                        </div>
+                      <td className="py-3 px-3.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/partners/projects/${p.id}`)}
+                          className="px-2.5 py-1 bg-white border border-[#DCE3EC] text-[#244A70] hover:bg-[#F4F7FB] rounded text-xs font-semibold shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <span>Open Workspace</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
                       </td>
                     </tr>
                   );
@@ -556,18 +525,61 @@ export const ConversionStaffOverview: React.FC = () => {
           </table>
         </div>
 
-        {/* Table Footer */}
-        <div className="px-4 py-2.5 bg-[#FAFBFD] border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
-          <span>Hiển thị {filteredProjects.length} dự án</span>
-          <button
-            type="button"
-            onClick={() => navigate('/employee/queue')}
-            className="text-[#0652CC] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
-          >
-            <span>Mở toàn bộ hàng đợi công việc</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        {/* Pagination Bar */}
+        {filteredProjects.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#F8FAFC] border-t border-[#DCE3EC] text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <span>Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#DCE3EC] rounded px-2 py-1 text-xs font-semibold text-[#17263A] focus:outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-slate-300">|</span>
+              <span>
+                Showing <strong className="font-semibold text-[#17263A]">{filteredProjects.length === 0 ? 0 : startIndex + 1}</strong> to{' '}
+                <strong className="font-semibold text-[#17263A]">{endIndex}</strong> of{' '}
+                <strong className="font-semibold text-[#17263A]">{filteredProjects.length}</strong> projects
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Previous</span>
+              </button>
+
+              <div className="flex items-center gap-1 px-2 text-xs">
+                <span className="font-semibold text-[#17263A]">{safeCurrentPage}</span>
+                <span className="text-slate-400">/</span>
+                <span>{totalPages}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

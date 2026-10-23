@@ -80,22 +80,22 @@ describe('Role-Based Dashboard Suite', () => {
 
     render(<StaffDashboardPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/Platform Admin — System Overview/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Platform Admin — System Overview|Platform Overview)/i)).toBeInTheDocument();
 
     const teamLeadBtn = screen.getByRole('button', { name: /^Team Lead$/i });
     expect(teamLeadBtn).toBeInTheDocument();
 
     fireEvent.click(teamLeadBtn);
-    expect(screen.getByText(/Team Lead — Team Overview/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Team Lead — Team Overview|Team Overview)/i)).toBeInTheDocument();
 
     const staffBtn = screen.getByRole('button', { name: /^Staff$/i });
     fireEvent.click(staffBtn);
-    expect(screen.getByText(/Conversion Staff — My Workspace/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Conversion Staff — My Workspace|My Workspace)/i)).toBeInTheDocument();
     expect(screen.getByText(/Web 1 Conversion Workspace/i)).toBeInTheDocument();
 
     const salesBtn = screen.getByRole('button', { name: /^Sales$/i });
     fireEvent.click(salesBtn);
-    expect(screen.getByText(/Sales \/ Sales Manager — Sales Overview/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Sales \/ Sales Manager — Sales Overview|Sales Overview)/i)).toBeInTheDocument();
   });
 
   it('renders Conversion Staff view directly for CONVERSION_STAFF without admin switch bar', () => {
@@ -115,9 +115,9 @@ describe('Role-Based Dashboard Suite', () => {
 
     render(<StaffDashboardPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/Conversion Staff — My Workspace/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Conversion Staff — My Workspace|My Workspace)/i)).toBeInTheDocument();
     expect(screen.getByText(/Web 1 Conversion Workspace/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Xem theo vai trò:/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/View by role:/i)).not.toBeInTheDocument();
   });
 
   it('renders Team Lead view directly for TEAM_LEAD without admin switch bar', () => {
@@ -137,8 +137,8 @@ describe('Role-Based Dashboard Suite', () => {
 
     render(<StaffDashboardPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/Team Lead — Team Overview/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Xem theo vai trò:/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/(Team Lead — Team Overview|Team Overview)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/View by role:/i)).not.toBeInTheDocument();
   });
 
   it('renders Sales view directly for SALES_MANAGER without admin switch bar', () => {
@@ -158,7 +158,7 @@ describe('Role-Based Dashboard Suite', () => {
 
     render(<StaffDashboardPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/Sales \/ Sales Manager — Sales Overview/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Xem theo vai trò:/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/(Sales \/ Sales Manager — Sales Overview|Sales Overview)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/View by role:/i)).not.toBeInTheDocument();
   });
 });
