@@ -13,7 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/shared/ui';
-import { partnersApi } from '../../api/partners.api';
+import { partnersApi, PartnerApiError } from '../../api/partners.api';
 import { Partner, ConversionType } from '../../types/partner.types';
 
 export const CreatePartnerProjectPage: React.FC = () => {
@@ -93,10 +93,13 @@ export const CreatePartnerProjectPage: React.FC = () => {
       });
 
       navigate(`/partners/projects/${newProj.id}`);
-    } catch {
+    } catch (err) {
       setErrors((prev) => ({
         ...prev,
-        form: 'Failed to create partner project. Please verify inputs and try again.',
+        form:
+          err instanceof PartnerApiError
+            ? err.message
+            : 'Failed to create partner project. Please verify inputs and try again.',
       }));
     } finally {
       setSubmitting(false);
