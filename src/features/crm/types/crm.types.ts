@@ -1,4 +1,4 @@
-export type LeadStage = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'WON' | 'LOST';
+export type LeadStage = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'NEGOTIATION' | 'WON' | 'LOST';
 export type SalesPipelineStage = LeadStage | 'NEGOTIATION' | 'UNMAPPED';
 
 export interface SalesPipelineLeadDto {
@@ -131,10 +131,25 @@ export interface LeadDto {
   contactName: string;
   email: string;
   phone?: string;
+  taxId?: string;
+  address?: string;
+  representativeName?: string;
+  representativeTitle?: string;
+  signatoryEmail?: string;
+  website?: string;
   source: string;
   stage: LeadStage;
   score: number;
   dealValue?: number;
+  estimatedValue?: number;
+  currency?: string;
+  conversationId?: string;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
+  estimatedScreens?: number;
+  estimatedPrograms?: number;
+  expectedCloseDate?: string;
+  followUpDate?: string;
+  businessRequirements?: string;
   region?: string;
   lastContactAt?: string;
   nextFollowUpAt?: string;
