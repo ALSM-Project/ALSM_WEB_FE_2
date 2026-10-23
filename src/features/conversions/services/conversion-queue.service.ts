@@ -35,9 +35,9 @@ export interface FieldMappingEntry {
 }
 
 export const conversionQueueService = {
-  listProjects: () => apiClient.get<QueueProject[]>('/projects'),
-  listJobs: (projectId: string) => apiClient.get<QueueJob[]>(`/projects/${encodeURIComponent(projectId)}/conversions`),
-  getJob: (jobId: string) => apiClient.get<QueueJob>(`/conversions/${encodeURIComponent(jobId)}`),
+  listProjects: (signal?: AbortSignal) => apiClient.get<QueueProject[]>('/projects', { signal }),
+  listJobs: (projectId: string, signal?: AbortSignal) => apiClient.get<QueueJob[]>(`/projects/${encodeURIComponent(projectId)}/conversions`, { signal }),
+  getJob: (jobId: string, signal?: AbortSignal) => apiClient.get<QueueJob>(`/conversions/${encodeURIComponent(jobId)}`, { signal }),
   getResult: (jobId: string) => apiClient.get<ConversionResult>(`/conversions/${encodeURIComponent(jobId)}/result`),
   retryJob: (jobId: string) => apiClient.post<QueueJob>(`/conversions/${encodeURIComponent(jobId)}/retry`),
   getFieldMapping: (projectId: string, screenId: string) =>
@@ -48,6 +48,16 @@ export const conversionQueueService = {
   },
 };
 
+export function queueError(error: unknown): string {
+  const candidate = error as { response?: { status?: number; data?: { message?: string | string[] } } };
+  const status = candidate?.response?.status;
+  if (!status || status >= 500) return 'Conversion service is unavailable. Please try again.';
+  if (status === 401) return 'Your session is no longer authorized. Please sign in again.';
+  const message = candidate?.response?.data?.message;
+  return (Array.isArray(message) ? message.join('; ') : message) || 'Unable to load conversion data.';
+}
+
+// Keep the existing diagnostic contract for other conversion screens.
 export function conversionError(error: unknown): string {
   const candidate = error as { response?: { data?: { message?: string | string[] } }; message?: string };
   const message = candidate?.response?.data?.message;
