@@ -94,7 +94,7 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
         role="dialog"
         aria-modal="true"
         aria-labelledby="log-phone-call-title"
-        className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-[#E8ECF1] bg-white shadow-2xl"
+        className="flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-[#DCE3EC] bg-white shadow-2xl"
         onKeyDown={(event) => {
           event.stopPropagation();
           if (event.key === 'Escape' && !isSubmitting) onClose();
@@ -114,17 +114,17 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
           }
         }}
       >
-        <header className="flex items-center justify-between border-b border-[#E8ECF1] bg-[#F7F9FC] px-5 py-4">
+        <header className="flex items-center justify-between border-b border-[#DCE3EC] bg-[#F8FAFC] px-5 py-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-[#0652CC]">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-[#244A70]">
               <PhoneCall aria-hidden="true" className="h-5 w-5" />
             </span>
             <div>
-              <h2 id="log-phone-call-title" className="font-bold text-[#091E42]">Log Phone Call</h2>
-              <p className="text-xs text-[#6B778C]">{lead.companyName} · {lead.contactName}</p>
+              <h2 id="log-phone-call-title" className="font-bold text-[#17263A]">Log Phone Call</h2>
+              <p className="text-xs text-[#8491A3]">{lead.companyName} · {lead.contactName}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Close log phone call" className="rounded p-1 text-[#6B778C] hover:bg-gray-200 disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Close log phone call" className="rounded p-1 text-[#8491A3] hover:bg-gray-200 disabled:opacity-50">
             <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </header>
@@ -138,7 +138,7 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
           {errorMessage && <p role="alert" className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">{errorMessage}</p>}
 
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-medium text-[#253858]">
+            <label className="block text-sm font-medium text-[#17263A]">
               Call outcome <span className="text-rose-600" aria-hidden="true">*</span>
               <select
                 autoFocus
@@ -146,13 +146,13 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
                 value={outcome}
                 onChange={(event) => setOutcome(event.target.value as LogPhoneCallPayload['outcome'] | '')}
                 disabled={!canManage || isSubmitting}
-                className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] bg-white px-3 py-2.5 text-sm"
+                className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] bg-white px-3 py-2.5 text-sm"
               >
                 <option value="">Select an outcome</option>
                 {Object.entries(LEAD_PHONE_CALL_OUTCOME_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>
-            <label className="block text-sm font-medium text-[#253858]">
+            <label className="block text-sm font-medium text-[#17263A]">
               Duration (minutes) <span className="text-rose-600" aria-hidden="true">*</span>
               <input
                 required
@@ -163,12 +163,12 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
                 value={durationMinutes}
                 onChange={(event) => setDurationMinutes(event.target.value)}
                 disabled={!canManage || isSubmitting}
-                className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm"
+                className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm"
               />
             </label>
           </div>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
             Call summary <span className="text-rose-600" aria-hidden="true">*</span>
             <textarea
               required
@@ -180,25 +180,25 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
               disabled={!canManage || isSubmitting}
               aria-describedby="call-summary-count"
               placeholder="What did you and the contact discuss?"
-              className="mt-1.5 block w-full resize-y rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm"
+              className="mt-1.5 block w-full resize-y rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm"
             />
-            <span id="call-summary-count" className="mt-1 block text-right text-xs text-[#6B778C]">{summary.length}/500</span>
+            <span id="call-summary-count" className="mt-1 block text-right text-xs text-[#8491A3]">{summary.length}/500</span>
           </label>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
-            Follow-up date and time <span className="text-xs font-normal text-[#6B778C]">(optional)</span>
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
+            Follow-up date and time <span className="text-xs font-normal text-[#8491A3]">(optional)</span>
             <input
               type="datetime-local"
               min={localDateTime(new Date())}
               value={followUpAt}
               onChange={(event) => setFollowUpAt(event.target.value)}
               disabled={!canManage || isSubmitting}
-              className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm"
+              className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm"
             />
           </label>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
-            Internal notes <span className="text-xs font-normal text-[#6B778C]">(optional)</span>
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
+            Internal notes <span className="text-xs font-normal text-[#8491A3]">(optional)</span>
             <textarea
               maxLength={2000}
               rows={3}
@@ -207,14 +207,14 @@ export const LogPhoneCallModal: React.FC<LogPhoneCallModalProps> = ({ lead, onCl
               disabled={!canManage || isSubmitting}
               aria-describedby="call-notes-count"
               placeholder="Additional context or next steps for the sales team"
-              className="mt-1.5 block w-full resize-y rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm"
+              className="mt-1.5 block w-full resize-y rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm"
             />
-            <span id="call-notes-count" className="mt-1 block text-right text-xs text-[#6B778C]">{notes.length}/2,000</span>
+            <span id="call-notes-count" className="mt-1 block text-right text-xs text-[#8491A3]">{notes.length}/2,000</span>
           </label>
 
-          <footer className="flex flex-col-reverse gap-2 border-t border-[#E8ECF1] pt-4 sm:flex-row sm:justify-end">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-[#D9E2EC] bg-white px-4 py-2.5 text-sm font-semibold text-[#253858] disabled:opacity-50">Cancel</button>
-            <button type="submit" disabled={!canManage || isSubmitting} aria-busy={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-[#0652CC] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0747b8] disabled:cursor-not-allowed disabled:opacity-50">
+          <footer className="flex flex-col-reverse gap-2 border-t border-[#DCE3EC] pt-4 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-[#DCE3EC] bg-white px-4 py-2.5 text-sm font-semibold text-[#17263A] disabled:opacity-50">Cancel</button>
+            <button type="submit" disabled={!canManage || isSubmitting} aria-busy={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-[#244A70] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#244A70] disabled:cursor-not-allowed disabled:opacity-50">
               {isSubmitting && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Saving call…' : 'Save call'}
             </button>
