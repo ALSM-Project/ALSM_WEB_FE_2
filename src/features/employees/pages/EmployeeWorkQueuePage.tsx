@@ -6,6 +6,7 @@ import {
   Search, Shield, Layers, FileCode, Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { adminApi, OrganizationDto, isManagedModernizationProject } from '@/features/admin/api/admin.api';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject, PartnerConversionItem } from '@/features/partners/types/partner.types';
 import { StatusBadge } from '@/shared/ui/Badge';
@@ -33,11 +34,38 @@ export const EmployeeWorkQueuePage: React.FC = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const allProjects = await partnersApi.getProjects();
-      setProjects(allProjects || []);
+      const [allProjects, orgList] = await Promise.all([
+        partnersApi.getProjects(),
+        adminApi.getOrganizations().catch(() => []),
+      ]);
 
-      // Load all conversion items across all projects
-      const itemPromises = allProjects.map(async (p) => {
+      const orgMap = new Map<string, OrganizationDto>();
+      (orgList || []).forEach((o) => {
+        if (o.id) orgMap.set(o.id, o);
+      });
+      const hasLoadedOrgs = (orgList || []).length > 0;
+
+      // Strictly filter to projects belonging to Web 3 Managed Modernization Services organizations
+      const managedProjects = (allProjects || [])
+        .filter((p) => {
+          const org = orgMap.get(p.organizationId);
+          return isManagedModernizationProject(p, org, hasLoadedOrgs);
+        })
+        .map((p) => {
+          const org = orgMap.get(p.organizationId);
+          return {
+            ...p,
+            partnerName: org?.name || p.partnerName,
+          };
+        });
+
+      setProjects(managedProjects);
+
+
+      // Only load conversion items for projects assigned to this user
+      // to avoid triggering unauthorized cross-tenant requests that return 404
+      const targetProjects = managedProjects.filter((p) => isAssignedToUser(p));
+      const itemPromises = targetProjects.map(async (p) => {
         try {
           const items = await partnersApi.getProjectItems(p.id);
           return items.map((item) => ({
@@ -64,17 +92,18 @@ export const EmployeeWorkQueuePage: React.FC = () => {
 
   useEffect(() => {
     fetchWorkQueue();
-  }, []);
+  }, [user?.id]);
 
   // Filter projects by current user
   const isAssignedToUser = (p: PartnerProject) => {
-    if (!user) return true;
+    if (!user) return false;
     // Direct staff id or staff name match
     const matchesStaffId = p.assignedStaffId === user.id;
     const matchesStaffName =
       p.assignedStaffName &&
+      user.fullName &&
       p.assignedStaffName.toLowerCase().includes(user.fullName.toLowerCase());
-    return matchesStaffId || matchesStaffName;
+    return Boolean(matchesStaffId || matchesStaffName);
   };
 
   const displayedProjects = projects.filter((p) => {
@@ -105,45 +134,39 @@ export const EmployeeWorkQueuePage: React.FC = () => {
 
   // Metrics
   const assignedProjectsCount = displayedProjects.length;
-  const totalItemsCount = displayedItems.length;
+  const totalItemsCount = workItems.length > 0
+    ? displayedItems.length
+    : displayedProjects.reduce((acc, p) => acc + (p.screensTotal || 0) + (p.programsTotal || 0), 0);
   const passedValidationCount = displayedItems.filter(
     (i) => i.validationStatus === 'PASSED'
   ).length;
-  const completedCount = displayedItems.filter(
-    (i) => i.status === 'COMPLETED' || i.status === 'READY_FOR_EXPORT'
-  ).length;
+  const completedCount = workItems.length > 0
+    ? displayedItems.filter((i) => i.status === 'COMPLETED' || i.status === 'READY_FOR_EXPORT').length
+    : displayedProjects.reduce((acc, p) => acc + (p.screensCompleted || 0) + (p.programsCompleted || 0), 0);
 
   return (
     <div className="space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#0652CC] border border-blue-200/60 uppercase tracking-wider">
-              Execution Workbench
-            </span>
-            <span className="text-xs text-slate-500 font-mono">Stage 3: Interactive Modernization</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] mt-1.5">
-            My Assigned Work Queue
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17263A]">
+            My Assigned Work
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
-            Modernization tasks assigned to you by your Team Lead. Select any project to open the Web 1 Conversion Workspace to parse ASTs, configure field mappings, and review generated code.
-          </p>
+          
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Link
             to="/team-lead/projects"
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            <Shield className="w-3.5 h-3.5 text-[#0652CC]" />
+            <Shield className="w-3.5 h-3.5 text-[#244A70]" />
             <span>Team Lead View</span>
           </Link>
           <button
             onClick={fetchWorkQueue}
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#0652CC]' : 'text-slate-500'}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#244A70]' : 'text-slate-500'}`} />
             <span>Refresh Queue</span>
           </button>
         </div>
@@ -166,21 +189,21 @@ export const EmployeeWorkQueuePage: React.FC = () => {
             setViewMode('PROJECTS');
             setQueueFilter('MY_QUEUE');
           }}
-          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-[#0652CC] group ${
-            viewMode === 'PROJECTS' ? 'border-[#0652CC] ring-1 ring-[#0652CC]' : 'border-slate-200'
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-[#244A70] group ${
+            viewMode === 'PROJECTS' ? 'border-[#244A70] ring-1 ring-[#244A70]' : 'border-slate-200'
           }`}
           title="Click to view assigned projects in card view"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 group-hover:text-[#0652CC] transition-colors">Assigned Projects</span>
+            <span className="text-xs font-medium text-slate-500 group-hover:text-[#244A70] transition-colors">Assigned Projects</span>
             <div className="w-7 h-7 rounded-md bg-blue-50 border border-blue-200/60 flex items-center justify-center">
-              <FolderKanban className="w-3.5 h-3.5 text-[#0652CC]" />
+              <FolderKanban className="w-3.5 h-3.5 text-[#244A70]" />
             </div>
           </div>
           <div className="text-2xl font-bold tracking-tight text-slate-900 mt-2">{assignedProjectsCount}</div>
           <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
             <span>Under your active queue</span>
-            <span className="text-[#0652CC] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Cards →</span>
+            <span className="text-[#244A70] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Cards →</span>
           </div>
         </div>
 
@@ -332,7 +355,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
           {loading ? (
             <div className="col-span-full py-12 text-center text-slate-500 bg-white rounded-lg border border-slate-200">
               <div className="flex flex-col items-center justify-center space-y-2">
-                <div className="w-5 h-5 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs">Loading assigned projects...</span>
               </div>
             </div>
@@ -353,8 +376,8 @@ export const EmployeeWorkQueuePage: React.FC = () => {
               return (
                 <div
                   key={p.id}
-                  onClick={() => navigate(`/partners/projects/${p.id}/workspace`)}
-                  className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs hover:border-[#0652CC] hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer group"
+                  onClick={() => navigate(totalItems === 0 ? `/partners/projects/${p.id}` : `/partners/projects/${p.id}/workspace`)}
+                  className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs hover:border-[#244A70] hover:shadow-sm transition-all flex flex-col justify-between cursor-pointer group"
                 >
                   <div>
                     {/* Top Tag & Partner */}
@@ -369,7 +392,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                     </div>
 
                     {/* Project Title & Description */}
-                    <h3 className="text-sm font-semibold text-slate-900 group-hover:text-[#0652CC] transition-colors line-clamp-1">{p.name}</h3>
+                    <h3 className="text-sm font-semibold text-slate-900 group-hover:text-[#244A70] transition-colors line-clamp-1">{p.name}</h3>
                     <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                       {p.description || 'Enterprise legacy migration project.'}
                     </p>
@@ -385,7 +408,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500">Supervising Lead:</span>
                         <span className="font-medium text-slate-900">
-                          {p.assignedTeamLeadName || 'Sarah Jenkins'}
+                          {p.assignedTeamLeadName || 'Unassigned'}
                         </span>
                       </div>
                     </div>
@@ -398,7 +421,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-[#0652CC] rounded-full transition-all duration-500"
+                          className="h-full bg-[#244A70] rounded-full transition-all duration-500"
                           style={{ width: `${progressPct}%` }}
                         />
                       </div>
@@ -410,14 +433,14 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                     <Link
                       to={`/partners/projects/${p.id}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="text-xs font-medium text-slate-500 hover:text-[#0652CC] transition-colors"
+                      className="text-xs font-medium text-slate-500 hover:text-[#244A70] transition-colors"
                     >
                       Project Overview
                     </Link>
                     <Link
                       to={`/partners/projects/${p.id}/workspace`}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0652CC] text-white hover:bg-[#0544AB] text-xs font-medium shadow-xs transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#244A70] text-white hover:bg-[#244A70] text-xs font-medium shadow-xs transition-colors"
                     >
                       <span>Open Workspace</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -450,7 +473,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-slate-500">
                       <div className="flex flex-col items-center justify-center space-y-2">
-                        <div className="w-5 h-5 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                         <span className="text-xs">Loading assigned conversion items...</span>
                       </div>
                     </td>
@@ -470,8 +493,8 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                       className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                     >
                       <td className="py-2.5 px-3.5">
-                        <div className="font-medium text-slate-900 group-hover:text-[#0652CC] transition-colors flex items-center gap-1.5">
-                          <Code2 className="w-3.5 h-3.5 text-[#0652CC] shrink-0" />
+                        <div className="font-medium text-slate-900 group-hover:text-[#244A70] transition-colors flex items-center gap-1.5">
+                          <Code2 className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
                           <span>{item.name}</span>
                         </div>
                         <div className="font-mono text-[10px] text-slate-400 mt-0.5">{item.sourceFile}</div>
@@ -519,7 +542,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
                               e.stopPropagation();
                               navigate(`/partners/projects/${item.projectId}/workspace`);
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#0652CC] text-white hover:bg-[#0544AB] text-xs font-medium shadow-xs transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#244A70] text-white hover:bg-[#244A70] text-xs font-medium shadow-xs transition-colors"
                           >
                             <span>Workspace</span>
                             <ExternalLink className="w-3 h-3" />

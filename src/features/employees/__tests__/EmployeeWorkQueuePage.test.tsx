@@ -53,7 +53,7 @@ describe('EmployeeWorkQueuePage - System Employee Modernization Workbench Queue'
   it('renders employee work queue with KPI metrics and project cards', async () => {
     render(<EmployeeWorkQueuePage />, { wrapper: createWrapper() });
 
-    expect(await screen.findByText('My Assigned Work Queue')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: /(My Assigned Work|My Assigned Work Queue)/i })).toBeInTheDocument();
     expect(await screen.findByText('Core Banking Customer Portal')).toBeInTheDocument();
     expect(screen.getByText('Assigned Projects')).toBeInTheDocument();
     expect(screen.getByText('Screens & Programs')).toBeInTheDocument();
