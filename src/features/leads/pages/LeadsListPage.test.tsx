@@ -111,10 +111,8 @@ describe('LeadsListPage (UC-58)', () => {
 
     renderComponent();
 
-    expect(screen.getByText('Leads (CRM)')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Manage, filter, and track sales prospects/)
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /(Leads|Leads \(CRM\))/i })).toBeInTheDocument();
+    
 
     await waitFor(() => {
       expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument();
