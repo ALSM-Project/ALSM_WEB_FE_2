@@ -305,7 +305,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-lg bg-[#0652CC] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0543A8] disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg bg-[#244A70] px-4 py-2 text-sm font-semibold text-white hover:bg-[#244A70] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? 'Creating lead…' : 'Create lead'}
           </button>
