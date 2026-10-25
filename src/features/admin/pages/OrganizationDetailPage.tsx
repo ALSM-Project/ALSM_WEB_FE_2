@@ -93,15 +93,11 @@ export const OrganizationDetailPage: React.FC = () => {
         usageStorageGb: maxStorageGb,
       };
 
-      try {
-        await adminApi.updateEngagement(org.id, {
-          status: editStatus,
-          engagementType: editEngagement,
-          limits: updatedLimits as any,
-        });
-      } catch {
-        // Fallback to local state update if backend is mock/unreachable
-      }
+      await adminApi.updateEngagement(org.id, {
+        status: editStatus,
+        engagementType: editEngagement,
+        limits: updatedLimits as any,
+      });
 
       setOrg((prev) =>
         prev

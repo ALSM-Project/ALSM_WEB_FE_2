@@ -125,4 +125,16 @@ describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
       expect(adminAssignSpy).toHaveBeenCalled();
     });
   });
+
+  it('does not update the partner store or report success when global assignment is denied', async () => {
+    vi.spyOn(adminApi, 'assignTeamLead').mockRejectedValue(new Error('Global assignment denied'));
+    render(<AdminProjectsPage />, { wrapper: createWrapper() });
+    await screen.findByText('General Ledger COBOL Migration');
+    fireEvent.click(screen.getAllByRole('button', { name: /Assign to Lead|Reassign Lead/i })[0]);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'lead-01' } });
+    fireEvent.click(screen.getByRole('button', { name: /Allocate to Team Lead|Confirm Reassignment/i }));
+    await screen.findByText('Global assignment denied');
+    expect(partnersApi.assignProject).not.toHaveBeenCalled();
+    expect(screen.queryByText(/successfully.*allocated/i)).not.toBeInTheDocument();
+  });
 });

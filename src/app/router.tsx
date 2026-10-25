@@ -231,7 +231,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/projects',
         element: (
-          <PermissionGuard permission="organizations.manage">
+          <PermissionGuard permission="organizations.manage" platformAdminOnly>
             <AdminProjectsPage />
           </PermissionGuard>
         ),
@@ -239,7 +239,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/engagement-types',
         element: (
-          <PermissionGuard permission="organizations.manage">
+          <PermissionGuard permission="engagement-types.manage" platformAdminOnly>
             <EngagementTypesPage />
           </PermissionGuard>
         ),
@@ -247,7 +247,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/organizations',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -255,7 +255,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/organizations/:orgId',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationDetailPage />
           </PermissionGuard>
         ),
@@ -263,7 +263,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -271,7 +271,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations/partners',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -279,7 +279,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations/departments',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -295,7 +295,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/revenue',
         element: (
-          <PermissionGuard permission="revenue.view">
+          <PermissionGuard permission="revenue.view" platformAdminOnly>
             <RevenueDashboardPage />
           </PermissionGuard>
         ),
@@ -303,7 +303,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/finance/revenue',
         element: (
-          <PermissionGuard permission="revenue.view">
+          <PermissionGuard permission="revenue.view" platformAdminOnly>
             <RevenueDashboardPage />
           </PermissionGuard>
         ),
@@ -311,7 +311,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/audit-logs',
         element: (
-          <PermissionGuard permission="audit.view">
+          <PermissionGuard permission="audit.view" platformAdminOnly>
             <AuditLogsPage />
           </PermissionGuard>
         ),

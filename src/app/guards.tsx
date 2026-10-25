@@ -53,10 +53,11 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
   return children ? <>{children}</> : <Outlet />;
 };
 
-export const PermissionGuard = ({ permission, children }: { permission: string; children?: React.ReactNode }) => {
-  const { hasPermission } = useAuth();
+export const PermissionGuard = ({ permission, children, platformAdminOnly = false }: { permission: string; children?: React.ReactNode; platformAdminOnly?: boolean }) => {
+  const { user, hasPermission } = useAuth();
 
-  if (!hasPermission(permission)) {
+  // Presentation only: the backend independently checks persisted authority.
+  if ((platformAdminOnly && user?.isPlatformAdmin !== true) || !hasPermission(permission)) {
     return (
       <div className="flex flex-col items-center justify-center h-screen space-y-4">
         <div className="text-red-500 text-6xl">🔒</div>

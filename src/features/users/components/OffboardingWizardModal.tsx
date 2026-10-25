@@ -90,14 +90,10 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
       setSubmitting(true);
       setErrorMsg(null);
 
-      try {
-        await usersApi.offboardUser(userToOffboard.id, {
-          transferToUserId,
-          reason: reason.trim(),
-        });
-      } catch {
-        // Fallback to local state simulation
-      }
+      await usersApi.offboardUser(userToOffboard.id, {
+        transferToUserId,
+        reason: reason.trim(),
+      });
 
       // Simulate completion result
       setExecutionResult({
