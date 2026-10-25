@@ -93,13 +93,9 @@ export const OrganizationsPage: React.FC = () => {
       let createdId = `org-${newOrg.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
       let tempPassword = 'DefaultSecurePass123!';
 
-      try {
-        const res = await adminApi.createEnterpriseOrganization(newOrg);
-        if (res.organization?.id) createdId = res.organization.id;
-        if (res.temporaryPassword) tempPassword = res.temporaryPassword;
-      } catch {
-        // Fallback to local mock state update if backend unavailable
-      }
+      const res = await adminApi.createEnterpriseOrganization(newOrg);
+      if (res.organization?.id) createdId = res.organization.id;
+      if (res.temporaryPassword) tempPassword = res.temporaryPassword;
 
       const createdRecord: OrganizationDto = {
         id: createdId,

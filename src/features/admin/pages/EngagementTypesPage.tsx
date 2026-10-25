@@ -286,14 +286,10 @@ export const EngagementTypesPage: React.FC = () => {
         createdAt: editingItem?.createdAt || new Date().toISOString(),
       };
 
-      try {
-        if (editingItem) {
-          await adminApi.updateEngagementType(editingItem.id, payload as any);
-        } else {
-          await adminApi.createEngagementType(payload as any);
-        }
-      } catch {
-        // Fallback to local state update
+      if (editingItem) {
+        await adminApi.updateEngagementType(editingItem.id, payload as any);
+      } else {
+        await adminApi.createEngagementType(payload as any);
       }
 
       if (editingItem) {
