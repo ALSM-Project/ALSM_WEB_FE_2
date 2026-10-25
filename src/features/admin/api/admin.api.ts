@@ -85,14 +85,6 @@ export interface AuditLogDto {
   ipAddress?: string;
 }
 
-export interface ImpersonationResultDto {
-  impersonatedOrgId: string;
-  impersonatedOrgName: string;
-  readOnly: boolean;
-  token?: string;
-  impersonatedBy: string;
-}
-
 export const adminApi = {
   getOrganizations: async (): Promise<OrganizationDto[]> => {
     return apiClient.get<OrganizationDto[]>('/admin/organizations');
@@ -113,10 +105,6 @@ export const adminApi = {
       '/admin/organizations/enterprise',
       data
     );
-  },
-
-  impersonateOrganization: async (id: string): Promise<ImpersonationResultDto> => {
-    return apiClient.post<ImpersonationResultDto>(`/admin/organizations/${id}/impersonate`, {});
   },
 
   updateEngagement: async (

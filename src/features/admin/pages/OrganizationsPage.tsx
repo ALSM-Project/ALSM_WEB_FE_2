@@ -1,74 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2, ShieldAlert,
+  Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2,
   FolderKanban, Users, AlertCircle, ArrowRight, ArrowLeft
 } from 'lucide-react';
 import { adminApi, OrganizationDto, EngagementTypeDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
-import { useSupportView } from '../context/SupportViewContext';
+import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-
-const MOCK_ORGS: OrganizationDto[] = [
-  {
-    id: 'org-acme-corp',
-    name: 'Acme Corporation',
-    domain: 'acme.corp',
-    contactEmail: 'contact@acme.corp',
-    type: 'ENTERPRISE',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T1',
-    memberCount: 24,
-    createdAt: '2026-06-12T10:00:00Z',
-    updatedAt: '2026-10-18T14:00:00Z',
-  },
-  {
-    id: 'org-fnx-prod',
-    name: 'Fintech Nexus International',
-    domain: 'fintechnexus.io',
-    contactEmail: 'support@fintechnexus.io',
-    type: 'ENTERPRISE',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T2',
-    memberCount: 15,
-    createdAt: '2026-08-15T09:00:00Z',
-    updatedAt: '2026-10-19T11:30:00Z',
-  },
-  {
-    id: 'org-tokyo-marine',
-    name: 'Tokyo Marine Global Insurance',
-    domain: 'tokyomarine.jp',
-    contactEmail: 'support@tokyomarine.jp',
-    type: 'PARTNER',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T1',
-    memberCount: 8,
-    createdAt: '2026-09-01T08:00:00Z',
-    updatedAt: '2026-10-20T16:45:00Z',
-  },
-  {
-    id: 'org-metlife-legacy',
-    name: 'MetLife Modernization Labs',
-    domain: 'metlife-labs.com',
-    contactEmail: 'tech@metlife-labs.com',
-    type: 'STANDARD',
-    status: 'TRIAL',
-    engagementType: 'STANDARD',
-    memberCount: 5,
-    createdAt: '2026-09-20T12:00:00Z',
-    updatedAt: '2026-10-21T09:15:00Z',
-  },
-];
 
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { enterSupportView, isSupportReadOnly, supportOrg } = useSupportView();
   const { user, hasPermission } = useAuth();
-  const canImpersonate = user ? hasPermission('organizations.impersonate') : true;
+  const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
 
   const [organizations, setOrganizations] = useState<OrganizationDto[]>([]);
   const [, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
@@ -81,9 +30,6 @@ export const OrganizationsPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Support View Modal State
-  const [supportTargetOrg, setSupportTargetOrg] = useState<OrganizationDto | null>(null);
-
   const [newOrg, setNewOrg] = useState({
     name: '',
     domain: '',
@@ -95,27 +41,16 @@ export const OrganizationsPage: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [orgs, types] = await Promise.all([
-        adminApi.getOrganizations().catch(() => []),
+        adminApi.getOrganizations(),
         adminApi.getEngagementTypes().catch(() => []),
       ]);
-      if (orgs && orgs.length > 0) {
-        // Merge with mock details to ensure memberCount and type are present
-        const merged = orgs.map((o) => {
-          const mockMatch = MOCK_ORGS.find((m) => m.id === o.id || m.name === o.name);
-          return {
-            ...o,
-            type: o.type || mockMatch?.type || 'ENTERPRISE',
-            memberCount: o.memberCount ?? mockMatch?.memberCount ?? (o.members?.length || 4),
-          };
-        });
-        setOrganizations(merged);
-      } else {
-        setOrganizations(MOCK_ORGS);
-      }
+      setOrganizations(orgs);
       setEngagementTypes(types);
     } catch {
-      setOrganizations(MOCK_ORGS);
+      setOrganizations([]);
+      setLoadError('Unable to load organisations. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -201,18 +136,6 @@ export const OrganizationsPage: React.FC = () => {
     }
   };
 
-  const handleConfirmSupportView = () => {
-    if (!supportTargetOrg) return;
-    enterSupportView({
-      id: supportTargetOrg.id,
-      name: supportTargetOrg.name,
-      contactEmail: supportTargetOrg.contactEmail,
-      domain: supportTargetOrg.domain,
-    });
-    setSupportTargetOrg(null);
-    navigate('/partners/projects');
-  };
-
   // Filter & Sort
   const filteredOrgs = organizations
     .filter((org) => {
@@ -293,25 +216,10 @@ export const OrganizationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Active Support View Indicator Banner */}
-      {isSupportReadOnly && supportOrg && (
-        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>
-              Currently assisting <strong>{supportOrg.name}</strong> ({supportOrg.id}) in Read-Only Support View.
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/partners/projects')}
-            className="text-xs border-amber-400 bg-white hover:bg-amber-100 text-amber-900"
-          >
-            Open Organisation Workspace
-          </Button>
-        </div>
-      )}
+      <p id="support-view-unavailable" role="status" className="text-xs text-[#6B778C]">
+        {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
+      </p>
+      {loadError && <p role="alert" className="text-xs text-rose-700">{loadError}</p>}
 
       {/* Alert Messages */}
       {successMsg && (
@@ -481,8 +389,9 @@ export const OrganizationsPage: React.FC = () => {
                               variant="primary"
                               size="sm"
                               className="text-xs bg-[#0652CC] text-white hover:bg-[#0543A8] py-1 px-2.5"
-                              onClick={() => setSupportTargetOrg(org)}
-                              title="Enter customer space in simulated read-only support mode"
+                              disabled
+                              aria-describedby="support-view-unavailable"
+                              title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
                             >
                               <Eye className="w-3 h-3 mr-1" />
                               Support View
@@ -506,66 +415,6 @@ export const OrganizationsPage: React.FC = () => {
           </table>
         </div>
       </div>
-
-      {/* Confirmation Dialog: Enter Read-Only Support View */}
-      <Modal
-        isOpen={Boolean(supportTargetOrg)}
-        onClose={() => setSupportTargetOrg(null)}
-        title="Enter Customer Support View"
-      >
-        {supportTargetOrg && (
-          <div className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold text-sm text-amber-950">
-                <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0" />
-                <span>Read-Only Support Session Notice</span>
-              </div>
-              <p>
-                You are about to simulate entering customer organization <strong>{supportTargetOrg.name}</strong> in strict Read-Only mode.
-              </p>
-              <div className="font-semibold text-amber-900 text-xs">Guardrails enforced in Support View:</div>
-              <ul className="list-disc pl-5 space-y-1 text-[11px] text-amber-800">
-                <li>No customer projects or mappings will be modified.</li>
-                <li>All actions are recorded in the immutable platform audit log.</li>
-                <li>You can exit this view at any time from the top warning banner.</li>
-              </ul>
-            </div>
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Target Organisation:</span>
-                <span className="font-semibold text-[#091E42]">{supportTargetOrg.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Identifier:</span>
-                <span className="font-mono text-[#091E42]">{supportTargetOrg.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Support Staff:</span>
-                <span className="font-semibold text-[#0652CC]">System Administrator</span>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSupportTargetOrg(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleConfirmSupportView}
-                className="bg-[#0652CC] hover:bg-[#0543A8]"
-              >
-                Confirm & Enter Support View
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* 2-Step Provisioning Modal: New Enterprise Org (Requirement C) */}
       <Modal

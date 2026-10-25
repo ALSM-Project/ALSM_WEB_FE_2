@@ -4,12 +4,14 @@ import {
   Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, } from 'lucide-react';
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
-import { useSupportView } from '../context/SupportViewContext';
+import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const OrganizationDetailPage: React.FC = () => {
   const { orgId } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
-  const { enterSupportView } = useSupportView();
+  const { user, hasPermission } = useAuth();
+  const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
 
   const [org, setOrg] = useState<OrganizationDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -40,147 +42,12 @@ export const OrganizationDetailPage: React.FC = () => {
 
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  const defaultMockOrg = (id: string): OrganizationDto => ({
-    id,
-    name: id.includes('fnx')
-      ? 'Fintech Nexus International'
-      : id.includes('tokyo')
-      ? 'Tokyo Marine Global Insurance'
-      : id.includes('metlife')
-      ? 'MetLife Modernization Labs'
-      : 'Acme Corporation',
-    domain: id.includes('fnx')
-      ? 'fintechnexus.io'
-      : id.includes('tokyo')
-      ? 'tokyomarine.jp'
-      : id.includes('metlife')
-      ? 'metlife-labs.com'
-      : 'acme.corp',
-    contactEmail: id.includes('fnx')
-      ? 'support@fintechnexus.io'
-      : id.includes('tokyo')
-      ? 'support@tokyomarine.jp'
-      : id.includes('metlife')
-      ? 'tech@metlife-labs.com'
-      : 'contact@acme.corp',
-    type: id.includes('tokyo') ? 'PARTNER' : id.includes('metlife') ? 'STANDARD' : 'ENTERPRISE',
-    status: id.includes('metlife') ? 'TRIAL' : 'ACTIVE',
-    engagementType: id.includes('fnx') ? 'ENTERPRISE_T2' : 'ENTERPRISE_T1',
-    trialExpiresAt: '2026-11-20T00:00:00Z',
-    memberCount: id.includes('fnx') ? 15 : id.includes('tokyo') ? 8 : 24,
-    limits: {
-      maxProjects: 10,
-      maxConversionsPerMonth: 100,
-      maxStorageGb: 50,
-      aiValidationEnabled: true,
-      trialScreens: 15,
-      trialPrograms: 8,
-      trialStorageGb: 5,
-      usageScreens: 150,
-      usagePrograms: 60,
-      usageStorageGb: 50,
-    },
-    usageStats: {
-      totalScreensConverted: 142,
-      activeProjects: 3,
-      storageUsedGb: 18.4,
-      conversionsThisMonth: 64,
-    },
-    billingHistory: [
-      {
-        id: 'inv-001',
-        invoiceNumber: 'INV-2026-0891',
-        date: '2026-10-01',
-        plan: 'Enterprise Tier 1 (Annual)',
-        amount: 36000,
-        paymentMethod: 'Bank Transfer (MB Bank)',
-        status: 'PAID',
-      },
-      {
-        id: 'inv-002',
-        invoiceNumber: 'INV-2026-0742',
-        date: '2026-09-01',
-        plan: 'AI Modernization Acceleration Add-on',
-        amount: 8500,
-        paymentMethod: 'Corporate Wire',
-        status: 'PAID',
-      },
-      {
-        id: 'inv-003',
-        invoiceNumber: 'INV-2026-0610',
-        date: '2026-08-01',
-        plan: 'Dedicated Private Runner Capacity',
-        amount: 4200,
-        paymentMethod: 'Bank Transfer (MB Bank)',
-        status: 'PAID',
-      },
-    ],
-    members: [
-      {
-        userId: 'usr-1',
-        fullName: 'Alexander Vance',
-        email: 'a.vance@company.com',
-        role: 'Organisation Admin',
-        joinedDate: '2026-06-15',
-        status: 'ACTIVE',
-      },
-      {
-        userId: 'usr-2',
-        fullName: 'Elena Rostova',
-        email: 'e.rostova@company.com',
-        role: 'Lead Architect',
-        joinedDate: '2026-07-02',
-        status: 'ACTIVE',
-      },
-      {
-        userId: 'usr-3',
-        fullName: 'Marcus Brody',
-        email: 'm.brody@company.com',
-        role: 'Modernization Engineer',
-        joinedDate: '2026-08-11',
-        status: 'ACTIVE',
-      },
-      {
-        userId: 'usr-4',
-        fullName: 'Diana Prince',
-        email: 'd.prince@company.com',
-        role: 'Security & QA Auditor',
-        joinedDate: '2026-09-20',
-        status: 'INVITED',
-      },
-    ],
-    createdAt: '2026-06-12T10:00:00Z',
-    updatedAt: '2026-10-18T14:00:00Z',
-  });
-
   const fetchOrg = async () => {
     if (!orgId) return;
     try {
       setLoading(true);
       setErrorMsg(null);
-      let data: OrganizationDto;
-      try {
-        data = await adminApi.getOrganizationById(orgId);
-      } catch {
-        data = defaultMockOrg(orgId);
-      }
-
-      // Merge with default mock fields if backend returned a partial object
-      const merged: OrganizationDto = {
-        ...defaultMockOrg(orgId),
-        ...data,
-        limits: {
-          maxProjects: data.limits?.maxProjects ?? defaultMockOrg(orgId).limits!.maxProjects,
-          maxConversionsPerMonth: data.limits?.maxConversionsPerMonth ?? defaultMockOrg(orgId).limits!.maxConversionsPerMonth,
-          maxStorageGb: data.limits?.maxStorageGb ?? defaultMockOrg(orgId).limits!.maxStorageGb,
-          aiValidationEnabled: data.limits?.aiValidationEnabled ?? defaultMockOrg(orgId).limits!.aiValidationEnabled,
-          ...data.limits,
-        },
-        usageStats: data.usageStats || defaultMockOrg(orgId).usageStats,
-        billingHistory: data.billingHistory || defaultMockOrg(orgId).billingHistory,
-        members: data.members && data.members.length > 0 ? data.members : defaultMockOrg(orgId).members,
-      };
-
+      const merged = await adminApi.getOrganizationById(orgId);
       setOrg(merged);
       setEditStatus(merged.status);
       setEditEngagement(merged.engagementType || 'ENTERPRISE_T1');
@@ -194,8 +61,9 @@ export const OrganizationDetailPage: React.FC = () => {
         setTrialPrograms(merged.limits.trialPrograms ?? 8);
         setTrialStorageGb(merged.limits.trialStorageGb ?? 5);
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to load organisation');
+    } catch {
+      setOrg(null);
+      setErrorMsg('Unable to load organisation details. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -278,17 +146,6 @@ export const OrganizationDetailPage: React.FC = () => {
     }
   };
 
-  const handleSupportViewClick = () => {
-    if (!org) return;
-    enterSupportView({
-      id: org.id,
-      name: org.name,
-      contactEmail: org.contactEmail,
-      domain: org.domain,
-    });
-    navigate('/partners/projects');
-  };
-
   if (loading) {
     return (
       <div className="py-20 text-center text-[#6B778C]">
@@ -301,8 +158,8 @@ export const OrganizationDetailPage: React.FC = () => {
   if (!org) {
     return (
       <div className="p-8 text-center bg-white rounded-2xl border border-[#E5EAF0]">
-        <h2 className="text-base font-bold text-[#091E42]">Organisation Not Found</h2>
-        <p className="text-xs text-[#6B778C] mt-1">The requested tenant organisation ID does not exist.</p>
+        <h2 className="text-base font-bold text-[#091E42]">Organisation Unavailable</h2>
+        <p role="alert" className="text-xs text-[#6B778C] mt-1">{errorMsg || 'The requested organisation is unavailable.'}</p>
         <Button variant="outline" className="mt-4" onClick={() => navigate('/admin/organizations')}>
           Back to Organisations
         </Button>
@@ -311,10 +168,10 @@ export const OrganizationDetailPage: React.FC = () => {
   }
 
   const usageStats = org.usageStats || {
-    totalScreensConverted: 142,
-    activeProjects: 3,
-    storageUsedGb: 18.4,
-    conversionsThisMonth: 64,
+    totalScreensConverted: 0,
+    activeProjects: 0,
+    storageUsedGb: 0,
+    conversionsThisMonth: 0,
   };
 
   const billingHistory = org.billingHistory || [];
@@ -322,6 +179,9 @@ export const OrganizationDetailPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <p id="support-view-unavailable" role="status" className="text-xs text-[#6B778C]">
+        {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
+      </p>
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div className="flex items-center gap-3">
@@ -356,16 +216,19 @@ export const OrganizationDetailPage: React.FC = () => {
 
         {/* Visible Admin Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSupportViewClick}
-            className="text-xs border-[#D9E2EC] text-[#091E42] hover:bg-[#F7F9FC]"
-            title="Access customer space in simulated read-only support view"
-          >
-            <Eye className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
-            Support View
-          </Button>
+          {canImpersonate && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              aria-describedby="support-view-unavailable"
+              title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
+              className="text-xs border-[#D9E2EC] text-[#091E42]"
+            >
+              <Eye className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
+              Support View
+            </Button>
+          )}
 
           <Button
             variant="outline"
