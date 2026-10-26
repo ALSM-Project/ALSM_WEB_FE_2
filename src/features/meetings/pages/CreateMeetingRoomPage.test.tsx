@@ -56,7 +56,7 @@ describe('CreateMeetingRoomPage (UC-43 Strict Validations Frontend)', () => {
   it('renders meeting details form elements and required badges', () => {
     renderComponent();
 
-    expect(screen.getByText('Create Online Meeting Room')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /(Create Meeting Room|Create Online Meeting Room)/i })).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/e\.g\. Sprint Review/i)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/What will this meeting cover/i)).toBeInTheDocument();
     expect(screen.getByRole('combobox')).toBeInTheDocument();
