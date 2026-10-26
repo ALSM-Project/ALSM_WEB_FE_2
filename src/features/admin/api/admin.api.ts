@@ -45,6 +45,16 @@ export interface OrganizationDto {
     joinedDate?: string;
     status?: 'ACTIVE' | 'INVITED' | 'INACTIVE';
   }>;
+  projectCount?: number;
+  conversionJobCount?: number;
+  projects?: Array<{
+    id: string;
+    name: string;
+    conversionType: string;
+    status: string;
+    isDemo?: boolean;
+    createdAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
