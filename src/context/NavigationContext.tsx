@@ -362,33 +362,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const filtered = filterTree(processed);
     filtered.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    // Admin sees the full overview hierarchy with parent groups.
-    // Non-admin roles (Conversion Staff, Team Lead, Sales, Support, Partner, etc.)
-    // have few items and display all detailed screens directly without a parent accordion layer.
-    const isUserAdmin = Boolean(
-      user?.isPlatformAdmin ||
-      user?.roles?.some((r) => ['ADMIN', 'SYSTEM_ADMIN'].includes(String(r).toUpperCase()))
-    );
-
-    if (user && !isUserAdmin) {
-      const flattenItems = (items: MenuItem[]): MenuItem[] => {
-        const flat: MenuItem[] = [];
-        const extract = (nodes: MenuItem[]) => {
-          for (const node of nodes) {
-            if (node.path) {
-              flat.push({ ...node, parentId: undefined, children: undefined });
-            } else if (node.children && node.children.length > 0) {
-              extract(node.children);
-            }
-          }
-        };
-        extract(items);
-        return flat.map((item, idx) => ({ ...item, order: idx + 1 }));
-      };
-
-      return flattenItems(filtered);
-    }
-
     return filtered;
   }, [backendNavNodes, user, hasPermission]);
 
