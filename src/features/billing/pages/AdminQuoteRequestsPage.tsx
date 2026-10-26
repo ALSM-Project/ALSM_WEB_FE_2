@@ -48,7 +48,7 @@ export const AdminQuoteRequestsPage: React.FC = () => {
         PENDING: 'Pending review',
         CLOSED: 'Closed',
       };
-      setActionSuccessMessage(`Successfully updated request ${updated.id} to ${statusLabel}!`);
+      setActionSuccessMessage(`Successfully updated request ${updated.id} to ${statusLabel[updated.status]}!`);
       setTimeout(() => setActionSuccessMessage(null), 5000);
     },
     onError: (err: any) => {

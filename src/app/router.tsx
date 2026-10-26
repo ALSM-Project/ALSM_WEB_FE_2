@@ -5,8 +5,10 @@ import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
-import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
+import { UsageDashboardPage } from '@/features/billing';
+import { AdminQuoteRequestsRoute } from '@/features/billing/pages/AdminQuoteRequestsRoute';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
+import { LeadsListPage } from '@/features/leads';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
@@ -68,8 +70,8 @@ export const router = createBrowserRouter([
       { path: '/billing/usage', element: <UsageDashboardPage /> },
       { path: '/admin/billing/usage', element: <UsageDashboardPage /> },
       // UC-32: Enterprise Quote Requests Approval & Management
-      { path: '/billing/quotes', element: <AdminQuoteRequestsPage /> },
-      { path: '/admin/billing/quotes', element: <AdminQuoteRequestsPage /> },
+      { path: '/billing/quotes', element: <AdminQuoteRequestsRoute /> },
+      { path: '/admin/billing/quotes', element: <AdminQuoteRequestsRoute /> },
       // UC-43: Create Online Meeting Room
       {
         path: '/enterprise/meetings/create',
@@ -100,6 +102,23 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="meetings.create">
             <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
+      // UC-58: View Lead List (CRM & Sales)
+      {
+        path: '/sales/leads',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <LeadsListPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/leads',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <LeadsListPage />
           </PermissionGuard>
         ),
       },
