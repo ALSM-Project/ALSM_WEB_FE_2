@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -13,6 +13,7 @@ import {
   Star,
 } from 'lucide-react';
 import { adminQualityReviewService } from '../services/quality-review.service';
+import { conversionError, conversionQueueService } from '../services/conversion-queue.service';
 import {
   ConversionQualityReviewStatus,
   type HumanQualityReviewTargetStatus,
@@ -22,13 +23,15 @@ import {
 // ─── Query key factory ────────────────────────────────────────────────────────
 const adminQualityReviewKeys = {
   all: ['admin-quality-reviews'] as const,
-  byJob: (projectId: string, conversionJobId: string) =>
-    [...adminQualityReviewKeys.all, projectId, conversionJobId] as const,
+  byJob: (projectId: string, conversionJobId: string, organizationId?: string) =>
+    [...adminQualityReviewKeys.all, projectId, conversionJobId, organizationId] as const,
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export const AdminQualityReviewPage: React.FC = () => {
   const { projectId = '', conversionJobId = '' } = useParams();
+  const [searchParams] = useSearchParams();
+  const organizationId = searchParams.get('organizationId') || undefined;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -51,24 +54,28 @@ export const AdminQualityReviewPage: React.FC = () => {
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId),
-    queryFn: () => adminQualityReviewService.getQualityReview(projectId, conversionJobId),
+    queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId, organizationId),
+    queryFn: () => organizationId
+      ? adminQualityReviewService.getQualityReview(projectId, conversionJobId, organizationId)
+      : adminQualityReviewService.getQualityReview(projectId, conversionJobId),
     enabled: Boolean(projectId && conversionJobId),
-    retry: 1,
+    retry: false,
+    refetchInterval: 10000,
+  });
+
+  const resultQuery = useQuery({
+    queryKey: ['conversion-result', projectId, conversionJobId, organizationId],
+    queryFn: () => organizationId ? conversionQueueService.getResult(conversionJobId, organizationId) : conversionQueueService.getResult(conversionJobId),
+    enabled: Boolean(data?.review && !isError),
+    retry: false,
   });
 
   // Populate form from existing review (once)
   useEffect(() => {
     if (data?.review && !formInitialized) {
-      if (data.review.status && data.review.status !== ConversionQualityReviewStatus.PENDING) {
-        setOverrideStatus(data.review.status as HumanQualityReviewTargetStatus);
-      }
-      if (data.review.qualityScore !== undefined) {
-        setAdminScore(data.review.qualityScore);
-      }
-      if (data.review.reviewNote) {
-        setAdminNote(data.review.reviewNote);
-      }
+      setOverrideStatus(data.review.status === ConversionQualityReviewStatus.PENDING ? ConversionQualityReviewStatus.ACCEPTED : data.review.status);
+      setAdminScore(data.review.qualityScore);
+      setAdminNote(data.review.reviewNote || '');
       setFormInitialized(true);
     }
   }, [data, formInitialized]);
@@ -76,21 +83,19 @@ export const AdminQualityReviewPage: React.FC = () => {
   // ─── Mutation: submit override ────────────────────────────────────────────
   const submitMutation = useMutation({
     mutationFn: (payload: SubmitQualityReviewPayload) =>
-      adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload),
-    onSuccess: () => {
-      // Invalidate cache so the query re-fetches updated state
-      queryClient.invalidateQueries({
-        queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId),
-      });
+      organizationId ? adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload, organizationId) : adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload),
+    onSuccess: (review) => {
+      queryClient.setQueryData(adminQualityReviewKeys.byJob(projectId, conversionJobId, organizationId), (previous: typeof data) => previous ? { ...previous, review } : previous);
       setConflictError(false);
       setValidationError(null);
     },
-    onError: (err: any) => {
+    onError: async (err: any) => {
       const status = err?.status ?? err?.response?.status;
-      const message = err?.message ?? err?.response?.data?.message;
+      const message = conversionError(err);
       if (status === 409) {
         setConflictError(true);
-        refetch();
+        await refetch();
+        setFormInitialized(false);
       } else if (status === 403) {
         setValidationError('You do not have permission to override this quality review decision.');
       } else {
@@ -100,6 +105,16 @@ export const AdminQualityReviewPage: React.FC = () => {
       }
     },
   });
+
+  useEffect(() => {
+    setFormInitialized(false);
+    setAdminNote('');
+    setAdminScore(undefined);
+    setOverrideStatus(ConversionQualityReviewStatus.ACCEPTED);
+    setValidationError(null);
+    setConflictError(false);
+    submitMutation.reset();
+  }, [projectId, conversionJobId, organizationId]);
 
   // ─── Submit handler ───────────────────────────────────────────────────────
   const handleAdminSubmit = () => {
@@ -139,7 +154,7 @@ export const AdminQualityReviewPage: React.FC = () => {
 
   // ─── Render: Fetch error ──────────────────────────────────────────────────
   if (isError) {
-    const message = (queryError as any)?.message || 'Failed to load quality review.';
+    const message = conversionError(queryError);
     return (
       <div className="p-8 max-w-5xl mx-auto space-y-4">
         <div className="bg-rose-50 border border-rose-200 text-rose-800 rounded-xl p-6 flex items-start space-x-3">
@@ -171,7 +186,7 @@ export const AdminQualityReviewPage: React.FC = () => {
         <div>
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/review?projectId=${encodeURIComponent(projectId)}`)}
             className="inline-flex items-center space-x-1 text-xs font-semibold text-slate-500 hover:text-slate-800 mb-2 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -231,7 +246,7 @@ export const AdminQualityReviewPage: React.FC = () => {
             <p className="font-semibold">Review Updated</p>
             <p className="text-xs text-emerald-700 mt-0.5">
               Quality review updated to{' '}
-              <span className="font-bold">{review?.status}</span> successfully.
+              <span className="font-bold">{submitMutation.data?.status}</span> successfully.
             </p>
           </div>
         </div>
@@ -293,10 +308,21 @@ export const AdminQualityReviewPage: React.FC = () => {
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-3">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Artifacts Summary</p>
           <p className="text-sm font-bold text-slate-800">
-            {fileSummary?.fileCount ?? 0} files · {(fileSummary?.totalLines ?? 0).toLocaleString()} LOC
+            {fileSummary ? `${fileSummary.fileCount} files · ${fileSummary.totalLines.toLocaleString()} LOC` : 'Summary unavailable'}
           </p>
-          <p className="text-[11px] text-slate-400">Engine version: {fileSummary?.toolVersion || 'v1.0.0'}</p>
+          <p className="text-[11px] text-slate-400">Engine version: {fileSummary?.toolVersion || 'Not reported'}</p>
         </div>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-3">
+        <h2 className="text-sm font-bold text-slate-900">Generated conversion files</h2>
+        {resultQuery.isPending && <p role="status">Loading generated files...</p>}
+        {resultQuery.isError && <div role="alert"><p>Unable to load generated files: {conversionError(resultQuery.error)}</p><button className="text-blue-700 underline" onClick={() => resultQuery.refetch()}>Retry files</button></div>}
+        {resultQuery.data?.files.length === 0 && <p>No generated files were returned for this job.</p>}
+        {resultQuery.data?.files.map((file) => <details key={file.relativePath} className="border rounded-lg p-3">
+          <summary className="cursor-pointer font-mono text-xs">{file.relativePath}</summary>
+          <pre className="mt-3 max-h-96 overflow-auto whitespace-pre text-xs bg-slate-50 p-3">{file.content}</pre>
+        </details>)}
       </div>
 
       {/* Customer Note Card */}
@@ -394,7 +420,7 @@ export const AdminQualityReviewPage: React.FC = () => {
         {/* Admin note */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <label className="text-xs font-bold text-slate-700">
+            <label htmlFor="admin-review-note" className="text-xs font-bold text-slate-700">
               Admin Justification Note
               <span className="text-slate-400 font-normal ml-1">(Required for Rework or Flag)</span>
             </label>
@@ -407,6 +433,7 @@ export const AdminQualityReviewPage: React.FC = () => {
             </span>
           </div>
           <textarea
+            id="admin-review-note"
             rows={3}
             value={adminNote}
             onChange={(e) => {
@@ -423,7 +450,7 @@ export const AdminQualityReviewPage: React.FC = () => {
           <button
             type="button"
             onClick={handleAdminSubmit}
-            disabled={submitMutation.isPending}
+            disabled={submitMutation.isPending || !data?.review || !resultQuery.isSuccess || resultQuery.data.files.length === 0}
             className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors disabled:opacity-60 flex items-center space-x-2"
           >
             {submitMutation.isPending ? (

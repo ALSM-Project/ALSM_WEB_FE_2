@@ -26,6 +26,8 @@ export interface MenuItem {
   groupName?: string;
   description?: string;
   target?: '_blank' | '_self';
+  openInNewTab?: boolean;
+  hideParentLabel?: boolean;
 }
 
 export interface NavigationData {

@@ -5,6 +5,7 @@ export const useNavigationQuery = (application: string = 'WEB_2') => {
   return useQuery<BackendNavItem[]>({
     queryKey: ['navigation', application],
     queryFn: () => navigationApi.getNavigation(application),
-    staleTime: 1000 * 60 * 5, // 5 mins cache
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 };

@@ -22,18 +22,23 @@ export interface MenuItemEditorProps {
 const COMMON_ICONS = [
   { value: 'LayoutDashboard', label: 'LayoutDashboard (Dashboard)' },
   { value: 'FolderKanban', label: 'FolderKanban (Projects)' },
-  { value: 'List', label: 'List (All Projects / List)' },
-  { value: 'PlusCircle', label: 'PlusCircle (Create Item)' },
+  { value: 'Layers', label: 'Layers (Queue / Jobs)' },
+  { value: 'FileCheck', label: 'FileCheck (Quality Review)' },
+  { value: 'BarChart3', label: 'BarChart3 (Team Performance)' },
+  { value: 'Zap', label: 'Zap (Quotes / Fast Track)' },
+  { value: 'CreditCard', label: 'CreditCard (Usage & Billing)' },
+  { value: 'Video', label: 'Video (Online Meetings)' },
+  { value: 'Headphones', label: 'Headphones (Support)' },
   { value: 'Cpu', label: 'Cpu (Conversion Engine)' },
-  { value: 'Play', label: 'Play (Execute / Run)' },
-  { value: 'ShieldCheck', label: 'ShieldCheck (Diagnostics)' },
   { value: 'Users', label: 'Users (User Management)' },
   { value: 'Shield', label: 'Shield (Roles & Permissions)' },
   { value: 'Workflow', label: 'Workflow (Menu Builder)' },
   { value: 'Settings', label: 'Settings (System Settings)' },
   { value: 'Globe', label: 'Globe (Enterprise Portal)' },
-  { value: 'Building2', label: 'Building2 (Organisations)' },
-  { value: 'Briefcase', label: 'Briefcase (Partners)' },
+  { value: 'Activity', label: 'Activity (Diagnostics / Monitor)' },
+  { value: 'Building2', label: 'Building2 (Partner Management)' },
+  { value: 'UserPlus', label: 'UserPlus (Onboard / Register)' },
+  { value: 'DownloadCloud', label: 'DownloadCloud (Downloads)' },
 ];
 
 export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
@@ -48,7 +53,6 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
   const selectedItem = selectedItemId ? findMenuItemInTree(sidebarNav, selectedItemId) : null;
 
   const [formState, setFormState] = useState<Partial<MenuItem>>({});
-  const [openNewTab, setOpenNewTab] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -68,6 +72,8 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         order: selectedItem.order || 1,
         isVisible: selectedItem.isVisible !== false,
         permissions: initialPermissions,
+        openInNewTab: selectedItem.openInNewTab ?? false,
+        hideParentLabel: selectedItem.hideParentLabel ?? false,
       });
       setErrorMsg(null);
       setSuccessMsg(null);
@@ -242,22 +248,46 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
             <p className="text-[11px] text-[#6B778C]">Open link in a new browser tab</p>
           </div>
           <Toggle
-            checked={openNewTab}
-            onChange={setOpenNewTab}
+            checked={Boolean(formState.openInNewTab)}
+            onChange={(checked) => handleChange('openInNewTab', checked)}
             size="sm"
           />
         </div>
 
-        {/* Required Permissions Multi-Select Box */}
+        {/* Hide Parent Label Switch */}
+        <div className="pt-2 border-t border-[#E5EAF0] flex items-center justify-between">
+          <div>
+            <span className="text-xs font-semibold text-[#091E42]">Hide Parent Label</span>
+            <p className="text-[11px] text-[#6B778C]">Render child items directly without showing the parent group label</p>
+          </div>
+          <Toggle
+            checked={Boolean(formState.hideParentLabel)}
+            onChange={(checked) => handleChange('hideParentLabel', checked)}
+            size="sm"
+          />
+        </div>
+
+        {/* Required Permissions Multi-Select Box (Sections 3.13.15 & 3.13.16) */}
         <div className="pt-3 border-t border-[#E5EAF0] space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-[#091E42]">Required Permissions</label>
-            <span className="text-[11px] font-semibold text-[#0652CC] bg-[#E8F1FF] px-2 py-0.5 rounded">
-              {(formState.permissions || []).length} Selected
-            </span>
+            <div className="flex items-center gap-2">
+              {(formState.permissions || []).length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => handleChange('permissions', [])}
+                  className="text-[10px] font-semibold text-rose-600 hover:underline cursor-pointer"
+                >
+                  Revoke Permission (Clear)
+                </button>
+              )}
+              <span className="text-[11px] font-semibold text-[#0652CC] bg-[#E8F1FF] px-2 py-0.5 rounded">
+                {(formState.permissions || []).length} Selected
+              </span>
+            </div>
           </div>
           <p className="text-[11px] text-[#6B778C]">
-            Users must have ALL checked permissions to view this menu item.
+            Users holding any of the assigned permissions can view this menu item. Clearing all permissions makes it visible to all authorized role users (UC-3.13.16).
           </p>
 
           <div className="space-y-3 max-h-48 overflow-y-auto pr-1 border border-[#E5EAF0] rounded-xl p-3 bg-[#F7F9FC]">
@@ -338,6 +368,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                   order: selectedItem.order || 1,
                   isVisible: selectedItem.isVisible !== false,
                   permissions: selectedItem.permissions || [],
+                  openInNewTab: selectedItem.openInNewTab ?? false,
                 });
               }
             }}

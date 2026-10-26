@@ -25,4 +25,26 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary', cla
   );
 };
 
+export const StatusBadge: React.FC<{ status: string; className?: string }> = ({ status, className = '' }) => {
+  let variant: BadgeProps['variant'] = 'secondary';
+  const lower = status.toLowerCase();
+  if (['completed', 'passed', 'active', 'ready', 'success', 'converted'].some((s) => lower.includes(s))) {
+    variant = 'success';
+  } else if (['processing', 'uploading', 'converting', 'analyzing', 'validating', 'queued', 'in_progress'].some((s) => lower.includes(s))) {
+    variant = 'primary';
+  } else if (['review', 'required', 'warning', 'pending', 'attention'].some((s) => lower.includes(s))) {
+    variant = 'warning';
+  } else if (['failed', 'error', 'danger', 'fatal', 'dead_letter'].some((s) => lower.includes(s))) {
+    variant = 'danger';
+  } else if (['draft', 'not_started'].some((s) => lower.includes(s))) {
+    variant = 'secondary';
+  }
+
+  return (
+    <Badge variant={variant} className={className}>
+      {status}
+    </Badge>
+  );
+};
+
 export default Badge;

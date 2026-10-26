@@ -9,16 +9,20 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, className, disabled, ...props }, ref) => {
+  ({ label, error, helperText, className, disabled, id, ...props }, ref) => {
+    const generatedId = React.useId();
+    const inputId = id || generatedId;
+
     return (
       <div className="w-full flex flex-col space-y-1.5">
         {label && (
-          <label className="text-xs font-semibold text-[#091E42] tracking-wide">
+          <label htmlFor={inputId} className="text-xs font-semibold text-[#091E42] tracking-wide">
             {label}
           </label>
         )}
         <input
           ref={ref}
+          id={inputId}
           disabled={disabled}
           className={twMerge(
             clsx(

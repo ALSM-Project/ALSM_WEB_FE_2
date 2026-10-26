@@ -1,20 +1,25 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Outlet, useSearchParams } from 'react-router-dom';
 import { tokenStore } from '@/services/api/tokenStore';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const AuthCallbackPage = () => {
   const [searchParams] = useSearchParams();
+  const handled = useRef(false);
 
   useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
 
     if (accessToken && refreshToken) {
-      tokenStore.setAccessToken(accessToken);
-      tokenStore.setRefreshToken(refreshToken);
-      // Redirect to the staff dashboard home.
-      window.location.href = '/';
+      void tokenStore.acceptTokens({ accessToken, refreshToken })
+        .then(() => { window.location.href = '/'; })
+        .catch(() => {
+          const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
+          window.location.href = `${loginUrl}/login`;
+        });
     } else {
       const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
       window.location.href = `${loginUrl}/login`;
@@ -40,7 +45,6 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
   }
 
   if (!user) {
-    tokenStore.clear();
     const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
     window.location.href = `${loginUrl}/login`;
     return null;
@@ -49,10 +53,11 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
   return children ? <>{children}</> : <Outlet />;
 };
 
-export const PermissionGuard = ({ permission, children }: { permission: string; children?: React.ReactNode }) => {
-  const { hasPermission } = useAuth();
+export const PermissionGuard = ({ permission, children, platformAdminOnly = false }: { permission: string; children?: React.ReactNode; platformAdminOnly?: boolean }) => {
+  const { user, hasPermission } = useAuth();
 
-  if (!hasPermission(permission)) {
+  // Presentation only: the backend independently checks persisted authority.
+  if ((platformAdminOnly && user?.isPlatformAdmin !== true) || !hasPermission(permission)) {
     return (
       <div className="flex flex-col items-center justify-center h-screen space-y-4">
         <div className="text-red-500 text-6xl">🔒</div>

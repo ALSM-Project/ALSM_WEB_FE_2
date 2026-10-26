@@ -20,7 +20,6 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
-import { PageHeader } from '@/shared/ui/PageHeader';
 import { Select, type SelectOption } from '@/shared/ui/Select';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/services/api/apiClient';
@@ -257,78 +256,108 @@ export const CreateMeetingRoomPage: React.FC = () => {
   // ── success screen ────────────────────────────────────────────────────────
   if (successMeeting) {
     return (
-      <div className="max-w-2xl mx-auto py-12 px-4">
-        <Card className="text-center p-8 bg-white border border-[#D9E2EC] shadow-md">
-          <div className="flex flex-col items-center gap-5 py-4">
-            {/* Google Meet icon circle */}
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00AC47] via-[#00832D] to-[#0052CC] flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Video className="w-10 h-10 text-white" />
+      <div className="space-y-6">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EBF2FC] text-[#0652CC] uppercase tracking-wider">
+                Enterprise Collaboration
+              </span>
+              <span className="text-[11px] text-[#6B778C]">Google Meet Integration</span>
             </div>
-            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-            <div>
-              <h1 className="text-2xl font-bold text-[#091E42]">Meeting Room Created!</h1>
-              <p className="text-sm text-[#42526E] mt-1">
-                Your Google Meet room is ready and active for participants
-              </p>
-            </div>
-
-            <div className="w-full bg-[#F7F9FC] rounded-xl border border-[#D9E2EC] p-5 text-left">
-              <p className="text-xs font-semibold text-[#42526E] mb-2 uppercase tracking-wide">
-                Google Meet Link
-              </p>
-              <div className="flex items-center gap-2 bg-white border border-[#D9E2EC] rounded-lg px-3.5 py-3 shadow-2xs">
-                <Link className="w-4 h-4 text-[#0652CC] shrink-0" />
-                <span className="text-sm font-mono text-[#0652CC] font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                  {successMeeting.meetingUrl}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-3 w-full">
-              <Button
-                id="copy-meet-link-btn"
-                variant="outline"
-                className="flex-1 gap-2 py-2.5"
-                onClick={() => {
-                  void copyLink();
-                }}
-              >
-                {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                {copied ? 'Copied!' : 'Copy Link'}
-              </Button>
-              <Button
-                id="join-meet-btn"
-                variant="primary"
-                className="flex-1 gap-2 py-2.5 bg-[#0652CC] hover:bg-[#0041A8]"
-                onClick={() => window.open(successMeeting.meetingUrl, '_blank', 'noopener,noreferrer')}
-              >
-                <ExternalLink className="w-4 h-4" />
-                Join Now
-              </Button>
-            </div>
-
-            <Button
-              id="view-meetings-btn"
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/enterprise/meetings')}
-              className="text-[#0652CC] hover:text-[#0041A8] font-medium"
-            >
-              View all meetings →
-            </Button>
+            <h1 className="text-2xl font-bold tracking-tight text-[#091E42] mt-1">
+              Meeting Room Ready
+            </h1>
           </div>
-        </Card>
+        </div>
+
+        <div className="max-w-2xl mx-auto py-6">
+          <Card className="text-center p-8 bg-white border border-[#E5EAF0] shadow-2xs rounded-xl">
+            <div className="flex flex-col items-center gap-5 py-4">
+              {/* Google Meet icon circle */}
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00AC47] via-[#00832D] to-[#0052CC] flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <Video className="w-10 h-10 text-white" />
+              </div>
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <div>
+                <h1 className="text-2xl font-bold text-[#091E42]">Meeting Room Created!</h1>
+                <p className="text-sm text-[#42526E] mt-1">
+                  Your Google Meet room is ready and active for participants
+                </p>
+              </div>
+
+              <div className="w-full bg-[#F7F9FC] rounded-xl border border-[#E5EAF0] p-5 text-left">
+                <p className="text-xs font-semibold text-[#42526E] mb-2 uppercase tracking-wide">
+                  Google Meet Link
+                </p>
+                <div className="flex items-center gap-2 bg-white border border-[#E5EAF0] rounded-lg px-3.5 py-3 shadow-2xs">
+                  <Link className="w-4 h-4 text-[#0652CC] shrink-0" />
+                  <span className="text-sm font-mono text-[#0652CC] font-semibold flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {successMeeting.meetingUrl}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 w-full">
+                <Button
+                  id="copy-meet-link-btn"
+                  variant="outline"
+                  className="flex-1 gap-2 py-2.5"
+                  onClick={() => {
+                    void copyLink();
+                  }}
+                >
+                  {copied ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                  {copied ? 'Copied!' : 'Copy Link'}
+                </Button>
+                <Button
+                  id="join-meet-btn"
+                  variant="primary"
+                  className="flex-1 gap-2 py-2.5 bg-[#0652CC] hover:bg-[#0041A8]"
+                  onClick={() => window.open(successMeeting.meetingUrl, '_blank', 'noopener,noreferrer')}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Join Now
+                </Button>
+              </div>
+
+              <Button
+                id="view-meetings-btn"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/enterprise/meetings')}
+                className="text-[#0652CC] hover:text-[#0041A8] font-medium"
+              >
+                View all meetings →
+              </Button>
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
 
   // ── create form (Full-width 2-column layout) ──────────────────────────────
   return (
-    <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
-      <PageHeader
-        title="Create Online Meeting Room"
-        subtitle="Configure and schedule a secure Google Meet conference room for your enterprise team"
-        actions={
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EBF2FC] text-[#0652CC] uppercase tracking-wider">
+              Enterprise Collaboration
+            </span>
+            <span className="text-[11px] text-[#6B778C]">Schedule Conference</span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#091E42] mt-1">
+            Create Online Meeting Room
+          </h1>
+          <p className="text-xs text-[#6B778C] mt-1 max-w-3xl">
+            Configure and schedule a secure Google Meet conference room for your enterprise team
+          </p>
+        </div>
+        <div>
           <Button
             id="cancel-create-meeting-btn"
             variant="outline"
@@ -337,8 +366,8 @@ export const CreateMeetingRoomPage: React.FC = () => {
           >
             Cancel
           </Button>
-        }
-      />
+        </div>
+      </div>
 
       {globalError && (
         <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-sm text-rose-700 shadow-2xs">
@@ -354,7 +383,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
               ══════════════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-6">
             {/* Card 1: Meeting Details */}
-            <Card className="border border-[#D9E2EC] bg-white shadow-2xs">
+            <Card className="border border-[#E5EAF0] bg-white shadow-2xs rounded-xl">
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0F4F8]">
                   <div className="flex items-center gap-2.5">
@@ -431,7 +460,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
             </Card>
 
             {/* Card 2: Schedule */}
-            <Card className="border border-[#D9E2EC] bg-white shadow-2xs">
+            <Card className="border border-[#E5EAF0] bg-white shadow-2xs rounded-xl">
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0F4F8]">
                   <div className="flex items-center gap-2.5">
@@ -501,7 +530,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
             </Card>
 
             {/* Card 3: Google Meet configuration */}
-            <Card className="border border-[#D9E2EC] bg-white shadow-2xs">
+            <Card className="border border-[#E5EAF0] bg-white shadow-2xs rounded-xl">
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0F4F8]">
                   <div className="flex items-center gap-2.5">
@@ -622,7 +651,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
               ══════════════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-6">
             {/* Live Invitation Preview Card */}
-            <Card className="border border-[#D9E2EC] bg-white shadow-sm overflow-hidden p-0">
+            <Card className="border border-[#E5EAF0] bg-white shadow-2xs rounded-xl overflow-hidden p-0">
               <div className="bg-gradient-to-r from-[#00AC47] via-[#00832D] to-[#0052CC] p-4 text-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -684,7 +713,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
             </Card>
 
             {/* Attendees Card */}
-            <Card className="border border-[#D9E2EC] bg-white shadow-2xs">
+            <Card className="border border-[#E5EAF0] bg-white shadow-2xs rounded-xl">
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F0F4F8]">
                   <div className="flex items-center gap-2">
@@ -759,7 +788,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
             </Card>
 
             {/* Submit & Summary Card */}
-            <Card className="border border-[#D9E2EC] bg-[#F7F9FC] shadow-2xs space-y-4">
+            <Card className="border border-[#E5EAF0] bg-[#F7F9FC] shadow-2xs rounded-xl space-y-4">
               <Button
                 id="submit-create-meeting-btn"
                 type="submit"

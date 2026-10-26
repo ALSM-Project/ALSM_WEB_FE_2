@@ -9,7 +9,6 @@ import {
   Clock,
   CheckCircle2,
 } from 'lucide-react';
-import { PageHeader } from '@/shared/ui/PageHeader';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { useMeetingsList } from '../hooks/useMeetings';
@@ -52,73 +51,83 @@ export const MeetingsListPage: React.FC = () => {
   const inProgressCount = meetings.filter((m) => m.status === 'IN_PROGRESS').length;
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Page Header */}
-      <PageHeader
-        title="Online Meeting Rooms"
-        subtitle="Manage scheduled Google Meet conference rooms and invite team members"
-        actions={
-          <div className="flex items-center gap-3">
-            <Button
-              id="refresh-meetings-btn"
-              variant="outline"
-              size="sm"
-              onClick={() => void refetch()}
-              disabled={isFetching}
-              className="gap-2 text-[#42526E]"
-            >
-              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              id="create-meeting-btn"
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/enterprise/meetings/create')}
-              className="gap-2 bg-[#0652CC] hover:bg-[#0041A8]"
-            >
-              <Plus className="w-4 h-4" />
-              Create Meeting Room
-            </Button>
+    <div className="space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EBF2FC] text-[#0652CC] uppercase tracking-wider">
+              Enterprise Collaboration
+            </span>
+            <span className="text-[11px] text-[#6B778C]">Google Meet Integration</span>
           </div>
-        }
-      />
+          <h1 className="text-2xl font-bold tracking-tight text-[#091E42] mt-1">
+            Online Meeting Rooms
+          </h1>
+          <p className="text-xs text-[#6B778C] mt-1 max-w-3xl">
+            Manage scheduled Google Meet conference rooms and invite team members
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            id="refresh-meetings-btn"
+            variant="outline"
+            size="sm"
+            onClick={() => void refetch()}
+            disabled={isFetching}
+            className="gap-2 text-[#42526E]"
+          >
+            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button
+            id="create-meeting-btn"
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/enterprise/meetings/create')}
+            className="gap-2 bg-[#0652CC] hover:bg-[#0041A8]"
+          >
+            <Plus className="w-4 h-4" />
+            Create Meeting Room
+          </Button>
+        </div>
+      </div>
 
       {/* Summary KPI Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card variant="flat" padding="sm" className="flex items-center gap-3 bg-white border border-[#D9E2EC]">
-          <div className="w-10 h-10 rounded-lg bg-[#E8F1FF] flex items-center justify-center text-[#0652CC]">
+        <div className="bg-white rounded-xl border border-[#E5EAF0] p-4 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#E8F1FF] flex items-center justify-center text-[#0652CC] shrink-0">
             <Video className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#42526E] font-medium">Total Meetings</p>
-            <p className="text-xl font-bold text-[#091E42]">{total}</p>
+            <p className="text-xs text-[#6B778C] font-semibold">Total Meetings</p>
+            <p className="text-2xl font-bold text-[#091E42] mt-0.5">{total}</p>
           </div>
-        </Card>
+        </div>
 
-        <Card variant="flat" padding="sm" className="flex items-center gap-3 bg-white border border-[#D9E2EC]">
-          <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600">
+        <div className="bg-white rounded-xl border border-[#E5EAF0] p-4 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#42526E] font-medium">Scheduled</p>
-            <p className="text-xl font-bold text-sky-700">{scheduledCount}</p>
+            <p className="text-xs text-[#6B778C] font-semibold">Scheduled</p>
+            <p className="text-2xl font-bold text-sky-700 mt-0.5">{scheduledCount}</p>
           </div>
-        </Card>
+        </div>
 
-        <Card variant="flat" padding="sm" className="flex items-center gap-3 bg-white border border-[#D9E2EC]">
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+        <div className="bg-white rounded-xl border border-[#E5EAF0] p-4 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#42526E] font-medium">In Progress</p>
-            <p className="text-xl font-bold text-emerald-700">{inProgressCount}</p>
+            <p className="text-xs text-[#6B778C] font-semibold">In Progress</p>
+            <p className="text-2xl font-bold text-emerald-700 mt-0.5">{inProgressCount}</p>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D9E2EC] pb-3">
+      <div className="border-b border-[#E5EAF0] flex items-center justify-between pb-3">
         <div className="flex flex-wrap items-center gap-1.5" role="tablist">
           {STATUS_FILTERS.map((f) => {
             const isActive = selectedStatus === f.value;
@@ -133,10 +142,10 @@ export const MeetingsListPage: React.FC = () => {
                   setSelectedStatus(f.value);
                   setPage(1);
                 }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#0652CC] text-white shadow-sm'
-                    : 'bg-[#F7F9FC] text-[#42526E] hover:bg-[#E8F1FF] hover:text-[#0652CC] border border-transparent'
+                    ? 'bg-[#0652CC] text-white shadow-2xs'
+                    : 'bg-white text-[#42526E] hover:bg-[#F4F6F8] hover:text-[#0652CC] border border-[#E5EAF0]'
                 }`}
               >
                 {f.label}
@@ -150,7 +159,7 @@ export const MeetingsListPage: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="meetings-loading-skeleton">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse space-y-4 border border-[#D9E2EC] p-6 bg-white">
+            <Card key={i} className="animate-pulse space-y-4 border border-[#E5EAF0] p-6 bg-white rounded-xl shadow-2xs">
               <div className="flex justify-between items-center">
                 <div className="h-5 w-20 bg-gray-200 rounded-full" />
                 <div className="h-4 w-24 bg-gray-200 rounded" />
@@ -162,7 +171,7 @@ export const MeetingsListPage: React.FC = () => {
           ))}
         </div>
       ) : isError ? (
-        <Card className="text-center py-12 px-4 border border-rose-200 bg-rose-50/50">
+        <Card className="text-center py-12 px-4 border border-rose-200 bg-rose-50/50 rounded-xl">
           <div className="flex flex-col items-center gap-3">
             <AlertCircle className="w-10 h-10 text-rose-500" />
             <h3 className="text-lg font-bold text-[#091E42]">Failed to load meetings</h3>
@@ -182,7 +191,7 @@ export const MeetingsListPage: React.FC = () => {
           </div>
         </Card>
       ) : meetings.length === 0 ? (
-        <Card className="text-center py-16 px-4 border border-[#D9E2EC] bg-white">
+        <Card className="text-center py-16 px-4 border border-[#E5EAF0] bg-white rounded-xl shadow-2xs">
           <div className="flex flex-col items-center max-w-md mx-auto">
             <div className="w-16 h-16 rounded-full bg-[#E8F1FF] flex items-center justify-center text-[#0652CC] mb-4">
               <Calendar className="w-8 h-8" />
@@ -215,7 +224,7 @@ export const MeetingsListPage: React.FC = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-[#D9E2EC] pt-4 mt-6">
+            <div className="flex items-center justify-between border-t border-[#E5EAF0] pt-4 mt-6">
               <p className="text-xs text-[#42526E]">
                 Showing page <span className="font-semibold text-[#091E42]">{page}</span> of{' '}
                 <span className="font-semibold text-[#091E42]">{totalPages}</span> ({total} meetings)

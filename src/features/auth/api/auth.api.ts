@@ -1,3 +1,4 @@
+import { tokenStore } from '@/services/api/tokenStore';
 import { apiClient } from '@/services/api/apiClient';
 
 export interface UserProfile {
@@ -12,9 +13,13 @@ export interface UserProfile {
 
 export const authApi = {
   getMe: async (): Promise<UserProfile> => {
+    if (tokenStore.requiresPasswordChange()) {
+      apiClient.routePasswordChange();
+      return new Promise(() => {}); // Navigation completes the remediation handoff.
+    }
     return apiClient.get<UserProfile>('/auth/me');
   },
-  logout: async (refreshToken: string): Promise<void> => {
-    return apiClient.post('/auth/logout', { refreshToken });
+  logout: async (): Promise<void> => {
+    return apiClient.logout();
   },
 };

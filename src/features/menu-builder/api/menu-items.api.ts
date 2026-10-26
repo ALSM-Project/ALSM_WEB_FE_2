@@ -12,6 +12,8 @@ export interface CreateMenuItemInput {
   order?: number;
   visibility?: boolean;
   status?: 'ACTIVE' | 'INACTIVE';
+  openInNewTab?: boolean;
+  hideParentLabel?: boolean;
   permissions?: string[];
 }
 
@@ -25,6 +27,8 @@ export interface UpdateMenuItemInput {
   order?: number;
   visibility?: boolean;
   status?: 'ACTIVE' | 'INACTIVE';
+  openInNewTab?: boolean;
+  hideParentLabel?: boolean;
   permissions?: string[];
 }
 
