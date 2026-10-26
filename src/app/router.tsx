@@ -146,12 +146,12 @@ export const router = createBrowserRouter([
       { path: '/validation', element: <StaffDashboardPage /> },
       { path: '/review', element: <PermissionGuard permission="quality-review.manage"><ConversionQueuePage reviewOnly /></PermissionGuard> },
       
-      // Section 3.11 & 3.12: CRM & Sales Management
+      // UC-58 & UC-66: CRM & Sales - Leads Management
       {
         path: '/sales/leads',
         element: (
           <PermissionGuard permission="sales.leads.view">
-            <LeadListPage />
+            <LeadsListPage />
           </PermissionGuard>
         ),
       },
@@ -391,15 +391,7 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
-      // UC-58: View Lead List (CRM & Sales)
-      {
-        path: '/sales/leads',
-        element: (
-          <PermissionGuard permission="sales.leads.view">
-            <LeadsListPage />
-          </PermissionGuard>
-        ),
-      },
+      // UC-58 & UC-66: View Lead List (CRM & Sales) alias
       {
         path: '/leads',
         element: (
