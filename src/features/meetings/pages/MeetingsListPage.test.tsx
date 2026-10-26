@@ -12,6 +12,10 @@ vi.mock('../api/meetings.api', () => ({
   meetingsApi: {
     create: vi.fn(),
     list: vi.fn(),
+    getById: vi.fn(),
+    update: vi.fn(),
+    updateStatus: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -84,7 +88,7 @@ describe('MeetingsListPage (UC-43 Frontend)', () => {
     vi.mocked(meetingsApi.list).mockReturnValue(new Promise(() => {})); // Never resolves
     renderComponent();
 
-    expect(screen.getByText('Online Meeting Rooms')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /(Meetings|Online Meeting Rooms)/i })).toBeInTheDocument();
     expect(document.querySelector('#meetings-loading-skeleton')).toBeInTheDocument();
   });
 
@@ -199,5 +203,53 @@ describe('MeetingsListPage (UC-43 Frontend)', () => {
     });
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith('https://meet.google.com/abc-defg-hij');
+  });
+
+  it('opens meeting detail modal when a meeting card is clicked', async () => {
+    vi.mocked(meetingsApi.list).mockResolvedValue({ items: mockMeetings, total: 2 });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('Q4 Architecture Review')).toBeInTheDocument();
+    });
+
+    const card = document.querySelector('#meeting-card-meet-1') as HTMLElement;
+    expect(card).toBeInTheDocument();
+
+    fireEvent.click(card);
+
+    await waitFor(() => {
+      expect(screen.getByText('Online Meeting Details')).toBeInTheDocument();
+      expect(screen.getByText('Meeting Agenda & Technical Objectives')).toBeInTheDocument();
+      expect(screen.getAllByText('Review microservices and database migrations').length).toBeGreaterThan(1);
+    });
+  });
+
+  it('opens delete confirmation dialog and deletes meeting when confirmed', async () => {
+    vi.mocked(meetingsApi.list).mockResolvedValue({ items: mockMeetings, total: 2 });
+    vi.mocked(meetingsApi.delete).mockResolvedValue({ success: true, message: 'Deleted' });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText('Q4 Architecture Review')).toBeInTheDocument();
+    });
+
+    // Find delete button
+    const deleteBtn = screen.getAllByTitle('Delete meeting')[0];
+    fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Confirm Delete Meeting')).toBeInTheDocument();
+      expect(screen.getByText(/Are you sure you want to delete this meeting\?/i)).toBeInTheDocument();
+    });
+
+    const confirmBtn = screen.getByRole('button', { name: /delete permanently/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(meetingsApi.delete).toHaveBeenCalledWith('meet-1');
+    });
   });
 });
