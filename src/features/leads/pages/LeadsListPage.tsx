@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useLeadsList } from '../hooks/useLeads';
 import { LeadRow } from '../components/LeadRow';
 import { LeadDetailModal } from '../components/LeadDetailModal';
+import { UpdateLeadStatusModal } from '../components/UpdateLeadStatusModal';
 import type { Lead, LeadStatus, LeadPriority, LeadSource } from '../types/lead';
 import {
   LEAD_STATUS_LABELS,
@@ -37,6 +38,8 @@ export const LeadsListPage: React.FC = () => {
 
   // Selected lead for detail modal
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  // Selected lead for update-status modal
+  const [statusLead, setStatusLead] = useState<Lead | null>(null);
 
   // Search input handler with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -474,6 +477,19 @@ export const LeadsListPage: React.FC = () => {
       <LeadDetailModal
         lead={selectedLead}
         onClose={() => setSelectedLead(null)}
+        onUpdateStatus={(lead) => {
+          setSelectedLead(null);
+          setStatusLead(lead);
+        }}
+      />
+
+      {/* Update Lead Status Modal (UC-66) */}
+      <UpdateLeadStatusModal
+        lead={statusLead}
+        onClose={() => setStatusLead(null)}
+        onSuccess={(updatedLead) => {
+          setStatusLead(updatedLead);
+        }}
       />
     </div>
   );

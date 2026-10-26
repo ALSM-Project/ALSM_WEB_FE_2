@@ -81,3 +81,18 @@ export const LEAD_PRIORITY_LABELS: Record<LeadPriority, string> = {
   HIGH: 'High',
   CRITICAL: 'Critical',
 };
+
+export const ALLOWED_LEAD_STATUS_TRANSITIONS: Record<LeadStatus, LeadStatus[]> = {
+  NEW: ['CONTACTED', 'QUALIFIED', 'LOST'],
+  CONTACTED: ['QUALIFIED', 'PROPOSAL', 'LOST'],
+  QUALIFIED: ['PROPOSAL', 'NEGOTIATION', 'LOST'],
+  PROPOSAL: ['NEGOTIATION', 'WON', 'LOST'],
+  NEGOTIATION: ['PROPOSAL', 'WON', 'LOST'],
+  WON: ['NEGOTIATION', 'LOST'],
+  LOST: ['NEW', 'CONTACTED', 'QUALIFIED'],
+};
+
+export function getAllowedTransitions(current: LeadStatus): LeadStatus[] {
+  return ALLOWED_LEAD_STATUS_TRANSITIONS[current] ?? [];
+}
+
