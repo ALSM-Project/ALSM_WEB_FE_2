@@ -9,8 +9,19 @@ import type { Lead, ListLeadsResponse } from '../types/lead';
 vi.mock('../api/leads.api', () => ({
   leadsApi: {
     list: vi.fn(),
+    updateStatus: vi.fn(),
   },
 }));
+
+vi.mock('@/features/auth/hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'user-1', email: 'sales@alsm.dev', isPlatformAdmin: false },
+    isLoading: false,
+    error: null,
+    hasPermission: (key: string) => ['sales.leads.view', 'sales.leads.manage'].includes(key),
+  }),
+}));
+
 
 const mockLeads: Lead[] = [
   {
@@ -190,3 +201,179 @@ describe('LeadsListPage (UC-58)', () => {
     });
   });
 });
+
+describe('UpdateLeadStatusModal (UC-66)', () => {
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+  });
+
+  const renderPage = () =>
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <LeadsListPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  it('opens update status modal via detail modal Update Status button', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValue({
+      items: [mockLeads[0]],
+      total: 1,
+      statusCounts: { QUALIFIED: 1 },
+    });
+
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument();
+    });
+
+    // Open detail modal
+    fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
+
+    await waitFor(() => {
+      expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument();
+    });
+
+    // Click Update Status
+    const updateBtn = screen.getByRole('button', { name: /update status/i });
+    fireEvent.click(updateBtn);
+
+    // Detail modal closes, update status modal opens
+    await waitFor(() => {
+      expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
+    });
+  });
+
+  it('shows allowed status options for a QUALIFIED lead', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValue({
+      items: [mockLeads[0]], // QUALIFIED
+      total: 1,
+      statusCounts: { QUALIFIED: 1 },
+    });
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
+    await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
+    });
+
+    // QUALIFIED allows: PROPOSAL, NEGOTIATION, LOST
+    expect(screen.getByRole('button', { name: /proposal/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /negotiation/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /lost/i })).toBeInTheDocument();
+    // Should NOT show WON directly from QUALIFIED
+    expect(screen.queryByRole('button', { name: /^won$/i })).not.toBeInTheDocument();
+  });
+
+  it('submits status update and shows success message', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValue({
+      items: [mockLeads[0]], // QUALIFIED
+      total: 1,
+      statusCounts: { QUALIFIED: 1 },
+    });
+    vi.mocked(leadsApi.updateStatus).mockResolvedValue({
+      lead: { ...mockLeads[0], status: 'PROPOSAL' },
+      updated: true,
+      message: 'Lead status updated to PROPOSAL successfully',
+    });
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
+    await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
+    });
+
+    // Select PROPOSAL
+    fireEvent.click(screen.getByRole('button', { name: /proposal/i }));
+
+    // Click submit
+    const submitBtn = screen.getByRole('button', { name: /update status/i });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(leadsApi.updateStatus).toHaveBeenCalledWith('lead-1', {
+        status: 'PROPOSAL',
+        notes: 'Looking to modernize AS400 core banking screens.',
+      });
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Lead status updated to PROPOSAL successfully')
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows error message when update fails', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValue({
+      items: [mockLeads[0]],
+      total: 1,
+      statusCounts: { QUALIFIED: 1 },
+    });
+    vi.mocked(leadsApi.updateStatus).mockRejectedValue(
+      Object.assign(new Error('Network error'), {
+        response: { data: { message: 'Invalid status transition' } },
+      })
+    );
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
+    await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /proposal/i }));
+    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid status transition')).toBeInTheDocument();
+    });
+  });
+
+  it('closes modal when cancel button is clicked', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValue({
+      items: [mockLeads[0]],
+      total: 1,
+      statusCounts: { QUALIFIED: 1 },
+    });
+
+    renderPage();
+    await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
+    await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Update Lead Status')).not.toBeInTheDocument();
+    });
+  });
+});
+

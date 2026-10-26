@@ -13,14 +13,19 @@ import {
   Clock,
   FileText,
   UserCheck,
+  TrendingUp,
 } from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
   onClose: () => void;
+  onUpdateStatus?: (lead: Lead) => void;
 }
 
-export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({ lead, onClose }) => {
+export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({ lead, onClose, onUpdateStatus }) => {
+  const { hasPermission } = useAuth();
+  const canManage = hasPermission('sales.leads.manage');
   if (!lead) return null;
 
   const formatDate = (dateStr?: string) => {
@@ -225,7 +230,19 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({ lead, onClose 
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex justify-end">
+        <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex justify-between items-center">
+          {canManage && onUpdateStatus ? (
+            <button
+              id="open-update-status-btn"
+              onClick={() => onUpdateStatus(lead)}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
+            >
+              <TrendingUp className="w-3.5 h-3.5" />
+              Update Status
+            </button>
+          ) : (
+            <span />
+          )}
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer"

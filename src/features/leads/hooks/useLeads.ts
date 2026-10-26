@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '../api/leads.api';
 import type { ListLeadsParams } from '../types/lead';
 
@@ -11,3 +11,15 @@ export function useLeadsList(params?: ListLeadsParams) {
     staleTime: 30_000,
   });
 }
+
+export function useUpdateLeadStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status, notes }: { id: string; status: string; notes?: string }) =>
+      leadsApi.updateStatus(id, { status, notes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+}
+

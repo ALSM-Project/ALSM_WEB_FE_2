@@ -1,5 +1,16 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { ListLeadsParams, ListLeadsResponse } from '../types/lead';
+import type { Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
+
+export interface UpdateLeadStatusPayload {
+  status: string;
+  notes?: string;
+}
+
+export interface UpdateLeadStatusResponse {
+  lead: Lead;
+  updated: boolean;
+  message: string;
+}
 
 export const leadsApi = {
   list: (params?: ListLeadsParams): Promise<ListLeadsResponse> => {
@@ -16,4 +27,12 @@ export const leadsApi = {
     const query = qs.toString();
     return apiClient.get<ListLeadsResponse>(`/leads${query ? `?${query}` : ''}`);
   },
+
+  updateStatus: (
+    id: string,
+    payload: UpdateLeadStatusPayload,
+  ): Promise<UpdateLeadStatusResponse> => {
+    return apiClient.patch<UpdateLeadStatusResponse>(`/leads/${id}/status`, payload);
+  },
 };
+
