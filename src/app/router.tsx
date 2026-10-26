@@ -10,6 +10,7 @@ import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePag
 import TeamPerformancePage from '@/features/team-performance/pages/TeamPerformancePage';
 import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
+import { LeadsListPage } from '@/features/leads';
 import {
   LeadListPage,
   LeadDetailPage,
@@ -357,7 +358,6 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
-      
       // UC-43: Create Online Meeting Room
       {
         path: '/enterprise/meetings/create',
@@ -388,6 +388,23 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="meetings.create">
             <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
+      // UC-58: View Lead List (CRM & Sales)
+      {
+        path: '/sales/leads',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <LeadsListPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/leads',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <LeadsListPage />
           </PermissionGuard>
         ),
       },
