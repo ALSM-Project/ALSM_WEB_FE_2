@@ -53,6 +53,8 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
   const [validation, setValidation] = useState<SupportPatchValidation | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  const [serverWarnings, setServerWarnings] = useState<string[]>([]);
+  const isCobol = job.conversionType === 'COBOL_TO_JAVA';
 
   // Load the saved rules once, and again whenever the server copy changes while the
   // editor has no unsaved edits (e.g. another staff member applied a patch).
@@ -113,6 +115,7 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
       setValidation(null);
       setLoadedFrom(result.patch.rules);
       setRules(result.patch.rules);
+      setServerWarnings(result.warnings);
       setMessage({
         kind: 'success',
         text: `Patch applied: ${result.patch.changedRuleCount} rule(s) changed. Job ${result.job.id} is ${result.job.status} again with attempts reset to ${result.job.attemptCount}/${result.job.maxAttempts} at ${result.job.priority} priority.`,
@@ -128,6 +131,7 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
 
   const openConfirm = () => {
     setMessage(null);
+    setServerWarnings([]);
     if (runValidation().errors.length > 0) return;
     setConfirming(true);
   };
@@ -284,6 +288,12 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
                   placeholder="e.g. Changed the balance type from string to decimal"
                 />
               </label>
+              {isCobol && (
+                <p className="rounded-md border border-amber-200 bg-amber-50 p-2 text-amber-900">
+                  COBOL to Java jobs: the rules are saved and the job is re-queued, but the converter cannot apply them
+                  to the Java code yet. Re-conversion of BMS/DSPF screens does apply them.
+                </p>
+              )}
               {!patchable && (
                 <p className="text-slate-500">Patches can be applied only while the job is FAILED or DEAD (it is {job.status}).</p>
               )}
@@ -303,6 +313,11 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
               className={message.kind === 'error' ? 'text-rose-600' : 'text-emerald-700'}>
               {message.text}
             </p>
+          )}
+          {serverWarnings.length > 0 && (
+            <ul aria-label="Patch warnings" className="list-disc pl-5 text-amber-900">
+              {serverWarnings.map((w) => <li key={w}>{w}</li>)}
+            </ul>
           )}
         </>
       )}

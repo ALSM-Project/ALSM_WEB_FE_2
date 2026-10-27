@@ -184,4 +184,25 @@ describe('SupportPatchPanel', () => {
     expect(screen.getByRole('button', { name: /Apply Patch & Re-run/ })).toBeDisabled();
     expect(screen.getByText(/only while the job is FAILED or DEAD/)).toBeInTheDocument();
   });
+
+  it('tells staff up front, and after applying, that COBOL jobs do not apply the rules yet', async () => {
+    const cobolJob = { ...job, conversionType: 'COBOL_TO_JAVA' };
+    const warning = 'The rules were saved and the job re-queued, but the COBOL to Java converter cannot apply mapping rules yet';
+    vi.mocked(conversionQueueService.getSupportPatch).mockResolvedValue({ job: cobolJob, rules: savedRules, history: [] });
+    vi.mocked(conversionQueueService.applySupportPatch).mockResolvedValue({
+      job: { ...cobolJob, status: 'QUEUED', attemptCount: 0, priority: 'HIGH' },
+      patch: { id: 'p3', rules: [savedRules[1]], note: 'x', changedRuleCount: 1, appliedBy: 'u', appliedAt: '2026-10-27T03:00:00Z' },
+      warnings: [warning],
+    });
+    renderPanel(undefined, cobolJob);
+    await screen.findByDisplayValue('currentBalance');
+
+    expect(screen.getByText(/cannot apply them\s+to the Java code yet/)).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Remove rule ACCTNO'));
+    fireEvent.change(screen.getByLabelText('Support note'), { target: { value: 'x' } });
+    fireEvent.click(screen.getByRole('button', { name: /Apply Patch & Re-run/ }));
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: /Confirm & Apply/ }));
+
+    expect(await screen.findByLabelText('Patch warnings')).toHaveTextContent(warning);
+  });
 });
