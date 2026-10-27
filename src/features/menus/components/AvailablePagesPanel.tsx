@@ -26,12 +26,15 @@ const AVAILABLE_PAGES_LIBRARY: AvailablePage[] = [
   { id: 'page-team-perf', label: 'Team Performance', module: 'Operations', icon: 'BarChart3', path: '/team-performance' },
   { id: 'page-meetings', label: 'Online Meetings', module: 'Operations', icon: 'Video', path: '/enterprise/meetings' },
   { id: 'page-meeting-create', label: 'Create Meeting Room', module: 'Operations', icon: 'Video', path: '/enterprise/meetings/create' },
-  { id: 'page-quotes', label: 'Enterprise Quotes', module: 'Commercial', icon: 'Zap', path: '/admin/billing/quotes' },
+  { id: 'page-meeting-requests', label: 'Meeting Requests', module: 'Sales & CRM', icon: 'Calendar', path: '/sales/meeting-requests' },
+  { id: 'page-enterprise-quotes', label: 'Quotes & Contracts', module: 'Commercial', icon: 'FileText', path: '/sales/enterprise-quotes' },
+  { id: 'page-org-usage', label: 'Service Usage & Quotas', module: 'Commercial', icon: 'CreditCard', path: '/admin/billing/usage' },
   { id: 'page-admin-projects', label: 'Admin Projects (Assignments)', module: 'Administration', icon: 'FolderKanban', path: '/admin/projects' },
   { id: 'page-engagement-types', label: 'Engagement Types & Plans', module: 'Administration', icon: 'Layers', path: '/admin/engagement-types' },
   { id: 'page-menu-builder', label: 'Menu Builder', module: 'Administration', icon: 'ListTree', path: '/admin/menu-builder' },
   { id: 'page-roles', label: 'Roles & Permissions', module: 'Administration', icon: 'ShieldCheck', path: '/admin/roles' },
   { id: 'page-users', label: 'User Assignments', module: 'Administration', icon: 'Users', path: '/admin/users' },
+  { id: 'page-bank-accounts', label: 'Bank Accounts', module: 'Administration', icon: 'Landmark', path: '/admin/bank-accounts' },
   { id: 'page-diagnostics', label: 'System Diagnostics', module: 'Operations', icon: 'Activity', path: '/diagnostics' },
   { id: 'page-partner-list', label: 'Partner Directory', module: 'Partners', icon: 'Building', path: '/partners' },
   { id: 'page-partner-new', label: 'Register Partner', module: 'Partners', icon: 'Users', path: '/partners/new' },
@@ -75,9 +78,9 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
     <Card variant="default" padding="md" className="h-[640px] flex flex-col justify-between">
       <div>
         {/* Header */}
-        <div className="pb-3 mb-3 border-b border-[#E5EAF0]">
-          <h2 className="text-base font-bold text-[#091E42]">Available Pages</h2>
-          <p className="text-xs text-[#6B778C] mt-0.5">Select a page to add to the menu.</p>
+        <div className="pb-3 mb-3 border-b border-[#DCE3EC]">
+          <h2 className="text-base font-bold text-[#17263A]">Available Pages</h2>
+          
         </div>
 
         {/* Filter & Search Inputs */}
@@ -89,7 +92,7 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8 text-xs py-1.5"
             />
-            <Search className="w-3.5 h-3.5 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5 pointer-events-none" />
           </div>
 
           <div>
@@ -107,24 +110,24 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
           {filteredPages.map((page) => (
             <div
               key={page.id}
-              className="flex items-center justify-between p-2.5 rounded-xl border border-[#E5EAF0] bg-white hover:border-[#0652CC]/50 hover:bg-[#F7F9FC] transition-all group"
+              className="flex items-center justify-between p-2.5 rounded-xl border border-[#DCE3EC] bg-white hover:border-[#244A70]/50 hover:bg-[#F8FAFC] transition-all group"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 rounded-lg bg-[#F7F9FC] border border-[#E5EAF0] flex items-center justify-center text-[#0652CC] group-hover:bg-[#E8F1FF]">
+                <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] flex items-center justify-center text-[#244A70] group-hover:bg-[#EEF1F6]">
                   <DynamicIcon name={page.icon} className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#091E42] group-hover:text-[#0652CC]">
+                  <h4 className="text-xs font-bold text-[#17263A] group-hover:text-[#244A70]">
                     {page.label}
                   </h4>
-                  <span className="text-[10px] text-[#6B778C]">{page.module}</span>
+                  <span className="text-[10px] text-[#8491A3]">{page.module}</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 onClick={() => onAddPageToMenu(page)}
-                className="w-7 h-7 rounded-lg bg-[#0652CC] hover:bg-[#0655FF] text-white flex items-center justify-center transition-colors shadow-xs"
+                className="w-7 h-7 rounded-lg bg-[#244A70] hover:bg-[#244A70] text-white flex items-center justify-center transition-colors shadow-xs"
                 title={`Add ${page.label} to menu structure`}
               >
                 <Plus className="w-4 h-4 font-bold" />
@@ -133,7 +136,7 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
           ))}
 
           {filteredPages.length === 0 && (
-            <div className="p-6 text-center text-xs text-[#6B778C]">
+            <div className="p-6 text-center text-xs text-[#8491A3]">
               No available pages match your filter criteria.
             </div>
           )}
