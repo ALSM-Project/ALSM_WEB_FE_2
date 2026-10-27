@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useId } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Lead, SendQuotePayload, SendQuoteResponse } from '../types/lead';
 import { useSendQuote } from '../hooks/useLeads';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -7,7 +7,6 @@ import {
   Send,
   AlertTriangle,
   CheckCircle2,
-  FileText,
   DollarSign,
   Percent,
   Calendar,
@@ -48,7 +47,6 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
 }) => {
   const { hasPermission } = useAuth();
   const canSendQuote = hasPermission('sales.leads.manage');
-  const planListId = useId();
 
   const [planName, setPlanName] = useState('Core Platform Migration & Modernization');
   const [projectScope, setProjectScope] = useState(
@@ -59,7 +57,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
   const [discountReason, setDiscountReason] = useState('');
   const [recipientEmail, setRecipientEmail] = useState('');
   const [validityDays, setValidityDays] = useState<number>(30);
-  const [notes, setNotes] = useState('');
+  const [notes] = useState('');
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<SendQuoteResponse | null>(null);

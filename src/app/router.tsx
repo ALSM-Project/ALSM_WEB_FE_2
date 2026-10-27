@@ -7,6 +7,7 @@ import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
+import { PullRequestStatusPage } from '@/features/ci-status/pages/PullRequestStatusPage';
 import TeamPerformancePage from '@/features/team-performance/pages/TeamPerformancePage';
 import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
@@ -42,6 +43,10 @@ import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
   {
+    path: '/',
+    element: <PullRequestStatusPage />,
+  },
+  {
     path: '/auth/callback',
     element: <AuthCallbackPage />,
   },
@@ -52,7 +57,7 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: '/', element: <StaffDashboardPage /> },
+      { path: '/dashboard', element: <StaffDashboardPage /> },
       // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
       {
         path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
