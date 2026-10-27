@@ -17,7 +17,7 @@ export const DEFAULT_STAFF_SIDEBAR_NAV: MenuItem[] = [
     isVisible: false,
     order: 2,
     badge: '12 Pending',
-    badgeColor: '#0652CC',
+    badgeColor: '#244A70',
   },
   {
     id: 'validation-ops',
