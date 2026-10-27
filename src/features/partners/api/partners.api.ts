@@ -592,7 +592,7 @@ export const partnersApi = {
         apiClient.get<ConversionJobDto[]>(`/projects/${projectId}/conversions`),
       ]);
     } catch (err) {
-      throw toPartnerConversionError(err);
+      throw toPartnerConversionError(err, 'load');
     }
     const project = await this.fetchProject(projectId);
     const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
