@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button, Card } from '@/shared/ui';
 import type { QueueJob } from '../services/conversion-queue.service';
+import { SupportPatchPanel } from './SupportPatchPanel';
 
 export interface ConversionTroubleshootingWorkspaceProps {
   job: QueueJob;
@@ -8,11 +9,13 @@ export interface ConversionTroubleshootingWorkspaceProps {
   onBack: () => void;
   onRetry?: () => void;
   retrying?: boolean;
+  /** Called with the re-queued job after a support patch was applied on the server. */
+  onPatched?: (job: QueueJob) => void;
 }
 
 // The queue endpoint supplies job metadata, not source files, worker logs, or a
-// per-attempt timeline. Keep investigation truthful without simulating a patch.
-export function ConversionTroubleshootingWorkspace({ job, projectName, onBack, onRetry, retrying }: ConversionTroubleshootingWorkspaceProps) {
+// per-attempt timeline. Field mappings come from the support patch endpoint.
+export function ConversionTroubleshootingWorkspace({ job, projectName, onBack, onRetry, retrying, onPatched }: ConversionTroubleshootingWorkspaceProps) {
   return (
     <Card className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
@@ -34,7 +37,8 @@ export function ConversionTroubleshootingWorkspace({ job, projectName, onBack, o
           <div key={label}><dt className="font-semibold text-slate-500">{label}</dt><dd className="break-words mt-1">{value || 'Not available'}</dd></div>
         ))}
       </dl>
-      {['Legacy source code', 'Field mappings', 'Execution history', 'Worker logs'].map((label) => (
+      <SupportPatchPanel job={job} onApplied={onPatched} />
+      {['Legacy source code', 'Execution history', 'Worker logs'].map((label) => (
         <section key={label} aria-label={label} className="border-t border-slate-200 pt-3 text-xs">
           <h3 className="font-semibold">{label}</h3>
           <p className="text-slate-500 mt-1">Not available from the conversion job endpoint.</p>
