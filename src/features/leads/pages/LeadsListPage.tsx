@@ -3,6 +3,7 @@ import { useLeadsList } from '../hooks/useLeads';
 import { LeadRow } from '../components/LeadRow';
 import { LeadDetailModal } from '../components/LeadDetailModal';
 import { UpdateLeadStatusModal } from '../components/UpdateLeadStatusModal';
+import { SendQuoteModal } from '../components/SendQuoteModal';
 import type { Lead, LeadStatus, LeadPriority, LeadSource } from '../types/lead';
 import {
   LEAD_STATUS_LABELS,
@@ -40,6 +41,8 @@ export const LeadsListPage: React.FC = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   // Selected lead for update-status modal
   const [statusLead, setStatusLead] = useState<Lead | null>(null);
+  // Selected lead for send-quote modal (UC-62)
+  const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
 
   // Search input handler with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -481,6 +484,10 @@ export const LeadsListPage: React.FC = () => {
           setSelectedLead(null);
           setStatusLead(lead);
         }}
+        onSendQuote={(lead) => {
+          setSelectedLead(null);
+          setQuoteLead(lead);
+        }}
       />
 
       {/* Update Lead Status Modal (UC-66) */}
@@ -489,6 +496,15 @@ export const LeadsListPage: React.FC = () => {
         onClose={() => setStatusLead(null)}
         onSuccess={(updatedLead) => {
           setStatusLead(updatedLead);
+        }}
+      />
+
+      {/* Send Quote Modal (UC-62) */}
+      <SendQuoteModal
+        lead={quoteLead}
+        onClose={() => setQuoteLead(null)}
+        onSuccess={() => {
+          refetch();
         }}
       />
     </div>

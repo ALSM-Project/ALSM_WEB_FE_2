@@ -23,3 +23,15 @@ export function useUpdateLeadStatus() {
   });
 }
 
+export function useSendQuote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: import('../types/lead').SendQuotePayload }) =>
+      leadsApi.sendQuote(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    },
+  });
+}
+
+
