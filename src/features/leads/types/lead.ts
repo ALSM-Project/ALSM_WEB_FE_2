@@ -28,6 +28,7 @@ export interface Lead {
   assignedToUserId?: string;
   assignedToEmail?: string;
   tags: string[];
+  quotes?: LeadQuoteItem[];
   lastContactedAt?: string;
   nextFollowUpAt?: string;
   createdByUserId: string;
@@ -95,4 +96,41 @@ export const ALLOWED_LEAD_STATUS_TRANSITIONS: Record<LeadStatus, LeadStatus[]> =
 export function getAllowedTransitions(current: LeadStatus): LeadStatus[] {
   return ALLOWED_LEAD_STATUS_TRANSITIONS[current] ?? [];
 }
+
+export type QuoteApprovalStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'SENT' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+
+export interface LeadQuoteItem {
+  id: string;
+  quoteNumber: string;
+  planName: string;
+  projectScope?: string;
+  amount: number;
+  discountPercent?: number;
+  discountApproved?: boolean;
+  discountReason?: string;
+  status: QuoteApprovalStatus;
+  recipientEmail: string;
+  expiresAt: string;
+  sentAt?: string;
+  pdfUrl?: string;
+  createdAt: string;
+}
+
+export interface SendQuotePayload {
+  planName: string;
+  amount: number;
+  discountPercent?: number;
+  discountReason?: string;
+  recipientEmail?: string;
+  validityDays?: number;
+  projectScope?: string;
+  notes?: string;
+}
+
+export interface SendQuoteResponse {
+  quote: LeadQuoteItem;
+  lead: Lead;
+  message: string;
+}
+
 

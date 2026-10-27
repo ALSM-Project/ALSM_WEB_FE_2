@@ -4,5 +4,6 @@ export * from './hooks/useLeads';
 export * from './components/LeadRow';
 export * from './components/LeadDetailModal';
 export * from './components/UpdateLeadStatusModal';
+export * from './components/SendQuoteModal';
 export { LeadsListPage, default as LeadsListPageDefault } from './pages/LeadsListPage';
 

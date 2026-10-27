@@ -34,5 +34,12 @@ export const leadsApi = {
   ): Promise<UpdateLeadStatusResponse> => {
     return apiClient.patch<UpdateLeadStatusResponse>(`/leads/${id}/status`, payload);
   },
+
+  sendQuote: (
+    id: string,
+    payload: import('../types/lead').SendQuotePayload,
+  ): Promise<import('../types/lead').SendQuoteResponse> => {
+    return apiClient.post<import('../types/lead').SendQuoteResponse>(`/leads/${id}/quotes`, payload);
+  },
 };
 

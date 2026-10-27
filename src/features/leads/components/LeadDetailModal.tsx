@@ -14,6 +14,8 @@ import {
   FileText,
   UserCheck,
   TrendingUp,
+  Send,
+  FileCheck,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -21,9 +23,15 @@ interface LeadDetailModalProps {
   lead: Lead | null;
   onClose: () => void;
   onUpdateStatus?: (lead: Lead) => void;
+  onSendQuote?: (lead: Lead) => void;
 }
 
-export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({ lead, onClose, onUpdateStatus }) => {
+export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
+  lead,
+  onClose,
+  onUpdateStatus,
+  onSendQuote,
+}) => {
   const { hasPermission } = useAuth();
   const canManage = hasPermission('sales.leads.manage');
   if (!lead) return null;
@@ -227,22 +235,76 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({ lead, onClose,
               </div>
             </div>
           )}
+
+          {/* Quotes History (UC-62) */}
+          {lead.quotes && lead.quotes.length > 0 && (
+            <div id="lead-quotes-history-section">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-2 flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-[#0652CC]" /> Modernization Quotes ({lead.quotes.length})
+              </h3>
+              <div className="space-y-2">
+                {lead.quotes.map((q) => (
+                  <div
+                    key={q.id}
+                    className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E8ECF1] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-[#0652CC]">{q.quoteNumber}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            q.status === 'SENT'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {q.status}
+                        </span>
+                      </div>
+                      <p className="text-xs font-medium text-[#091E42] mt-0.5">{q.planName}</p>
+                      <p className="text-[11px] text-[#6B778C]">Sent to: {q.recipientEmail}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-extrabold text-[#091E42]">
+                        ${q.amount.toLocaleString()} USD
+                      </div>
+                      {q.discountPercent ? (
+                        <div className="text-[10px] text-amber-600">
+                          {q.discountPercent}% discount included
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
         <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex justify-between items-center">
-          {canManage && onUpdateStatus ? (
-            <button
-              id="open-update-status-btn"
-              onClick={() => onUpdateStatus(lead)}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              Update Status
-            </button>
-          ) : (
-            <span />
-          )}
+          <div className="flex items-center gap-2">
+            {canManage && onUpdateStatus && (
+              <button
+                id="open-update-status-btn"
+                onClick={() => onUpdateStatus(lead)}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs"
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-[#0652CC]" />
+                Update Status
+              </button>
+            )}
+            {canManage && onSendQuote && lead.status !== 'WON' && lead.status !== 'LOST' && (
+              <button
+                id="open-send-quote-btn"
+                onClick={() => onSendQuote(lead)}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send Quote
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer"
