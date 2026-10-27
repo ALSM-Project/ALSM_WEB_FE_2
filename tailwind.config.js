@@ -20,6 +20,15 @@ export default {
           800: '#091E42',
           900: '#020817',
         },
+        enterprise: {
+          primary: '#0652CC',
+          sidebar: '#091E42',
+          main: '#F7F9FC',
+          surface: '#FFFFFF',
+          text: '#172B4D',
+          subtext: '#5E6C84',
+          border: '#DFE3E8',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

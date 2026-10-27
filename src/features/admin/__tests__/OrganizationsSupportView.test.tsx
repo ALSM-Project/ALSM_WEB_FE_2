@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
@@ -104,8 +104,9 @@ describe('OrganizationsPage - Customer Support & Read-Only Access', () => {
       expect(screen.getByText('Acme Corporation')).toBeInTheDocument();
     });
 
-    const supportViewButtons = screen.getAllByRole('button', { name: /Support View/i });
-    fireEvent.click(supportViewButtons[0]);
+    const acmeRow = screen.getByText('Acme Corporation').closest('tr')!;
+    const supportViewButton = within(acmeRow).getByRole('button', { name: /Support View/i });
+    fireEvent.click(supportViewButton);
 
     // Verify confirmation modal content
     expect(screen.getByText('Enter Customer Support View')).toBeInTheDocument();

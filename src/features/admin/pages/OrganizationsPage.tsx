@@ -518,11 +518,12 @@ export const OrganizationsPage: React.FC = () => {
             <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
               <div className="flex items-center gap-2 font-bold text-sm text-amber-950">
                 <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0" />
-                <span>Simulated Support Session Notice</span>
+                <span>Simulated Support Session Notice (Read-Only Support Session)</span>
               </div>
               <p>
-                You are entering <strong>{supportTargetOrg.name}</strong> in strict Read-Only mode.
+                You are about to simulate entering customer organization <strong>{supportTargetOrg.name}</strong> in strict Read-Only mode.
               </p>
+              <div className="font-semibold text-amber-900 mt-2">Guardrails enforced in Support View:</div>
               <ul className="list-disc pl-5 space-y-1 text-[11px] text-amber-800">
                 <li>No customer projects or mappings will be modified.</li>
                 <li>All actions are recorded in the immutable platform audit log.</li>
@@ -559,7 +560,7 @@ export const OrganizationsPage: React.FC = () => {
                 onClick={handleConfirmSupportView}
                 className="bg-[#0652CC] hover:bg-[#0543A8]"
               >
-                Enter Support View
+                Confirm & Enter Support View
               </Button>
             </div>
           </div>
@@ -576,7 +577,7 @@ export const OrganizationsPage: React.FC = () => {
         title={createStep === 1 ? 'Provision Enterprise Organisation (Step 1/2)' : 'Review & Confirm Provisioning (Step 2/2)'}
       >
         {createStep === 1 ? (
-          <form onSubmit={handleProceedToReview} className="space-y-4">
+          <form noValidate onSubmit={handleProceedToReview} className="space-y-4">
             <p className="text-xs text-[#6B778C]">
               Configure customer tenant parameters, contact details, and initial engagement level.
             </p>

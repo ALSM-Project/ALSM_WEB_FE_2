@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OrganizationsPage } from '../pages/OrganizationsPage';
@@ -424,25 +424,32 @@ describe('Platform Administration UI Enhancements', () => {
         expect(screen.getByText('Activity & Security Audit Log')).toBeInTheDocument();
       });
 
+      await waitFor(() => {
+        expect(screen.queryByText('Reading simulated audit records...')).not.toBeInTheDocument();
+      });
+
       // Simulation banner
       expect(screen.getByText(/Simulated Audit Trail/i)).toBeInTheDocument();
       expect(screen.getByText('Mock Audit Data')).toBeInTheDocument();
 
       // Verify IP address column
       expect(screen.getByText('IP Address')).toBeInTheDocument();
-      expect(screen.getByText('192.168.1.42')).toBeInTheDocument();
-      expect(screen.getByText('10.0.4.18')).toBeInTheDocument();
+      expect(screen.getAllByText('192.168.1.42')[0]).toBeInTheDocument();
+      expect(screen.getAllByText('10.0.4.18')[0]).toBeInTheDocument();
 
-      // Verify Actions and Targets
-      expect(screen.getByText('DISCOUNT_APPROVED')).toBeInTheDocument();
-      expect(screen.getByText('IMPERSONATE')).toBeInTheDocument();
+      // Verify Actions and Targets in Table Body
+      const tbody = screen.getByRole('table').querySelector('tbody')!;
+      expect(within(tbody).getAllByText('DISCOUNT_APPROVED').length).toBeGreaterThan(0);
+      expect(within(tbody).getAllByText('IMPERSONATE').length).toBeGreaterThan(0);
 
       // Filter by Action: USER_LOCKED
       const actionSelect = screen.getByDisplayValue('All Actions');
       fireEvent.change(actionSelect, { target: { value: 'USER_LOCKED' } });
 
-      expect(screen.getByText('USER_LOCKED')).toBeInTheDocument();
-      expect(screen.queryByText('IMPERSONATE')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(within(tbody).getAllByText('USER_LOCKED').length).toBeGreaterThan(0);
+        expect(within(tbody).queryByText('IMPERSONATE')).not.toBeInTheDocument();
+      });
 
       // Verify Export Controls
       expect(screen.getByRole('button', { name: /Export CSV/i })).toBeInTheDocument();

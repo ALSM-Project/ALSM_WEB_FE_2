@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router-dom';
 import AppLayout from '@/shared/layouts/AppLayout';
 import StaffDashboardPage from '@/features/dashboard/pages/StaffDashboardPage';
 import { MenuBuilderPage } from '@/features/menus';
@@ -8,7 +8,11 @@ import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
 import TeamPerformancePage from '@/features/team-performance/pages/TeamPerformancePage';
-import { UsageDashboardPage, AdminQuoteRequestsPage } from '@/features/billing';
+import { UsageDashboardPage, AdminQuoteRequestsPage, InvoicesPage } from '@/features/billing';
+import { Web3AdminPage } from '@/features/web3';
+import { SettingsPage } from '@/features/settings/pages/SettingsPage';
+import { NotFoundPage } from '@/shared/pages/NotFoundPage';
+import { ForbiddenPage } from '@/shared/pages/ForbiddenPage';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
 import {
   LeadListPage,
@@ -316,6 +320,42 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
+      {
+        path: '/admin/web3',
+        element: (
+          <PermissionGuard permission="organizations.view">
+            <Web3AdminPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/settings',
+        element: (
+          <PermissionGuard permission="system.manage">
+            <SettingsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/billing/invoices',
+        element: (
+          <PermissionGuard permission="billing.invoices.view">
+            <InvoicesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/billing/invoices',
+        element: (
+          <PermissionGuard permission="billing.invoices.view">
+            <InvoicesPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/forbidden',
+        element: <ForbiddenPage />,
+      },
 
       { path: '/team-performance', element: <TeamPerformancePage /> },
       { path: '/team-performance/monitor', element: <TeamPerformancePage /> },
@@ -473,7 +513,11 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
+      {
+        path: '*',
+        element: <NotFoundPage />,
+      },
     ],
   },
-  { path: '*', element: <Navigate to="/" replace /> },
+  { path: '*', element: <NotFoundPage /> },
 ]);

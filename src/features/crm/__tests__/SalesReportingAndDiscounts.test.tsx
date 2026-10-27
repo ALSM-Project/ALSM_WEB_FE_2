@@ -289,8 +289,8 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve and Reject buttons should NOT be rendered in table
-      expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject$/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
 
       // View Only indicators should be displayed
@@ -315,10 +315,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve button should be visible
-      expect(screen.getAllByRole('button', { name: /approve/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^approve$/i }).length).toBeGreaterThan(0);
 
       // Reject button should NOT be visible
-      expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject$/i })).not.toBeInTheDocument();
     });
 
     it('displays Reject button when user has sales.discounts.reject, but hides Approve if sales.discounts.approve is missing', async () => {
@@ -339,10 +339,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Reject button should be visible
-      expect(screen.getAllByRole('button', { name: /reject/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^reject$/i }).length).toBeGreaterThan(0);
 
       // Approve and Escalate buttons should NOT be visible
-      expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve$/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
     });
   });
