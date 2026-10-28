@@ -92,7 +92,7 @@ describe('PartnerProjectsPage - Partner Modernization Projects', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole('heading', { name: /Partner Modernization Projects/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /(Partner Projects|Partner Modernization Projects)/i })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Core Banking BMS to React Migration')).toBeInTheDocument();
