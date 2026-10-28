@@ -8,6 +8,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
+import { workloadLevel } from '../utils/workload';
 import { Button, Modal, Input } from '@/shared/ui';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
@@ -65,7 +66,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
 
   const openAllocateModal = (proj: PartnerProject) => {
     setAllocationTarget(proj);
-    setSelectedStaffId(proj.assignedStaffId || 'staff-01');
+    setSelectedStaffId(proj.assignedStaffId || '');
     setAssignmentNote('');
   };
 
@@ -81,6 +82,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
       const updated = await partnersApi.assignProject(allocationTarget.id, {
         staffId: selectedStaffId,
         staffName,
+        staffNote: assignmentNote,
       });
 
       // Update state
@@ -137,9 +139,9 @@ export const TeamLeadProjectsPage: React.FC = () => {
     (p) => p.status === 'READY_FOR_EXPORT' || p.status === 'COMPLETED'
   ).length;
 
-  const conversionStaffOnly = staffRoster.filter(
-    (s) => s.role === 'CONVERSION_STAFF' || s.id.startsWith('staff')
-  );
+  // The server already returns only active Conversion Staff.
+  const conversionStaffOnly = staffRoster;
+  const selectedStaff = conversionStaffOnly.find((s) => s.id === selectedStaffId);
 
   const transferCandidates: CandidateAssignee[] = conversionStaffOnly.map((staff) => ({
     id: staff.id,
@@ -635,7 +637,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 <option value="">-- Choose Eligible Conversion Engineer --</option>
                 {conversionStaffOnly.map((staff) => (
                   <option key={staff.id} value={staff.id}>
-                    {staff.fullName} ({staff.email}) • Active Workload: {staff.activeWorkload} projects
+                    {staff.fullName} • Running {staff.activeWorkload} project{staff.activeWorkload === 1 ? '' : 's'} ({workloadLevel(staff.activeWorkload).label})
                   </option>
                 ))}
               </select>
@@ -643,6 +645,15 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
+            {selectedStaff && (
+              <span
+                data-testid="staff-workload-badge"
+                className={`mt-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${workloadLevel(selectedStaff.activeWorkload).className}`}
+              >
+                {selectedStaff.fullName} • {selectedStaff.activeWorkload} active project
+                {selectedStaff.activeWorkload === 1 ? '' : 's'} • {workloadLevel(selectedStaff.activeWorkload).label}
+              </span>
+            )}
           </div>
 
           <div>

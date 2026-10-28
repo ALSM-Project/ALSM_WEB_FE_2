@@ -43,6 +43,8 @@ export interface PartnerProject {
   assignedTeamLeadName?: string;
   assignedStaffId?: string;
   assignedStaffName?: string;
+  /** The Team Lead's briefing written when the project was allocated. */
+  staffAssignmentNote?: string;
   isExported?: boolean;
   exportedBundleName?: string;
   exportedAt?: string;
