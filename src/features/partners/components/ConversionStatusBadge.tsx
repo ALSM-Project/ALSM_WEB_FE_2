@@ -9,8 +9,8 @@ const STYLE: Record<ItemConversionStatus, { label: string; className: string; do
   },
   PROCESSING: {
     label: 'PROCESSING',
-    className: 'bg-blue-50 text-[#0652CC] border-blue-200',
-    dot: 'bg-[#0652CC] animate-pulse',
+    className: 'bg-blue-50 text-[#244A70] border-blue-200',
+    dot: 'bg-[#244A70] animate-pulse',
   },
   COMPLETED: {
     label: 'COMPLETED',
