@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EmployeeWorkQueuePage } from '../pages/EmployeeWorkQueuePage';
-import { mockServer, SERVER_PROJECT_ID } from '@/features/partners/__tests__/serverFixture';
+import { mockServer, SERVER_PROJECT_ID, serverProject } from '@/features/partners/__tests__/serverFixture';
 
 vi.mock('@/services/api/apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
@@ -38,12 +38,11 @@ describe('EmployeeWorkQueuePage - System Employee Modernization Workbench Queue'
         [SERVER_PROJECT_ID]: {
           partnerId: '6650cc00cc00cc00cc00cc01',
           partnerName: 'Fintech Nexus International',
-          assignedStaffId: 'staff-01',
-          assignedStaffName: 'Marcus Vance',
         },
       }),
     );
-    mockServer();
+    // The allocation is stored on the project by the server (UC-86).
+    mockServer({ projects: [{ ...serverProject, assignedStaffId: 'staff-01', assignedStaffName: 'Marcus Vance' }] });
   });
 
   afterEach(() => {

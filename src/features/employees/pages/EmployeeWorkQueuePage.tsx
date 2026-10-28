@@ -10,6 +10,7 @@ import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject, PartnerConversionItem } from '@/features/partners/types/partner.types';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Input } from '@/shared/ui';
+import { useBackgroundRefresh } from '@/shared/hooks/useBackgroundRefresh';
 
 interface WorkItemWithProject extends PartnerConversionItem {
   projectName: string;
@@ -29,9 +30,10 @@ export const EmployeeWorkQueuePage: React.FC = () => {
   const [queueFilter, setQueueFilter] = useState<'MY_QUEUE' | 'ALL'>('MY_QUEUE');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const fetchWorkQueue = async () => {
+  // A silent refresh runs in the background and keeps what is on screen while it loads.
+  const fetchWorkQueue = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setErrorMsg(null);
       const allProjects = await partnersApi.getProjects();
       setProjects(allProjects || []);
@@ -65,6 +67,9 @@ export const EmployeeWorkQueuePage: React.FC = () => {
   useEffect(() => {
     fetchWorkQueue();
   }, []);
+
+  // A project a Team Lead gives or takes away shows up here without reloading the page.
+  useBackgroundRefresh(() => void fetchWorkQueue(true));
 
   // Filter projects by current user
   const isAssignedToUser = (p: PartnerProject) => {
@@ -140,7 +145,7 @@ export const EmployeeWorkQueuePage: React.FC = () => {
             <span>Team Lead View</span>
           </Link>
           <button
-            onClick={fetchWorkQueue}
+            onClick={() => fetchWorkQueue()}
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#0652CC]' : 'text-slate-500'}`} />

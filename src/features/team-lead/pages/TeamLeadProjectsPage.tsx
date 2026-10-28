@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { workloadLevel } from '../utils/workload';
+import { useBackgroundRefresh } from '@/shared/hooks/useBackgroundRefresh';
 import { Button, Modal, Input } from '@/shared/ui';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
@@ -42,9 +43,10 @@ export const TeamLeadProjectsPage: React.FC = () => {
   // Resource Ownership Transfer Modal (Section 2.C)
   const [transferTargetProject, setTransferTargetProject] = useState<PartnerProject | null>(null);
 
-  const fetchData = async () => {
+  // A silent refresh runs in the background and keeps what is on screen while it loads.
+  const fetchData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       setErrorMsg(null);
       const [fetchedProjects, fetchedStaff] = await Promise.all([
         partnersApi.getProjects(),
@@ -63,6 +65,11 @@ export const TeamLeadProjectsPage: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Keep the allocation table in step with what other Team Leads and Admins change.
+  useBackgroundRefresh(() => {
+    if (!allocationTarget) void fetchData(true);
+  });
 
   const openAllocateModal = (proj: PartnerProject) => {
     setAllocationTarget(proj);
@@ -211,7 +218,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
             Admin Allocation
           </Link>
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
