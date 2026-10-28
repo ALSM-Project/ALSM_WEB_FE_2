@@ -340,6 +340,9 @@ interface ProjectDto {
   conversionType: ConversionType;
   status: 'DRAFT' | 'ACTIVE' | 'COMPLETED' | 'ARCHIVED';
   assignedTeamLeadId?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  staffAssignmentNote?: string;
   isExported?: boolean;
   exportedAt?: string;
   exportedBundleName?: string;
@@ -373,8 +376,10 @@ function toProject(dto: ProjectDto): PartnerProject {
     createdAt: dto.createdAt,
     assignedTeamLeadId: dto.assignedTeamLeadId,
     assignedTeamLeadName: link?.assignedTeamLeadName,
-    assignedStaffId: link?.assignedStaffId,
-    assignedStaffName: link?.assignedStaffName,
+    // The allocation is stored on the server (UC-86), so every Team Lead and the engineer see the same one.
+    assignedStaffId: dto.assignedStaffId,
+    assignedStaffName: dto.assignedStaffName,
+    staffAssignmentNote: dto.staffAssignmentNote,
     isExported: dto.isExported ?? false,
     exportedAt: dto.exportedAt,
     exportedBundleName: dto.exportedBundleName,
@@ -792,8 +797,8 @@ export const partnersApi = {
     }
   },
 
-  // 20. Assign Project to Team Lead & Staff Member. The team lead is saved on the server;
-  // the staff member is kept in this browser (the server has no field for it yet).
+  // 20. Assign Project to Team Lead & Staff Member. Both are saved on the server; the staff
+  // allocation (UC-86) also puts the project in that engineer's work queue.
   async assignProject(
     projectId: string,
     data: {
@@ -801,6 +806,8 @@ export const partnersApi = {
       teamLeadName?: string;
       staffId?: string;
       staffName?: string;
+      /** Technical briefing for the engineer (UC-86). */
+      staffNote?: string;
     },
   ): Promise<PartnerProject> {
     if (!isServerProject(projectId)) {
@@ -813,10 +820,18 @@ export const partnersApi = {
         throw toPartnerProjectError(err, 'assign');
       }
     }
-    saveLink(projectId, {
-      ...(data.teamLeadName ? { assignedTeamLeadName: data.teamLeadName } : {}),
-      ...(data.staffId ? { assignedStaffId: data.staffId, assignedStaffName: data.staffName } : {}),
-    });
+    if (data.staffId) {
+      // Stored on the project by the server, so the engineer's work queue picks it up at once.
+      try {
+        await apiClient.post(`/projects/${projectId}/assign-staff`, {
+          staffId: data.staffId,
+          ...(data.staffNote?.trim() ? { note: data.staffNote.trim() } : {}),
+        });
+      } catch (err) {
+        throw toPartnerProjectError(err, 'assign');
+      }
+    }
+    if (data.teamLeadName) saveLink(projectId, { assignedTeamLeadName: data.teamLeadName });
     const project = await this.getProjectById(projectId);
     if (!project) throw new PartnerApiError('Project not found');
     return project;
@@ -832,22 +847,14 @@ export const partnersApi = {
       activeWorkload: number;
     }>
   > {
-    let users: any[];
+    // Active Conversion Staff only, each with the projects they carry, computed by the server.
     try {
-      users = await apiClient.get<any[]>('/users');
+      const staff = await apiClient.get<
+        Array<{ id: string; fullName: string; email: string; role: string; activeWorkload: number }>
+      >('/projects/assignable-staff');
+      return Array.isArray(staff) ? staff : [];
     } catch {
       return [];
     }
-    if (!Array.isArray(users)) return [];
-    const projects = await this.listProjectsWithoutCounts().catch(() => [] as PartnerProject[]);
-    return users.map((u) => ({
-      id: u.id,
-      fullName: u.fullName || u.name || u.email,
-      email: u.email,
-      role: u.roles?.[0] || 'CONVERSION_STAFF',
-      activeWorkload: projects.filter(
-        (p) => !p.isExported && (p.assignedStaffId === u.id || p.assignedTeamLeadId === u.id),
-      ).length,
-    }));
   },
 };
