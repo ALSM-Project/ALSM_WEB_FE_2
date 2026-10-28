@@ -25,9 +25,9 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({
   const lines = code.split('\n');
 
   return (
-    <div className="rounded-xl border border-[#D9E2EC] bg-[#091E42] text-[#F4F5F7] overflow-hidden font-mono text-xs shadow-sm">
+    <div className="rounded-xl border border-[#DCE3EC] bg-[#17263A] text-[#F4F7FB] overflow-hidden font-mono text-xs shadow-sm">
       {/* Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-[#020817] border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-[#17263A] border-b border-white/10">
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block" />
@@ -68,7 +68,7 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({
             <div key={i}>{i + 1}</div>
           ))}
         </div>
-        <pre className="pl-4 text-[#E2E8F0] overflow-x-auto font-mono flex-1">
+        <pre className="pl-4 text-[#DCE3EC] overflow-x-auto font-mono flex-1">
           <code>{code}</code>
         </pre>
       </div>
