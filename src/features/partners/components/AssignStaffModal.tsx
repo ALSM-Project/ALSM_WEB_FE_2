@@ -89,23 +89,23 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
     >
       <form onSubmit={handleSave} className="space-y-4 text-xs">
         {/* Project Context Box */}
-        <div className="p-3 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0] space-y-1">
+        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#6B778C] uppercase">
+            <span className="text-[11px] font-semibold text-[#8491A3] uppercase">
               Target Modernization Project
             </span>
-            <span className="text-[11px] font-mono text-[#0652CC] font-bold">
+            <span className="text-[11px] font-mono text-[#244A70] font-bold">
               {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
             </span>
           </div>
-          <h4 className="text-sm font-bold text-[#091E42]">{project.name}</h4>
-          <p className="text-[11px] text-[#6B778C]">Partner: {project.partnerName}</p>
+          <h4 className="text-sm font-bold text-[#17263A]">{project.name}</h4>
+          <p className="text-[11px] text-[#8491A3]">Partner: {project.partnerName}</p>
         </div>
 
         {/* Team Lead Selector */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-1.5 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5 text-[#0652CC]" />
+          <label className="block text-xs font-semibold text-[#17263A] mb-1.5 flex items-center gap-1.5">
+            <Shield className="w-3.5 h-3.5 text-[#244A70]" />
             <span>Assigned Team Lead (Supervision & Quality Sign-Off) *</span>
           </label>
           <div className="relative">
@@ -113,7 +113,7 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
               value={selectedLeadId}
               onChange={(e) => setSelectedLeadId(e.target.value)}
               disabled={loadingRoster}
-              className="w-full h-9 px-3 py-1.5 text-xs bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] appearance-none pr-8 outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC]"
+              className="w-full h-9 px-3 py-1.5 text-xs bg-white border border-[#DCE3EC] rounded-lg text-[#17263A] appearance-none pr-8 outline-none focus:ring-2 focus:ring-[#244A70]/20 focus:border-[#244A70]"
             >
               {teamLeads.map((lead) => (
                 <option key={lead.id} value={lead.id}>
@@ -121,7 +121,7 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#6B778C]">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#8491A3]">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>
@@ -129,8 +129,8 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
 
         {/* Conversion Staff Engineer Selector */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-1.5 flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-[#0652CC]" />
+          <label className="block text-xs font-semibold text-[#17263A] mb-1.5 flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-[#244A70]" />
             <span>Assigned Conversion Staff (AST Parser & Mapping Specialist) *</span>
           </label>
           <div className="relative">
@@ -138,7 +138,7 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
               value={selectedStaffId}
               onChange={(e) => setSelectedStaffId(e.target.value)}
               disabled={loadingRoster}
-              className="w-full h-9 px-3 py-1.5 text-xs bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] appearance-none pr-8 outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC]"
+              className="w-full h-9 px-3 py-1.5 text-xs bg-white border border-[#DCE3EC] rounded-lg text-[#17263A] appearance-none pr-8 outline-none focus:ring-2 focus:ring-[#244A70]/20 focus:border-[#244A70]"
             >
               {conversionStaff.map((staff) => (
                 <option key={staff.id} value={staff.id}>
@@ -146,17 +146,17 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#6B778C]">
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#8491A3]">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-[11px] text-[#6B778C] mt-1">
+          <p className="text-[11px] text-[#8491A3] mt-1">
             Workload metrics indicate currently active projects assigned to each team member.
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-3 border-t border-[#E5EAF0] flex items-center justify-end gap-2.5">
+        <div className="pt-3 border-t border-[#DCE3EC] flex items-center justify-end gap-2.5">
           <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
@@ -165,7 +165,7 @@ export const AssignStaffModal: React.FC<AssignStaffModalProps> = ({
             variant="primary"
             size="sm"
             isLoading={submitting}
-            className="bg-[#0652CC] hover:bg-[#0655FF] flex items-center gap-1.5"
+            className="bg-[#244A70] hover:bg-[#244A70] flex items-center gap-1.5"
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Confirm Staff Assignment</span>
