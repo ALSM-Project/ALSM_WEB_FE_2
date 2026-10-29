@@ -6,98 +6,19 @@ import {
   Calendar, } from 'lucide-react';
 import { temporaryRolesApi, TemporaryRoleDto } from '../api/temporary-roles.api';
 import { rbacApi, RoleDto, UserRbacDto } from '../api/rbac.api';
+import { partnersApi } from '@/features/partners/api/partners.api';
+
+/** Roles that must never be handed out through a temporary elevation. */
+const PLATFORM_ADMIN_ROLE_IDS = new Set(['platform_admin', 'system_admin', 'admin']);
 import { Button, Modal, Input } from '@/shared/ui';
-
-// Mock initial data if backend is offline or returns empty
-const MOCK_ACTIVE_ELEVATIONS: TemporaryRoleDto[] = [
-  {
-    id: 'temp-01',
-    userId: 'usr-02',
-    userEmail: 'david.kim@alsm.io',
-    userFullName: 'David Kim',
-    role: 'CONVERSION_STAFF',
-    durationHours: 8,
-    reason: 'Coverage for batch COBOL conversion milestone',
-    grantedBy: 'sarah.jenkins@alsm.io',
-    status: 'ACTIVE',
-    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 5 * 3600 * 1000).toISOString(),
-    targetProject: 'Core Banking Modernization',
-  },
-  {
-    id: 'temp-02',
-    userId: 'usr-03',
-    userEmail: 'elena.rostova@alsm.io',
-    userFullName: 'Elena Rostova',
-    role: 'TEAM_LEAD',
-    durationHours: 4,
-    reason: 'Emergency code review approval sign-off during lead absence',
-    grantedBy: 'platform.admin@alsm.io',
-    status: 'ACTIVE',
-    createdAt: new Date(Date.now() - 3.5 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // ~30m left (Expiring soon)
-    targetProject: 'Retail Portal Modernization',
-  },
-];
-
-const MOCK_PENDING_REQUESTS: TemporaryRoleDto[] = [
-  {
-    id: 'req-01',
-    userId: 'usr-04',
-    userEmail: 'marcus.vance@alsm.io',
-    userFullName: 'Marcus Vance',
-    role: 'CONVERSION_STAFF',
-    durationHours: 6,
-    reason: 'Need AST debugger tool access for banking mainframe patch',
-    grantedBy: 'Pending Review',
-    status: 'PENDING',
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    expiresAt: '',
-    targetProject: 'High-Volume Mainframe Pipeline',
-  },
-];
-
-const MOCK_HISTORY_ELEVATIONS: TemporaryRoleDto[] = [
-  {
-    id: 'hist-01',
-    userId: 'usr-05',
-    userEmail: 'sam.torres@alsm.io',
-    userFullName: 'Sam Torres',
-    role: 'INTERNAL_SUPPORT',
-    durationHours: 12,
-    reason: 'Weekend production support escalation',
-    grantedBy: 'sarah.jenkins@alsm.io',
-    status: 'EXPIRED',
-    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-    targetProject: 'Support Operations',
-  },
-  {
-    id: 'hist-02',
-    userId: 'usr-06',
-    userEmail: 'lisa.wong@alsm.io',
-    userFullName: 'Lisa Wong',
-    role: 'CONVERSION_STAFF',
-    durationHours: 8,
-    reason: 'Urgent DSPF migration QA',
-    grantedBy: 'platform.admin@alsm.io',
-    status: 'REVOKED',
-    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() - 64 * 3600 * 1000).toISOString(),
-    revokedAt: new Date(Date.now() - 69 * 3600 * 1000).toISOString(),
-    revokedBy: 'platform.admin@alsm.io',
-    revokeReason: 'Verification testing completed early',
-    targetProject: 'Logistics DSPF Conversion',
-  },
-];
 
 const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
 
 export const TemporaryRolesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'active' | 'requests' | 'history'>('active');
-  const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>(MOCK_ACTIVE_ELEVATIONS);
-  const [pendingRequests, setPendingRequests] = useState<TemporaryRoleDto[]>(MOCK_PENDING_REQUESTS);
-  const [historyRoles, setHistoryRoles] = useState<TemporaryRoleDto[]>(MOCK_HISTORY_ELEVATIONS);
+  const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<TemporaryRoleDto[]>([]);
+  const [historyRoles, setHistoryRoles] = useState<TemporaryRoleDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [users, setUsers] = useState<UserRbacDto[]>([]);
 
@@ -128,6 +49,7 @@ export const TemporaryRolesPage: React.FC = () => {
   const [durationHours, setDurationHours] = useState(8);
   const [grantReason, setGrantReason] = useState('Coverage for urgent batch conversion queue');
   const [grantTargetProject, setGrantTargetProject] = useState('');
+  const [projectOptions, setProjectOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [grantConfirmed, setGrantConfirmed] = useState(false);
   const [granting, setGranting] = useState<boolean>(false);
 
@@ -161,20 +83,23 @@ export const TemporaryRolesPage: React.FC = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const [actives, history, allRoles, allUsers] = await Promise.all([
-        temporaryRolesApi.getActiveRoles().catch(() => MOCK_ACTIVE_ELEVATIONS),
-        temporaryRolesApi.getHistory().catch(() => MOCK_HISTORY_ELEVATIONS),
-        rbacApi.getRoles().catch(() => []),
-        rbacApi.getAllUsers().catch(() => []),
+      const [actives, history, allRoles, allUsers, projects] = await Promise.all([
+        temporaryRolesApi.getActiveRoles(),
+        temporaryRolesApi.getHistory(),
+        rbacApi.getRoles().catch(() => [] as RoleDto[]),
+        rbacApi.getAllUsers().catch(() => [] as UserRbacDto[]),
+        partnersApi.getProjects().catch(() => []),
       ]);
-      if (Array.isArray(actives) && actives.length > 0) {
-        setActiveRoles(actives);
-      }
-      if (Array.isArray(history) && history.length > 0) {
-        setHistoryRoles(history);
-      }
-      setRoles(allRoles.filter((r) => r.id !== 'platform_admin' && r.key !== 'platform_admin'));
+      setActiveRoles(actives);
+      setPendingRequests(history.filter((r) => r.status === 'PENDING'));
+      setHistoryRoles(history.filter((r) => r.status !== 'PENDING' && r.status !== 'ACTIVE'));
+      setRoles(
+        allRoles.filter(
+          (r) => !PLATFORM_ADMIN_ROLE_IDS.has(String(r.id).toLowerCase()) && !PLATFORM_ADMIN_ROLE_IDS.has(String(r.key ?? '').toLowerCase()),
+        ),
+      );
       setUsers(allUsers);
+      setProjectOptions(projects.map((p) => ({ id: p.id, name: p.name })));
     } catch (err: any) {
       console.error('Failed to load temporary roles:', err);
       setErrorMsg(err.message || 'Failed to load temporary role records');
@@ -215,11 +140,15 @@ export const TemporaryRolesPage: React.FC = () => {
       setErrorMsg('Please select a target user.');
       return;
     }
+    if (PLATFORM_ADMIN_ROLE_IDS.has(grantRole.toLowerCase())) {
+      setErrorMsg('The Platform Admin role can never be granted as a temporary elevation.');
+      return;
+    }
     if (grantReason.trim().length < 10) {
       setErrorMsg('A detailed justification of at least 10 characters is required.');
       return;
     }
-    if (durationHours <= 0 || durationHours > 24) {
+    if (durationHours < 1 || durationHours > 24) {
       setErrorMsg('Elevation duration must be between 1 and 24 hours strictly.');
       return;
     }
@@ -236,45 +165,26 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setGranting(true);
-      const targetUser = users.find((u) => u.id === targetUserId);
-      const now = new Date();
-      const expires = new Date(now.getTime() + durationHours * 3600 * 1000);
-
-      const newElevation: TemporaryRoleDto = {
-        id: `temp-${Date.now()}`,
-        userId: targetUserId,
-        userEmail: targetUser?.email || 'staff@alsm.io',
-        userFullName: targetUser?.fullName || 'Staff Member',
+      setErrorMsg(null);
+      const granted = await temporaryRolesApi.grantRole({
+        targetUserId,
         role: grantRole,
         durationHours,
         reason: grantReason.trim(),
-        grantedBy: 'Platform Admin',
-        status: 'ACTIVE',
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
-        targetProject: grantTargetProject.trim() || undefined,
-      };
-
-      try {
-        await temporaryRolesApi.grantRole({
-          targetUserId,
-          role: grantRole,
-          durationHours,
-          reason: grantReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setActiveRoles((prev) => [newElevation, ...prev]);
+        projectId: grantTargetProject || undefined,
+      });
+      await fetchData();
       setShowGrantModal(false);
       setGrantConfirmed(false);
-      setGrantReason('Coverage for urgent batch conversion queue');
+      setGrantReason('');
+      setGrantTargetProject('');
       setTargetUserId('');
-      setSuccessMsg(`Temporary elevation (${grantRole}) successfully granted to ${newElevation.userFullName}.`);
+      const who = users.find((u) => u.id === targetUserId)?.fullName || 'the user';
+      setSuccessMsg(`Temporary elevation (${granted.role}) granted to ${who} until ${new Date(granted.expiresAt).toLocaleString()}.`);
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to grant temporary role');
+      // The server refuses what breaks a rule (duration, justification, Platform Admin, one at a time...).
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to grant temporary role');
     } finally {
       setGranting(false);
     }
@@ -287,47 +197,27 @@ export const TemporaryRolesPage: React.FC = () => {
       setErrorMsg('A detailed justification of at least 10 characters is required.');
       return;
     }
-    if (requestDuration <= 0 || requestDuration > 24) {
-      setErrorMsg('Requested duration must not exceed 24 hours.');
+    if (requestDuration < 1 || requestDuration > 24) {
+      setErrorMsg('Requested duration must be between 1 and 24 hours.');
       return;
     }
 
     try {
       setRequesting(true);
-      const newRequest: TemporaryRoleDto = {
-        id: `req-${Date.now()}`,
-        userId: 'usr-self',
-        userEmail: 'me@alsm.io',
-        userFullName: 'Current User',
+      setErrorMsg(null);
+      await temporaryRolesApi.requestRole({
         role: requestRole,
         durationHours: requestDuration,
         reason: requestReason.trim(),
-        grantedBy: 'Pending Review',
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-        expiresAt: '',
-        targetProject: requestProject.trim() || 'Internal Workflow',
-      };
-
-      try {
-        await temporaryRolesApi.requestRole({
-          role: requestRole,
-          durationHours: requestDuration,
-          reason: requestReason.trim(),
-          targetProject: requestProject.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => [newRequest, ...prev]);
+      });
+      await fetchData();
       setShowRequestModal(false);
       setRequestReason('');
       setRequestProject('');
       setSuccessMsg('Temporary elevation request dispatched for Team Lead & Administrator approval.');
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to submit request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to submit request');
     } finally {
       setRequesting(false);
     }
@@ -348,35 +238,21 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setRevoking(true);
-      try {
-        await temporaryRolesApi.revokeRole({
-          assignmentId: revokeTarget.id,
-          reason: revokeReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      // Optimistic state transition: remove from active, move to history
-      const nowStr = new Date().toISOString();
-      const archived: TemporaryRoleDto = {
-        ...revokeTarget,
-        status: 'REVOKED',
-        revokedAt: nowStr,
-        revokedBy: 'Platform Admin',
-        revokeReason: revokeReason.trim(),
-      };
-
-      setActiveRoles((prev) => prev.filter((item) => item.id !== revokeTarget.id));
-      setHistoryRoles((prev) => [archived, ...prev]);
+      setErrorMsg(null);
+      await temporaryRolesApi.revokeRole({
+        assignmentId: revokeTarget.id,
+        reason: revokeReason.trim(),
+      });
+      await fetchData();
+      const revoked = revokeTarget;
       setRevokeTarget(null);
       setRevokeConfirmed(false);
       setSuccessMsg(
-        `Temporary elevation for ${revokeTarget.userFullName || revokeTarget.userEmail} revoked immediately. User reverted to baseline roles.`
+        `Temporary elevation for ${revoked.userFullName || revoked.userEmail} revoked immediately. User reverted to baseline roles.`
       );
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to revoke temporary role');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to revoke temporary role');
     } finally {
       setRevoking(false);
     }
@@ -389,34 +265,15 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setApproving(true);
-      const now = new Date();
-      const expires = new Date(now.getTime() + approveDuration * 3600 * 1000);
-
-      const approvedElevation: TemporaryRoleDto = {
-        ...approveTarget,
-        status: 'ACTIVE',
-        durationHours: approveDuration,
-        grantedBy: 'Team Lead Approver',
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
-      };
-
-      try {
-        await temporaryRolesApi.approveRequest({
-          requestId: approveTarget.id,
-          approved: true,
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => prev.filter((r) => r.id !== approveTarget.id));
-      setActiveRoles((prev) => [approvedElevation, ...prev]);
+      setErrorMsg(null);
+      // The elevation runs for the duration that was requested, starting now.
+      await temporaryRolesApi.approveRequest({ requestId: approveTarget.id, approved: true });
+      await fetchData();
+      setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveTarget.durationHours} hours.`);
       setApproveTarget(null);
-      setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveDuration} hours.`);
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to approve request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to approve request');
     } finally {
       setApproving(false);
     }
@@ -433,32 +290,19 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setRejecting(true);
-      const rejectedRecord: TemporaryRoleDto = {
-        ...rejectTarget,
-        status: 'REJECTED',
-        revokedAt: new Date().toISOString(),
-        revokedBy: 'Team Lead Approver',
-        revokeReason: rejectReason.trim(),
-      };
-
-      try {
-        await temporaryRolesApi.approveRequest({
-          requestId: rejectTarget.id,
-          approved: false,
-          rejectionReason: rejectReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => prev.filter((r) => r.id !== rejectTarget.id));
-      setHistoryRoles((prev) => [rejectedRecord, ...prev]);
+      setErrorMsg(null);
+      await temporaryRolesApi.approveRequest({
+        requestId: rejectTarget.id,
+        approved: false,
+        rejectionReason: rejectReason.trim(),
+      });
+      await fetchData();
       setRejectTarget(null);
       setRejectReason('');
-      setSuccessMsg(`Elevation request rejected with audit note.`);
+      setSuccessMsg('Elevation request rejected with audit note.');
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to reject request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to reject request');
     } finally {
       setRejecting(false);
     }
@@ -1350,6 +1194,15 @@ export const TemporaryRolesPage: React.FC = () => {
                   </button>
                 ))}
               </div>
+              <p data-testid="grant-expiry-preview" className="mt-1.5 text-[11px] text-[#6B778C]">
+                Will be revoked automatically at{' '}
+                {new Date(Date.now() + durationHours * 3600 * 1000).toLocaleString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  day: '2-digit',
+                  month: '2-digit',
+                })}
+              </p>
             </div>
           </div>
 
@@ -1357,13 +1210,19 @@ export const TemporaryRolesPage: React.FC = () => {
             <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
               Target Project or Context (Optional)
             </label>
-            <input
-              type="text"
+            <select
+              aria-label="Target project"
               value={grantTargetProject}
               onChange={(e) => setGrantTargetProject(e.target.value)}
-              placeholder="e.g. Core Banking Modernization (Project PRJ-102)"
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-            />
+            >
+              <option value="">Not tied to a project</option>
+              {projectOptions.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
