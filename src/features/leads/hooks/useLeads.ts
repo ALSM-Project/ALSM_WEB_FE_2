@@ -28,8 +28,9 @@ export function useUpdateLeadStatus() {
   return useMutation({
     mutationFn: ({ id, status, notes }: { id: string; status: string; notes?: string }) =>
       leadsApi.updateStatus(id, { status, notes }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+    onSuccess: async ({ lead }) => {
+      queryClient.setQueryData([...LEAD_DETAILS_QUERY_KEY, lead.id], lead);
+      await queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
     },
   });
 }
