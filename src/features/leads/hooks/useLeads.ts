@@ -3,12 +3,23 @@ import { leadsApi } from '../api/leads.api';
 import type { ListLeadsParams } from '../types/lead';
 
 export const LEADS_QUERY_KEY = ['leads'] as const;
+export const LEAD_DETAILS_QUERY_KEY = [...LEADS_QUERY_KEY, 'detail'] as const;
 
 export function useLeadsList(params?: ListLeadsParams) {
   return useQuery({
     queryKey: [...LEADS_QUERY_KEY, params],
     queryFn: () => leadsApi.list(params),
     staleTime: 30_000,
+  });
+}
+
+export function useLeadDetails(id?: string | null) {
+  return useQuery({
+    queryKey: [...LEAD_DETAILS_QUERY_KEY, id],
+    queryFn: () => leadsApi.getById(id!),
+    enabled: Boolean(id),
+    retry: false,
+    staleTime: 0,
   });
 }
 

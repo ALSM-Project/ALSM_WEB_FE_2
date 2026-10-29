@@ -21,7 +21,8 @@ const createdLead = {
 const createdResponse: CreateLeadResponse = {
   lead: createdLead,
   replayed: false,
-  message: 'Lead created successfully.',
+  notificationSent: true,
+  message: 'Lead created and contact notification email sent.',
 };
 
 const fillRequiredFields = () => {
@@ -71,7 +72,19 @@ describe('AddLeadModal (UC-59)', () => {
       expect.stringMatching(/^[0-9a-f-]{36}$/i),
     );
     await waitFor(() => {
-      expect(onSuccess).toHaveBeenCalledWith(createdLead);
+      expect(onSuccess).toHaveBeenCalledWith(createdLead, true, createdResponse.message);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('reports a saved lead even when the email notification was not sent', async () => {
+    create.mockResolvedValue({ ...createdResponse, notificationSent: false });
+    renderModal();
+    fillRequiredFields();
+    fireEvent.click(screen.getByRole('button', { name: 'Create lead' }));
+
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalledWith(createdLead, false, createdResponse.message);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
   });

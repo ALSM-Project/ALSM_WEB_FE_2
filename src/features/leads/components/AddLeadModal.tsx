@@ -8,7 +8,7 @@ import type { CreateLeadPayload, Lead, LeadPriority, LeadSource } from '../types
 export interface AddLeadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (lead: Lead) => void;
+  onSuccess: (lead: Lead, notificationSent: boolean | null, message: string) => void;
 }
 
 interface FormState {
@@ -136,7 +136,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
     requestIdRef.current = requestId;
     try {
       const result = await leadsApi.create(payload, requestId);
-      onSuccess(result.lead);
+      onSuccess(result.lead, result.notificationSent, result.message);
       requestIdRef.current = null;
       onClose();
     } catch (error) {
