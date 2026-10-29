@@ -253,7 +253,7 @@ describe('Platform Administration UI Enhancements', () => {
       // Verify Billing History
       expect(screen.getByText('Commercial Billing & Invoices')).toBeInTheDocument();
       expect(screen.getByText('INV-2026-0891')).toBeInTheDocument();
-      expect(screen.getByText('$18,000 USD')).toBeInTheDocument();
+      expect(screen.getByText('18.000 VND')).toBeInTheDocument();
 
       // Verify Members
       expect(screen.getByText('Organisation Members')).toBeInTheDocument();
@@ -302,7 +302,7 @@ describe('Platform Administration UI Enhancements', () => {
       expect(screen.getByText(/Audited Mock Ledger/i)).toBeInTheDocument();
 
       // Realised revenue KPI
-      expect(screen.getByText('$398,000')).toBeInTheDocument();
+      expect(screen.getByText('398.000 VND')).toBeInTheDocument();
 
       // Bank Transfer stats
       expect(screen.getByText('Bank Transfer Payment Infrastructure Statistics')).toBeInTheDocument();

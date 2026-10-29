@@ -1,5 +1,6 @@
 import type { Lead, LeadStatus, LeadPriority } from '../types/lead';
 import { LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS, LEAD_PRIORITY_LABELS } from '../types/lead';
+import { formatVnd } from '@/shared/utils/currency';
 import {
   User,
   Mail,
@@ -46,16 +47,6 @@ export const LeadRow: React.FC<LeadRowProps> = ({ lead, onSelect }) => {
       day: 'numeric',
       year: 'numeric',
     });
-  };
-
-  const formatCurrency = (value?: number, currency?: string) => {
-    if (value === undefined || value === null) return '—';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
   };
 
   return (
@@ -143,7 +134,7 @@ export const LeadRow: React.FC<LeadRowProps> = ({ lead, onSelect }) => {
           <div className="flex items-center gap-1">
             <DollarSign className="w-3 h-3 text-emerald-500" />
             <span className="text-sm font-semibold text-[#091E42]">
-              {formatCurrency(lead.estimatedValue, lead.currency)}
+              {formatVnd(lead.estimatedValue)}
             </span>
           </div>
         ) : (

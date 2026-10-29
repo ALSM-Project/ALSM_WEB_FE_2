@@ -26,6 +26,7 @@ import { leadsApi } from '../api/leads.api';
 import { LEAD_DETAILS_QUERY_KEY, LEADS_QUERY_KEY, useLeadDetails } from '../hooks/useLeads';
 import { LogPhoneCallModal } from './LogPhoneCallModal';
 import { ScheduleDemoModal } from './ScheduleDemoModal';
+import { formatVnd } from '@/shared/utils/currency';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -153,16 +154,6 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
     });
   };
 
-  const formatCurrency = (value?: number, currency?: string) => {
-    if (value === undefined || value === null) return '—';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
   const handleCallLogged = (result: LogPhoneCallResponse) => {
     queryClient.setQueryData([...LEAD_DETAILS_QUERY_KEY, result.lead.id], result.lead);
     void queryClient.invalidateQueries({
@@ -259,7 +250,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             {lead.estimatedValue ? (
               <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
                 <DollarSign className="w-3 h-3" />
-                {formatCurrency(lead.estimatedValue, lead.currency)}
+                {formatVnd(lead.estimatedValue)}
               </span>
             ) : null}
           </div>
@@ -482,7 +473,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-extrabold text-[#091E42]">
-                        ${q.amount.toLocaleString()} USD
+                        {formatVnd(q.amount)}
                       </div>
                       {q.discountPercent ? (
                         <div className="text-[10px] text-amber-600">

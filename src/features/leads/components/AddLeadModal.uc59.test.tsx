@@ -56,7 +56,7 @@ describe('AddLeadModal (UC-59)', () => {
     create.mockResolvedValue(createdResponse);
     renderModal();
     fillRequiredFields();
-    fireEvent.change(screen.getByLabelText('Estimated value (USD)'), { target: { value: '125000' } });
+    fireEvent.change(screen.getByLabelText('Estimated value (VND)'), { target: { value: '125000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create lead' }));
 
     await waitFor(() => expect(create).toHaveBeenCalledTimes(1));

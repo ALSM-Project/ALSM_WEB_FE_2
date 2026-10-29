@@ -11,7 +11,7 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
   const [customerId, setCustomerId] = useState('CUST-88392');
   const [fullName, setFullName] = useState('GLOBAL LOGISTICS HOLDINGS LTD');
   const [balance, setBalance] = useState('1,245,850.00');
-  const currency = 'USD';
+  const currency = 'VND';
   const [isSearching, setIsSearching] = useState(false);
   const [inquired, setInquired] = useState(true);
 
@@ -134,7 +134,7 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-[#E5EAF0]">
                   <span className="text-xs uppercase font-bold text-[#091E42]">Current Balance (BALANOUT)</span>
-                  <span className="text-base font-mono font-bold text-emerald-600">${balance}</span>
+                  <span className="text-base font-mono font-bold text-emerald-600">{balance}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded mt-2">
                   <CheckCircle2 className="w-3.5 h-3.5" />

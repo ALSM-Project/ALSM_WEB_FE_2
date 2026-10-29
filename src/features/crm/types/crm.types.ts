@@ -9,7 +9,7 @@ export interface SalesPipelineLeadDto {
   stage: SalesPipelineStage;
   score?: number;
   dealValue?: number;
-  currency: string;
+  currency: 'VND';
   assignedToName?: string;
   lastContactAt?: string;
   createdAt?: string;

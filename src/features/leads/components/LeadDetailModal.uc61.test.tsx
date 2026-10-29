@@ -21,7 +21,7 @@ const lead: Lead = {
   status: 'NEW',
   source: 'WEBSITE',
   priority: 'MEDIUM',
-  currency: 'USD',
+  currency: 'VND',
   tags: [],
   createdAt: '2026-10-20T00:00:00.000Z',
   updatedAt: '2026-10-20T00:00:00.000Z',

@@ -229,7 +229,7 @@ describe('[UC-72] View Organisation Details (Web 2)', () => {
     });
 
     expect(screen.getByText('INV-2026-001')).toBeInTheDocument();
-    expect(screen.getByText('$15,000 USD')).toBeInTheDocument();
+    expect(screen.getByText('15.000 VND')).toBeInTheDocument();
     expect(screen.getByText('Bank Wire')).toBeInTheDocument();
     expect(screen.getByText('PAID')).toBeInTheDocument();
   });

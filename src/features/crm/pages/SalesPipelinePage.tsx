@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Search, TrendingUp } from 'lucide-react';
 import { crmApi } from '../api/crm.api';
 import type { SalesPipelineDto, SalesPipelineLeadDto, SalesPipelineStage } from '../types/crm.types';
+import { formatVnd } from '@/shared/utils/currency';
 
 const STAGES: Array<{
   key: SalesPipelineStage;
@@ -35,7 +36,7 @@ const sumByCurrency = (leads: SalesPipelineLeadDto[]): Map<string, number> => {
   const totals = new Map<string, number>();
   for (const lead of leads) {
     if (lead.dealValue === undefined || !Number.isFinite(lead.dealValue)) continue;
-    const currency = /^[A-Z]{3}$/.test(lead.currency) ? lead.currency : 'USD';
+    const currency = 'VND';
     totals.set(currency, (totals.get(currency) ?? 0) + lead.dealValue);
   }
   return totals;
@@ -46,23 +47,17 @@ const averageByCurrency = (leads: SalesPipelineLeadDto[]): Map<string, number> =
   const counts = new Map<string, number>();
   for (const lead of leads) {
     if (lead.dealValue === undefined || !Number.isFinite(lead.dealValue)) continue;
-    const currency = /^[A-Z]{3}$/.test(lead.currency) ? lead.currency : 'USD';
+    const currency = 'VND';
     counts.set(currency, (counts.get(currency) ?? 0) + 1);
   }
   return new Map(Array.from(totals, ([currency, total]) => [currency, total / (counts.get(currency) ?? 1)]));
 };
 
-const formatMoney = (amount: number, currency: string): string => {
-  try {
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${currency} ${amount.toLocaleString()}`;
-  }
-};
+const formatMoney = (amount: number): string => formatVnd(amount);
 
 const formatCurrencyTotals = (totals: Map<string, number>): string =>
   totals.size > 0
-    ? Array.from(totals, ([currency, amount]) => formatMoney(amount, currency)).join(' · ')
+    ? Array.from(totals.values(), (amount) => formatMoney(amount)).join(' · ')
     : '—';
 
 export const SalesPipelinePage: React.FC = () => {
@@ -148,7 +143,7 @@ export const SalesPipelinePage: React.FC = () => {
             <MetricCard label="Pipeline value" value={formatCurrencyTotals(pipelineValue)} detail={`${visibleLeads.length} tracked opportunities`} />
             <MetricCard label="Active deals" value={`${activeLeads.length}`} detail="Open opportunities" />
             <MetricCard label="Closed won revenue" value={formatCurrencyTotals(wonRevenue)} detail={`${wonDeals} closed won`} />
-            <MetricCard label="Average active deal" value={formatCurrencyTotals(averageDealSize)} detail="Grouped by currency" />
+            <MetricCard label="Average active deal" value={formatCurrencyTotals(averageDealSize)} detail="Amounts shown in VND" />
           </section>
 
           <div className="flex flex-col gap-3 rounded-2xl border border-[#E5EAF0] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -265,7 +260,7 @@ const PipelineLeadCard = ({ lead, onOpen }: { lead: SalesPipelineLeadDto; onOpen
     </span>
     <span className="mt-1 block line-clamp-1 text-[11px] text-[#6B778C]">{lead.contactName}</span>
     <span className="mt-2 block border-t border-slate-100 pt-2 text-[10px] text-slate-600">
-      {lead.dealValue === undefined ? 'Value not set' : formatMoney(lead.dealValue, lead.currency)}
+      {lead.dealValue === undefined ? 'Value not set' : formatMoney(lead.dealValue)}
     </span>
     <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-slate-500">
       <span className="truncate">{lead.assignedToName || 'Unassigned'}</span>

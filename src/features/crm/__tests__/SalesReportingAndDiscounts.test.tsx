@@ -39,8 +39,8 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
   describe('1. Sales & Revenue Reports Accounting', () => {
     it('strictly counts only WON deals with confirmed contracts towards realised revenue', () => {
       const reports = crmStore.getReports();
-      // Realised revenue must strictly come from WON deals with signed contracts (Global Transit $150,000)
-      // Pending proposals/quotes (e.g. Apex $80k, FNX $85k, Titan $95k) must NEVER count as realised revenue
+      // Realised revenue must strictly come from WON deals with signed contracts (Global Transit 150,000 VND)
+      // Pending proposals/quotes (e.g. Apex 80k, FNX 85k, Titan 95k) must NEVER count as realised revenue
       expect(reports.monthlyRevenue).toBe(150000);
       expect(reports.wonLeads).toBe(1);
       expect(reports.averageDealSize).toBe(150000);
@@ -82,7 +82,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
 
       // Wait for data load
       await waitFor(() => {
-        expect(screen.getAllByText('$150,000').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('150.000 VND').length).toBeGreaterThan(0);
       });
 
       // Verify KPI titles
@@ -105,7 +105,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       expect(csv).toContain('ALSM ENTERPRISE SALES & REVENUE REPORT');
       expect(csv).toContain('Filtered By Representative,Sarah Jenkins');
       expect(csv).toContain('Filtered By Region,North America');
-      expect(csv).toContain('Monthly Realised Revenue ($ USD),150000');
+      expect(csv).toContain('Monthly Realised Revenue (VND),150000');
       expect(csv).toContain('"Global Transit Logistics"');
     });
   });

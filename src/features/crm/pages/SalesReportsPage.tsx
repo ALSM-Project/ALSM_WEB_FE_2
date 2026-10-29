@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { crmApi, SalesReportsDto } from '../api/crm.api';
 import { SalesTeamPerformanceView } from '../components/SalesTeamPerformanceView';
+import { formatVnd } from '@/shared/utils/currency';
 
 export const SalesReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'team'>('overview');
@@ -211,7 +212,7 @@ export const SalesReportsPage: React.FC = () => {
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-bold text-[#091E42]">
-                      ${monthlyRevenue.toLocaleString()}
+                      {formatVnd(monthlyRevenue)}
                     </div>
                     <p className="text-[11px] text-emerald-700 flex items-center mt-1 font-medium">
                       <ArrowUpRight className="w-3 h-3 mr-0.5" /> Confirmed closed contracts
@@ -245,7 +246,7 @@ export const SalesReportsPage: React.FC = () => {
                   </div>
                   <div className="mt-3">
                     <div className="text-2xl font-bold text-[#091E42]">
-                      ${averageDealSize.toLocaleString()}
+                      {formatVnd(averageDealSize)}
                     </div>
                     <p className="text-[11px] text-[#6B778C] mt-1 font-medium">Mean value per closed deal</p>
                   </div>
@@ -273,7 +274,7 @@ export const SalesReportsPage: React.FC = () => {
                   <div>
                     <h3 className="text-sm font-bold text-[#091E42]">Revenue Over Time & Booking Cadence</h3>
                     <p className="text-xs text-[#6B778C] mt-0.5">
-                      Monthly cumulative realized contract value and closed deal volume (USD).
+                      Monthly cumulative realized contract value and closed deal volume (VND).
                     </p>
                   </div>
                   <div className="flex items-center gap-2 text-xs">
@@ -289,7 +290,7 @@ export const SalesReportsPage: React.FC = () => {
                     return (
                       <div key={trend.period} className="flex flex-col items-center justify-end h-48 p-2 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
                         <span className="text-[11px] font-mono font-bold text-[#091E42] mb-1">
-                          ${(trend.revenue / 1000).toFixed(0)}k
+                          {formatVnd(trend.revenue)}
                         </span>
                         <div className="w-full flex justify-center items-end h-32">
                           <div
@@ -429,7 +430,7 @@ export const SalesReportsPage: React.FC = () => {
                             </td>
                             <td className="px-4 py-3.5 font-medium text-[#091E42]">{deal.repName}</td>
                             <td className="px-4 py-3.5 font-mono font-bold text-[#091E42]">
-                              ${deal.dealValue.toLocaleString()}
+                              {formatVnd(deal.dealValue)}
                             </td>
                             <td className="px-4 py-3.5 font-mono text-[#6B778C] flex items-center gap-1">
                               <Calendar className="w-3 h-3 text-[#6B778C]" />

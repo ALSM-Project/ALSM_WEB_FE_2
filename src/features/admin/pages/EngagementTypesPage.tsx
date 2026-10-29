@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { adminApi, EngagementTypeDto } from '../api/admin.api';
 import { Button, Modal, Input } from '@/shared/ui';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface FullEngagementTypeDto extends EngagementTypeDto {
   price?: number;
@@ -455,7 +456,7 @@ export const EngagementTypesPage: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-emerald-700 whitespace-nowrap">
-                      ${(t.price ?? 18000).toLocaleString()} <span className="text-[10px] text-slate-500 font-normal">/ yr</span>
+                      {formatVnd(t.price ?? 18000)} <span className="text-[10px] text-slate-500 font-normal">/ yr</span>
                     </td>
                     <td className="py-3.5 px-4 text-[#091E42]">
                       <div className="p-1.5 rounded-lg bg-amber-50/70 border border-amber-200/80 inline-block">
@@ -624,7 +625,7 @@ export const EngagementTypesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Annual Price ($ USD) *</label>
+              <label className="block text-xs font-semibold text-[#091E42] mb-1">Annual Price (VND) *</label>
               <Input
                 type="number"
                 min={0}

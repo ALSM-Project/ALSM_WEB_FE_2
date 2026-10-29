@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Input, Modal } from '@/shared/ui';
 import { FileCheck2, Info } from 'lucide-react';
 import { crmApi, LeadContract, LeadQuote } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface CreateContractModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
               <option value="">-- No Direct Quote Association --</option>
               {quotes.map((q) => (
                 <option key={q.id} value={q.id}>
-                  {q.quoteNumber} - {q.plan} (${q.finalPrice.toLocaleString()}) [{q.status}]
+                  {q.quoteNumber} - {q.plan} ({formatVnd(q.finalPrice)}) [{q.status}]
                 </option>
               ))}
             </select>
@@ -139,7 +140,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
           </div>
 
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Total Contract Value ($ USD) *</label>
+            <label className="block font-semibold text-[#091E42] mb-1">Total Contract Value (VND) *</label>
             <div className="relative">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono">$</span>
               <Input
