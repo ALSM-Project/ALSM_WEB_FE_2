@@ -347,6 +347,7 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
         screen.getByText('Lead status updated to PROPOSAL successfully')
       ).toBeInTheDocument();
     });
+    expect(screen.getByText('Proposal', { selector: '#update-lead-status-modal span' })).toBeInTheDocument();
   });
 
   it('shows error message when update fails', async () => {
