@@ -8,6 +8,7 @@ import type { Lead, ListLeadsResponse } from '../types/lead';
 
 vi.mock('../api/leads.api', () => ({
   leadsApi: {
+    getById: vi.fn(),
     list: vi.fn(),
     updateStatus: vi.fn(),
   },
@@ -84,6 +85,11 @@ describe('LeadsListPage (UC-58)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(leadsApi.getById).mockImplementation(async (id) => {
+      const lead = mockLeads.find((item) => item.id === id);
+      if (!lead) throw { response: { status: 404 } };
+      return lead;
+    });
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -157,6 +163,7 @@ describe('LeadsListPage (UC-58)', () => {
       expect(screen.getByText('#Banking')).toBeInTheDocument();
       expect(screen.getByText('#AS400')).toBeInTheDocument();
     });
+    expect(leadsApi.getById).toHaveBeenCalledWith('lead-1');
 
     // Click Close button
     const closeBtn = screen.getAllByRole('button', { name: 'Close' })[0];
@@ -165,6 +172,20 @@ describe('LeadsListPage (UC-58)', () => {
     await waitFor(() => {
       expect(screen.queryByText('Lead ID: lead-1')).not.toBeInTheDocument();
     });
+  });
+
+  it('opens lead details from the keyboard on a focused row', async () => {
+    vi.mocked(leadsApi.list).mockResolvedValueOnce(mockResponse);
+    renderComponent();
+
+    const row = await screen.findByRole('row', {
+      name: 'View details for FinTech Dynamics Corp, Sarah Jenkins',
+    });
+    expect(row).toHaveAttribute('tabindex', '0');
+    fireEvent.keyDown(row, { key: 'Enter' });
+
+    await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
+    expect(leadsApi.getById).toHaveBeenCalledWith('lead-1');
   });
 
   it('supports status filtering', async () => {
@@ -224,6 +245,12 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
       </QueryClientProvider>
     );
 
+  const waitForDetailAction = async (name: RegExp) => {
+    const button = screen.getByRole('button', { name });
+    await waitFor(() => expect(button).toBeEnabled());
+    return button;
+  };
+
   it('opens update status modal via detail modal Update Status button', async () => {
     vi.mocked(leadsApi.list).mockResolvedValue({
       items: [mockLeads[0]],
@@ -245,7 +272,7 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
     });
 
     // Click Update Status
-    const updateBtn = screen.getByRole('button', { name: /update status/i });
+    const updateBtn = await waitForDetailAction(/update status/i);
     fireEvent.click(updateBtn);
 
     // Detail modal closes, update status modal opens
@@ -265,7 +292,7 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
     await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
     fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
     await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+    fireEvent.click(await waitForDetailAction(/update status/i));
 
     await waitFor(() => {
       expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
@@ -295,7 +322,7 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
     await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
     fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
     await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+    fireEvent.click(await waitForDetailAction(/update status/i));
 
     await waitFor(() => {
       expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
@@ -338,14 +365,14 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
     await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
     fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
     await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+    fireEvent.click(await waitForDetailAction(/update status/i));
 
     await waitFor(() => {
       expect(screen.getByText('Update Lead Status')).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /proposal/i }));
-    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+    fireEvent.click(await waitForDetailAction(/update status/i));
 
     await waitFor(() => {
       expect(screen.getByText('Invalid status transition')).toBeInTheDocument();
@@ -363,7 +390,7 @@ describe('UpdateLeadStatusModal (UC-66)', () => {
     await waitFor(() => expect(screen.getByText('FinTech Dynamics Corp')).toBeInTheDocument());
     fireEvent.click(screen.getByText('FinTech Dynamics Corp').closest('tr')!);
     await waitFor(() => expect(screen.getByText('Lead ID: lead-1')).toBeInTheDocument());
-    fireEvent.click(screen.getByRole('button', { name: /update status/i }));
+    fireEvent.click(await waitForDetailAction(/update status/i));
 
     await waitFor(() => {
       expect(screen.getByText('Update Lead Status')).toBeInTheDocument();

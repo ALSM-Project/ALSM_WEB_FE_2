@@ -13,6 +13,9 @@ export interface UpdateLeadStatusResponse {
 }
 
 export const leadsApi = {
+  getById: (id: string): Promise<Lead> =>
+    apiClient.get<Lead>(`/leads/${encodeURIComponent(id)}`),
+
   create: (payload: CreateLeadPayload, requestId: string): Promise<CreateLeadResponse> =>
     apiClient.post<CreateLeadResponse>('/leads', payload, {
       headers: { 'Idempotency-Key': requestId },

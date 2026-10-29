@@ -1,11 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LeadDetailModal } from './LeadDetailModal';
 import { leadsApi } from '../api/leads.api';
 import type { CreateLeadResponse, Lead } from '../types/lead';
 
 vi.mock('../api/leads.api', () => ({
-  leadsApi: { notifyContact: vi.fn() },
+  leadsApi: { getById: vi.fn(), notifyContact: vi.fn() },
 }));
 
 vi.mock('@/features/auth/hooks/useAuth', () => ({
@@ -29,7 +30,13 @@ const lead: Lead = {
 };
 
 describe('LeadDetailModal contact notification (UC-59)', () => {
-  beforeEach(() => vi.clearAllMocks());
+  let queryClient: QueryClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    vi.mocked(leadsApi.getById).mockResolvedValue(lead);
+  });
 
   it('sends one notification request and shows the server result', async () => {
     const response: CreateLeadResponse = {
@@ -41,7 +48,13 @@ describe('LeadDetailModal contact notification (UC-59)', () => {
     vi.mocked(leadsApi.notifyContact).mockResolvedValue(response);
     const onNotificationUpdate = vi.fn();
 
-    render(<LeadDetailModal lead={lead} onClose={vi.fn()} onNotificationUpdate={onNotificationUpdate} />);
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LeadDetailModal lead={lead} onClose={vi.fn()} onNotificationUpdate={onNotificationUpdate} />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(leadsApi.getById).toHaveBeenCalledWith(lead.id));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Send contact email' })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: 'Send contact email' }));
 
     await waitFor(() => expect(leadsApi.notifyContact).toHaveBeenCalledTimes(1));
@@ -49,5 +62,30 @@ describe('LeadDetailModal contact notification (UC-59)', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(response.message);
     expect(onNotificationUpdate).toHaveBeenCalledWith(response.lead);
     expect(screen.getByRole('button', { name: 'Email sent' })).toBeDisabled();
+  });
+
+  it('shows a permission state when the detail request is forbidden', async () => {
+    vi.mocked(leadsApi.getById).mockRejectedValue({ response: { status: 403 } });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LeadDetailModal lead={lead} onClose={vi.fn()} />
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('You do not have permission to view this lead.');
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  it('closes the accessible detail dialog with Escape', async () => {
+    const onClose = vi.fn();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <LeadDetailModal lead={lead} onClose={onClose} />
+      </QueryClientProvider>,
+    );
+
+    fireEvent.keyDown(await screen.findByRole('dialog'), { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

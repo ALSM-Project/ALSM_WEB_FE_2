@@ -19,7 +19,9 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '../api/leads.api';
+import { LEAD_DETAILS_QUERY_KEY, useLeadDetails } from '../hooks/useLeads';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -30,14 +32,17 @@ interface LeadDetailModalProps {
 }
 
 export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
-  lead,
+  lead: selectedLead,
   onClose,
   onUpdateStatus,
   onSendQuote,
   onNotificationUpdate,
 }) => {
   const { hasPermission } = useAuth();
+  const queryClient = useQueryClient();
   const canManage = hasPermission('sales.leads.manage');
+  const detailsQuery = useLeadDetails(selectedLead?.id);
+  const lead = detailsQuery.data ?? selectedLead;
   const [isNotifying, setIsNotifying] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const [notificationTone, setNotificationTone] = useState<'success' | 'warning' | 'error'>('success');
@@ -45,10 +50,10 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   useEffect(() => {
     setNotificationMessage(null);
     setIsNotifying(false);
-  }, [lead?.id]);
+  }, [selectedLead?.id]);
   useEffect(() => {
-    setEmailStatus(lead?.emailNotificationStatus);
-  }, [lead]);
+    setEmailStatus(detailsQuery.data?.emailNotificationStatus ?? selectedLead?.emailNotificationStatus);
+  }, [detailsQuery.data, selectedLead?.id]);
 
   const sendContactNotification = async () => {
     if (!lead || isNotifying || emailStatus === 'SENT') return;
@@ -56,6 +61,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
     setNotificationMessage(null);
     try {
       const result = await leadsApi.notifyContact(lead.id, crypto.randomUUID());
+      queryClient.setQueryData([...LEAD_DETAILS_QUERY_KEY, lead.id], result.lead);
       setEmailStatus(result.lead.emailNotificationStatus);
       setNotificationTone(result.notificationSent === true ? 'success' : 'warning');
       setNotificationMessage(result.message);
@@ -89,7 +95,40 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         : isNotifying
           ? 'Sending email…'
           : 'Send contact email';
+  const handleDialogKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      onClose();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusable = Array.from(
+      event.currentTarget.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
   if (!lead) return null;
+
+  const detailErrorStatus = (detailsQuery.error as { response?: { status?: number } } | null)?.response?.status;
+  const detailErrorMessage = detailErrorStatus === 403
+    ? 'You do not have permission to view this lead.'
+    : detailErrorStatus === 401
+      ? 'Your session has expired. Sign in again to view lead details.'
+      : detailErrorStatus === 404
+        ? 'This lead could not be found. Refresh the lead list and try again.'
+        : detailErrorStatus === 400
+          ? 'The lead identifier is invalid. Refresh the lead list and try again.'
+        : 'Could not load the latest lead details. The information below may be an older list preview.';
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return '—';
@@ -120,6 +159,11 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       <div
         className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-[#E8ECF1]"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleDialogKeyDown}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lead-details-title"
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8ECF1] bg-[#F7F9FC]">
@@ -128,11 +172,12 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               {lead.companyName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">{lead.companyName}</h2>
+              <h2 id="lead-details-title" className="text-base font-bold text-[#091E42]">{lead.companyName}</h2>
               <p className="text-xs text-[#6B778C]">Lead ID: {lead.id}</p>
             </div>
           </div>
           <button
+            autoFocus
             onClick={onClose}
             className="p-1.5 rounded-lg text-[#6B778C] hover:bg-gray-200 transition-colors cursor-pointer"
             aria-label="Close"
@@ -143,6 +188,30 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
 
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6">
+          {detailsQuery.isLoading && (
+            <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-[#42526E]">
+              <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin text-[#0652CC]" />
+              Loading lead details…
+            </p>
+          )}
+          {detailsQuery.isFetching && !detailsQuery.isLoading && (
+            <p role="status" aria-live="polite" className="text-xs text-[#6B778C]">
+              Refreshing lead details…
+            </p>
+          )}
+          {detailsQuery.isError && (
+            <div role="alert" className="flex flex-col items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+              <span>{detailErrorMessage}</span>
+              <button
+                type="button"
+                onClick={() => void detailsQuery.refetch()}
+                disabled={detailsQuery.isFetching}
+                className="rounded-md border border-rose-300 bg-white px-3 py-1.5 text-xs font-semibold text-rose-800 disabled:opacity-50"
+              >
+                {detailsQuery.isFetching ? 'Retrying…' : 'Try again'}
+              </button>
+            </div>
+          )}
           {/* Quick Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
@@ -354,7 +423,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 id="send-lead-notification-btn"
                 type="button"
                 onClick={sendContactNotification}
-                disabled={isNotifying || emailStatus === 'SENT' || emailStatus === 'SENDING'}
+                  disabled={!detailsQuery.data || isNotifying || emailStatus === 'SENT' || emailStatus === 'SENDING'}
                 aria-busy={isNotifying}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs disabled:cursor-not-allowed disabled:opacity-50"
               >
@@ -368,6 +437,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               <button
                 id="open-update-status-btn"
                 onClick={() => onUpdateStatus(lead)}
+                  disabled={!detailsQuery.data}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs"
               >
                 <TrendingUp className="w-3.5 h-3.5 text-[#0652CC]" />
@@ -378,6 +448,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               <button
                 id="open-send-quote-btn"
                 onClick={() => onSendQuote(lead)}
+                  disabled={!detailsQuery.data}
                 className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
               >
                 <Send className="w-3.5 h-3.5" />
