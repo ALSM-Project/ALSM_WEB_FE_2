@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
+import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse, LogPhoneCallPayload, LogPhoneCallResponse } from '../types/lead';
 
 export interface UpdateLeadStatusPayload {
   status: string;
@@ -54,5 +54,15 @@ export const leadsApi = {
   ): Promise<import('../types/lead').SendQuoteResponse> => {
     return apiClient.post<import('../types/lead').SendQuoteResponse>(`/leads/${id}/quotes`, payload);
   },
+
+  logPhoneCall: (
+    id: string,
+    payload: LogPhoneCallPayload,
+    requestId: string,
+  ): Promise<LogPhoneCallResponse> => apiClient.post<LogPhoneCallResponse>(
+    `/leads/${encodeURIComponent(id)}/calls`,
+    payload,
+    { headers: { 'Idempotency-Key': requestId } },
+  ),
 };
 

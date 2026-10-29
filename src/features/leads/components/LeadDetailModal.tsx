@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import type { Lead } from '../types/lead';
-import { LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS, LEAD_PRIORITY_LABELS } from '../types/lead';
+import type { Lead, LogPhoneCallResponse } from '../types/lead';
+import { LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS, LEAD_PRIORITY_LABELS, LEAD_PHONE_CALL_OUTCOME_LABELS } from '../types/lead';
 import {
   X,
   User,
@@ -17,11 +17,13 @@ import {
   Send,
   FileCheck,
   LoaderCircle,
+  PhoneCall,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '../api/leads.api';
-import { LEAD_DETAILS_QUERY_KEY, useLeadDetails } from '../hooks/useLeads';
+import { LEAD_DETAILS_QUERY_KEY, LEADS_QUERY_KEY, useLeadDetails } from '../hooks/useLeads';
+import { LogPhoneCallModal } from './LogPhoneCallModal';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -47,9 +49,13 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
   const [notificationTone, setNotificationTone] = useState<'success' | 'warning' | 'error'>('success');
   const [emailStatus, setEmailStatus] = useState(lead?.emailNotificationStatus);
+  const [isCallModalOpen, setIsCallModalOpen] = useState(false);
+  const [callMessage, setCallMessage] = useState<string | null>(null);
   useEffect(() => {
     setNotificationMessage(null);
+    setCallMessage(null);
     setIsNotifying(false);
+    setIsCallModalOpen(false);
   }, [selectedLead?.id]);
   useEffect(() => {
     setEmailStatus(detailsQuery.data?.emailNotificationStatus ?? selectedLead?.emailNotificationStatus);
@@ -151,7 +157,18 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
     }).format(value);
   };
 
+  const handleCallLogged = (result: LogPhoneCallResponse) => {
+    queryClient.setQueryData([...LEAD_DETAILS_QUERY_KEY, result.lead.id], result.lead);
+    void queryClient.invalidateQueries({
+      queryKey: LEADS_QUERY_KEY,
+      predicate: (query) => query.queryKey[1] !== 'detail',
+    });
+    setCallMessage(result.message);
+    setIsCallModalOpen(false);
+  };
+
   return (
+    <>
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
       onClick={onClose}
@@ -329,6 +346,34 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             </div>
           )}
 
+          {/* Phone call history (UC-60) */}
+          <section aria-labelledby="lead-phone-calls-title" className="space-y-2">
+            <h3 id="lead-phone-calls-title" className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
+              <PhoneCall aria-hidden="true" className="w-3.5 h-3.5 text-[#0652CC]" />
+              Call history ({lead.phoneCalls?.length ?? 0})
+            </h3>
+            {lead.phoneCalls?.length ? (
+              <ol className="space-y-2">
+                {[...lead.phoneCalls].reverse().map((call) => (
+                  <li key={call.id} className="rounded-lg border border-[#E8ECF1] bg-[#F7F9FC] p-3">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-xs font-semibold text-[#091E42]">
+                        {LEAD_PHONE_CALL_OUTCOME_LABELS[call.outcome]} | {call.durationMinutes} min
+                      </span>
+                      <time dateTime={call.createdAt} className="text-xs text-[#6B778C]">{formatDate(call.createdAt)}</time>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-[#253858]">{call.summary}</p>
+                    {call.notes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#6B778C]">{call.notes}</p>}
+                    <p className="mt-1 text-xs text-[#6B778C]">Logged by {call.performedByEmail || call.performedByUserId}</p>
+                    {call.followUpAt && <p className="mt-1 text-xs font-medium text-blue-800">Follow-up: {formatDate(call.followUpAt)}</p>}
+                  </li>
+                ))}
+              </ol>
+            ) : detailsQuery.data ? (
+              <p className="rounded-lg border border-dashed border-[#D9E2EC] p-3 text-sm text-[#6B778C]">No phone calls have been logged for this lead.</p>
+            ) : null}
+          </section>
+
           {/* Tags */}
           {lead.tags && lead.tags.length > 0 && (
             <div>
@@ -417,6 +462,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 {notificationMessage}
               </p>
             )}
+            {callMessage && <p role="status" aria-live="polite" className="text-xs text-emerald-700">{callMessage}</p>}
             <div className="flex flex-wrap items-center gap-2">
             {canManage && (
               <button
@@ -431,6 +477,18 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                   ? <LoaderCircle aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
                   : <Mail className="w-3.5 h-3.5 text-[#0652CC]" />}
                 {emailButtonLabel}
+              </button>
+            )}
+            {canManage && (
+              <button
+                id="open-log-phone-call-btn"
+                type="button"
+                onClick={() => { setCallMessage(null); setIsCallModalOpen(true); }}
+                disabled={!detailsQuery.data}
+                className="flex items-center gap-1.5 rounded-lg border border-[#D9E2EC] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <PhoneCall aria-hidden="true" className="h-3.5 w-3.5 text-[#0652CC]" />
+                Log Phone Call
               </button>
             )}
             {canManage && onUpdateStatus && (
@@ -466,5 +524,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         </div>
       </div>
     </div>
+    {isCallModalOpen && <LogPhoneCallModal lead={lead} onClose={() => setIsCallModalOpen(false)} onSuccess={handleCallLogged} />}
+    </>
   );
 };

@@ -12,6 +12,39 @@ export type LeadSource =
 
 export type LeadPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type LeadEmailNotificationStatus = 'PENDING' | 'SENDING' | 'SENT' | 'FAILED';
+export type LeadPhoneCallOutcome =
+  | 'CONNECTED'
+  | 'NO_ANSWER'
+  | 'VOICEMAIL'
+  | 'CALLBACK_REQUESTED'
+  | 'NOT_INTERESTED';
+
+export interface LeadPhoneCall {
+  id: string;
+  durationMinutes: number;
+  outcome: LeadPhoneCallOutcome;
+  summary: string;
+  notes?: string;
+  followUpAt?: string;
+  performedByUserId: string;
+  performedByEmail: string;
+  createdAt: string;
+}
+
+export interface LogPhoneCallPayload {
+  outcome: LeadPhoneCallOutcome;
+  durationMinutes: number;
+  summary: string;
+  notes?: string;
+  followUpAt?: string;
+}
+
+export interface LogPhoneCallResponse {
+  call: LeadPhoneCall;
+  lead: Lead;
+  replayed: boolean;
+  message: string;
+}
 
 export interface Lead {
   id: string;
@@ -30,6 +63,7 @@ export interface Lead {
   assignedToEmail?: string;
   tags: string[];
   quotes?: LeadQuoteItem[];
+  phoneCalls?: LeadPhoneCall[];
   emailNotificationStatus?: LeadEmailNotificationStatus;
   emailNotifiedAt?: string;
   lastContactedAt?: string;
@@ -104,6 +138,14 @@ export const LEAD_PRIORITY_LABELS: Record<LeadPriority, string> = {
   MEDIUM: 'Medium',
   HIGH: 'High',
   CRITICAL: 'Critical',
+};
+
+export const LEAD_PHONE_CALL_OUTCOME_LABELS: Record<LeadPhoneCallOutcome, string> = {
+  CONNECTED: 'Connected',
+  NO_ANSWER: 'No answer',
+  VOICEMAIL: 'Left voicemail',
+  CALLBACK_REQUESTED: 'Callback requested',
+  NOT_INTERESTED: 'Not interested',
 };
 
 export const ALLOWED_LEAD_STATUS_TRANSITIONS: Record<LeadStatus, LeadStatus[]> = {
