@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileSearch, Download, RefreshCw, User, ChevronLeft, ChevronRight,
-  FileText, Info, CheckCircle2
+  FileText, Info, CheckCircle2, Eye
 } from 'lucide-react';
 import { adminApi, AuditLogDto } from '../api/admin.api';
 import { Button } from '@/shared/ui';
+import { AuditDetailModal } from '../components/AuditDetailModal';
 
 const MOCK_AUDIT_LOGS: AuditLogDto[] = [
   {
@@ -134,6 +135,7 @@ export const AuditLogsPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [exportingCsv, setExportingCsv] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogDto | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -159,12 +161,7 @@ export const AuditLogsPage: React.FC = () => {
         .catch(() => []);
 
       if (Array.isArray(data) && data.length > 0) {
-        // Merge with mock logs to guarantee IP addresses and complete records
-        const merged = data.map((d, index) => ({
-          ...d,
-          ipAddress: d.ipAddress || MOCK_AUDIT_LOGS[index % MOCK_AUDIT_LOGS.length]?.ipAddress || '192.168.1.100',
-        }));
-        setLogs(merged);
+        setLogs(data);
       } else {
         setLogs(MOCK_AUDIT_LOGS);
       }
@@ -483,7 +480,11 @@ export const AuditLogsPage: React.FC = () => {
                 </tr>
               ) : (
                 paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#F9FBFF] transition-colors">
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelectedLog(log)}
+                    className="hover:bg-[#F0F4FA] transition-colors cursor-pointer group"
+                  >
                     {/* Timestamp */}
                     <td className="py-3.5 px-4 font-mono text-[11px] text-[#6B778C] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
@@ -499,7 +500,7 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* Action */}
                     <td className="py-3.5 px-4">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F0F4FA] border border-[#D9E2EC] text-[#091E42]">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F0F4FA] border border-[#D9E2EC] text-[#091E42] group-hover:border-[#0652CC]/30 transition-colors">
                         {log.action}
                       </span>
                     </td>
@@ -516,18 +517,31 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* IP Address (Requirement H) */}
                     <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                      {log.ipAddress || '192.168.1.100'}
+                      {log.ipAddress || '-'}
                     </td>
 
                     {/* Context / Metadata */}
                     <td className="py-3.5 px-4 text-[#6B778C] font-mono text-[11px]">
-                      {log.metadata ? (
-                        <span className="line-clamp-2 max-w-sm text-slate-700">
-                          {JSON.stringify(log.metadata)}
+                      <div className="flex items-center justify-between gap-2 max-w-sm">
+                        <span className="truncate text-slate-700">
+                          {log.metadata && Object.keys(log.metadata).length > 0
+                            ? Object.entries(log.metadata)
+                                .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+                                .join(' | ')
+                            : '-'}
                         </span>
-                      ) : (
-                        '-'
-                      )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLog(log);
+                          }}
+                          className="shrink-0 text-[#0652CC] hover:text-[#0540A0] hover:bg-blue-100/70 p-1 rounded-md transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+                          title="View audit details"
+                          aria-label="View audit details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -587,6 +601,13 @@ export const AuditLogsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Audit Log Detail Modal */}
+      <AuditDetailModal
+        isOpen={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        log={selectedLog}
+      />
     </div>
   );
 };

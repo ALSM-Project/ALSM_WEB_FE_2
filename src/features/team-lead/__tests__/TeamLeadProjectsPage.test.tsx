@@ -99,9 +99,15 @@ describe('TeamLeadProjectsPage - Team Projects & Staff Allocation', () => {
     // Modal appears
     expect(await screen.findByText('Allocate Conversion Staff to Project')).toBeInTheDocument();
 
-    // Select staff member
+    // Select staff member and write the briefing
     const select = screen.getByRole('combobox');
     fireEvent.change(select, { target: { value: 'staff-02' } });
+    fireEvent.change(screen.getByPlaceholderText(/Focus on DSPF header validation/i), {
+      target: { value: 'Balance screens first' },
+    });
+
+    // The engineer's load is shown next to the choice, in its colour
+    expect(screen.getByTestId('staff-workload-badge')).toHaveTextContent(/David Chen/);
 
     // Submit
     const confirmBtn = screen.getByRole('button', { name: /Confirm Staff Allocation/i });
@@ -110,7 +116,7 @@ describe('TeamLeadProjectsPage - Team Projects & Staff Allocation', () => {
     await waitFor(() => {
       expect(assignSpy).toHaveBeenCalledWith(
         expect.any(String),
-        expect.objectContaining({ staffId: 'staff-02' })
+        expect.objectContaining({ staffId: 'staff-02', staffNote: 'Balance screens first' })
       );
       expect(screen.queryByText('Allocate Conversion Staff to Project')).not.toBeInTheDocument();
     });

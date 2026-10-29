@@ -197,7 +197,7 @@ export const adminApi = {
         resourceId: log.resourceId,
         metadata: log.metadata,
         timestamp: log.createdAt || log.timestamp || new Date().toISOString(),
-        ipAddress: log.ipAddress || log.metadata?.ip || '127.0.0.1',
+        ipAddress: log.ipAddress || log.metadata?.ip || '',
       }));
     } catch {
       return [];

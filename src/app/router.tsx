@@ -43,10 +43,13 @@ import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 
 export const router = createBrowserRouter([
   {
+<<<<<<< HEAD
     path: '/',
     element: <Navigate to="/dashboard" replace />,
   },
   {
+=======
+>>>>>>> origin/develop
     path: '/ci-status',
     element: <PullRequestStatusPage />,
   },
@@ -61,6 +64,10 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+<<<<<<< HEAD
+=======
+      { path: '/', element: <StaffDashboardPage /> },
+>>>>>>> origin/develop
       { path: '/dashboard', element: <StaffDashboardPage /> },
       // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
       {
