@@ -4,10 +4,14 @@ import {
   LeadQuote, LeadContract, SalesReportsDto, PendingDiscountDto 
 } from '../types/crm.types';
 import { crmStore } from '../services/crm-store';
+import type { SalesPipelineDto } from '../types/crm.types';
 
 export * from '../types/crm.types';
 
 export const crmApi = {
+  getSalesPipeline: async (params?: { stage?: string; search?: string }): Promise<SalesPipelineDto> =>
+    apiClient.get<SalesPipelineDto>('/sales/crm/pipeline', { params }),
+
   getLeads: async (params?: { stage?: string; search?: string; assignedTo?: string }): Promise<LeadDto[]> => {
     try {
       const data = await apiClient.get<LeadDto[]>('/sales/crm/leads', { params });
