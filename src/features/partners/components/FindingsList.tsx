@@ -16,10 +16,10 @@ export const FindingsList: React.FC<FindingsListProps> = ({
 }) => {
   if (findings.length === 0) {
     return (
-      <div className="p-6 text-center rounded-xl border border-dashed border-[#D9E2EC] bg-[#F7F9FC]">
+      <div className="p-6 text-center rounded-xl border border-dashed border-[#DCE3EC] bg-[#F8FAFC]">
         <CheckCircle className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-        <h4 className="text-sm font-semibold text-[#091E42]">Zero Validation Issues</h4>
-        <p className="text-xs text-[#6B778C] mt-1">
+        <h4 className="text-sm font-semibold text-[#17263A]">Zero Validation Issues</h4>
+        <p className="text-xs text-[#8491A3] mt-1">
           Automated syntax and semantic checks completed with zero warnings or errors.
         </p>
       </div>
@@ -60,14 +60,14 @@ export const FindingsList: React.FC<FindingsListProps> = ({
       {findings.map((finding) => (
         <div
           key={finding.id}
-          className="p-4 rounded-xl border border-[#E5EAF0] bg-white shadow-2xs hover:border-[#D9E2EC] transition-all space-y-2.5"
+          className="p-4 rounded-xl border border-[#DCE3EC] bg-white shadow-2xs hover:border-[#DCE3EC] transition-all space-y-2.5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 {getSeverityBadge(finding.severity)}
                 {finding.ruleCode && (
-                  <span className="text-[11px] font-mono text-[#6B778C] bg-gray-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[11px] font-mono text-[#8491A3] bg-gray-100 px-1.5 py-0.5 rounded">
                     {finding.ruleCode}
                   </span>
                 )}
@@ -78,22 +78,22 @@ export const FindingsList: React.FC<FindingsListProps> = ({
                 )}
                 <PartnerStatusBadge status={finding.status} type="validation" />
               </div>
-              <h4 className="text-sm font-semibold text-[#091E42] mt-1">{finding.title}</h4>
+              <h4 className="text-sm font-semibold text-[#17263A] mt-1">{finding.title}</h4>
             </div>
           </div>
 
           {finding.fieldOrMethod && (
-            <div className="text-xs font-mono text-[#6B778C] bg-[#F7F9FC] px-2.5 py-1 rounded inline-block">
+            <div className="text-xs font-mono text-[#8491A3] bg-[#F8FAFC] px-2.5 py-1 rounded inline-block">
               Target: {finding.fieldOrMethod}
             </div>
           )}
 
-          <p className="text-xs text-[#4A5568] leading-relaxed">{finding.explanation}</p>
+          <p className="text-xs text-[#8491A3] leading-relaxed">{finding.explanation}</p>
 
           {/* Internal Staff Action Controls */}
           {isStaff && onUpdateStatus && (
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F0F4F8]">
-              <span className="text-[11px] text-[#6B778C] mr-auto">Staff Action:</span>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F4F7FB]">
+              <span className="text-[11px] text-[#8491A3] mr-auto">Staff Action:</span>
               <button
                 onClick={() => onUpdateStatus(finding.id, 'CONFIRMED')}
                 className={`text-xs px-2.5 py-1 rounded flex items-center gap-1 transition-colors ${
