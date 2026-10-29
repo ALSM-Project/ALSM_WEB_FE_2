@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { LeadContract } from '../types/crm.types';
 import { crmApi } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface ContractPreviewModalProps {
   isOpen: boolean;
@@ -106,7 +107,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400">Annual Value</p>
-              <p className="font-bold text-blue-600 mt-0.5">${contract.annualValue.toLocaleString()} USD</p>
+              <p className="font-bold text-blue-600 mt-0.5">{formatVnd(contract.annualValue)}</p>
             </div>
             <div>
               <p className="text-[10px] uppercase font-bold text-slate-400">Effective Date</p>
@@ -152,7 +153,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
 
             <p className="font-sans font-bold text-slate-900 mt-2">3. COMMERCIAL CONSIDERATION & PAYMENT</p>
             <p>
-              Client agrees to pay the contract total of ${contract.annualValue.toLocaleString()} USD in accordance with standard Net-30 enterprise invoicing 
+              Client agrees to pay the contract total of {formatVnd(contract.annualValue)} in accordance with standard Net-30 enterprise invoicing
               or authorized wire transfer before enterprise tenant activation.
             </p>
 

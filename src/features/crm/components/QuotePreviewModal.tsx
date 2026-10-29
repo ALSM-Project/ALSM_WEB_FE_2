@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { LeadQuote } from '../types/crm.types';
 import { crmApi } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface QuotePreviewModalProps {
   isOpen: boolean;
@@ -145,12 +146,12 @@ export const QuotePreviewModal: React.FC<QuotePreviewModalProps> = ({
             <div className="mt-4 pt-3 border-t border-slate-200 space-y-1.5 font-mono">
               <div className="flex justify-between text-slate-600">
                 <span>Standard Base Fee:</span>
-                <span>${quote.basePrice.toLocaleString()} USD</span>
+                <span>{formatVnd(quote.basePrice)}</span>
               </div>
               {quote.discountPercent > 0 && (
                 <div className="flex justify-between text-emerald-700 font-medium">
                   <span>Authorized Discount ({quote.discountPercent}%):</span>
-                  <span>-${Math.round(quote.basePrice * quote.discountPercent / 100).toLocaleString()} USD</span>
+                  <span>{formatVnd(-Math.round(quote.basePrice * quote.discountPercent / 100))}</span>
                 </div>
               )}
               {quote.discountReason && (
@@ -160,7 +161,7 @@ export const QuotePreviewModal: React.FC<QuotePreviewModalProps> = ({
               )}
               <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-300">
                 <span>Total Investment:</span>
-                <span className="text-blue-600">${quote.finalPrice.toLocaleString()} USD</span>
+                <span className="text-blue-600">{formatVnd(quote.finalPrice)}</span>
               </div>
             </div>
           </div>

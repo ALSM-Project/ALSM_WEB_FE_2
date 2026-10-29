@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { crmApi, PendingDiscountDto } from '../api/crm.api';
 import { Button, Modal } from '@/shared/ui';
+import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const DiscountApprovalPage: React.FC = () => {
@@ -284,17 +285,17 @@ export const DiscountApprovalPage: React.FC = () => {
                         <div className="text-[11px] font-mono text-[#6B778C]">{item.quote.quoteNumber}</div>
                       </td>
                       <td className="py-3.5 px-4 text-[#6B778C]">
-                        ${item.originalPrice.toLocaleString()}
+                        {formatVnd(item.originalPrice)}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                           isExceedingLimit ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-800'
                         }`}>
-                          {item.discountPercent}% (-${item.discountAmount.toLocaleString()})
+                          {item.discountPercent}% (-{formatVnd(item.discountAmount)})
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-bold text-emerald-700">
-                        ${item.proposedFinalPrice.toLocaleString()}
+                        {formatVnd(item.proposedFinalPrice)}
                       </td>
                       <td className="py-3.5 px-4">
                         {isApproved && (
@@ -426,15 +427,15 @@ export const DiscountApprovalPage: React.FC = () => {
             <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2 font-mono">
               <div className="flex justify-between text-slate-600">
                 <span>Standard Baseline Fee:</span>
-                <span>${detailItem.originalPrice.toLocaleString()} USD</span>
+                <span>{formatVnd(detailItem.originalPrice)}</span>
               </div>
               <div className="flex justify-between text-amber-800 font-semibold">
                 <span>Requested Discount ({detailItem.discountPercent}%):</span>
-                <span>-${detailItem.discountAmount.toLocaleString()} USD</span>
+                <span>{formatVnd(-detailItem.discountAmount)}</span>
               </div>
               <div className="flex justify-between text-slate-900 font-bold text-sm pt-2 border-t border-slate-200">
                 <span>Proposed Annual Contract Value:</span>
-                <span className="text-emerald-700">${detailItem.proposedFinalPrice.toLocaleString()} USD</span>
+                <span className="text-emerald-700">{formatVnd(detailItem.proposedFinalPrice)}</span>
               </div>
             </div>
 
@@ -549,15 +550,15 @@ export const DiscountApprovalPage: React.FC = () => {
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2 font-mono">
               <div className="flex justify-between text-slate-600">
                 <span>Baseline Fee:</span>
-                <span>${approveItem.originalPrice.toLocaleString()} USD</span>
+                <span>{formatVnd(approveItem.originalPrice)}</span>
               </div>
               <div className="flex justify-between text-amber-700 font-semibold">
                 <span>Authorized Discount ({approveItem.discountPercent}%):</span>
-                <span>-${approveItem.discountAmount.toLocaleString()} USD</span>
+                <span>{formatVnd(-approveItem.discountAmount)}</span>
               </div>
               <div className="flex justify-between text-slate-900 font-bold border-t border-slate-200 pt-1.5">
                 <span>Final Contract Value:</span>
-                <span className="text-emerald-700">${approveItem.proposedFinalPrice.toLocaleString()} USD</span>
+                <span className="text-emerald-700">{formatVnd(approveItem.proposedFinalPrice)}</span>
               </div>
             </div>
 

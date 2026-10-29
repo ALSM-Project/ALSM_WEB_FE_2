@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { LeadDto, ProvisioningChecklist } from '../types/crm.types';
 import { crmApi } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface CustomerActivationModalProps {
   isOpen: boolean;
@@ -240,7 +241,7 @@ export const CustomerActivationModal: React.FC<CustomerActivationModalProps> = (
                 </div>
                 <p className="text-[11px] text-slate-600 mt-1">
                   {hasSignedContract
-                    ? `Executed: ${signedContract?.contractNumber} ($${(signedContract?.annualValue || 0).toLocaleString()} USD)`
+                    ? `Executed: ${signedContract?.contractNumber} (${formatVnd(signedContract?.annualValue || 0)})`
                     : 'A countersigned contract is strictly required before tenant provisioning.'}
                 </p>
               </div>
@@ -262,7 +263,7 @@ export const CustomerActivationModal: React.FC<CustomerActivationModalProps> = (
                 </div>
                 <div className="flex items-center justify-between mt-1 text-[11px]">
                   <span className="text-slate-600">
-                    {paymentRequired ? `Deposit Due: $${((lead.payment?.amount || lead.dealValue || 85000)).toLocaleString()} USD` : 'Upfront fee waived by policy'}
+                    {paymentRequired ? `Deposit Due: ${formatVnd(lead.payment?.amount || lead.dealValue || 85000)}` : 'Upfront fee waived by policy'}
                   </span>
                   {paymentRequired && lead.payment?.status !== 'CONFIRMED' && (
                     <button

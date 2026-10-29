@@ -126,7 +126,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
       source: form.source,
       priority: form.priority,
       estimatedValue,
-      currency: 'USD',
+      currency: 'VND',
       notes: form.notes.trim() || undefined,
     };
 
@@ -267,7 +267,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           </label>
 
           <label className="block text-sm font-medium text-slate-800">
-            Estimated value (USD)
+            Estimated value (VND)
             <input
               type="number"
               min="0"

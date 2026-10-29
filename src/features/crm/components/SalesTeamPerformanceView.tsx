@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatVnd } from '@/shared/utils/currency';
 import {
   Users,
   Award,
@@ -190,7 +191,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold text-[#091E42]">
-              ${(data?.teamTotalRevenue || 0).toLocaleString()}
+              {formatVnd(data?.teamTotalRevenue || 0)}
             </div>
             <p className="text-[11px] text-[#6B778C] mt-1">Closed won deals</p>
           </div>
@@ -220,7 +221,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
           </div>
           <div className="mt-3">
             <div className="text-2xl font-bold text-[#091E42]">
-              ${(data?.teamAvgDealSize || 0).toLocaleString()}
+              {formatVnd(data?.teamAvgDealSize || 0)}
             </div>
             <p className="text-[11px] text-[#6B778C] mt-1">Average contract size</p>
           </div>
@@ -303,7 +304,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
               const pct = Math.max(Math.round((val / maxMetricVal) * 100), 5);
               const formattedVal =
                 chartMetric === 'revenueGenerated'
-                  ? `$${val.toLocaleString()}`
+                  ? formatVnd(val)
                   : chartMetric === 'conversionRate'
                   ? `${val}%`
                   : val;
@@ -416,10 +417,10 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
                         {rep.conversionRate}%
                       </td>
                       <td className="px-4 py-3.5 font-mono font-bold text-[#091E42]">
-                        ${rep.revenueGenerated.toLocaleString()}
+                        {formatVnd(rep.revenueGenerated)}
                       </td>
                       <td className="px-4 py-3.5 font-mono text-[#6B778C]">
-                        ${rep.averageDealSize.toLocaleString()}
+                        {formatVnd(rep.averageDealSize)}
                       </td>
                       <td className="px-4 py-3.5 font-mono text-[#6B778C]">
                         {rep.avgResponseTimeHours} hrs

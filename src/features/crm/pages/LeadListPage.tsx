@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { crmApi, LeadDto } from '../api/crm.api';
 import { Button } from '@/shared/ui';
+import { formatVnd } from '@/shared/utils/currency';
 import { AddLeadModal } from '../components/AddLeadModal';
 
 export const LeadListPage: React.FC = () => {
@@ -219,7 +220,7 @@ export const LeadListPage: React.FC = () => {
                       {getScoreBadge(lead.score)}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      ${(lead.dealValue || 0).toLocaleString()} USD
+                      {formatVnd(lead.dealValue || 0)}
                     </td>
                     <td className="py-3.5 px-4">
                       {getStageBadge(lead.stage)}

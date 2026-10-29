@@ -7,6 +7,7 @@ import {
   ExternalLink, History, UserCheck
 } from 'lucide-react';
 import { crmApi, LeadDto, LeadQuote, LeadContract } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 import { Button, Card } from '@/shared/ui';
 
 // Modals
@@ -277,7 +278,7 @@ export const LeadDetailPage: React.FC = () => {
           <div className="mt-2 space-y-1.5 text-xs">
             <div className="text-[#091E42]">
               <span className="font-semibold">Deal Value:</span>{' '}
-              <span className="font-bold text-blue-600">${(lead.dealValue || 0).toLocaleString()} USD</span>
+              <span className="font-bold text-blue-600">{formatVnd(lead.dealValue || 0)}</span>
             </div>
             <div className="text-[#091E42]">
               <span className="font-semibold">Payment Status:</span>{' '}
@@ -448,9 +449,9 @@ export const LeadDetailPage: React.FC = () => {
                   <tr key={q.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{q.quoteNumber}</td>
                     <td className="py-3 px-3 text-[#091E42]">{q.plan}</td>
-                    <td className="py-3 px-3 text-[#6B778C]">${q.basePrice.toLocaleString()}</td>
+                    <td className="py-3 px-3 text-[#6B778C]">{formatVnd(q.basePrice)}</td>
                     <td className="py-3 px-3 text-[#091E42]">{q.discountPercent}%</td>
-                    <td className="py-3 px-3 font-semibold text-blue-600">${q.finalPrice.toLocaleString()} USD</td>
+                    <td className="py-3 px-3 font-semibold text-blue-600">{formatVnd(q.finalPrice)}</td>
                     <td className="py-3 px-3">
                       {q.approvalStatus === 'APPROVED' ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">Approved</span>
@@ -516,7 +517,7 @@ export const LeadDetailPage: React.FC = () => {
                       <div className="font-semibold text-[#091E42]">{c.title}</div>
                       <div className="text-[11px] text-[#6B778C]">{c.plan}</div>
                     </td>
-                    <td className="py-3 px-3 font-semibold text-emerald-700">${c.annualValue.toLocaleString()} USD</td>
+                    <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
                     <td className="py-3 px-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                         c.status === 'FULLY_SIGNED' ? 'bg-emerald-100 text-emerald-800' :

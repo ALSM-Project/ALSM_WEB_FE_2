@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Input, Modal } from '@/shared/ui';
 import { ShieldAlert, FileText } from 'lucide-react';
 import { crmApi, LeadQuote } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface CreateQuoteModalProps {
   isOpen: boolean;
@@ -102,15 +103,15 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
               onChange={(e) => handlePlanChange(e.target.value)}
               className="w-full text-xs py-2 px-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
             >
-              <option value="Pilot Sandbox">Pilot Sandbox ($25,000)</option>
-              <option value="Professional">Professional Tier ($45,000)</option>
-              <option value="Enterprise Tier 1">Enterprise Tier 1 ($85,000)</option>
-              <option value="Enterprise Tier 2">Enterprise Tier 2 ($150,000)</option>
+              <option value="Pilot Sandbox">Pilot Sandbox (25,000 VND)</option>
+              <option value="Professional">Professional Tier (45,000 VND)</option>
+              <option value="Enterprise Tier 1">Enterprise Tier 1 (85,000 VND)</option>
+              <option value="Enterprise Tier 2">Enterprise Tier 2 (150,000 VND)</option>
             </select>
           </div>
 
           <div>
-            <label className="block font-semibold text-[#091E42] mb-1">Base Price ($)</label>
+            <label className="block font-semibold text-[#091E42] mb-1">Base Price (VND)</label>
             <Input
               type="number"
               min="10000"
@@ -151,7 +152,7 @@ export const CreateQuoteModal: React.FC<CreateQuoteModalProps> = ({
           <div className="flex items-center justify-between text-xs pt-1 border-t border-[#E5EAF0]">
             <span className="text-[#6B778C]">Effective Price:</span>
             <span className="font-mono text-base font-extrabold text-[#0652CC]">
-              ${finalPrice.toLocaleString()}
+              {formatVnd(finalPrice)}
             </span>
           </div>
 

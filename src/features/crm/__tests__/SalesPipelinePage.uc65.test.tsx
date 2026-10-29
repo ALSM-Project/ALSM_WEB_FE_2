@@ -31,7 +31,7 @@ const samplePipeline = makePipeline([
     stage: 'NEW',
     score: 72,
     dealValue: 250000,
-    currency: 'USD',
+    currency: 'VND',
     assignedToName: 'Lê Văn Sales',
   },
   {
@@ -41,7 +41,7 @@ const samplePipeline = makePipeline([
     source: 'Partner',
     stage: 'NEGOTIATION',
     dealValue: 180000,
-    currency: 'USD',
+    currency: 'VND',
   },
 ]);
 
@@ -77,7 +77,7 @@ describe('SalesPipelinePage (UC-65)', () => {
     const leadCard = await screen.findByRole('button', { name: 'View Apex Health Systems lead details' });
     expect(screen.getByRole('heading', { name: 'Negotiation' })).toBeInTheDocument();
     expect(screen.getByText('Dr. Michael Chang')).toBeInTheDocument();
-    expect(screen.getByText('$250,000.00')).toBeInTheDocument();
+    expect(screen.getByText('250.000 VND')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /add lead/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/move:/i)).not.toBeInTheDocument();
 

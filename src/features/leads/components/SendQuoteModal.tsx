@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Lead, SendQuotePayload, SendQuoteResponse } from '../types/lead';
 import { useSendQuote } from '../hooks/useLeads';
+import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
   X,
@@ -273,7 +274,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <div className="flex justify-between items-center text-xs">
                 <span className="text-[#6B778C]">Quoted Amount:</span>
                 <span className="font-bold text-emerald-600 text-sm">
-                  ${successResult.quote.amount.toLocaleString()} USD
+                  {formatVnd(successResult.quote.amount)}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
@@ -353,7 +354,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     >
                       <div className="font-semibold text-[#091E42] line-clamp-1">{preset.name}</div>
                       <div className="font-bold text-[#0652CC] mt-1">
-                        ${preset.amount.toLocaleString()}
+                        {formatVnd(preset.amount)}
                       </div>
                     </button>
                   ))}
@@ -405,7 +406,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     htmlFor="quote-base-amount"
                     className="block text-xs font-semibold text-[#091E42] mb-1"
                   >
-                    Base Quote Amount (USD) *
+                    Base Quote Amount (VND) *
                   </label>
                   <div className="relative">
                     <DollarSign className="w-4 h-4 text-[#8993A4] absolute left-3 top-2.5" />
@@ -527,18 +528,18 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <div className="bg-[#F7F9FC] rounded-xl p-4 border border-[#E8ECF1] space-y-2">
                 <div className="flex justify-between items-center text-xs text-[#6B778C]">
                   <span>Base Price:</span>
-                  <span>${amount.toLocaleString()} USD</span>
+                  <span>{formatVnd(amount)}</span>
                 </div>
                 {discountPercent > 0 && (
                   <div className="flex justify-between items-center text-xs text-amber-600 font-medium">
                     <span>Discount ({discountPercent}%):</span>
-                    <span>-${calculatedDiscountAmount.toLocaleString()} USD</span>
+                    <span>{formatVnd(-calculatedDiscountAmount)}</span>
                   </div>
                 )}
                 <div className="pt-2 border-t border-[#E8ECF1] flex justify-between items-center">
                   <span className="text-xs font-bold text-[#091E42]">Final Quoted Amount:</span>
                   <span className="text-base font-extrabold text-[#0652CC]">
-                    ${finalAmount.toLocaleString()} USD
+                    {formatVnd(finalAmount)}
                   </span>
                 </div>
                 <div className="text-[11px] text-[#8993A4] pt-1">

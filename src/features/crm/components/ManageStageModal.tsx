@@ -3,6 +3,7 @@ import { Button, Input, Modal } from '@/shared/ui';
 import { ArrowRight, Lock } from 'lucide-react';
 import { LeadDto, LeadStage } from '../types/crm.types';
 import { crmApi } from '../api/crm.api';
+import { formatVnd } from '@/shared/utils/currency';
 
 export interface ManageStageModalProps {
   isOpen: boolean;
@@ -92,7 +93,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
           <div className="text-right">
             <span className="text-[10px] uppercase font-bold text-slate-400">Deal Value</span>
             <div className="font-semibold text-blue-600 mt-0.5">
-              ${(lead.dealValue || 0).toLocaleString()} USD
+              {formatVnd(lead.dealValue || 0)}
             </div>
           </div>
         </div>

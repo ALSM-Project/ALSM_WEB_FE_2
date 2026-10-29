@@ -6,6 +6,7 @@ import {
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
 import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
+import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const OrganizationDetailPage: React.FC = () => {
@@ -452,7 +453,7 @@ export const OrganizationDetailPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3 text-[#091E42]">{inv.plan}</td>
                       <td className="py-3 px-3 font-bold text-emerald-700">
-                        ${inv.amount.toLocaleString()} USD
+                        {formatVnd(inv.amount)}
                       </td>
                       <td className="py-3 px-3 text-[#6B778C]">{inv.paymentMethod}</td>
                       <td className="py-3 px-3 text-right">

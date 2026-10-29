@@ -36,7 +36,7 @@ const mockLead: Lead = {
   source: 'WEBSITE',
   priority: 'HIGH',
   estimatedValue: 60000,
-  currency: 'USD',
+  currency: 'VND',
   tags: ['Banking'],
   createdByUserId: 'user-1',
   createdByEmail: 'sales@alsm.dev',
@@ -108,8 +108,8 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/Discount Justification \/ Reason/i)).toBeInTheDocument();
 
-    // Verify calculated final amount: $60,000 - 20% ($12,000) = $48,000
-    expect(screen.getByText('$48,000 USD')).toBeInTheDocument();
+    // Verify calculated final amount: 60,000 - 20% (12,000) = 48,000 VND.
+    expect(screen.getByText('48.000 VND')).toBeInTheDocument();
 
     // Button text changes to "Submit for Approval"
     expect(screen.getByRole('button', { name: /Submit for Approval/i })).toBeInTheDocument();

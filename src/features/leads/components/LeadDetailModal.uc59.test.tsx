@@ -21,7 +21,7 @@ const lead: Lead = {
   status: 'NEW',
   source: 'WEBSITE',
   priority: 'MEDIUM',
-  currency: 'USD',
+  currency: 'VND',
   tags: [],
   createdByUserId: '64b000000000000000000001',
   createdByEmail: 'sales@example.test',
