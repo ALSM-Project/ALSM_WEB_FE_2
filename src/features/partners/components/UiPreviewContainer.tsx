@@ -43,26 +43,26 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
   };
 
   return (
-    <div className="rounded-xl border border-[#D9E2EC] bg-white overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-[#DCE3EC] bg-white overflow-hidden shadow-sm">
       {/* Browser / Canvas Chrome */}
-      <div className="bg-[#F7F9FC] border-b border-[#D9E2EC] px-4 py-2.5 flex items-center justify-between">
+      <div className="bg-[#F8FAFC] border-b border-[#DCE3EC] px-4 py-2.5 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <div className="flex space-x-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" />
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block" />
           </div>
-          <span className="text-xs font-semibold text-[#091E42] ml-2">
+          <span className="text-xs font-semibold text-[#17263A] ml-2">
             Modernized UI Preview: {screenName}
           </span>
         </div>
 
         {/* Device Switcher */}
-        <div className="flex items-center space-x-1 bg-white border border-[#D9E2EC] p-0.5 rounded-lg text-xs">
+        <div className="flex items-center space-x-1 bg-white border border-[#DCE3EC] p-0.5 rounded-lg text-xs">
           <button
             onClick={() => setDevice('desktop')}
             className={`p-1.5 rounded flex items-center gap-1 ${
-              device === 'desktop' ? 'bg-[#0652CC] text-white' : 'text-[#6B778C] hover:text-[#091E42]'
+              device === 'desktop' ? 'bg-[#244A70] text-white' : 'text-[#8491A3] hover:text-[#17263A]'
             }`}
             title="Desktop view"
           >
@@ -71,7 +71,7 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
           <button
             onClick={() => setDevice('tablet')}
             className={`p-1.5 rounded flex items-center gap-1 ${
-              device === 'tablet' ? 'bg-[#0652CC] text-white' : 'text-[#6B778C] hover:text-[#091E42]'
+              device === 'tablet' ? 'bg-[#244A70] text-white' : 'text-[#8491A3] hover:text-[#17263A]'
             }`}
             title="Tablet view"
           >
@@ -80,7 +80,7 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
           <button
             onClick={() => setDevice('mobile')}
             className={`p-1.5 rounded flex items-center gap-1 ${
-              device === 'mobile' ? 'bg-[#0652CC] text-white' : 'text-[#6B778C] hover:text-[#091E42]'
+              device === 'mobile' ? 'bg-[#244A70] text-white' : 'text-[#8491A3] hover:text-[#17263A]'
             }`}
             title="Mobile view"
           >
@@ -90,13 +90,13 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
       </div>
 
       {/* Preview Surface */}
-      <div className="p-6 bg-[#F4F5F7] min-h-[360px] flex justify-center items-start overflow-auto">
-        <div className={`${getContainerWidth()} bg-white rounded-xl shadow-md border border-[#E5EAF0] p-6 transition-all duration-300`}>
+      <div className="p-6 bg-[#F4F7FB] min-h-[360px] flex justify-center items-start overflow-auto">
+        <div className={`${getContainerWidth()} bg-white rounded-xl shadow-md border border-[#DCE3EC] p-6 transition-all duration-300`}>
           {/* Simulated Component Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-[#E5EAF0] mb-5">
+          <div className="flex items-center justify-between pb-4 border-b border-[#DCE3EC] mb-5">
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">Customer Account Inquiry</h2>
-              <p className="text-xs text-[#6B778C]">Reactive TypeScript Component with Tailwind CSS</p>
+              <h2 className="text-base font-bold text-[#17263A]">Customer Account Inquiry</h2>
+              <p className="text-xs text-[#8491A3]">Reactive TypeScript Component with Tailwind CSS</p>
             </div>
             <Badge variant="success">Online</Badge>
           </div>
@@ -123,17 +123,17 @@ export const UiPreviewContainer: React.FC<UiPreviewContainerProps> = ({ screenNa
             </div>
 
             {inquired && (
-              <div className="mt-4 p-4 rounded-lg bg-[#F7F9FC] border border-[#E5EAF0] space-y-3">
+              <div className="mt-4 p-4 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase font-semibold text-[#6B778C]">Customer Full Name</span>
-                  <span className="text-sm font-semibold text-[#091E42]">{fullName}</span>
+                  <span className="text-xs uppercase font-semibold text-[#8491A3]">Customer Full Name</span>
+                  <span className="text-sm font-semibold text-[#17263A]">{fullName}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase font-semibold text-[#6B778C]">Ledger Currency</span>
+                  <span className="text-xs uppercase font-semibold text-[#8491A3]">Ledger Currency</span>
                   <span className="text-xs font-mono font-medium text-gray-700">{currency}</span>
                 </div>
-                <div className="flex items-center justify-between pt-2 border-t border-[#E5EAF0]">
-                  <span className="text-xs uppercase font-bold text-[#091E42]">Current Balance (BALANOUT)</span>
+                <div className="flex items-center justify-between pt-2 border-t border-[#DCE3EC]">
+                  <span className="text-xs uppercase font-bold text-[#17263A]">Current Balance (BALANOUT)</span>
                   <span className="text-base font-mono font-bold text-emerald-600">{balance}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1.5 rounded mt-2">
