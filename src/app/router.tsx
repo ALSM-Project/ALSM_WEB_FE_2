@@ -44,6 +44,10 @@ import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: '/ci-status',
     element: <PullRequestStatusPage />,
   },
   {
