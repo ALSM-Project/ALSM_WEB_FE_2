@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse, LogPhoneCallPayload, LogPhoneCallResponse } from '../types/lead';
+import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse, LogPhoneCallPayload, LogPhoneCallResponse, ScheduleDemoPayload, ScheduleDemoResponse } from '../types/lead';
 
 export interface UpdateLeadStatusPayload {
   status: string;
@@ -61,6 +61,16 @@ export const leadsApi = {
     requestId: string,
   ): Promise<LogPhoneCallResponse> => apiClient.post<LogPhoneCallResponse>(
     `/leads/${encodeURIComponent(id)}/calls`,
+    payload,
+    { headers: { 'Idempotency-Key': requestId } },
+  ),
+
+  scheduleDemo: (
+    id: string,
+    payload: ScheduleDemoPayload,
+    requestId: string,
+  ): Promise<ScheduleDemoResponse> => apiClient.post<ScheduleDemoResponse>(
+    `/leads/${encodeURIComponent(id)}/demos`,
     payload,
     { headers: { 'Idempotency-Key': requestId } },
   ),
