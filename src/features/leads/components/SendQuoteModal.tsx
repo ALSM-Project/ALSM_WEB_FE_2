@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from 'react';
-=======
-import React, { useState, useEffect } from 'react';
->>>>>>> origin/develop
 import type { Lead, SendQuotePayload, SendQuoteResponse } from '../types/lead';
 import { useSendQuote } from '../hooks/useLeads';
 import { useAuth } from '@/features/auth/hooks/useAuth';
