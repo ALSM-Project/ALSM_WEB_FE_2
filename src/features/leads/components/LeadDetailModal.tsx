@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { Lead, LogPhoneCallResponse } from '../types/lead';
+import type { Lead, LogPhoneCallResponse, ScheduleDemoResponse } from '../types/lead';
 import { LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS, LEAD_PRIORITY_LABELS, LEAD_PHONE_CALL_OUTCOME_LABELS } from '../types/lead';
 import {
   X,
@@ -18,12 +18,14 @@ import {
   FileCheck,
   LoaderCircle,
   PhoneCall,
+  CalendarClock,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { leadsApi } from '../api/leads.api';
 import { LEAD_DETAILS_QUERY_KEY, LEADS_QUERY_KEY, useLeadDetails } from '../hooks/useLeads';
 import { LogPhoneCallModal } from './LogPhoneCallModal';
+import { ScheduleDemoModal } from './ScheduleDemoModal';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -51,11 +53,15 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   const [emailStatus, setEmailStatus] = useState(lead?.emailNotificationStatus);
   const [isCallModalOpen, setIsCallModalOpen] = useState(false);
   const [callMessage, setCallMessage] = useState<string | null>(null);
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+  const [demoMessage, setDemoMessage] = useState<string | null>(null);
   useEffect(() => {
     setNotificationMessage(null);
     setCallMessage(null);
+    setDemoMessage(null);
     setIsNotifying(false);
     setIsCallModalOpen(false);
+    setIsDemoModalOpen(false);
   }, [selectedLead?.id]);
   useEffect(() => {
     setEmailStatus(detailsQuery.data?.emailNotificationStatus ?? selectedLead?.emailNotificationStatus);
@@ -165,6 +171,16 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
     });
     setCallMessage(result.message);
     setIsCallModalOpen(false);
+  };
+
+  const handleDemoScheduled = (result: ScheduleDemoResponse) => {
+    queryClient.setQueryData([...LEAD_DETAILS_QUERY_KEY, result.lead.id], result.lead);
+    void queryClient.invalidateQueries({
+      queryKey: LEADS_QUERY_KEY,
+      predicate: (query) => query.queryKey[1] !== 'detail',
+    });
+    setDemoMessage(result.message);
+    setIsDemoModalOpen(false);
   };
 
   return (
@@ -374,6 +390,37 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             ) : null}
           </section>
 
+          {/* Scheduled demos (UC-61) */}
+          <section aria-labelledby="lead-demos-title" className="space-y-2">
+            <h3 id="lead-demos-title" className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
+              <CalendarClock aria-hidden="true" className="w-3.5 h-3.5 text-[#0652CC]" />
+              Scheduled demos ({lead.demos?.length ?? 0})
+            </h3>
+            {lead.demos?.length ? (
+              <ol className="space-y-2">
+                {[...lead.demos].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()).map((demo) => (
+                  <li key={demo.id} className="rounded-lg border border-[#E8ECF1] bg-[#F7F9FC] p-3">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-sm font-semibold text-[#091E42]">{demo.title}</span>
+                      <span className={`w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold ${demo.status === 'SCHEDULED' ? 'border-blue-200 bg-blue-50 text-blue-700' : demo.status === 'COMPLETED' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-600'}`}>
+                        {demo.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-[#42526E]">
+                      {formatDate(demo.scheduledAt)} · {demo.durationMinutes} minutes
+                    </p>
+                    <p className="mt-1 break-words text-xs text-[#6B778C]">Attendees: {demo.attendeeEmails.join(', ')}</p>
+                    {demo.agenda && <p className="mt-2 whitespace-pre-wrap text-xs text-[#42526E]">Agenda: {demo.agenda}</p>}
+                    {demo.internalNotes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#6B778C]">Internal notes: {demo.internalNotes}</p>}
+                    <p className="mt-1 text-xs text-[#6B778C]">Scheduled by {demo.scheduledByEmail || demo.scheduledByUserId}</p>
+                  </li>
+                ))}
+              </ol>
+            ) : detailsQuery.data ? (
+              <p className="rounded-lg border border-dashed border-[#D9E2EC] p-3 text-sm text-[#6B778C]">No demos have been scheduled for this lead.</p>
+            ) : null}
+          </section>
+
           {/* Tags */}
           {lead.tags && lead.tags.length > 0 && (
             <div>
@@ -463,6 +510,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               </p>
             )}
             {callMessage && <p role="status" aria-live="polite" className="text-xs text-emerald-700">{callMessage}</p>}
+            {demoMessage && <p role="status" aria-live="polite" className="text-xs text-emerald-700">{demoMessage}</p>}
             <div className="flex flex-wrap items-center gap-2">
             {canManage && (
               <button
@@ -489,6 +537,18 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               >
                 <PhoneCall aria-hidden="true" className="h-3.5 w-3.5 text-[#0652CC]" />
                 Log Phone Call
+              </button>
+            )}
+            {canManage && lead.status !== 'WON' && lead.status !== 'LOST' && (
+              <button
+                id="open-schedule-demo-btn"
+                type="button"
+                onClick={() => { setDemoMessage(null); setIsDemoModalOpen(true); }}
+                disabled={!detailsQuery.data}
+                className="flex items-center gap-1.5 rounded-lg border border-[#D9E2EC] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <CalendarClock aria-hidden="true" className="h-3.5 w-3.5 text-[#0652CC]" />
+                Schedule Demo
               </button>
             )}
             {canManage && onUpdateStatus && (
@@ -525,6 +585,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       </div>
     </div>
     {isCallModalOpen && <LogPhoneCallModal lead={lead} onClose={() => setIsCallModalOpen(false)} onSuccess={handleCallLogged} />}
+    {isDemoModalOpen && <ScheduleDemoModal lead={lead} onClose={() => setIsDemoModalOpen(false)} onSuccess={handleDemoScheduled} />}
     </>
   );
 };

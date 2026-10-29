@@ -46,6 +46,36 @@ export interface LogPhoneCallResponse {
   message: string;
 }
 
+export interface LeadDemo {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  attendeeEmails: string[];
+  agenda?: string;
+  internalNotes?: string;
+  status: 'SCHEDULED' | 'COMPLETED' | 'CANCELLED';
+  scheduledByUserId: string;
+  scheduledByEmail: string;
+  createdAt: string;
+}
+
+export interface ScheduleDemoPayload {
+  title: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  attendeeEmails: string[];
+  agenda?: string;
+  internalNotes?: string;
+}
+
+export interface ScheduleDemoResponse {
+  demo: LeadDemo;
+  lead: Lead;
+  replayed: boolean;
+  message: string;
+}
+
 export interface Lead {
   id: string;
   companyName: string;
@@ -64,6 +94,7 @@ export interface Lead {
   tags: string[];
   quotes?: LeadQuoteItem[];
   phoneCalls?: LeadPhoneCall[];
+  demos?: LeadDemo[];
   emailNotificationStatus?: LeadEmailNotificationStatus;
   emailNotifiedAt?: string;
   lastContactedAt?: string;
