@@ -1,4 +1,27 @@
 export type LeadStage = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'WON' | 'LOST';
+export type SalesPipelineStage = LeadStage | 'NEGOTIATION' | 'UNMAPPED';
+
+export interface SalesPipelineLeadDto {
+  id: string;
+  company: string;
+  contactName: string;
+  source: string;
+  stage: SalesPipelineStage;
+  score?: number;
+  dealValue?: number;
+  currency: string;
+  assignedToName?: string;
+  lastContactAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SalesPipelineDto {
+  items: SalesPipelineLeadDto[];
+  total: number;
+  stageCounts: Record<SalesPipelineStage, number>;
+  lastUpdated: string;
+}
 
 export interface LeadInteraction {
   id: string;
