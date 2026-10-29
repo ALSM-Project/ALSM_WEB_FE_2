@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Lead } from '../types/lead';
 import { LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS, LEAD_PRIORITY_LABELS } from '../types/lead';
 import {
@@ -16,14 +16,17 @@ import {
   TrendingUp,
   Send,
   FileCheck,
+  LoaderCircle,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { leadsApi } from '../api/leads.api';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
   onClose: () => void;
   onUpdateStatus?: (lead: Lead) => void;
   onSendQuote?: (lead: Lead) => void;
+  onNotificationUpdate?: (lead: Lead) => void;
 }
 
 export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
@@ -31,9 +34,61 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   onClose,
   onUpdateStatus,
   onSendQuote,
+  onNotificationUpdate,
 }) => {
   const { hasPermission } = useAuth();
   const canManage = hasPermission('sales.leads.manage');
+  const [isNotifying, setIsNotifying] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
+  const [notificationTone, setNotificationTone] = useState<'success' | 'warning' | 'error'>('success');
+  const [emailStatus, setEmailStatus] = useState(lead?.emailNotificationStatus);
+  useEffect(() => {
+    setNotificationMessage(null);
+    setIsNotifying(false);
+  }, [lead?.id]);
+  useEffect(() => {
+    setEmailStatus(lead?.emailNotificationStatus);
+  }, [lead]);
+
+  const sendContactNotification = async () => {
+    if (!lead || isNotifying || emailStatus === 'SENT') return;
+    setIsNotifying(true);
+    setNotificationMessage(null);
+    try {
+      const result = await leadsApi.notifyContact(lead.id, crypto.randomUUID());
+      setEmailStatus(result.lead.emailNotificationStatus);
+      setNotificationTone(result.notificationSent === true ? 'success' : 'warning');
+      setNotificationMessage(result.message);
+      onNotificationUpdate?.(result.lead);
+    } catch (error) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      setNotificationTone(status === 403 ? 'error' : 'warning');
+      setNotificationMessage(
+        status === 403
+          ? 'You do not have permission to send contact emails.'
+          : status === 401
+            ? 'Your session has expired. Sign in again before sending this email.'
+          : status === 404
+            ? 'This lead could not be found. Refresh the list and try again.'
+            : status === 400
+              ? 'The email request was invalid. Refresh the lead and try again.'
+              : status === 503
+                ? 'The email service is temporarily unavailable. Try again shortly.'
+            : 'The email could not be sent. Please try again shortly.',
+      );
+    } finally {
+      setIsNotifying(false);
+    }
+  };
+  const emailButtonLabel = emailStatus === 'SENT'
+    ? 'Email sent'
+    : emailStatus === 'FAILED'
+      ? 'Retry contact email'
+      : emailStatus === 'SENDING'
+        ? 'Email processing'
+        : isNotifying
+          ? 'Sending email…'
+          : 'Send contact email';
   if (!lead) return null;
 
   const formatDate = (dateStr?: string) => {
@@ -282,8 +337,33 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+          <div className="flex flex-col gap-2">
+            {notificationMessage && (
+              <p
+                role={notificationTone === 'error' ? 'alert' : 'status'}
+                aria-live="polite"
+                className={`text-xs ${notificationTone === 'success' ? 'text-emerald-700' : notificationTone === 'error' ? 'text-rose-700' : 'text-amber-800'}`}
+              >
+                {notificationMessage}
+              </p>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+            {canManage && (
+              <button
+                id="send-lead-notification-btn"
+                type="button"
+                onClick={sendContactNotification}
+                disabled={isNotifying || emailStatus === 'SENT' || emailStatus === 'SENDING'}
+                aria-busy={isNotifying}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isNotifying
+                  ? <LoaderCircle aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
+                  : <Mail className="w-3.5 h-3.5 text-[#0652CC]" />}
+                {emailButtonLabel}
+              </button>
+            )}
             {canManage && onUpdateStatus && (
               <button
                 id="open-update-status-btn"
@@ -304,6 +384,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 Send Quote
               </button>
             )}
+            </div>
           </div>
           <button
             onClick={onClose}

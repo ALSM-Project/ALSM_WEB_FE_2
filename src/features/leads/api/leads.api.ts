@@ -18,6 +18,11 @@ export const leadsApi = {
       headers: { 'Idempotency-Key': requestId },
     }),
 
+  notifyContact: (id: string, requestId: string): Promise<CreateLeadResponse> =>
+    apiClient.post<CreateLeadResponse>(`/leads/${encodeURIComponent(id)}/notification`, undefined, {
+      headers: { 'Idempotency-Key': requestId },
+    }),
+
   list: (params?: ListLeadsParams): Promise<ListLeadsResponse> => {
     const qs = new URLSearchParams();
     if (params?.status) qs.append('status', params.status);

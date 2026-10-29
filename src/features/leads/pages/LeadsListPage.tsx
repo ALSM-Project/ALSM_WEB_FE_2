@@ -51,7 +51,7 @@ export const LeadsListPage: React.FC = () => {
   // Selected lead for send-quote modal (UC-62)
   const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
   const [showAddLeadModal, setShowAddLeadModal] = useState(false);
-  const [createSuccess, setCreateSuccess] = useState<string | null>(null);
+  const [createSuccess, setCreateSuccess] = useState<{ message: string; emailSent: boolean | null } | null>(null);
 
   // Search input handler with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,8 +147,16 @@ export const LeadsListPage: React.FC = () => {
       </div>
 
       {createSuccess && (
-        <p role="status" aria-live="polite" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {createSuccess}
+        <p
+          role="status"
+          aria-live="polite"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            createSuccess.emailSent !== true
+              ? 'border-amber-200 bg-amber-50 text-amber-900'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+          }`}
+        >
+          {createSuccess.message}
         </p>
       )}
 
@@ -506,6 +514,10 @@ export const LeadsListPage: React.FC = () => {
       <LeadDetailModal
         lead={selectedLead}
         onClose={() => setSelectedLead(null)}
+        onNotificationUpdate={(updatedLead) => {
+          setSelectedLead(updatedLead);
+          void queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+        }}
         onUpdateStatus={(lead) => {
           setSelectedLead(null);
           setStatusLead(lead);
@@ -537,9 +549,9 @@ export const LeadsListPage: React.FC = () => {
       <AddLeadModal
         isOpen={showAddLeadModal}
         onClose={() => setShowAddLeadModal(false)}
-        onSuccess={(lead) => {
+        onSuccess={(_lead, notificationSent, message) => {
           setShowAddLeadModal(false);
-          setCreateSuccess(`Lead for ${lead.companyName} was added successfully.`);
+          setCreateSuccess({ message, emailSent: notificationSent });
           setSearchTerm('');
           setDebouncedSearch('');
           setSelectedStatus('');
