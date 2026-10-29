@@ -15,7 +15,7 @@ export const AuthCallbackPage = () => {
 
     if (accessToken && refreshToken) {
       void tokenStore.acceptTokens({ accessToken, refreshToken })
-        .then(() => { window.location.href = '/'; })
+        .then(() => { window.location.href = '/dashboard'; })
         .catch(() => {
           const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
           window.location.href = `${loginUrl}/login`;

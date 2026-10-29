@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Lead, SendQuotePayload, SendQuoteResponse } from '../types/lead';
 import { useSendQuote } from '../hooks/useLeads';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -61,6 +61,8 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
 
   const [validationError, setValidationError] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<SendQuoteResponse | null>(null);
+  const submissionKey = useRef<{ fingerprint: string; requestId: string } | null>(null);
+  const submitting = useRef(false);
 
   const sendQuoteMutation = useSendQuote();
 
@@ -72,6 +74,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
       setDiscountReason('');
       setValidationError(null);
       setSuccessResult(null);
+      submissionKey.current = null;
     }
   }, [lead]);
 
@@ -92,10 +95,10 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
     if (!planName.trim()) {
       return 'Plan name cannot be empty.';
     }
-    if (!amount || amount <= 0) {
+    if (!Number.isFinite(amount) || amount <= 0) {
       return 'Quote amount must be a positive number greater than 0.';
     }
-    if (discountPercent < 0 || discountPercent > 100) {
+    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
       return 'Discount percent must be between 0 and 100.';
     }
     if (discountPercent > 15 && !discountReason.trim()) {
@@ -104,7 +107,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
     if (!recipientEmail.trim() || !/^\S+@\S+\.\S+$/.test(recipientEmail.trim())) {
       return 'A valid recipient email address is required.';
     }
-    if (validityDays < 1 || validityDays > 365) {
+    if (!Number.isInteger(validityDays) || validityDays < 1 || validityDays > 365) {
       return 'Validity days must be between 1 and 365 days.';
     }
     return null;
@@ -112,6 +115,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting.current || sendQuoteMutation.isPending) return;
     setValidationError(null);
 
     const err = validate();
@@ -120,7 +124,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
       return;
     }
 
-    const payload: SendQuotePayload = {
+    const values = {
       planName: planName.trim(),
       amount,
       discountPercent: discountPercent > 0 ? discountPercent : undefined,
@@ -130,7 +134,13 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
       projectScope: projectScope.trim() || undefined,
       notes: notes.trim() || undefined,
     };
+    const fingerprint = JSON.stringify(values);
+    if (!submissionKey.current || submissionKey.current.fingerprint !== fingerprint) {
+      submissionKey.current = { fingerprint, requestId: globalThis.crypto.randomUUID() };
+    }
+    const payload: SendQuotePayload = { ...values, requestId: submissionKey.current.requestId };
 
+    submitting.current = true;
     try {
       const res = await sendQuoteMutation.mutateAsync({
         id: lead.id,
@@ -139,12 +149,23 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
       setSuccessResult(res);
       onSuccess?.(res);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message ||
-        (err as Error)?.message ||
-        'Failed to send quote. Please verify the input and try again.';
-      setValidationError(msg);
+      const code = (err as { response?: { data?: { code?: string } } })?.response?.data?.code;
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      const safeMessages: Record<string, string> = {
+        INVALID_STATUS: 'This lead is no longer eligible for a quote. Refresh the lead and try again.',
+        LEAD_STATE_CHANGED: 'The lead changed while the quote was being processed. Refresh and try again.',
+        LEAD_NOT_FOUND: 'This lead could not be found. Refresh the page and try again.',
+        IDEMPOTENCY_KEY_REUSED: 'The quote request changed. Submit again to create a new request.',
+        MONGO_TRANSACTIONS_REQUIRED: 'Quote sending is temporarily unavailable. Please try again later.',
+      };
+      const message = status === 401
+        ? 'Your session has expired. Sign in again to send this quote.'
+        : status === 403
+          ? 'You do not have permission to send quotes.'
+          : safeMessages[code ?? ''] ?? 'We could not send the quote. Check the details and try again.';
+      setValidationError(message);
+    } finally {
+      submitting.current = false;
     }
   };
 
@@ -170,7 +191,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 Send Modernization Quote (UC-62)
               </h2>
               <p className="text-xs text-[#6B778C]">
-                Lead: <span className="font-semibold text-[#091E42]">{lead.companyName}</span> ({lead.contactName})
+                Lead: <span className="font-semibold text-[#091E42]">{lead.companyName}</span> ({lead.contactName}) · Current stage: <span className="font-semibold text-[#091E42]">{lead.status}</span>
               </p>
             </div>
           </div>
@@ -304,6 +325,8 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               {validationError && (
                 <div
                   id="send-quote-error-alert"
+                  role="alert"
+                  aria-live="assertive"
                   className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2 animate-in fade-in"
                 >
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -529,7 +552,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                disabled={sendQuoteMutation.isPending}
+                disabled={sendQuoteMutation.isPending || !canSendQuote}
                 className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 Cancel
@@ -537,7 +560,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <button
                 id="submit-send-quote-btn"
                 type="submit"
-                disabled={sendQuoteMutation.isPending}
+                disabled={sendQuoteMutation.isPending || !canSendQuote}
                 className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm disabled:opacity-50"
               >
                 {sendQuoteMutation.isPending ? (

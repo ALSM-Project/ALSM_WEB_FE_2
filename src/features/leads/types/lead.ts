@@ -34,8 +34,8 @@ export interface Lead {
   emailNotifiedAt?: string;
   lastContactedAt?: string;
   nextFollowUpAt?: string;
-  createdByUserId: string;
-  createdByEmail: string;
+  createdByUserId?: string;
+  createdByEmail?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -124,6 +124,7 @@ export type QuoteApprovalStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'SENT' | 'ACCEP
 
 export interface LeadQuoteItem {
   id: string;
+  requestId: string;
   quoteNumber: string;
   planName: string;
   projectScope?: string;
@@ -140,6 +141,7 @@ export interface LeadQuoteItem {
 }
 
 export interface SendQuotePayload {
+  requestId: string;
   planName: string;
   amount: number;
   discountPercent?: number;
