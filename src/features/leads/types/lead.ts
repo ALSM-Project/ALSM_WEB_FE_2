@@ -55,6 +55,25 @@ export interface ListLeadsResponse {
   statusCounts: Record<string, number>;
 }
 
+export interface CreateLeadPayload {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  jobTitle?: string;
+  source: LeadSource;
+  priority?: LeadPriority;
+  estimatedValue?: number;
+  currency?: string;
+  notes?: string;
+}
+
+export interface CreateLeadResponse {
+  lead: Lead;
+  replayed: boolean;
+  message: string;
+}
+
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
   NEW: 'New',
   CONTACTED: 'Contacted',

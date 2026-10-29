@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
+import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
 
 export interface UpdateLeadStatusPayload {
   status: string;
@@ -13,6 +13,11 @@ export interface UpdateLeadStatusResponse {
 }
 
 export const leadsApi = {
+  create: (payload: CreateLeadPayload, requestId: string): Promise<CreateLeadResponse> =>
+    apiClient.post<CreateLeadResponse>('/leads', payload, {
+      headers: { 'Idempotency-Key': requestId },
+    }),
+
   list: (params?: ListLeadsParams): Promise<ListLeadsResponse> => {
     const qs = new URLSearchParams();
     if (params?.status) qs.append('status', params.status);
