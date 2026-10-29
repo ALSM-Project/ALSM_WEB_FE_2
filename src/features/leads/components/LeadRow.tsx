@@ -62,7 +62,15 @@ export const LeadRow: React.FC<LeadRowProps> = ({ lead, onSelect }) => {
     <tr
       id={`lead-row-${lead.id}`}
       onClick={() => onSelect?.(lead)}
-      className="group border-b border-[#E8ECF1] hover:bg-[#F7F9FC] transition-colors duration-150 cursor-pointer"
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect?.(lead);
+        }
+      }}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-label={onSelect ? `View details for ${lead.companyName}, ${lead.contactName}` : undefined}
+      className="group border-b border-[#E8ECF1] hover:bg-[#F7F9FC] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#0652CC] transition-colors duration-150 cursor-pointer"
     >
       {/* Company + Contact */}
       <td className="px-4 py-3.5">

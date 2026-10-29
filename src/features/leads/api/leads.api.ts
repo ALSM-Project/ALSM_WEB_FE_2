@@ -1,5 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
+import type { CreateLeadPayload, CreateLeadResponse, Lead, ListLeadsParams, ListLeadsResponse } from '../types/lead';
 
 export interface UpdateLeadStatusPayload {
   status: string;
@@ -13,6 +13,19 @@ export interface UpdateLeadStatusResponse {
 }
 
 export const leadsApi = {
+  getById: (id: string): Promise<Lead> =>
+    apiClient.get<Lead>(`/leads/${encodeURIComponent(id)}`),
+
+  create: (payload: CreateLeadPayload, requestId: string): Promise<CreateLeadResponse> =>
+    apiClient.post<CreateLeadResponse>('/leads', payload, {
+      headers: { 'Idempotency-Key': requestId },
+    }),
+
+  notifyContact: (id: string, requestId: string): Promise<CreateLeadResponse> =>
+    apiClient.post<CreateLeadResponse>(`/leads/${encodeURIComponent(id)}/notification`, undefined, {
+      headers: { 'Idempotency-Key': requestId },
+    }),
+
   list: (params?: ListLeadsParams): Promise<ListLeadsResponse> => {
     const qs = new URLSearchParams();
     if (params?.status) qs.append('status', params.status);

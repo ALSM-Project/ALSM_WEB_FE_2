@@ -8,6 +8,8 @@ import type { Lead, SendQuoteResponse } from '../types/lead';
 
 vi.mock('../api/leads.api', () => ({
   leadsApi: {
+    getById: vi.fn(),
+    notifyContact: vi.fn(),
     sendQuote: vi.fn(),
   },
 }));
@@ -53,6 +55,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPermissions = ['sales.leads.view', 'sales.leads.manage'];
+    vi.mocked(leadsApi.getById).mockResolvedValue(mockLead);
   });
 
   it('renders modal with lead information and default quote parameters', () => {
@@ -213,7 +216,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
     expect(screen.queryByRole('button', { name: /Send Quote/i })).not.toBeInTheDocument();
   });
 
-  it('triggers onSendQuote callback from LeadDetailModal', () => {
+  it('triggers onSendQuote callback from LeadDetailModal', async () => {
     const onSendQuote = vi.fn();
     renderWithClient(
       <LeadDetailModal
@@ -226,6 +229,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
 
     const sendQuoteBtn = screen.getByRole('button', { name: /Send Quote/i });
     expect(sendQuoteBtn).toBeInTheDocument();
+    await waitFor(() => expect(sendQuoteBtn).toBeEnabled());
 
     fireEvent.click(sendQuoteBtn);
     expect(onSendQuote).toHaveBeenCalledWith(mockLead);

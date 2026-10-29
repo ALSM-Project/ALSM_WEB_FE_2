@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useLeadsList } from '../hooks/useLeads';
+import { LEADS_QUERY_KEY, useLeadsList } from '../hooks/useLeads';
 import { LeadRow } from '../components/LeadRow';
 import { LeadDetailModal } from '../components/LeadDetailModal';
 import { UpdateLeadStatusModal } from '../components/UpdateLeadStatusModal';
 import { SendQuoteModal } from '../components/SendQuoteModal';
+import { AddLeadModal } from '../components/AddLeadModal';
 import type { Lead, LeadStatus, LeadPriority, LeadSource } from '../types/lead';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   LEAD_STATUS_LABELS,
   LEAD_SOURCE_LABELS,
@@ -12,6 +15,7 @@ import {
 } from '../types/lead';
 import {
   Search,
+  Plus,
   RefreshCw,
   Users,
   UserCheck,
@@ -26,6 +30,9 @@ import {
 } from 'lucide-react';
 
 export const LeadsListPage: React.FC = () => {
+  const queryClient = useQueryClient();
+  const { hasPermission } = useAuth();
+  const canCreateLead = hasPermission('sales.leads.manage');
   // Query parameters state
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -43,6 +50,8 @@ export const LeadsListPage: React.FC = () => {
   const [statusLead, setStatusLead] = useState<Lead | null>(null);
   // Selected lead for send-quote modal (UC-62)
   const [quoteLead, setQuoteLead] = useState<Lead | null>(null);
+  const [showAddLeadModal, setShowAddLeadModal] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState<{ message: string; emailSent: boolean | null } | null>(null);
 
   // Search input handler with debounce
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +123,17 @@ export const LeadsListPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={() => { setCreateSuccess(null); setShowAddLeadModal(true); }}
+            disabled={!canCreateLead}
+            title={canCreateLead ? 'Add a new sales lead' : 'Requires sales.leads.manage permission'}
+            className="flex items-center gap-1.5 rounded-lg bg-[#0652CC] px-3.5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-[#0543A8] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus aria-hidden="true" className="h-3.5 w-3.5" />
+            Add New Lead
+          </button>
+          <button
+            type="button"
             id="refresh-leads-btn"
             onClick={() => refetch()}
             disabled={isFetching}
@@ -125,6 +145,20 @@ export const LeadsListPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {createSuccess && (
+        <p
+          role="status"
+          aria-live="polite"
+          className={`rounded-lg border px-4 py-3 text-sm ${
+            createSuccess.emailSent !== true
+              ? 'border-amber-200 bg-amber-50 text-amber-900'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+          }`}
+        >
+          {createSuccess.message}
+        </p>
+      )}
 
       {/* Metric Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5">
@@ -480,6 +514,10 @@ export const LeadsListPage: React.FC = () => {
       <LeadDetailModal
         lead={selectedLead}
         onClose={() => setSelectedLead(null)}
+        onNotificationUpdate={(updatedLead) => {
+          setSelectedLead(updatedLead);
+          void queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
+        }}
         onUpdateStatus={(lead) => {
           setSelectedLead(null);
           setStatusLead(lead);
@@ -505,6 +543,24 @@ export const LeadsListPage: React.FC = () => {
         onClose={() => setQuoteLead(null)}
         onSuccess={() => {
           refetch();
+        }}
+      />
+
+      <AddLeadModal
+        isOpen={showAddLeadModal}
+        onClose={() => setShowAddLeadModal(false)}
+        onSuccess={(_lead, notificationSent, message) => {
+          setShowAddLeadModal(false);
+          setCreateSuccess({ message, emailSent: notificationSent });
+          setSearchTerm('');
+          setDebouncedSearch('');
+          setSelectedStatus('');
+          setSelectedPriority('');
+          setSelectedSource('');
+          setSortBy('createdAt');
+          setSortOrder('desc');
+          setPage(1);
+          void queryClient.invalidateQueries({ queryKey: LEADS_QUERY_KEY });
         }}
       />
     </div>

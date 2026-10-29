@@ -11,6 +11,7 @@ export type LeadSource =
   | 'OTHER';
 
 export type LeadPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type LeadEmailNotificationStatus = 'PENDING' | 'SENDING' | 'SENT' | 'FAILED';
 
 export interface Lead {
   id: string;
@@ -29,6 +30,8 @@ export interface Lead {
   assignedToEmail?: string;
   tags: string[];
   quotes?: LeadQuoteItem[];
+  emailNotificationStatus?: LeadEmailNotificationStatus;
+  emailNotifiedAt?: string;
   lastContactedAt?: string;
   nextFollowUpAt?: string;
   createdByUserId?: string;
@@ -53,6 +56,26 @@ export interface ListLeadsResponse {
   items: Lead[];
   total: number;
   statusCounts: Record<string, number>;
+}
+
+export interface CreateLeadPayload {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone?: string;
+  jobTitle?: string;
+  source: LeadSource;
+  priority?: LeadPriority;
+  estimatedValue?: number;
+  currency?: string;
+  notes?: string;
+}
+
+export interface CreateLeadResponse {
+  lead: Lead;
+  replayed: boolean;
+  notificationSent: boolean | null;
+  message: string;
 }
 
 export const LEAD_STATUS_LABELS: Record<LeadStatus, string> = {
