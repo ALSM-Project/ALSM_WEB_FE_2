@@ -134,6 +134,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
     const mockResponse: SendQuoteResponse = {
       quote: {
         id: 'quote-101',
+        requestId: '8c5f0e16-58f3-49b6-941d-f1cb39c53afd',
         quoteNumber: 'QT-2026-94812',
         planName: 'Core Platform Migration & Modernization',
         amount: 54000,
@@ -172,6 +173,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
           discountPercent: 10,
           planName: 'Core Platform Migration & Modernization',
           recipientEmail: 's.jenkins@fintechdynamics.com',
+          requestId: expect.stringMatching(/^[0-9a-f-]{36}$/i),
         }),
       );
     });
@@ -182,7 +184,7 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
     expect(onSuccess).toHaveBeenCalledWith(mockResponse);
   });
 
-  it('displays API error message when submission fails', async () => {
+  it('displays a safe failure message without exposing raw API details', async () => {
     vi.mocked(leadsApi.sendQuote).mockRejectedValue({
       response: { data: { message: 'Cannot send quote to a lead that is marked as LOST' } },
     });
@@ -192,9 +194,8 @@ describe('SendQuoteModal (UC-62 - Send Quote)', () => {
     const submitBtn = screen.getByRole('button', { name: /Send Quote/i });
     fireEvent.click(submitBtn);
 
-    expect(
-      await screen.findByText(/Cannot send quote to a lead that is marked as LOST/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/We could not send the quote/i)).toBeInTheDocument();
+    expect(screen.queryByText(/marked as LOST/i)).not.toBeInTheDocument();
   });
 
   it('blocks operation if user lacks sales.leads.manage permission', () => {
