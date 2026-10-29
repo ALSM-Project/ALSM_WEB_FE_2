@@ -1,302 +1,275 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  RefreshCw, Plus, Sparkles, Lock, 
-  Award, UserCheck
-} from 'lucide-react';
-import { crmApi, LeadDto, LeadStage } from '../api/crm.api';
-import { CustomerActivationModal } from '../components/CustomerActivationModal';
-import { AddLeadModal } from '../components/AddLeadModal';
+import { RefreshCw, Search, TrendingUp } from 'lucide-react';
+import { crmApi } from '../api/crm.api';
+import type { SalesPipelineDto, SalesPipelineLeadDto, SalesPipelineStage } from '../types/crm.types';
 
-const STAGES: { key: LeadStage; label: string; color: string; border: string; desc: string }[] = [
-  { key: 'NEW', label: 'New Inbound', color: 'bg-gray-100 text-gray-800', border: 'border-gray-200', desc: 'Discovered / uncontacted' },
-  { key: 'CONTACTED', label: 'Contacted', color: 'bg-blue-100 text-blue-800', border: 'border-blue-200', desc: 'Initial dialogue initiated' },
-  { key: 'QUALIFIED', label: 'Qualified', color: 'bg-indigo-100 text-indigo-800', border: 'border-indigo-200', desc: 'Demo presented & scoped' },
-  { key: 'PROPOSAL', label: 'Proposal & Contract', color: 'bg-amber-100 text-amber-800', border: 'border-amber-200', desc: 'Commercial negotiation' },
-  { key: 'WON', label: 'Closed Won (Activation)', color: 'bg-emerald-100 text-emerald-800', border: 'border-emerald-200', desc: 'Automated provisioning' },
-  { key: 'LOST', label: 'Closed Lost', color: 'bg-rose-100 text-rose-800', border: 'border-rose-200', desc: 'Postponed or lost' },
+const STAGES: Array<{
+  key: SalesPipelineStage;
+  label: string;
+  description: string;
+  tone: string;
+  surface: string;
+}> = [
+  { key: 'NEW', label: 'New inbound', description: 'New opportunities', tone: 'text-slate-700', surface: 'bg-slate-100' },
+  { key: 'CONTACTED', label: 'Contacted', description: 'Initial dialogue', tone: 'text-blue-700', surface: 'bg-blue-50' },
+  { key: 'QUALIFIED', label: 'Qualified', description: 'Needs confirmed', tone: 'text-indigo-700', surface: 'bg-indigo-50' },
+  { key: 'PROPOSAL', label: 'Proposal', description: 'Quote or proposal sent', tone: 'text-amber-700', surface: 'bg-amber-50' },
+  { key: 'NEGOTIATION', label: 'Negotiation', description: 'Commercial discussion', tone: 'text-orange-700', surface: 'bg-orange-50' },
+  { key: 'WON', label: 'Closed won', description: 'Successfully closed', tone: 'text-emerald-700', surface: 'bg-emerald-50' },
+  { key: 'LOST', label: 'Closed lost', description: 'Closed opportunities', tone: 'text-rose-700', surface: 'bg-rose-50' },
+  { key: 'UNMAPPED', label: 'Needs review', description: 'Stage needs review', tone: 'text-slate-700', surface: 'bg-slate-100' },
 ];
+
+type LoadError = 'permission' | 'unexpected';
+
+const getLoadError = (error: unknown): LoadError => {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { status?: number } }).response;
+    if (response?.status === 403) return 'permission';
+  }
+  return 'unexpected';
+};
+
+const sumByCurrency = (leads: SalesPipelineLeadDto[]): Map<string, number> => {
+  const totals = new Map<string, number>();
+  for (const lead of leads) {
+    if (lead.dealValue === undefined || !Number.isFinite(lead.dealValue)) continue;
+    const currency = /^[A-Z]{3}$/.test(lead.currency) ? lead.currency : 'USD';
+    totals.set(currency, (totals.get(currency) ?? 0) + lead.dealValue);
+  }
+  return totals;
+};
+
+const averageByCurrency = (leads: SalesPipelineLeadDto[]): Map<string, number> => {
+  const totals = sumByCurrency(leads);
+  const counts = new Map<string, number>();
+  for (const lead of leads) {
+    if (lead.dealValue === undefined || !Number.isFinite(lead.dealValue)) continue;
+    const currency = /^[A-Z]{3}$/.test(lead.currency) ? lead.currency : 'USD';
+    counts.set(currency, (counts.get(currency) ?? 0) + 1);
+  }
+  return new Map(Array.from(totals, ([currency, total]) => [currency, total / (counts.get(currency) ?? 1)]));
+};
+
+const formatMoney = (amount: number, currency: string): string => {
+  try {
+    return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+};
+
+const formatCurrencyTotals = (totals: Map<string, number>): string =>
+  totals.size > 0
+    ? Array.from(totals, ([currency, amount]) => formatMoney(amount, currency)).join(' · ')
+    : '—';
 
 export const SalesPipelinePage: React.FC = () => {
   const navigate = useNavigate();
-  const [leads, setLeads] = useState<LeadDto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [movingId, setMovingId] = useState<string | null>(null);
+  const [pipeline, setPipeline] = useState<SalesPipelineDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<LoadError | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const requestInFlight = useRef(false);
 
-  // Modals
-  const [activeActivationLead, setActiveActivationLead] = useState<LeadDto | null>(null);
-  const [showAddLeadModal, setShowAddLeadModal] = useState<boolean>(false);
-
-  const fetchLeads = async () => {
+  const loadPipeline = useCallback(async () => {
+    if (requestInFlight.current) return;
+    requestInFlight.current = true;
+    setLoading(true);
+    setLoadError(null);
     try {
-      setLoading(true);
-      const data = await crmApi.getLeads();
-      setLeads(data);
-    } catch (err: any) {
-      console.error('Failed to load pipeline leads:', err);
+      setPipeline(await crmApi.getSalesPipeline());
+    } catch (error) {
+      setPipeline(null);
+      setLoadError(getLoadError(error));
     } finally {
       setLoading(false);
+      requestInFlight.current = false;
     }
-  };
-
-  useEffect(() => {
-    fetchLeads();
   }, []);
 
-  const handleMoveStage = async (leadId: string, newStage: LeadStage) => {
-    if (newStage === 'WON') {
-      alert("Manual transition to 'Won' is prohibited by Section 3.11 rules. Please click 'Activate Customer' to run the verification checklist.");
-      return;
-    }
+  useEffect(() => {
+    void loadPipeline();
+  }, [loadPipeline]);
 
-    try {
-      setMovingId(leadId);
-      // Optimistic update
-      setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, stage: newStage } : l))
-      );
-      await crmApi.updateLeadStage(leadId, { stage: newStage });
-    } catch (err: any) {
-      console.error('Failed to move stage:', err);
-      fetchLeads();
-    } finally {
-      setMovingId(null);
-    }
-  };
+  const visibleLeads = useMemo(() => {
+    const items = pipeline?.items ?? [];
+    const query = searchTerm.trim().toLocaleLowerCase();
+    if (!query) return items;
+    return items.filter((lead) => [lead.company, lead.contactName, lead.source, lead.assignedToName]
+      .some((value) => value?.toLocaleLowerCase().includes(query)));
+  }, [pipeline, searchTerm]);
 
-  const getLeadsByStage = (stage: LeadStage) => {
-    return leads.filter((l) => l.stage === stage);
-  };
+  const groupedLeads = useMemo(() => {
+    const groups = new Map<SalesPipelineStage, SalesPipelineLeadDto[]>(STAGES.map((stage) => [stage.key, []]));
+    for (const lead of visibleLeads) groups.get(lead.stage)?.push(lead);
+    return groups;
+  }, [visibleLeads]);
 
-  // Metrics Calculations
-  const totalPipelineValue = leads
-    .filter((l) => l.stage !== 'LOST')
-    .reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
-  const activeDeals = leads.filter((l) => l.stage !== 'WON' && l.stage !== 'LOST').length;
-  const wonDeals = leads.filter((l) => l.stage === 'WON').length;
-  const wonRevenue = leads
-    .filter((l) => l.stage === 'WON')
-    .reduce((acc, curr) => acc + (curr.dealValue || 0), 0);
-  const avgDealSize = leads.length > 0 ? Math.round(totalPipelineValue / leads.length) : 0;
+  const activeLeads = visibleLeads.filter((lead) => lead.stage !== 'WON' && lead.stage !== 'LOST');
+  const pipelineValue = sumByCurrency(visibleLeads.filter((lead) => lead.stage !== 'LOST'));
+  const wonRevenue = sumByCurrency(visibleLeads.filter((lead) => lead.stage === 'WON'));
+  const averageDealSize = averageByCurrency(activeLeads);
+  const wonDeals = visibleLeads.filter((lead) => lead.stage === 'WON').length;
 
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#E5EAF0]">
+    <main className="space-y-6" aria-busy={loading}>
+      <div className="flex flex-col gap-4 border-b border-[#E5EAF0] pb-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">Sales Pipeline Kanban</h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Section 3.11: Track deal velocity, enforce automated Customer Activation, and prevent manual Won overrides.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">Sales Pipeline</h1>
+          <p className="mt-1 text-xs text-[#6B778C]">Read-only view of current sales opportunities by stage.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowAddLeadModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Lead
-          </button>
-          <button
+            type="button"
             onClick={() => navigate('/sales/leads')}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs transition-colors hover:bg-[#F4F6F8]"
           >
-            Table View
+            <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
+            Table view
           </button>
           <button
-            onClick={fetchLeads}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors"
+            type="button"
+            onClick={() => void loadPipeline()}
+            disabled={loading}
+            aria-label="Refresh sales pipeline"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#E5EAF0] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-xs transition-colors hover:bg-[#F4F6F8] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
             Refresh
           </button>
         </div>
       </div>
 
-      {/* KPI Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-3 bg-white border border-[#E5EAF0] rounded-xl shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Pipeline Value</span>
-          <div className="text-lg font-bold text-slate-900 mt-0.5">${totalPipelineValue.toLocaleString()} USD</div>
-          <span className="text-[10px] text-slate-500">{leads.length} tracked opportunities</span>
-        </div>
+      {!loading && !loadError && pipeline && (
+        <>
+          <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Pipeline summary">
+            <MetricCard label="Pipeline value" value={formatCurrencyTotals(pipelineValue)} detail={`${visibleLeads.length} tracked opportunities`} />
+            <MetricCard label="Active deals" value={`${activeLeads.length}`} detail="Open opportunities" />
+            <MetricCard label="Closed won revenue" value={formatCurrencyTotals(wonRevenue)} detail={`${wonDeals} closed won`} />
+            <MetricCard label="Average active deal" value={formatCurrencyTotals(averageDealSize)} detail="Grouped by currency" />
+          </section>
 
-        <div className="p-3 bg-white border border-[#E5EAF0] rounded-xl shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Deals in Flight</span>
-          <div className="text-lg font-bold text-blue-600 mt-0.5">{activeDeals} Deals</div>
-          <span className="text-[10px] text-slate-500">Across 4 qualifying stages</span>
-        </div>
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#E5EAF0] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+            <label className="relative block w-full sm:max-w-lg">
+              <span className="sr-only">Search sales pipeline</span>
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#6B778C]" aria-hidden="true" />
+              <input
+                type="search"
+                aria-label="Search sales pipeline"
+                placeholder="Search by company, contact, source, or salesperson..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="w-full rounded-xl border border-[#D9E2EC] bg-white py-2 pl-9 pr-4 text-xs outline-none focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20"
+              />
+            </label>
+            <p className="text-xs text-[#6B778C]" aria-live="polite">
+              Showing {visibleLeads.length} of {pipeline.total} opportunities
+            </p>
+          </div>
+        </>
+      )}
 
-        <div className="p-3 bg-white border border-[#E5EAF0] rounded-xl shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Closed Won Revenue</span>
-          <div className="text-lg font-bold text-emerald-600 mt-0.5">${wonRevenue.toLocaleString()} USD</div>
-          <span className="text-[10px] text-emerald-700 font-medium">{wonDeals} provisioned customers</span>
-        </div>
-
-        <div className="p-3 bg-white border border-[#E5EAF0] rounded-xl shadow-xs">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Average Deal Size</span>
-          <div className="text-lg font-bold text-slate-900 mt-0.5">${avgDealSize.toLocaleString()} USD</div>
-          <span className="text-[10px] text-slate-500">Enterprise modernization tier</span>
-        </div>
-      </div>
-
-      {/* Kanban Board Container */}
       {loading ? (
-        <div className="py-20 text-center text-[#6B778C]">
-          <div className="w-8 h-8 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="py-20 text-center text-sm text-[#6B778C]" role="status" aria-live="polite">
+          <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#0652CC] border-t-transparent" />
           Loading sales pipeline...
         </div>
+      ) : loadError ? (
+        <div className="rounded-2xl border border-rose-200 bg-white px-6 py-12 text-center" role="alert">
+          <h2 className="font-semibold text-[#091E42]">
+            {loadError === 'permission' ? 'Access denied' : 'Failed to load sales pipeline'}
+          </h2>
+          <p className="mt-2 text-sm text-[#6B778C]">
+            {loadError === 'permission'
+              ? 'You do not have permission to view the sales pipeline.'
+              : 'The sales pipeline could not be loaded. Please try again.'}
+          </p>
+          {loadError === 'unexpected' && (
+            <button
+              type="button"
+              onClick={() => void loadPipeline()}
+              className="mt-4 rounded-lg bg-[#0652CC] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0543A8]"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      ) : pipeline?.total === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[#D9E2EC] bg-white px-6 py-16 text-center" role="status">
+          <h2 className="font-semibold text-[#091E42]">No sales opportunities yet</h2>
+          <p className="mt-2 text-sm text-[#6B778C]">When leads are available, they will appear here by stage.</p>
+        </div>
+      ) : visibleLeads.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-[#D9E2EC] bg-white px-6 py-16 text-center" role="status">
+          <h2 className="font-semibold text-[#091E42]">No matching opportunities</h2>
+          <p className="mt-2 text-sm text-[#6B778C]">Try another search term or clear the search.</p>
+          <button type="button" onClick={() => setSearchTerm('')} className="mt-3 text-sm font-semibold text-[#0652CC] hover:underline">
+            Clear search
+          </button>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3.5 min-h-[600px] overflow-x-auto">
-          {STAGES.map((col) => {
-            const columnLeads = getLeadsByStage(col.key);
-            const isWonCol = col.key === 'WON';
-
-            return (
-              <div
-                key={col.key}
-                className={`flex flex-col rounded-2xl border p-3 shadow-xs ${
-                  isWonCol ? 'bg-emerald-50/40 border-emerald-200' : 'bg-[#F7F9FC] border-[#E5EAF0]'
-                }`}
-              >
-                {/* Column Header */}
-                <div className="pb-2.5 mb-2.5 border-b border-[#E5EAF0]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-[#091E42] uppercase tracking-wider flex items-center gap-1">
-                      {isWonCol && <Lock className="w-3 h-3 text-emerald-700" />}
-                      {col.label}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${col.color}`}>
-                      {columnLeads.length}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">{col.desc}</span>
-                </div>
-
-                {/* Column Content */}
-                <div className="flex-1 space-y-2.5 overflow-y-auto max-h-[700px] pr-1">
-                  {columnLeads.length === 0 ? (
-                    <div className="text-center py-8 text-[11px] text-[#6B778C]/60 italic">
-                      No deals in this stage
+        <div className="overflow-x-auto pb-2" aria-label="Sales pipeline board">
+          <div className="grid min-h-[460px] gap-3" style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(230px, 1fr))` }}>
+            {STAGES.map((stage) => {
+              const leads = groupedLeads.get(stage.key) ?? [];
+              return (
+                <section key={stage.key} aria-labelledby={`pipeline-stage-${stage.key}`} className={`flex min-h-[420px] flex-col rounded-2xl border border-[#E5EAF0] ${stage.key === 'WON' ? 'bg-emerald-50/40' : 'bg-[#F7F9FC]'}`}>
+                  <header className="border-b border-[#E5EAF0] p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h2 id={`pipeline-stage-${stage.key}`} className={`text-xs font-bold uppercase tracking-wide ${stage.tone}`}>{stage.label}</h2>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${stage.surface} ${stage.tone}`} aria-label={`${leads.length} opportunities`}>
+                        {leads.length}
+                      </span>
                     </div>
-                  ) : (
-                    columnLeads.map((lead) => {
-                      const hasSigned = lead.contracts?.some((c) => c.status === 'FULLY_SIGNED');
-
-                      return (
-                        <div
-                          key={lead.id}
-                          className="bg-white rounded-xl p-3 border border-[#E5EAF0] shadow-xs hover:border-[#0652CC] hover:shadow-sm transition-all text-xs"
-                        >
-                          <div className="flex items-start justify-between gap-1">
-                            <h4
-                              onClick={() => navigate(`/sales/leads/${lead.id}`)}
-                              className="font-bold text-xs text-[#091E42] hover:text-[#0652CC] cursor-pointer line-clamp-1"
-                              title={lead.company}
-                            >
-                              {lead.company}
-                            </h4>
-                            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#0652CC]">
-                              {lead.score}
-                            </span>
-                          </div>
-
-                          <div className="text-[11px] text-[#6B778C] mt-1 line-clamp-1">
-                            {lead.contactName}
-                          </div>
-
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[11px]">
-                            <span className="font-semibold text-slate-800">
-                              ${(lead.dealValue || 0).toLocaleString()} USD
-                            </span>
-                            {lead.assignedToName && (
-                              <span className="text-slate-500 text-[10px] flex items-center gap-0.5">
-                                <UserCheck className="w-3 h-3 text-slate-400" />
-                                {lead.assignedToName.split(' ')[0]}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Specific Action for Proposal with Signed Contract */}
-                          {lead.stage === 'PROPOSAL' && hasSigned && (
-                            <div className="mt-2.5">
-                              <button
-                                type="button"
-                                onClick={() => setActiveActivationLead(lead)}
-                                className="w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 shadow-xs transition-colors cursor-pointer"
-                              >
-                                <Sparkles className="w-3 h-3 text-blue-200" />
-                                Activate Customer
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Specific details for Closed Won */}
-                          {lead.stage === 'WON' && (
-                            <div className="mt-2.5 pt-1.5 border-t border-emerald-100">
-                              <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
-                                <Award className="w-3 h-3 text-emerald-600" />
-                                Provisioned Tenant
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => setActiveActivationLead(lead)}
-                                className="text-[10px] text-blue-600 hover:underline mt-0.5 block"
-                              >
-                                View Credentials
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Move Stage Selector (Won is excluded per Section 3.11 rules) */}
-                          {lead.stage !== 'WON' && (
-                            <div className="mt-2.5 pt-2 border-t border-[#E5EAF0]">
-                              <select
-                                disabled={movingId === lead.id}
-                                value={lead.stage}
-                                onChange={(e) => handleMoveStage(lead.id, e.target.value as any)}
-                                className="text-[10px] py-1 px-1.5 rounded-lg border border-[#E5EAF0] bg-white text-[#091E42] w-full focus:outline-none focus:border-[#0652CC] cursor-pointer"
-                              >
-                                {STAGES.filter((s) => s.key !== 'WON').map((s) => (
-                                  <option key={s.key} value={s.key}>
-                                    Move: {s.label}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    <p className="mt-1 text-[10px] text-slate-500">{stage.description}</p>
+                  </header>
+                  <div className="flex-1 space-y-2.5 overflow-y-auto p-2.5">
+                    {leads.length === 0 ? (
+                      <p className="py-8 text-center text-xs italic text-[#6B778C]">No opportunities in this stage.</p>
+                    ) : leads.map((lead) => (
+                      <PipelineLeadCard key={lead.id} lead={lead} onOpen={() => navigate(`/crm/leads/${encodeURIComponent(lead.id)}`)} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         </div>
       )}
-
-      {/* Customer Activation Modal */}
-      {activeActivationLead && (
-        <CustomerActivationModal
-          isOpen={!!activeActivationLead}
-          lead={activeActivationLead}
-          onClose={() => setActiveActivationLead(null)}
-          onSuccess={(updated) => {
-            fetchLeads();
-            setActiveActivationLead(updated);
-          }}
-        />
-      )}
-
-      {/* Add Lead Modal */}
-      <AddLeadModal
-        isOpen={showAddLeadModal}
-        onClose={() => setShowAddLeadModal(false)}
-        onSuccess={() => {
-          fetchLeads();
-        }}
-      />
-    </div>
+    </main>
   );
 };
+
+const MetricCard = ({ label, value, detail }: { label: string; value: string; detail: string }) => (
+  <div className="rounded-xl border border-[#E5EAF0] bg-white p-4 shadow-xs">
+    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
+    <div className="mt-1 break-words text-lg font-bold text-slate-900">{value}</div>
+    <span className="text-[10px] text-slate-500">{detail}</span>
+  </div>
+);
+
+const PipelineLeadCard = ({ lead, onOpen }: { lead: SalesPipelineLeadDto; onOpen: () => void }) => (
+  <button
+    type="button"
+    onClick={onOpen}
+    aria-label={`View ${lead.company} lead details`}
+    className="block w-full rounded-xl border border-[#E5EAF0] bg-white p-3 text-left text-xs shadow-xs transition-all hover:border-[#0652CC] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0652CC]"
+  >
+    <span className="flex items-start justify-between gap-2">
+      <span className="line-clamp-2 font-bold text-[#091E42]">{lead.company}</span>
+      <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#0652CC]" aria-label={`Score ${lead.score ?? 'not set'}`}>
+        {lead.score ?? '—'}
+      </span>
+    </span>
+    <span className="mt-1 block line-clamp-1 text-[11px] text-[#6B778C]">{lead.contactName}</span>
+    <span className="mt-2 block border-t border-slate-100 pt-2 text-[10px] text-slate-600">
+      {lead.dealValue === undefined ? 'Value not set' : formatMoney(lead.dealValue, lead.currency)}
+    </span>
+    <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-slate-500">
+      <span className="truncate">{lead.assignedToName || 'Unassigned'}</span>
+      <span className="truncate">{lead.source}</span>
+    </span>
+  </button>
+);
