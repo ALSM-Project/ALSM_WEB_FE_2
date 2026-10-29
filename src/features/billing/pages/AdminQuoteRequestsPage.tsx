@@ -19,6 +19,12 @@ import { Card, PageHeader, Badge, Button } from '@/shared/ui';
 import { quoteApi } from '../api/quote.api';
 import type { QuoteRequest, QuoteStatus } from '../types/quote';
 
+const isForbiddenError = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  'response' in error &&
+  (error as { response?: { status?: number } }).response?.status === 403;
+
 export const AdminQuoteRequestsPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -28,10 +34,11 @@ export const AdminQuoteRequestsPage: React.FC = () => {
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
   // Fetch list of quote requests
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ['billing', 'quote-requests', selectedStatus, page],
     queryFn: () => quoteApi.listQuoteRequests({ status: selectedStatus, page, limit: 10 }),
     staleTime: 1000 * 30, // 30 seconds
+    retry: (failureCount, queryError) => !isForbiddenError(queryError) && failureCount < 2,
   });
 
   // Mutation to update quote status
@@ -236,12 +243,21 @@ export const AdminQuoteRequestsPage: React.FC = () => {
         </div>
       ) : isError ? (
         <Card variant="default" padding="lg">
-          <div className="flex items-center gap-3 text-rose-600">
+          <div role="alert" className="flex items-center justify-between gap-3 text-rose-600">
             <AlertCircle className="w-5 h-5 shrink-0" />
-            <div>
-              <p className="text-sm font-semibold">Failed to load quote requests</p>
-              <p className="text-xs text-rose-500 mt-0.5">Please check network connection and administrator permissions.</p>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">
+                {isForbiddenError(error) ? 'Access denied' : 'Failed to load quote requests'}
+              </p>
+              <p className="text-xs text-rose-500 mt-0.5">
+                {isForbiddenError(error)
+                  ? 'Your account does not have permission to manage Enterprise quote requests. Contact an administrator if you need access.'
+                  : 'The quote requests could not be loaded. Check your connection and try again.'}
+              </p>
             </div>
+            <Button variant="secondary" size="sm" onClick={() => refetch()} disabled={isFetching}>
+              {isFetching ? 'Retrying…' : 'Try again'}
+            </Button>
           </div>
         </Card>
       ) : filteredItems.length === 0 ? (
