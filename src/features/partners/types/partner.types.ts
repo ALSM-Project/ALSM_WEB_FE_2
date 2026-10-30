@@ -49,6 +49,39 @@ export interface PartnerProject {
   exportedBundleName?: string;
   exportedAt?: string;
   isDemo?: boolean;
+  contractNumber?: string;
+  contractId?: string;
+  serviceType?: 'SELF_SERVICE' | 'MANAGED';
+  currentStage?: string;
+  stageIndex?: number;
+  progressPct?: number;
+  submittedAt?: string;
+  submittedBy?: string;
+  businessRequirements?: string;
+  adminReviewNotes?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  teamLeadAssignedBy?: string;
+  teamLeadAssignedByName?: string;
+  teamLeadAssignedAt?: string;
+  teamLeadAssignmentNote?: string;
+  teamLeadAssignmentStatus?: string;
+  files?: Array<{
+    fileId: string;
+    originalName: string;
+    fileSize: number;
+    mimeType?: string;
+    category?: string;
+    storageKey?: string;
+    uploadedAt?: string;
+  }>;
+  acceptance?: {
+    accepted: boolean;
+    acceptedBy?: string;
+    acceptedByName?: string;
+    acceptedAt?: string;
+    notes?: string;
+  };
 }
 
 export interface PartnerConversionItem {

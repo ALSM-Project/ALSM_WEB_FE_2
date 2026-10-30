@@ -15,6 +15,7 @@ import {
   PackageCheck,
   Sparkles,
   ShieldAlert,
+  FolderDown,
 } from 'lucide-react';
 import { partnersApi } from '../../api/partners.api';
 import { Partner, PartnerProject, ConversionType } from '../../types/partner.types';
@@ -144,19 +145,10 @@ export const PartnerProjectsPage: React.FC = () => {
       {/* 1. Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2 text-xs text-[#6B778C]">
-            <Link to="/partners" className="hover:text-[#0652CC] transition-colors">
-              Partner Management
-            </Link>
-            <span>/</span>
-            <span className="text-[#091E42] font-semibold">Partner Projects</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A] mt-1">
-            Partner Modernization Projects
+          
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17263A] mt-1">
+            Partner Projects
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1 max-w-3xl">
-            Track and execute modernization projects commissioned by enterprise partners. Each project maintains its partner linkage, supervising Team Lead, allocated conversion staff, and conversion workspace.
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -164,7 +156,7 @@ export const PartnerProjectsPage: React.FC = () => {
             to="/partners"
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            <Building2 className="w-3.5 h-3.5 text-[#0652CC]" />
+            <Building2 className="w-3.5 h-3.5 text-[#244A70]" />
             Partner Directory
           </Link>
 
@@ -172,7 +164,7 @@ export const PartnerProjectsPage: React.FC = () => {
             onClick={loadData}
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 mr-1 ${loading ? 'animate-spin text-[#244A70]' : ''}`} />
             Refresh
           </button>
 
@@ -198,7 +190,7 @@ export const PartnerProjectsPage: React.FC = () => {
               onClick={() => setIsCreateModalOpen(true)}
               disabled={isSupportReadOnly}
               title={isSupportReadOnly ? 'Disabled in Read-Only Support View' : 'Create new partner project'}
-              className="text-xs flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8] shadow-2xs disabled:opacity-50"
+              className="text-xs flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70] shadow-2xs disabled:opacity-50"
             >
               <Plus className="w-4 h-4" />
               New Partner Project
@@ -235,19 +227,19 @@ export const PartnerProjectsPage: React.FC = () => {
               setScopeFilter('ALL');
             }
           }}
-          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-[#0652CC] ${
+          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-[#244A70] ${
             statusFilter === 'ALL' && typeFilter === 'ALL' && scopeFilter === 'ALL'
-              ? 'border-[#0652CC] ring-2 ring-[#0652CC]/15'
-              : 'border-[#E5EAF0]'
+              ? 'border-[#244A70] ring-2 ring-[#244A70]/15'
+              : 'border-[#DCE3EC]'
           }`}
           title="Click to view all projects"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#6B778C]">Total Partner Projects</span>
-            <FolderKanban className="w-4 h-4 text-[#0652CC]" />
+            <span className="text-xs font-semibold text-[#8491A3]">Total Partner Projects</span>
+            <FolderKanban className="w-4 h-4 text-[#244A70]" />
           </div>
-          <div className="text-2xl font-bold text-[#091E42] mt-2">{totalProjects}</div>
-          <div className="text-[11px] text-[#6B778C] mt-1">Across all registered partners</div>
+          <div className="text-2xl font-bold text-[#17263A] mt-2">{totalProjects}</div>
+          <div className="text-[11px] text-[#8491A3] mt-1">Across all registered partners</div>
         </div>
 
         {/* In Active Conversion */}
@@ -261,7 +253,7 @@ export const PartnerProjectsPage: React.FC = () => {
           className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-blue-500 ${
             statusFilter === 'ACTIVE'
               ? 'border-blue-500 ring-2 ring-blue-400/20 bg-blue-50/10'
-              : 'border-[#E5EAF0]'
+              : 'border-[#DCE3EC]'
           }`}
           title="Click to filter active projects"
         >
@@ -284,7 +276,7 @@ export const PartnerProjectsPage: React.FC = () => {
           className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-amber-500 ${
             statusFilter === 'READY'
               ? 'border-amber-500 ring-2 ring-amber-400/20 bg-amber-50/10'
-              : 'border-[#E5EAF0]'
+              : 'border-[#DCE3EC]'
           }`}
           title="Click to filter ready for export"
         >
@@ -307,7 +299,7 @@ export const PartnerProjectsPage: React.FC = () => {
           className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-emerald-500 ${
             statusFilter === 'COMPLETED'
               ? 'border-emerald-500 ring-2 ring-emerald-400/20 bg-emerald-50/10'
-              : 'border-[#E5EAF0]'
+              : 'border-[#DCE3EC]'
           }`}
           title="Click to filter completed & delivered bundles"
         >
@@ -325,7 +317,7 @@ export const PartnerProjectsPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 min-w-64 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#6B778C]" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
             <Input
               placeholder="Search by project name, partner, target stack..."
               value={searchTerm}
@@ -347,8 +339,8 @@ export const PartnerProjectsPage: React.FC = () => {
                 onClick={() => setScopeFilter(sc.key as any)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   scopeFilter === sc.key
-                    ? 'bg-white text-[#091E42] shadow-2xs'
-                    : 'text-[#6B778C] hover:text-[#091E42]'
+                    ? 'bg-white text-[#17263A] shadow-2xs'
+                    : 'text-[#8491A3] hover:text-[#17263A]'
                 }`}
               >
                 {sc.label}
@@ -370,8 +362,8 @@ export const PartnerProjectsPage: React.FC = () => {
                 onClick={() => setStatusFilter(tab.key)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                   statusFilter === tab.key
-                    ? 'bg-white text-[#091E42] shadow-2xs'
-                    : 'text-[#6B778C] hover:text-[#091E42]'
+                    ? 'bg-white text-[#17263A] shadow-2xs'
+                    : 'text-[#8491A3] hover:text-[#17263A]'
                 }`}
               >
                 {tab.label}
@@ -383,7 +375,7 @@ export const PartnerProjectsPage: React.FC = () => {
         {/* Secondary Filter: Conversion Stack */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-[#6B778C]">Conversion Pipeline:</span>
+            <span className="text-[11px] font-semibold text-[#8491A3]">Conversion Pipeline:</span>
             <div className="flex items-center gap-1">
               {[
                 { key: 'ALL', label: 'All Pipelines' },
@@ -396,8 +388,8 @@ export const PartnerProjectsPage: React.FC = () => {
                   onClick={() => setTypeFilter(p.key as any)}
                   className={`px-2.5 py-1 rounded-lg text-xs transition-colors cursor-pointer ${
                     typeFilter === p.key
-                      ? 'bg-[#0652CC] text-white font-semibold'
-                      : 'bg-white border border-[#E5EAF0] text-[#6B778C] hover:text-[#091E42]'
+                      ? 'bg-[#244A70] text-white font-semibold'
+                      : 'bg-white border border-[#DCE3EC] text-[#8491A3] hover:text-[#17263A]'
                   }`}
                 >
                   {p.label}
@@ -406,8 +398,8 @@ export const PartnerProjectsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-xs text-[#6B778C]">
-            Showing <strong className="text-[#091E42]">{filteredProjects.length}</strong> of{' '}
+          <div className="text-xs text-[#8491A3]">
+            Showing <strong className="text-[#17263A]">{filteredProjects.length}</strong> of{' '}
             {totalProjects} projects
           </div>
         </div>
@@ -431,17 +423,17 @@ export const PartnerProjectsPage: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Loading partner modernization projects...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredProjects.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
-                    <FolderKanban className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                    <FolderKanban className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                     No partner projects found matching the filter criteria.
                   </td>
                 </tr>
@@ -456,7 +448,7 @@ export const PartnerProjectsPage: React.FC = () => {
                     >
                       {/* Project Name & Target Framework */}
                       <td className="py-3.5 px-4">
-                        <div className="font-semibold text-[#091E42] group-hover:text-[#0652CC] transition-colors flex items-center gap-1.5 flex-wrap">
+                        <div className="font-semibold text-[#17263A] group-hover:text-[#244A70] transition-colors flex items-center gap-1.5 flex-wrap">
                           <span>{p.name}</span>
                           {p.isDemo && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
@@ -465,12 +457,12 @@ export const PartnerProjectsPage: React.FC = () => {
                           )}
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-[#4A5568]">
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-gray-100 text-[#8491A3]">
                             {p.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
                           </span>
-                          <span className="text-[10px] text-[#6B778C] font-mono">{p.id}</span>
+                          <span className="text-[10px] text-[#8491A3] font-mono">{p.id}</span>
                         </div>
-                        <p className="text-[11px] text-[#6B778C] mt-0.5 truncate max-w-xs">
+                        <p className="text-[11px] text-[#8491A3] mt-0.5 truncate max-w-xs">
                           {p.targetFramework}
                         </p>
                       </td>
@@ -479,12 +471,12 @@ export const PartnerProjectsPage: React.FC = () => {
                       <td className="py-3.5 px-4" onClick={(e) => e.stopPropagation()}>
                         <Link
                           to={`/partners/${p.partnerId}`}
-                          className="font-semibold text-[#091E42] hover:text-[#0652CC] flex items-center gap-1"
+                          className="font-semibold text-[#17263A] hover:text-[#244A70] flex items-center gap-1"
                         >
                           <Building2 className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                           <span>{p.partnerName}</span>
                         </Link>
-                        <span className="text-[10px] font-mono text-[#6B778C] block mt-0.5">
+                        <span className="text-[10px] font-mono text-[#8491A3] block mt-0.5">
                           {p.partnerId}
                         </span>
                       </td>
@@ -493,10 +485,10 @@ export const PartnerProjectsPage: React.FC = () => {
                       <td className="py-3.5 px-4">
                         {p.assignedTeamLeadName ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-blue-100 text-[#0652CC] flex items-center justify-center text-[10px] font-bold shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-blue-100 text-[#244A70] flex items-center justify-center text-[10px] font-bold shrink-0">
                               {p.assignedTeamLeadName.charAt(0)}
                             </div>
-                            <span className="font-medium text-[#091E42] truncate max-w-[120px]">
+                            <span className="font-medium text-[#17263A] truncate max-w-[120px]">
                               {p.assignedTeamLeadName}
                             </span>
                           </div>
@@ -512,13 +504,13 @@ export const PartnerProjectsPage: React.FC = () => {
                       <td className="py-3.5 px-4">
                         {p.assignedStaffName ? (
                           <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5 text-[#0652CC] shrink-0" />
-                            <span className="font-medium text-[#091E42] truncate max-w-[130px]">
+                            <Users className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+                            <span className="font-medium text-[#17263A] truncate max-w-[130px]">
                               {p.assignedStaffName}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-[#6B778C]/70 italic text-[11px]">Unallocated</span>
+                          <span className="text-[#8491A3]/70 italic text-[11px]">Unallocated</span>
                         )}
                       </td>
 
@@ -527,7 +519,7 @@ export const PartnerProjectsPage: React.FC = () => {
                         <div className="space-y-1 min-w-[140px] max-w-[180px]">
                           {(p.screensTotal > 0 || p.programsTotal > 0) ? (
                             <>
-                              <div className="flex items-center justify-between text-[10px] text-[#6B778C] mb-0.5">
+                              <div className="flex items-center justify-between text-[10px] text-[#8491A3] mb-0.5">
                                 <span>
                                   {p.screensTotal > 0 && `${p.screensCompleted}/${p.screensTotal} screens`}
                                   {p.screensTotal > 0 && p.programsTotal > 0 && ' · '}
@@ -543,7 +535,7 @@ export const PartnerProjectsPage: React.FC = () => {
                               />
                             </>
                           ) : (
-                            <span className="text-[11px] text-[#6B778C] italic">No items queued</span>
+                            <span className="text-[11px] text-[#8491A3] italic">No items queued</span>
                           )}
                         </div>
                       </td>
@@ -558,7 +550,7 @@ export const PartnerProjectsPage: React.FC = () => {
                               Export Delivered
                             </div>
                           )}
-                          <div className="text-[10px] text-[#6B778C]">
+                          <div className="text-[10px] text-[#8491A3]">
                             Updated: {new Date(p.lastUpdated).toLocaleDateString()}
                           </div>
                         </div>
@@ -566,10 +558,19 @@ export const PartnerProjectsPage: React.FC = () => {
 
                       {/* Actions */}
                       <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          <Link
+                            to={`/partners/projects/${p.id}/workspace?tab=files`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold hover:bg-amber-100 transition-colors shadow-2xs"
+                            title="View & download all original source files submitted by customer"
+                          >
+                            <FolderDown className="w-3.5 h-3.5 text-amber-700" />
+                            <span>Customer Files ({p.screensTotal || p.programsTotal || 0})</span>
+                          </Link>
+
                           <Link
                             to={`/partners/projects/${p.id}/workspace`}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-[#0652CC] text-white text-xs font-medium hover:bg-[#0544AB] transition-colors shadow-xs"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-md bg-[#244A70] text-white text-xs font-medium hover:bg-[#244A70] transition-colors shadow-xs"
                             title="Open Full Conversion Workspace"
                           >
                             <Play className="w-3 h-3" />
@@ -582,7 +583,7 @@ export const PartnerProjectsPage: React.FC = () => {
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-slate-200 bg-white text-slate-700 text-xs font-medium hover:bg-slate-50 hover:text-slate-900 transition-colors shadow-xs"
                               title="Upload source files"
                             >
-                              <UploadCloud className="w-3.5 h-3.5 text-[#6B778C]" />
+                              <UploadCloud className="w-3.5 h-3.5 text-[#8491A3]" />
                             </Link>
                           )}
                         </div>
