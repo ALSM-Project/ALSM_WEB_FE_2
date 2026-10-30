@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileSearch, Download, RefreshCw, User, ChevronLeft, ChevronRight,
-  FileText, Info, CheckCircle2, Eye
+  FileText, Info, CheckCircle2, Eye, AlertCircle
 } from 'lucide-react';
 import { adminApi, AuditLogDto } from '../api/admin.api';
 import { Button } from '@/shared/ui';
@@ -133,6 +133,8 @@ const MOCK_AUDIT_LOGS: AuditLogDto[] = [
 export const AuditLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isUsingMock, setIsUsingMock] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [exportingCsv, setExportingCsv] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<AuditLogDto | null>(null);
@@ -151,22 +153,31 @@ export const AuditLogsPage: React.FC = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const data = await adminApi
-        .getAuditLogs({
-          actor: searchTerm || undefined,
-          action: actionFilter || undefined,
-          resourceType: resourceFilter || undefined,
-          limit: 100,
-        })
-        .catch(() => []);
+      setErrorMsg(null);
+      const data = await adminApi.getAuditLogs({
+        actor: searchTerm || undefined,
+        action: actionFilter || undefined,
+        resourceType: resourceFilter || undefined,
+        limit: 100,
+      });
 
       if (Array.isArray(data) && data.length > 0) {
         setLogs(data);
+        setIsUsingMock(false);
       } else {
         setLogs(MOCK_AUDIT_LOGS);
+        setIsUsingMock(true);
       }
-    } catch {
+    } catch (err: any) {
+      console.error('Failed to load audit logs:', err);
+      const msg = err?.response?.data?.message || err?.message;
+      if (err?.response?.status === 403 || err?.response?.status === 401) {
+        setErrorMsg('Access Denied: Platform Administrator authority is required to view system audit logs.');
+      } else {
+        setErrorMsg(msg || 'Failed to connect to audit log service');
+      }
       setLogs(MOCK_AUDIT_LOGS);
+      setIsUsingMock(true);
     } finally {
       setLoading(false);
     }
@@ -194,7 +205,7 @@ export const AuditLogsPage: React.FC = () => {
 
         // Date range filter
         const logTime = new Date(log.timestamp).getTime();
-        const now = new Date('2026-10-21T23:59:59Z').getTime();
+        const now = isUsingMock ? new Date('2026-10-21T23:59:59Z').getTime() : Date.now();
         let matchesDate = true;
         if (dateRangeFilter === 'TODAY') {
           matchesDate = now - logTime <= 24 * 60 * 60 * 1000;
@@ -321,18 +332,42 @@ export const AuditLogsPage: React.FC = () => {
         </div>
       </div>
 
+      {errorMsg && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg(null)} className="text-rose-500 font-bold">&times;</button>
+        </div>
+      )}
+
       {/* Prominent Simulated Records Notice (Requirement H) */}
-      <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-950 text-xs flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <Info className="w-4 h-4 text-amber-700 shrink-0" />
-          <span>
-            <strong>Simulated Audit Trail:</strong> The audit log entries presented below are generated test records representing platform activities, administrative interventions, and role adjustments. They do not constitute immutable production system logs.
+      {isUsingMock ? (
+        <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-950 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Info className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>
+              <strong>Simulated Audit Trail:</strong> The audit log entries presented below are generated test records representing platform activities, administrative interventions, and role adjustments. They do not constitute immutable production system logs.
+            </span>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
+            Mock Audit Data
           </span>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
-          Mock Audit Data
-        </span>
-      </div>
+      ) : (
+        <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>Live Immutable Audit Trail:</strong> Displaying authoritative system audit records persisted in the database.
+            </span>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-200 text-blue-900 shrink-0">
+            Live Records ({logs.length})
+          </span>
+        </div>
+      )}
 
       {exportNotice && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
