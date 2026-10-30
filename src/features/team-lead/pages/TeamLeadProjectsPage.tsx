@@ -157,31 +157,34 @@ export const TeamLeadProjectsPage: React.FC = () => {
     resourceId: string,
     newAssignee: CandidateAssignee,
     reason: string,
-    _notes: string
+    notes: string
   ) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === resourceId
-          ? {
-              ...p,
-              assignedStaffId: newAssignee.id,
-              assignedStaffName: newAssignee.fullName,
-            }
-          : p
-      )
-    );
     try {
-      await partnersApi.assignProject(resourceId, {
+      const updated = await partnersApi.assignProject(resourceId, {
         staffId: newAssignee.id,
         staffName: newAssignee.fullName,
+        reason,
+        staffNote: notes,
       });
-    } catch {
-      // Local state fallback
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === resourceId
+            ? {
+                ...p,
+                assignedStaffId: newAssignee.id,
+                assignedStaffName: newAssignee.fullName,
+              }
+            : p
+        )
+      );
+      setSuccessMsg(
+        `Project "${updated?.name || resourceId}" assignment successfully transferred to ${newAssignee.fullName} (${reason}).`
+      );
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to transfer project assignment');
+      throw err;
     }
-    setSuccessMsg(
-      `Project "${resourceId}" assignment successfully transferred to ${newAssignee.fullName} (${reason}).`
-    );
-    setTimeout(() => setSuccessMsg(null), 5000);
   };
 
   return (
@@ -706,6 +709,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 currentOwnerId: transferTargetProject.assignedStaffId,
                 currentOwnerName: transferTargetProject.assignedStaffName || 'Unallocated',
                 details: `${transferTargetProject.conversionType || 'Modernization'} • ${transferTargetProject.partnerName || 'Internal'}`,
+                pendingTasksCount: (transferTargetProject.screensTotal || 0) + (transferTargetProject.programsTotal || 0),
               }
             : null
         }
