@@ -808,6 +808,8 @@ export const partnersApi = {
       staffName?: string;
       /** Technical briefing for the engineer (UC-86). */
       staffNote?: string;
+      /** Reassignment / transfer reason (UC-84). */
+      reason?: string;
     },
   ): Promise<PartnerProject> {
     if (!isServerProject(projectId)) {
@@ -826,6 +828,7 @@ export const partnersApi = {
         await apiClient.post(`/projects/${projectId}/assign-staff`, {
           staffId: data.staffId,
           ...(data.staffNote?.trim() ? { note: data.staffNote.trim() } : {}),
+          ...(data.reason?.trim() ? { reason: data.reason.trim() } : {}),
         });
       } catch (err) {
         throw toPartnerProjectError(err, 'assign');
