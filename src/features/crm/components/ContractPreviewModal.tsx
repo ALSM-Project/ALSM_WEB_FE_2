@@ -93,7 +93,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide ${
-                contract.status === 'FULLY_SIGNED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
                 contract.status === 'SENT_FOR_SIGNATURE' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
                 contract.status === 'PARTIALLY_SIGNED' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
                 'bg-slate-200 text-slate-700'
@@ -165,7 +165,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
               Provider guarantees 99.9% uptime for the Web 3 cloud runtime and modern conversion execution pipeline, with priority enterprise support resolution within 4 hours.
             </p>
 
-            {contract.status === 'FULLY_SIGNED' && (
+            {(contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED') && (
               <div className="mt-4 pt-3 border-t border-dashed border-emerald-400 bg-emerald-50/50 p-3 rounded-lg font-sans">
                 <div className="flex items-center gap-2 text-emerald-800 font-bold mb-1">
                   <Stamp className="w-4 h-4 text-emerald-600" />
@@ -231,7 +231,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
               </Button>
             )}
 
-            {contract.status === 'FULLY_SIGNED' && onProceedToActivation && (
+            {(contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED') && onProceedToActivation && (
               <Button
                 type="button"
                 variant="primary"
