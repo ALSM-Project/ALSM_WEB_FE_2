@@ -299,6 +299,20 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           children = children.map((c) =>
             c.path === '/team-lead/projects' ? { ...c, label: 'Employee Allocation' } : c
           );
+
+        const hasTransferApprovals = children.some((c) => c.path === '/team-lead/resource-transfers');
+        if (!hasTransferApprovals) {
+          children.push({
+            id: 'web2_tl_transfer_approvals',
+            label: 'Transfer Approvals',
+            icon: 'ArrowRightLeft',
+            path: '/team-lead/resource-transfers',
+            order: 2.5,
+            isVisible: true,
+            permissions: ['teams.manage'],
+            openInNewTab: false,
+          });
+        }
         }
         return { ...group, children };
       }
