@@ -92,7 +92,15 @@ describe('CreateContractModal (UC-63)', () => {
 
   it('reuses the same idempotency key when the user retries unchanged details', async () => {
     vi.mocked(crmApi.createContract)
-      .mockRejectedValueOnce({ response: { status: 503 } })
+      .mockRejectedValueOnce({
+        response: {
+          status: 503,
+          data: {
+            code: 'ATOMIC_MUTATION_ABORTED',
+            details: [{ mutationCommitted: false, retrySafe: false }],
+          },
+        },
+      })
       .mockResolvedValueOnce(contract);
     render(
       <CreateContractModal
@@ -107,7 +115,7 @@ describe('CreateContractModal (UC-63)', () => {
 
     const submit = screen.getByRole('button', { name: /Generate Contract Draft/ });
     fireEvent.click(submit);
-    await screen.findByRole('alert');
+    expect(await screen.findByRole('alert')).toHaveTextContent('contract was not saved');
     fireEvent.click(submit);
 
     await waitFor(() => expect(crmApi.createContract).toHaveBeenCalledTimes(2));

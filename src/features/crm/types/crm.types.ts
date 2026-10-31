@@ -126,6 +126,8 @@ export interface StageAuditEntry {
 export interface LeadDto {
   id: string;
   company: string;
+  companyName?: string;
+  title?: string;
   contactName: string;
   email: string;
   phone?: string;
