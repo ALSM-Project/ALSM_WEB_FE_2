@@ -153,6 +153,7 @@ export const crmApi = {
 
   createContract: async (
     leadId: string,
+    requestId: string,
     data: {
       title: string;
       plan: string;
@@ -161,16 +162,12 @@ export const crmApi = {
       effectiveDate?: string;
     }
   ): Promise<LeadContract> => {
-    try {
-      const res = await apiClient.post<LeadContract>(`/sales/crm/leads/${leadId}/contracts`, data);
-      if (res && res.id) {
-        crmStore.createContract(leadId, data);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.createContract(leadId, data);
+    const res = await apiClient.post<{ contract: LeadContract }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts`,
+      data,
+      { headers: { 'Idempotency-Key': requestId } },
+    );
+    return res.contract;
   },
 
   sendContractForSignature: async (leadId: string, contractId: string): Promise<LeadContract> => {
