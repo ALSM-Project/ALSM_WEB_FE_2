@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { crmStore } from '../services/crm-store';
 import { crmApi } from '../api/crm.api';
+import { apiClient } from '@/services/api/apiClient';
 
 describe('Section 3.11: CRM & Sales Lead-to-Customer Activation Workflow', () => {
   beforeEach(() => {
@@ -140,84 +141,48 @@ describe('Section 3.11: CRM & Sales Lead-to-Customer Activation Workflow', () =>
     ).rejects.toThrow(/Closed Won cannot be selected manually/i);
   });
 
-  it('6. Simulates failure during customer activation safely without state corruption', async () => {
-    // apex-bank lead in seed store has accepted quote, signed contract, confirmed payment
+  it('6. Propagates backend failure and does not change the local lead snapshot', async () => {
     const lead = crmStore.getLeadById('lead-apex-bank');
     expect(lead).toBeDefined();
+    const post = vi.spyOn(apiClient, 'post').mockRejectedValueOnce({
+      response: { status: 503, data: { code: 'CUSTOMER_CONVERSION_FAILED' } },
+    });
 
-    // Run activation with simulateFailure = true
-    await expect(
-      crmApi.activateCustomer('lead-apex-bank', { simulateFailure: true })
-    ).rejects.toThrow(/timeout during organization administrator provisioning/i);
+    await expect(crmApi.activateCustomer('lead-apex-bank')).rejects.toMatchObject({
+      response: { status: 503 },
+    });
 
-    // Verify lead is NOT corrupted to WON
-    const afterFailed = crmStore.getLeadById('lead-apex-bank');
-    expect(afterFailed?.stage).toBe('PROPOSAL');
-    expect(afterFailed?.provisioning?.status).toBe('FAILED');
-    expect(afterFailed?.provisioning?.failureReason).toContain('Identity service connection timeout');
+    expect(post).toHaveBeenCalledWith('/sales/crm/leads/lead-apex-bank/activate', {});
+    expect(crmStore.getLeadById('lead-apex-bank')?.stage).toBe(lead?.stage);
+    post.mockRestore();
   });
 
-  it('7. Successfully completes 7-point Customer Activation and graduates lead to WON', async () => {
-    // Fresh complete test lead
-    const lead = await crmApi.createLead({
+  it('7. Uses the persisted backend result and sends a single activation request', async () => {
+    const lead = {
+      id: '6ad586fe9f2215c9ebcac858',
       company: 'Zenith Holdings',
-      contactName: 'Clara Oswald',
-      email: 'clara@zenith.co',
-      dealValue: 150000,
+      stage: 'WON' as const,
+      convertedOrganizationId: '6a9cdbda5e82fb42d449ac03',
+      provisioning: {
+        status: 'COMPLETED' as const,
+        organizationId: '6a9cdbda5e82fb42d449ac03',
+        organizationName: 'Zenith Holdings',
+        adminLinked: true,
+        completedAt: new Date().toISOString(),
+      },
+    } as any;
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValueOnce({
+      lead,
+      organizationId: lead.convertedOrganizationId,
+      adminLinked: true,
+      replayed: false,
     });
 
-    // Advance to PROPOSAL
-    await crmApi.updateLeadStage(lead.id, { stage: 'PROPOSAL', notes: 'Entering negotiation' });
+    const result = await crmApi.activateCustomer(lead.id);
 
-    // 1. Quote
-    const quote = await crmApi.createQuote(lead.id, {
-      plan: 'Enterprise Tier 2',
-      basePrice: 150000,
-      discountPercent: 10,
-    });
-    await crmApi.acceptQuote(lead.id, quote.id);
-
-    // 2. Contract
-    const contract = crmStore.createContract(lead.id, {
-      title: 'Zenith Holdings Modernization Master Services Agreement',
-      plan: 'Enterprise Tier 2',
-      quoteId: quote.id,
-      annualValue: 135000,
-    });
-    await crmApi.sendContractForSignature(lead.id, contract.id);
-    await crmApi.simulateSignContract(lead.id, contract.id);
-
-    // 3. Confirm Payment
-    await crmApi.confirmPayment(lead.id, 'TX-WIRE-982314');
-
-    // 4. Execute Automated Customer Activation
-    const activationResult = await crmApi.activateCustomer(lead.id, {
-      paymentRequired: true,
-      simulateFailure: false,
-    });
-
-    expect(activationResult.organizationId).toMatch(/^org-zenith-holdings/);
-    expect(activationResult.adminEmail).toBe('clara@zenith.co');
-    expect(activationResult.web3Url).toContain('https://web3.alsm.io/tenant/');
-
-    // 5. Verify Lead graduated to WON with complete 7-item checklist
-    const wonLead = activationResult.lead;
-    expect(wonLead.stage).toBe('WON');
-    expect(wonLead.convertedAt).toBeDefined();
-    expect(wonLead.provisioning?.status).toBe('COMPLETED');
-
-    const checklist = wonLead.provisioning?.checklist;
-    expect(checklist?.contractSigned).toBe(true);
-    expect(checklist?.paymentConfirmed).toBe(true);
-    expect(checklist?.organizationCreated).toBe(true);
-    expect(checklist?.adminProvisioned).toBe(true);
-    expect(checklist?.subscriptionActivated).toBe(true);
-    expect(checklist?.web3AccessEnabled).toBe(true);
-    expect(checklist?.welcomeNotificationSent).toBe(true);
-
-    // Verify stage audit history logged the automated transition
-    const auditEntry = wonLead.stageAudit?.find((a) => a.toStage === 'WON');
-    expect(auditEntry).toBeDefined();
-    expect(auditEntry?.notes).toContain('Lead successfully activated as Customer');
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith(`/sales/crm/leads/${lead.id}/activate`, {});
+    expect(result).toMatchObject({ lead: { stage: 'WON' }, adminLinked: true, replayed: false });
+    post.mockRestore();
   });
 });

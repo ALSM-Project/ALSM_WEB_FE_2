@@ -93,7 +93,7 @@ export const LeadDetailPage: React.FC = () => {
     || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
     || lead.contactName?.trim()
     || `Lead ${lead.id.slice(0, 8)}`;
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED');
+  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
   const isWon = lead.stage === 'WON';
 
   return (
@@ -534,7 +534,7 @@ export const LeadDetailPage: React.FC = () => {
                     <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
                     <td className="py-3 px-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        c.status === 'FULLY_SIGNED' ? 'bg-emerald-100 text-emerald-800' :
+                        c.status === 'FULLY_SIGNED' || c.status === 'SIGNED' ? 'bg-emerald-100 text-emerald-800' :
                         c.status === 'SENT_FOR_SIGNATURE' ? 'bg-blue-100 text-blue-800' :
                         'bg-slate-100 text-slate-700'
                       }`}>
@@ -774,10 +774,11 @@ export const LeadDetailPage: React.FC = () => {
       <CustomerActivationModal
         isOpen={showActivationModal}
         lead={lead}
+        canActivate={canCreateContracts}
         onClose={() => setShowActivationModal(false)}
         onSuccess={(updated) => {
           setLead(updated);
-          setSuccessMsg(`Customer successfully activated and transitioned to Won!`);
+          setSuccessMsg('Customer organization provisioned and lead converted to Won.');
           setTimeout(() => setSuccessMsg(null), 4000);
         }}
       />

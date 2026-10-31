@@ -184,7 +184,13 @@ export const crmApi = {
   },
 
   simulateSignContract: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.simulateSignContract(leadId, contractId);
+    const updated = await apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
+    const contract = updated.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The signed contract could not be loaded. Refresh the lead and try again.');
+    return contract;
   },
 
   confirmPayment: async (leadId: string, transactionRef?: string): Promise<LeadDto> => {
@@ -195,28 +201,29 @@ export const crmApi = {
     return crmStore.setPaymentPolicy(leadId, required);
   },
 
-  activateCustomer: async (
-    leadId: string,
-    options?: {
-      paymentRequired?: boolean;
-      simulateFailure?: boolean;
-    }
-  ): Promise<{
+  activateCustomer: async (leadId: string): Promise<{
     lead: LeadDto;
     organizationId: string;
-    adminEmail: string;
-    web3Url: string;
+    adminLinked: boolean;
+    replayed: boolean;
   }> => {
-    return crmStore.activateCustomer(leadId, options);
+    return apiClient.post<{
+      lead: LeadDto;
+      organizationId: string;
+      adminLinked: boolean;
+      replayed: boolean;
+    }>(`/sales/crm/leads/${encodeURIComponent(leadId)}/activate`, {});
   },
 
   // Legacy compatibility for any code that calls signContract
   signContract: async (
     leadId: string,
     contractId: string
-  ): Promise<{ lead: LeadDto; organizationId: string; adminEmail: string; web3Url: string }> => {
-    crmStore.simulateSignContract(leadId, contractId);
-    return crmStore.activateCustomer(leadId);
+  ): Promise<LeadDto> => {
+    return apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
   },
 
   getReports: async (filters?: {
