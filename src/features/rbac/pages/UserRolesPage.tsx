@@ -12,8 +12,8 @@ import { useAuth } from '@/features/auth/hooks/useAuth';
 export const UserRolesPage: React.FC = () => {
   const { user: actor, hasPermission } = useAuth();
   const canLock = actor?.isPlatformAdmin === true && hasPermission('users.lock');
-  const canOffboard = actor?.isPlatformAdmin === true &&
-    ['users.offboard', 'resources.transfer', 'resources.transfer.confirm'].every(hasPermission);
+  const isTeamLeadOrAdmin = actor?.isPlatformAdmin === true || (actor?.roles || []).some((r: string) => r.toUpperCase().includes('LEAD') || r.toUpperCase().includes('ADMIN'));
+  const canOffboard = isTeamLeadOrAdmin && hasPermission('users.offboard');
   const [users, setUsers] = useState<UserRbacDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [search, setSearch] = useState('');
@@ -405,7 +405,7 @@ export const UserRolesPage: React.FC = () => {
                       )}
 
                       {/* Controlled Offboard (SRS 3.14.2) */}
-                      {canOffboard && !user.isPlatformAdmin && user.isActive && (
+                      {canOffboard && !user.isPlatformAdmin && user.isActive && user.id !== actor?.id && (
                         <button
                           onClick={() => setOffboardTargetUser(user)}
                           className="px-2 py-1 rounded-lg text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 flex items-center gap-1"
