@@ -170,8 +170,17 @@ export const crmApi = {
     return res.contract;
   },
 
-  sendContractForSignature: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.sendContractForSignature(leadId, contractId);
+  sendContractForSignature: async (
+    leadId: string,
+    contractId: string,
+  ): Promise<{ contract: LeadContract; notificationSent: boolean }> => {
+    const response = await apiClient.post<{ lead: LeadDto; notificationSent: boolean }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/send`,
+      {},
+    );
+    const contract = response.lead.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The sent contract could not be loaded. Refresh the lead and try again.');
+    return { contract, notificationSent: response.notificationSent };
   },
 
   simulateSignContract: async (leadId: string, contractId: string): Promise<LeadContract> => {
