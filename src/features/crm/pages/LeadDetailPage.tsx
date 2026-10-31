@@ -85,6 +85,14 @@ export const LeadDetailPage: React.FC = () => {
     );
   }
 
+  const companyCandidate = [lead.company, lead.companyName].find(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  );
+  const titleCandidate = typeof lead.title === 'string' ? lead.title.trim() : '';
+  const leadDisplayName = companyCandidate?.trim()
+    || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
+    || lead.contactName?.trim()
+    || `Lead ${lead.id.slice(0, 8)}`;
   const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED');
   const isWon = lead.stage === 'WON';
 
@@ -122,7 +130,7 @@ export const LeadDetailPage: React.FC = () => {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{lead.company}</h1>
+              <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{leadDisplayName}</h1>
               <span className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
                 Score: {lead.score}
               </span>
@@ -663,7 +671,7 @@ export const LeadDetailPage: React.FC = () => {
       <LogInteractionModal
         isOpen={showLogCallModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         onClose={() => setShowLogCallModal(false)}
         onSuccess={() => {
           fetchLead();
@@ -675,7 +683,7 @@ export const LeadDetailPage: React.FC = () => {
       <ScheduleDemoModal
         isOpen={showDemoModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadEmail={lead.email}
         onClose={() => setShowDemoModal(false)}
         onSuccess={() => {
@@ -688,7 +696,7 @@ export const LeadDetailPage: React.FC = () => {
       <CreateQuoteModal
         isOpen={showCreateQuoteModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         onClose={() => setShowCreateQuoteModal(false)}
         onSuccess={(quote) => {
           fetchLead();
@@ -701,7 +709,7 @@ export const LeadDetailPage: React.FC = () => {
       <QuotePreviewModal
         isOpen={!!previewQuote}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadContact={lead.contactName}
         leadEmail={lead.email}
         quote={previewQuote}
@@ -719,7 +727,7 @@ export const LeadDetailPage: React.FC = () => {
       <CreateContractModal
         isOpen={showCreateContractModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         quotes={lead.quotes}
         initialQuoteId={initialContractQuoteId}
         canCreateContract={canCreateContracts}
@@ -735,7 +743,7 @@ export const LeadDetailPage: React.FC = () => {
       <ContractPreviewModal
         isOpen={!!previewContract}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadContact={lead.contactName}
         leadEmail={lead.email}
         contract={previewContract}

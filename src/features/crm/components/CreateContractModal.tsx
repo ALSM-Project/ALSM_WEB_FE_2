@@ -111,10 +111,11 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
       onSuccess(contract);
       onClose();
     } catch (err) {
-      const error = err as { response?: { status?: number; data?: { code?: string; message?: string | string[] } } };
+      const error = err as { response?: { status?: number; data?: { code?: string; message?: string | string[]; details?: Array<{ retrySafe?: boolean; mutationCommitted?: boolean | 'unknown' }> } } };
       const status = error.response?.status;
       const code = error.response?.data?.code;
       const message = error.response?.data?.message;
+      const outcome = error.response?.data?.details?.[0];
       if (status === 400) {
         setErrorMsg(Array.isArray(message) ? message.join(', ') : message || 'Check the contract details and selected quote.');
       } else if (status === 401) {
@@ -126,7 +127,15 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
       } else if (status === 409) {
         setErrorMsg('The request conflicted with another contract update. Refresh the lead and try again.');
       } else if (status === 503) {
-        setErrorMsg('Contract creation is temporarily unavailable. Retry the same submission shortly.');
+        if (code === 'MONGO_TRANSACTIONS_REQUIRED') {
+          setErrorMsg('The contract was not saved because the database is not ready for this operation. Contact an administrator before retrying.');
+        } else if (code === 'ATOMIC_MUTATION_ABORTED' || outcome?.mutationCommitted === false) {
+          setErrorMsg('The contract was not saved. The service could not complete the save; contact an administrator before retrying.');
+        } else if (outcome?.mutationCommitted === 'unknown') {
+          setErrorMsg('The save result could not be confirmed. Check Contracts & E-Sign before retrying.');
+        } else {
+          setErrorMsg('Contract creation is temporarily unavailable. Check Contracts & E-Sign before retrying.');
+        }
       } else {
         setErrorMsg('The contract could not be created. Please try again shortly.');
       }
