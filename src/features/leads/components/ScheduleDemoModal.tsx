@@ -213,7 +213,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({ lead, onCl
           </label>
 
           <p className="mb-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-900">
-            Attendees receive an email notification after the demo is saved. This does not create a calendar invitation or meeting link.
+            Attendees receive an email notification after the demo is saved. This flow does not create calendar invitations or meeting links.
           </p>
 
           <footer className="flex flex-col-reverse gap-2 border-t border-[#E8ECF1] pt-4 sm:flex-row sm:justify-end">

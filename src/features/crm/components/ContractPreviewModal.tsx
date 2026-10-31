@@ -39,8 +39,11 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
   const handleSendForSignature = async () => {
     try {
       setActing(true);
-      const updated = await crmApi.sendContractForSignature(leadId, contract.id);
-      setSuccessMessage('Contract sent for electronic signature via simulated DocuSign envelope.');
+      const result = await crmApi.sendContractForSignature(leadId, contract.id);
+      const updated = result.contract;
+      setSuccessMessage(result.notificationSent
+        ? 'Contract sent for electronic signature. The customer was notified in their ALSM account.'
+        : 'Contract sent, but no active ALSM account matches the contact email, so no in-app notification was delivered.');
       onContractUpdated?.(updated);
       setTimeout(() => setSuccessMessage(null), 4000);
     } catch (err: any) {
