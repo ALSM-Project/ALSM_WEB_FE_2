@@ -19,10 +19,13 @@ import { CreateContractModal } from '../components/CreateContractModal';
 import { ContractPreviewModal } from '../components/ContractPreviewModal';
 import { ManageStageModal } from '../components/ManageStageModal';
 import { CustomerActivationModal } from '../components/CustomerActivationModal';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canCreateContracts = hasPermission('sales.leads.manage');
 
   const [lead, setLead] = useState<LeadDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,6 +44,7 @@ export const LeadDetailPage: React.FC = () => {
   // Selected Documents for Preview Modals
   const [previewQuote, setPreviewQuote] = useState<LeadQuote | null>(null);
   const [previewContract, setPreviewContract] = useState<LeadContract | null>(null);
+  const [initialContractQuoteId, setInitialContractQuoteId] = useState<string | undefined>();
 
   const fetchLead = async () => {
     if (!leadId) return;
@@ -160,13 +164,15 @@ export const LeadDetailPage: React.FC = () => {
             Create Quote
           </button>
 
-          <button
-            onClick={() => setShowCreateContractModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-blue-600" />
-            Create Contract
-          </button>
+          {canCreateContracts && (
+            <button
+              onClick={() => { setInitialContractQuoteId(undefined); setShowCreateContractModal(true); }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-blue-600" />
+              Create Contract
+            </button>
+          )}
 
           <button
             onClick={() => setShowManageStageModal(true)}
@@ -704,7 +710,8 @@ export const LeadDetailPage: React.FC = () => {
           setPreviewQuote(updated);
           fetchLead();
         }}
-        onCreateContractFromQuote={() => {
+        onCreateContractFromQuote={(quote) => {
+          setInitialContractQuoteId(quote.id);
           setShowCreateContractModal(true);
         }}
       />
@@ -714,6 +721,8 @@ export const LeadDetailPage: React.FC = () => {
         leadId={lead.id}
         leadCompany={lead.company}
         quotes={lead.quotes}
+        initialQuoteId={initialContractQuoteId}
+        canCreateContract={canCreateContracts}
         onClose={() => setShowCreateContractModal(false)}
         onSuccess={(contract) => {
           fetchLead();

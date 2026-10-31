@@ -178,7 +178,7 @@ describe('Section 3.11: CRM & Sales Lead-to-Customer Activation Workflow', () =>
     await crmApi.acceptQuote(lead.id, quote.id);
 
     // 2. Contract
-    const contract = await crmApi.createContract(lead.id, {
+    const contract = crmStore.createContract(lead.id, {
       title: 'Zenith Holdings Modernization Master Services Agreement',
       plan: 'Enterprise Tier 2',
       quoteId: quote.id,
