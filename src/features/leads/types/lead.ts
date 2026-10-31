@@ -74,6 +74,9 @@ export interface ScheduleDemoResponse {
   lead: Lead;
   replayed: boolean;
   message: string;
+  notificationStatus?: 'SENT' | 'PARTIAL' | 'FAILED' | 'NOT_SENT';
+  notificationSentCount?: number;
+  notificationFailedCount?: number;
 }
 
 export interface Lead {
