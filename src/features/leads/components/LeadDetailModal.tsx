@@ -56,10 +56,12 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   const [callMessage, setCallMessage] = useState<string | null>(null);
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
   const [demoMessage, setDemoMessage] = useState<string | null>(null);
+  const [demoMessageTone, setDemoMessageTone] = useState<'success' | 'warning'>('success');
   useEffect(() => {
     setNotificationMessage(null);
     setCallMessage(null);
     setDemoMessage(null);
+    setDemoMessageTone('success');
     setIsNotifying(false);
     setIsCallModalOpen(false);
     setIsDemoModalOpen(false);
@@ -170,6 +172,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       queryKey: LEADS_QUERY_KEY,
       predicate: (query) => query.queryKey[1] !== 'detail',
     });
+    setDemoMessageTone(result.notificationStatus === 'PARTIAL' || result.notificationStatus === 'FAILED' ? 'warning' : 'success');
     setDemoMessage(result.message);
     setIsDemoModalOpen(false);
   };
@@ -501,7 +504,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               </p>
             )}
             {callMessage && <p role="status" aria-live="polite" className="text-xs text-emerald-700">{callMessage}</p>}
-            {demoMessage && <p role="status" aria-live="polite" className="text-xs text-emerald-700">{demoMessage}</p>}
+            {demoMessage && <p role="status" aria-live="polite" className={`text-xs ${demoMessageTone === 'warning' ? 'text-amber-800' : 'text-emerald-700'}`}>{demoMessage}</p>}
             <div className="flex flex-wrap items-center gap-2">
             {canManage && (
               <button
