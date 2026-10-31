@@ -346,7 +346,7 @@ export const UserRolesPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                      ) : user.isActive ? (
+                      ) : (user.isActive ?? true) ? (
                         <span className="px-2 py-0.5 text-[10px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Active User
                         </span>
@@ -405,7 +405,7 @@ export const UserRolesPage: React.FC = () => {
                       )}
 
                       {/* Controlled Offboard (SRS 3.14.2) */}
-                      {canOffboard && !user.isPlatformAdmin && user.isActive && user.id !== actor?.id && (
+                      {canOffboard && !user.isPlatformAdmin && (user.isActive ?? true) && user.id !== actor?.id && (
                         <button
                           onClick={() => setOffboardTargetUser(user)}
                           className="px-2 py-1 rounded-lg text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 flex items-center gap-1"
