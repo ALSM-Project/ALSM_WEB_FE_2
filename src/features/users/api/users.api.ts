@@ -13,6 +13,83 @@ export interface UserSummaryDto {
   roles: string[];
 }
 
+export interface OffboardingAssignedProjectDto {
+  id: string;
+  name: string;
+  status: string;
+  organizationId: string;
+  assignedRole: 'CONVERSION_STAFF' | 'TEAM_LEAD' | 'OWNER';
+  isTransferable: boolean;
+}
+
+export interface OffboardingActiveSessionDto {
+  id: string;
+  deviceType?: string;
+  browser?: string;
+  ipAddress?: string;
+  lastActiveAt?: string;
+  createdAt?: string;
+}
+
+export interface OffboardingPendingJobDto {
+  id: string;
+  projectId: string;
+  status: string;
+  priority: string;
+  conversionType: string;
+}
+
+export interface OffboardingEligibleSuccessorDto {
+  id: string;
+  fullName: string;
+  email: string;
+  roles: string[];
+  activeWorkload: number;
+}
+
+export interface UserOffboardingSummaryDto {
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    isActive: boolean;
+    isLocked: boolean;
+    roles: string[];
+  };
+  activeSessionsCount: number;
+  activeSessions: OffboardingActiveSessionDto[];
+  apiCredentialsCount: number;
+  assignedProjects: OffboardingAssignedProjectDto[];
+  pendingJobsCount: number;
+  pendingJobs: OffboardingPendingJobDto[];
+  eligibleStaff: OffboardingEligibleSuccessorDto[];
+}
+
+export interface UserOffboardingResultDto {
+  success: boolean;
+  message: string;
+  user: {
+    id: string;
+    email: string;
+    isActive: boolean;
+    isLocked: boolean;
+  };
+  operations: {
+    projectsTransferred: number;
+    sessionsRevoked: number;
+    apiCredentialsRevoked: number;
+    rolesRemoved: number;
+    accountDeactivated: boolean;
+  };
+  transferredProjects: Array<{
+    projectId: string;
+    projectName: string;
+    previousOwnerId?: string;
+    newOwnerId: string;
+    newOwnerName: string;
+  }>;
+}
+
 export const usersApi = {
   getAllUsers: async (): Promise<UserSummaryDto[]> => {
     return apiClient.get<UserSummaryDto[]>('/users');
@@ -40,11 +117,24 @@ export const usersApi = {
   unlockUser: async (userId: string): Promise<{ ok: boolean; message: string }> => {
     return apiClient.post<{ ok: boolean; message: string }>(`/admin/users/${userId}/unlock`, {});
   },
+  getOffboardingSummary: async (userId: string): Promise<UserOffboardingSummaryDto> => {
+    try {
+      return await apiClient.get<UserOffboardingSummaryDto>(`/users/${userId}/offboarding-summary`);
+    } catch {
+      // Fallback for admin-only route if needed
+      return await apiClient.get<UserOffboardingSummaryDto>(`/admin/users/${userId}/offboarding-summary`);
+    }
+  },
   offboardUser: async (
     userId: string,
-    data: { transferToUserId: string; reason: string }
-  ): Promise<{ ok: boolean; message: string }> => {
-    return apiClient.post<{ ok: boolean; message: string }>(`/admin/users/${userId}/offboard`, data);
+    data: { transferToUserId?: string; reason?: string; confirmDeactivation?: boolean }
+  ): Promise<UserOffboardingResultDto> => {
+    try {
+      return await apiClient.post<UserOffboardingResultDto>(`/users/${userId}/offboard`, data);
+    } catch {
+      // Fallback for admin-only route if needed
+      return await apiClient.post<UserOffboardingResultDto>(`/admin/users/${userId}/offboard`, data);
+    }
   },
   transferResource: async (data: {
     fromUserId: string;

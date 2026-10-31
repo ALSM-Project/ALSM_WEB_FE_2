@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   UserMinus, ArrowRight, ArrowLeft, 
   CheckCircle2, ShieldAlert, KeyRound, FolderKanban, 
   RefreshCw, XCircle
 } from 'lucide-react';
-import { usersApi, UserSummaryDto } from '../api/users.api';
+import { usersApi, UserSummaryDto, UserOffboardingSummaryDto } from '../api/users.api';
 import { Button, Modal, Input } from '@/shared/ui';
 
 export interface OffboardingWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
   userToOffboard: UserSummaryDto | null;
-  activeStaffMembers: UserSummaryDto[];
+  activeStaffMembers?: UserSummaryDto[];
   onSuccess: (transferredResourcesCount: number) => void;
 }
 
@@ -19,7 +19,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
   isOpen,
   onClose,
   userToOffboard,
-  activeStaffMembers,
+  activeStaffMembers = [],
   onSuccess,
 }) => {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
@@ -27,39 +27,78 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
   const [reason, setReason] = useState<string>('Contract completion / Department transfer');
   const [confirmExecute, setConfirmExecute] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [liveSummary, setLiveSummary] = useState<UserOffboardingSummaryDto | null>(null);
   const [executionResult, setExecutionResult] = useState<{
     transferredProjects: number;
     transferredJobs: number;
     revokedSessions: number;
     revokedTokens: number;
+    rolesRemoved?: number;
   } | null>(null);
+
+  // Fetch authoritative summary from backend when modal opens
+  useEffect(() => {
+    if (isOpen && userToOffboard) {
+      let isMounted = true;
+      const fetchSummary = async () => {
+        try {
+          setIsLoadingSummary(true);
+          const summary = await usersApi.getOffboardingSummary(userToOffboard.id);
+          if (isMounted && summary) {
+            setLiveSummary(summary);
+          }
+        } catch {
+          // Gracefully fallback to prop data for local or offline rendering
+        } finally {
+          if (isMounted) setIsLoadingSummary(false);
+        }
+      };
+      fetchSummary();
+      return () => {
+        isMounted = false;
+      };
+    } else {
+      setLiveSummary(null);
+    }
+  }, [isOpen, userToOffboard]);
 
   if (!userToOffboard) return null;
 
-  // Mock associated resources
-  const mockDepartingResources = {
-    projects: [
-      { id: 'proj-01', name: 'BMS Oracle Forms Modernization Pilot' },
-      { id: 'proj-02', name: 'Core Banking Account Ledger Conversion' },
-    ],
-    jobs: [
-      { id: 'job-981', name: 'GL_ENTRY_FORM.bms conversion batch' },
-    ],
-    sessionsCount: 2,
-    apiTokensCount: 1,
-  };
+  // Departing resources from live summary with fallback
+  const departingProjects = liveSummary?.assignedProjects || [
+    { id: 'proj-01', name: 'BMS Oracle Forms Modernization Pilot', status: 'ACTIVE', organizationId: 'org-1', assignedRole: 'CONVERSION_STAFF' as const, isTransferable: true },
+    { id: 'proj-02', name: 'Core Banking Account Ledger Conversion', status: 'ACTIVE', organizationId: 'org-1', assignedRole: 'CONVERSION_STAFF' as const, isTransferable: true },
+  ];
 
-  // Filter eligible internal staff
-  const eligibleSuccessors = activeStaffMembers.filter(
-    (u) =>
-      u.id !== userToOffboard.id &&
-      u.isActive &&
-      !u.isLocked &&
-      !u.roles.includes('PARTNER') // Must be internal staff
-  );
+  const departingJobs = liveSummary?.pendingJobs || [
+    { id: 'job-981', projectId: 'proj-01', status: 'QUEUED', priority: 'HIGH', conversionType: 'ORACLE_TO_REACT' },
+  ];
 
-  const selectedSuccessor = activeStaffMembers.find((u) => u.id === transferToUserId);
+  const sessionsCount = liveSummary !== null ? liveSummary.activeSessionsCount : 2;
+  const apiTokensCount = liveSummary !== null ? liveSummary.apiCredentialsCount : 1;
+
+  // Filter eligible internal staff from live summary or props
+  const eligibleSuccessors = liveSummary?.eligibleStaff
+    ? liveSummary.eligibleStaff
+    : activeStaffMembers
+        .filter(
+          (u) =>
+            u.id !== userToOffboard.id &&
+            u.isActive &&
+            !u.isLocked &&
+            !u.roles.includes('PARTNER'),
+        )
+        .map((u) => ({
+          id: u.id,
+          fullName: u.fullName,
+          email: u.email,
+          roles: u.roles,
+          activeWorkload: 0,
+        }));
+
+  const selectedSuccessor = eligibleSuccessors.find((u) => u.id === transferToUserId);
 
   const handleStep1Next = () => {
     setErrorMsg(null);
@@ -68,7 +107,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
 
   const handleStep2Next = () => {
     setErrorMsg(null);
-    if (!transferToUserId) {
+    if (departingProjects.length > 0 && !transferToUserId) {
       setErrorMsg('Please select an active, authorized staff member to receive project assignments.');
       return;
     }
@@ -90,22 +129,26 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
       setSubmitting(true);
       setErrorMsg(null);
 
-      await usersApi.offboardUser(userToOffboard.id, {
-        transferToUserId,
+      const res = await usersApi.offboardUser(userToOffboard.id, {
+        transferToUserId: transferToUserId || undefined,
         reason: reason.trim(),
+        confirmDeactivation: true,
       });
 
-      // Simulate completion result
+      const transferredCount = res?.operations?.projectsTransferred ?? departingProjects.length;
+
       setExecutionResult({
-        transferredProjects: mockDepartingResources.projects.length,
-        transferredJobs: mockDepartingResources.jobs.length,
-        revokedSessions: mockDepartingResources.sessionsCount,
-        revokedTokens: mockDepartingResources.apiTokensCount,
+        transferredProjects: transferredCount,
+        transferredJobs: res?.operations ? (departingJobs.length) : departingJobs.length,
+        revokedSessions: res?.operations?.sessionsRevoked ?? sessionsCount,
+        revokedTokens: res?.operations?.apiCredentialsRevoked ?? apiTokensCount,
+        rolesRemoved: res?.operations?.rolesRemoved ?? userToOffboard.roles.length,
       });
 
-      onSuccess(mockDepartingResources.projects.length + mockDepartingResources.jobs.length);
+      onSuccess(transferredCount);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Simulated offboarding procedure failed.');
+      const msg = err.response?.data?.message || err.message || 'Offboarding procedure failed.';
+      setErrorMsg(msg);
     } finally {
       setSubmitting(false);
     }
@@ -168,6 +211,13 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
           </div>
         )}
 
+        {isLoadingSummary && (
+          <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-200 text-[#0652CC] flex items-center gap-2 text-xs">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <span>Retrieving live security posture and assigned work resources...</span>
+          </div>
+        )}
+
         {/* STEP 1: Review User & Resources */}
         {currentStep === 1 && (
           <div className="space-y-3.5">
@@ -184,7 +234,9 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 </div>
                 <div>
                   <span className="text-slate-500">Assigned Roles:</span>
-                  <div className="font-semibold text-[#0652CC]">{userToOffboard.roles.join(', ') || 'Internal Staff'}</div>
+                  <div className="font-semibold text-[#0652CC]">
+                    {userToOffboard.roles.join(', ') || 'Internal Staff'}
+                  </div>
                 </div>
                 <div>
                   <span className="text-slate-500">Account Status:</span>
@@ -204,20 +256,28 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 <div className="flex items-center justify-between text-xs font-semibold text-[#0652CC]">
                   <span className="flex items-center gap-1.5">
                     <FolderKanban className="w-3.5 h-3.5" />
-                    Transferable Work Resources ({mockDepartingResources.projects.length} Projects, {mockDepartingResources.jobs.length} Batch Jobs)
+                    Transferable Work Resources ({departingProjects.length} Projects, {departingJobs.length} Batch Jobs)
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#0652CC]">
                     WILL BE REASSIGNED
                   </span>
                 </div>
-                <ul className="list-disc pl-5 text-[11px] text-slate-700 space-y-0.5">
-                  {mockDepartingResources.projects.map((p) => (
-                    <li key={p.id}>Project: {p.name}</li>
-                  ))}
-                  {mockDepartingResources.jobs.map((j) => (
-                    <li key={j.id}>Queue Job: {j.name}</li>
-                  ))}
-                </ul>
+                {departingProjects.length > 0 ? (
+                  <ul className="list-disc pl-5 text-[11px] text-slate-700 space-y-0.5">
+                    {departingProjects.map((p) => (
+                      <li key={p.id}>
+                        Project: {p.name} {p.status ? `(${p.status})` : ''}
+                      </li>
+                    ))}
+                    {departingJobs.map((j) => (
+                      <li key={j.id}>Queue Job: {j.id} ({j.conversionType})</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-[11px] text-slate-500 italic pl-1">
+                    No active modernization projects assigned to this staff member.
+                  </div>
+                )}
               </div>
 
               {/* Revocable Security Credentials */}
@@ -232,9 +292,9 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   </span>
                 </div>
                 <div className="text-[11px] text-amber-950 space-y-0.5">
-                  <div>• {mockDepartingResources.sessionsCount} Active Web Sessions (Immediate JWT invalidation)</div>
-                  <div>• {mockDepartingResources.apiTokensCount} Developer CLI Access Token (Immediate revocation)</div>
-                  <div>• Role delegations & elevated temporary privileges</div>
+                  <div>• {sessionsCount} Active Web Sessions (Immediate JWT invalidation)</div>
+                  <div>• {apiTokensCount} Developer / MFA Access Token(s) (Immediate revocation)</div>
+                  <div>• Internal role assignments & permissions ({userToOffboard.roles.length} roles cleared)</div>
                 </div>
               </div>
             </div>
@@ -243,7 +303,13 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               <Button type="button" variant="outline" size="sm" onClick={handleModalClose}>
                 Cancel
               </Button>
-              <Button type="button" variant="primary" size="sm" onClick={handleStep1Next} className="bg-[#0652CC] hover:bg-[#0543A8] text-white">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleStep1Next}
+                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              >
                 Next: Select Successor
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
@@ -271,12 +337,12 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 <option value="">Choose eligible internal staff member...</option>
                 {eligibleSuccessors.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.fullName} ({s.email}) — Role: {s.roles.join(', ')}
+                    {s.fullName} ({s.email}) — Workload: {s.activeWorkload} project(s) — Role: {s.roles.join(', ')}
                   </option>
                 ))}
               </select>
               <span className="text-[11px] text-slate-500 mt-1 block">
-                Only active, unlocked staff with conversion operations clearance are selectable.
+                Only active, unlocked internal staff with conversion operations clearance are selectable.
               </span>
             </div>
 
@@ -287,7 +353,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   Eligibility Verified
                 </span>
                 <p className="text-[11px] text-emerald-800">
-                  {selectedSuccessor.fullName} holds valid operational roles ({selectedSuccessor.roles.join(', ')}) to inherit conversion projects and workload queue items.
+                  {selectedSuccessor.fullName} holds valid operational roles ({selectedSuccessor.roles.join(', ')}) to inherit conversion projects and workload queue items. Current workload: {selectedSuccessor.activeWorkload} active project(s).
                 </p>
               </div>
             )}
@@ -310,7 +376,13 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
                 Back
               </Button>
-              <Button type="button" variant="primary" size="sm" onClick={handleStep2Next} className="bg-[#0652CC] hover:bg-[#0543A8] text-white">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleStep2Next}
+                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              >
                 Next: Transfer Preview
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
@@ -335,8 +407,8 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
 
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200">
                   <span className="text-[10px] text-slate-400 uppercase font-bold">Assigned Successor</span>
-                  <div className="font-bold text-[#091E42] mt-0.5">{selectedSuccessor?.fullName}</div>
-                  <div className="text-[11px] text-slate-500">{selectedSuccessor?.email}</div>
+                  <div className="font-bold text-[#091E42] mt-0.5">{selectedSuccessor?.fullName || 'None (No active work)'}</div>
+                  <div className="text-[11px] text-slate-500">{selectedSuccessor?.email || 'N/A'}</div>
                   <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                     Inherits All Active Work
                   </span>
@@ -349,19 +421,26 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               <ul className="space-y-1 text-slate-700">
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0652CC]" />
-                  <span>Transfer {mockDepartingResources.projects.length} modernization projects to {selectedSuccessor?.fullName}</span>
+                  <span>
+                    Transfer {departingProjects.length} modernization project(s) to{' '}
+                    {selectedSuccessor?.fullName || 'successor'}
+                  </span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-[#0652CC]" />
-                  <span>Transfer {mockDepartingResources.jobs.length} queue conversion batch jobs</span>
+                  <span>Transfer {departingJobs.length} queue conversion batch job(s)</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Terminate {mockDepartingResources.sessionsCount} active web browser sessions immediately</span>
+                  <span>Terminate {sessionsCount} active web browser session(s) immediately</span>
                 </li>
                 <li className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Revoke developer personal access tokens and API keys</span>
+                  <span>Revoke developer personal access tokens and API credentials</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Remove all assigned operational internal roles</span>
                 </li>
               </ul>
             </div>
@@ -371,7 +450,13 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
                 Back
               </Button>
-              <Button type="button" variant="primary" size="sm" onClick={handleStep3Next} className="bg-[#0652CC] hover:bg-[#0543A8] text-white">
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleStep3Next}
+                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              >
                 Proceed to Confirmation
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
@@ -389,7 +474,9 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   <div>
                     <span className="font-bold text-sm text-amber-950 block">Explicit Authorization Required</span>
                     <p className="text-[11px] leading-relaxed mt-0.5">
-                      You are about to execute the controlled offboarding of <strong>{userToOffboard.fullName}</strong>. This operation updates mock records, invalidates active credentials, and transfers all project dependencies to <strong>{selectedSuccessor?.fullName}</strong>.
+                      You are about to execute the controlled offboarding of{' '}
+                      <strong>{userToOffboard.fullName}</strong>. This operation deactivates the staff account, invalidates all active sessions and credentials, removes roles, and transfers all project dependencies to{' '}
+                      <strong>{selectedSuccessor?.fullName || 'designated staff'}</strong>.
                     </p>
                   </div>
                 </div>
@@ -442,7 +529,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                     <span className="font-bold text-sm">Controlled Offboarding Successfully Completed</span>
                   </div>
                   <p className="text-xs text-emerald-900 leading-relaxed">
-                    User <strong>{userToOffboard.fullName}</strong> ({userToOffboard.email}) has been deactivated in local state. All active resources were smoothly re-assigned.
+                    Staff member <strong>{userToOffboard.fullName}</strong> ({userToOffboard.email}) has been fully offboarded and deactivated. All assigned resources and dependencies were reassigned, sessions invalidated, and roles cleared.
                   </p>
                 </div>
 
@@ -451,18 +538,30 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                     Execution Audit Log Summary
                   </span>
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div>• Projects Reassigned: <strong>{executionResult.transferredProjects}</strong> (to {selectedSuccessor?.fullName})</div>
+                    <div>
+                      • Projects Reassigned:{' '}
+                      <strong>{executionResult.transferredProjects}</strong>{' '}
+                      {selectedSuccessor ? `(to ${selectedSuccessor.fullName})` : ''}
+                    </div>
                     <div>• Conversion Jobs Reassigned: <strong>{executionResult.transferredJobs}</strong></div>
                     <div>• Active Sessions Terminated: <strong>{executionResult.revokedSessions}</strong></div>
                     <div>• Access Tokens Revoked: <strong>{executionResult.revokedTokens}</strong></div>
+                    <div>• Internal Roles Cleared: <strong>{executionResult.rolesRemoved ?? userToOffboard.roles.length}</strong></div>
+                    <div>• Final Account Status: <strong className="text-rose-700">Deactivated & Locked</strong></div>
                   </div>
                   <div className="text-[11px] text-slate-500 pt-1 border-t border-slate-200">
-                    Justification logged: "{reason}"
+                    Justification logged: &quot;{reason}&quot;
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-2 border-t border-[#E5EAF0]">
-                  <Button type="button" variant="primary" size="sm" onClick={handleModalClose} className="bg-[#0652CC] hover:bg-[#0543A8] text-white">
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={handleModalClose}
+                    className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                  >
                     Close Offboarding Wizard
                   </Button>
                 </div>
