@@ -75,7 +75,7 @@ export interface LeadContract {
   plan: string;
   quoteId?: string;
   annualValue: number;
-  status: 'DRAFT' | 'SENT_FOR_SIGNATURE' | 'PARTIALLY_SIGNED' | 'FULLY_SIGNED' | 'EXPIRED';
+  status: 'DRAFT' | 'SENT_FOR_SIGNATURE' | 'PARTIALLY_SIGNED' | 'SIGNED' | 'FULLY_SIGNED' | 'EXPIRED';
   effectiveDate: string;
   docusignEnvelopeId?: string;
   signedAt?: string;
@@ -106,12 +106,12 @@ export interface LeadProvisioning {
   organizationName?: string;
   domain?: string;
   adminEmail?: string;
-  adminTempPassword?: string;
+  adminLinked?: boolean;
   engagementType?: string;
   web3AccessUrl?: string;
   completedAt?: string;
   failureReason?: string;
-  checklist: ProvisioningChecklist;
+  checklist?: ProvisioningChecklist;
 }
 
 export interface StageAuditEntry {
@@ -126,6 +126,8 @@ export interface StageAuditEntry {
 export interface LeadDto {
   id: string;
   company: string;
+  companyName?: string;
+  title?: string;
   contactName: string;
   email: string;
   phone?: string;

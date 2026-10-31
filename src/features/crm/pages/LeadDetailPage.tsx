@@ -19,10 +19,13 @@ import { CreateContractModal } from '../components/CreateContractModal';
 import { ContractPreviewModal } from '../components/ContractPreviewModal';
 import { ManageStageModal } from '../components/ManageStageModal';
 import { CustomerActivationModal } from '../components/CustomerActivationModal';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const navigate = useNavigate();
+  const { hasPermission } = useAuth();
+  const canCreateContracts = hasPermission('sales.leads.manage');
 
   const [lead, setLead] = useState<LeadDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,6 +44,7 @@ export const LeadDetailPage: React.FC = () => {
   // Selected Documents for Preview Modals
   const [previewQuote, setPreviewQuote] = useState<LeadQuote | null>(null);
   const [previewContract, setPreviewContract] = useState<LeadContract | null>(null);
+  const [initialContractQuoteId, setInitialContractQuoteId] = useState<string | undefined>();
 
   const fetchLead = async () => {
     if (!leadId) return;
@@ -81,7 +85,15 @@ export const LeadDetailPage: React.FC = () => {
     );
   }
 
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED');
+  const companyCandidate = [lead.company, lead.companyName].find(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  );
+  const titleCandidate = typeof lead.title === 'string' ? lead.title.trim() : '';
+  const leadDisplayName = companyCandidate?.trim()
+    || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
+    || lead.contactName?.trim()
+    || `Lead ${lead.id.slice(0, 8)}`;
+  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
   const isWon = lead.stage === 'WON';
 
   return (
@@ -118,7 +130,7 @@ export const LeadDetailPage: React.FC = () => {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{lead.company}</h1>
+              <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{leadDisplayName}</h1>
               <span className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
                 Score: {lead.score}
               </span>
@@ -160,13 +172,15 @@ export const LeadDetailPage: React.FC = () => {
             Create Quote
           </button>
 
-          <button
-            onClick={() => setShowCreateContractModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
-          >
-            <FileText className="w-4 h-4 text-blue-600" />
-            Create Contract
-          </button>
+          {canCreateContracts && (
+            <button
+              onClick={() => { setInitialContractQuoteId(undefined); setShowCreateContractModal(true); }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-blue-600" />
+              Create Contract
+            </button>
+          )}
 
           <button
             onClick={() => setShowManageStageModal(true)}
@@ -520,7 +534,7 @@ export const LeadDetailPage: React.FC = () => {
                     <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
                     <td className="py-3 px-3">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        c.status === 'FULLY_SIGNED' ? 'bg-emerald-100 text-emerald-800' :
+                        c.status === 'FULLY_SIGNED' || c.status === 'SIGNED' ? 'bg-emerald-100 text-emerald-800' :
                         c.status === 'SENT_FOR_SIGNATURE' ? 'bg-blue-100 text-blue-800' :
                         'bg-slate-100 text-slate-700'
                       }`}>
@@ -657,7 +671,7 @@ export const LeadDetailPage: React.FC = () => {
       <LogInteractionModal
         isOpen={showLogCallModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         onClose={() => setShowLogCallModal(false)}
         onSuccess={() => {
           fetchLead();
@@ -669,7 +683,7 @@ export const LeadDetailPage: React.FC = () => {
       <ScheduleDemoModal
         isOpen={showDemoModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadEmail={lead.email}
         onClose={() => setShowDemoModal(false)}
         onSuccess={() => {
@@ -682,7 +696,7 @@ export const LeadDetailPage: React.FC = () => {
       <CreateQuoteModal
         isOpen={showCreateQuoteModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         onClose={() => setShowCreateQuoteModal(false)}
         onSuccess={(quote) => {
           fetchLead();
@@ -695,7 +709,7 @@ export const LeadDetailPage: React.FC = () => {
       <QuotePreviewModal
         isOpen={!!previewQuote}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadContact={lead.contactName}
         leadEmail={lead.email}
         quote={previewQuote}
@@ -704,7 +718,8 @@ export const LeadDetailPage: React.FC = () => {
           setPreviewQuote(updated);
           fetchLead();
         }}
-        onCreateContractFromQuote={() => {
+        onCreateContractFromQuote={(quote) => {
+          setInitialContractQuoteId(quote.id);
           setShowCreateContractModal(true);
         }}
       />
@@ -712,8 +727,10 @@ export const LeadDetailPage: React.FC = () => {
       <CreateContractModal
         isOpen={showCreateContractModal}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         quotes={lead.quotes}
+        initialQuoteId={initialContractQuoteId}
+        canCreateContract={canCreateContracts}
         onClose={() => setShowCreateContractModal(false)}
         onSuccess={(contract) => {
           fetchLead();
@@ -726,7 +743,7 @@ export const LeadDetailPage: React.FC = () => {
       <ContractPreviewModal
         isOpen={!!previewContract}
         leadId={lead.id}
-        leadCompany={lead.company}
+        leadCompany={leadDisplayName}
         leadContact={lead.contactName}
         leadEmail={lead.email}
         contract={previewContract}
@@ -757,10 +774,11 @@ export const LeadDetailPage: React.FC = () => {
       <CustomerActivationModal
         isOpen={showActivationModal}
         lead={lead}
+        canActivate={canCreateContracts}
         onClose={() => setShowActivationModal(false)}
         onSuccess={(updated) => {
           setLead(updated);
-          setSuccessMsg(`Customer successfully activated and transitioned to Won!`);
+          setSuccessMsg('Customer organization provisioned and lead converted to Won.');
           setTimeout(() => setSuccessMsg(null), 4000);
         }}
       />

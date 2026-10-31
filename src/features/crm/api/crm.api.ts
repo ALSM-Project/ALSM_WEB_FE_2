@@ -153,6 +153,7 @@ export const crmApi = {
 
   createContract: async (
     leadId: string,
+    requestId: string,
     data: {
       title: string;
       plan: string;
@@ -161,24 +162,35 @@ export const crmApi = {
       effectiveDate?: string;
     }
   ): Promise<LeadContract> => {
-    try {
-      const res = await apiClient.post<LeadContract>(`/sales/crm/leads/${leadId}/contracts`, data);
-      if (res && res.id) {
-        crmStore.createContract(leadId, data);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.createContract(leadId, data);
+    const res = await apiClient.post<{ contract: LeadContract }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts`,
+      data,
+      { headers: { 'Idempotency-Key': requestId } },
+    );
+    return res.contract;
   },
 
-  sendContractForSignature: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.sendContractForSignature(leadId, contractId);
+  sendContractForSignature: async (
+    leadId: string,
+    contractId: string,
+  ): Promise<{ contract: LeadContract; notificationSent: boolean }> => {
+    const response = await apiClient.post<{ lead: LeadDto; notificationSent: boolean }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/send`,
+      {},
+    );
+    const contract = response.lead.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The sent contract could not be loaded. Refresh the lead and try again.');
+    return { contract, notificationSent: response.notificationSent };
   },
 
   simulateSignContract: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.simulateSignContract(leadId, contractId);
+    const updated = await apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
+    const contract = updated.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The signed contract could not be loaded. Refresh the lead and try again.');
+    return contract;
   },
 
   confirmPayment: async (leadId: string, transactionRef?: string): Promise<LeadDto> => {
@@ -189,28 +201,29 @@ export const crmApi = {
     return crmStore.setPaymentPolicy(leadId, required);
   },
 
-  activateCustomer: async (
-    leadId: string,
-    options?: {
-      paymentRequired?: boolean;
-      simulateFailure?: boolean;
-    }
-  ): Promise<{
+  activateCustomer: async (leadId: string): Promise<{
     lead: LeadDto;
     organizationId: string;
-    adminEmail: string;
-    web3Url: string;
+    adminLinked: boolean;
+    replayed: boolean;
   }> => {
-    return crmStore.activateCustomer(leadId, options);
+    return apiClient.post<{
+      lead: LeadDto;
+      organizationId: string;
+      adminLinked: boolean;
+      replayed: boolean;
+    }>(`/sales/crm/leads/${encodeURIComponent(leadId)}/activate`, {});
   },
 
   // Legacy compatibility for any code that calls signContract
   signContract: async (
     leadId: string,
     contractId: string
-  ): Promise<{ lead: LeadDto; organizationId: string; adminEmail: string; web3Url: string }> => {
-    crmStore.simulateSignContract(leadId, contractId);
-    return crmStore.activateCustomer(leadId);
+  ): Promise<LeadDto> => {
+    return apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
   },
 
   getReports: async (filters?: {

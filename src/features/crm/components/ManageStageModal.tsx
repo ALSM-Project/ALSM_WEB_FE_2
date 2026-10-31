@@ -69,7 +69,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
     }
   };
 
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED');
+  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
 
   return (
     <Modal
