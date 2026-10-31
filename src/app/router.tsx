@@ -28,6 +28,7 @@ import {
   EngagementTypesPage,
 } from '@/features/admin';
 import { TeamLeadProjectsPage } from '@/features/team-lead/pages/TeamLeadProjectsPage';
+import { ResourceTransferApprovalPage } from '@/features/team-lead/pages/ResourceTransferApprovalPage';
 import { EmployeeWorkQueuePage } from '@/features/employees/pages/EmployeeWorkQueuePage';
 import {
   PartnerListPage,
@@ -149,6 +150,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="teams.manage">
             <TeamLeadProjectsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/resource-transfers',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <ResourceTransferApprovalPage />
           </PermissionGuard>
         ),
       },

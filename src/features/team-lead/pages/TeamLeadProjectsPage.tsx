@@ -207,6 +207,13 @@ export const TeamLeadProjectsPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
           <Link
+            to="/team-lead/resource-transfers"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 text-[#0652CC]" />
+            Transfer Approvals (UC-88)
+          </Link>
+          <Link
             to="/admin/projects"
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
           >
