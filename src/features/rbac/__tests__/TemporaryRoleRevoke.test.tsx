@@ -170,7 +170,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
 
-    expect(screen.getByText(/Revoke Temporary Elevation Immediately/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: /(Revoke Temporary Role|Revoke Temporary Elevation Immediately)/i })).toBeInTheDocument();
     expect(screen.getAllByText(/Alice Developer/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/TEAM_LEAD/i).length).toBeGreaterThan(0);
   });
@@ -189,12 +189,12 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
-    expect(screen.getByText(/Revoke Temporary Elevation Immediately/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 3, name: /(Revoke Temporary Role|Revoke Temporary Elevation Immediately)/i })).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelBtn);
 
-    expect(screen.queryByText(/Revoke Temporary Elevation Immediately/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 3, name: /(Revoke Temporary Role|Revoke Temporary Elevation Immediately)/i })).not.toBeInTheDocument();
     expect(temporaryRolesApi.revokeRole).not.toHaveBeenCalled();
   });
 

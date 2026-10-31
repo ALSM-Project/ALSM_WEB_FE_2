@@ -16,6 +16,106 @@ export interface TemporaryRoleDto {
   revokedBy?: string;
   revokeReason?: string;
   targetProject?: string;
+  scopeType?: string;
+  scopeId?: string;
+}
+
+export interface EligibleStaffItem {
+  id: string;
+  fullName: string;
+  email: string;
+  employeeId: string;
+  department: string;
+  assignedTeam: string;
+  currentRoles: string[];
+  accountStatus: 'ACTIVE' | 'LOCKED' | 'DEACTIVATED';
+  isEligible: boolean;
+  ineligibilityReason?: string | null;
+  hasActiveTemporaryRole: boolean;
+  activeTemporaryRole?: {
+    roleId: string;
+    expiresAt: string;
+    durationHours: number;
+  };
+  hasPendingRequest: boolean;
+  pendingRequest?: {
+    roleId: string;
+    requestedAt: string;
+    durationHours: number;
+  };
+}
+
+export interface EligibleStaffResponse {
+  items: EligibleStaffItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  departmentOptions: string[];
+  roleOptions: string[];
+}
+
+export interface EligibleStaffQueryParams {
+  search?: string;
+  department?: string;
+  currentRole?: string;
+  accountStatus?: string;
+  eligibility?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface ElevationRoleCatalogItem {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  permissionCount: number;
+  permissions: string[];
+  modules: string[];
+  sensitivePermissions: string[];
+}
+
+export interface StaffElevationProfileResponse {
+  staff: {
+    id: string;
+    fullName: string;
+    email: string;
+    employeeId: string;
+    isPlatformAdmin: boolean;
+    isActive: boolean;
+    isLocked: boolean;
+    accountStatus: 'ACTIVE' | 'LOCKED' | 'DEACTIVATED';
+    currentRoles: string[];
+  };
+  permissionsSummary: string[];
+  activeTemporaryRoles: Array<{
+    id: string;
+    roleId: string;
+    durationHours: number;
+    grantedAt?: string;
+    expiresAt?: string;
+    remainingMinutes: number;
+    reason: string;
+  }>;
+  pendingRequests: Array<{
+    id: string;
+    roleId: string;
+    durationHours: number;
+    requestedAt?: string;
+    reason: string;
+  }>;
+  recentHistory: Array<{
+    id: string;
+    roleId: string;
+    status: string;
+    durationHours: number;
+    createdAt?: string;
+  }>;
+  isEligible: boolean;
+  ineligibilityReasons: string[];
 }
 
 type UserRef = string | { _id?: string; id?: string; fullName?: string; email?: string } | undefined;
@@ -97,13 +197,29 @@ export const temporaryRolesApi = {
     return apiClient.get<string>(`${BASE}/history/export`);
   },
 
+  /** Discover eligible internal staff with pagination, filters, and PAM assessment */
+  getEligibleStaff: async (params?: EligibleStaffQueryParams): Promise<EligibleStaffResponse> => {
+    return apiClient.get<EligibleStaffResponse>(`${BASE}/eligible-staff`, { params });
+  },
+
+  /** Get detailed staff elevation profile and eligibility assessment */
+  getStaffElevationProfile: async (staffId: string): Promise<StaffElevationProfileResponse> => {
+    return apiClient.get<StaffElevationProfileResponse>(`${BASE}/staff/${staffId}/elevation-profile`);
+  },
+
+  /** Get elevation role catalogue with permission breakdowns */
+  getElevationCatalog: async (): Promise<ElevationRoleCatalogItem[]> => {
+    return apiClient.get<ElevationRoleCatalogItem[]>(`${BASE}/elevation-catalog`);
+  },
+
   grantRole: async (data: {
     targetUserId: string;
     role: string;
     durationHours: number;
     reason: string;
-    /** Project the elevation is for, when one was chosen. */
     projectId?: string;
+    scopeType?: string;
+    scopeId?: string;
   }): Promise<TemporaryRoleDto> => {
     const doc = await apiClient.post<ServerTemporaryRole>(BASE, {
       targetUserId: data.targetUserId,
@@ -111,6 +227,8 @@ export const temporaryRolesApi = {
       durationHours: data.durationHours,
       reason: data.reason,
       ...(data.projectId ? { projectId: data.projectId } : {}),
+      ...(data.scopeType ? { scopeType: data.scopeType } : {}),
+      ...(data.scopeId ? { scopeId: data.scopeId } : {}),
     });
     return toTemporaryRole(doc);
   },
