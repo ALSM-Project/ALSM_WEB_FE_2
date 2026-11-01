@@ -91,6 +91,13 @@ describe('OrganizationsPage - Customer Support & Read-Only Access', () => {
     expect(screen.getAllByRole('button', { name: /Support View/i }).length).toBe(2);
   });
 
+  it('does not expose organisation management actions to a view-only user', async () => {
+    render(<OrganizationsPage />, { wrapper: createWrapper(['organizations.view']) });
+    await screen.findByText('Acme Corporation');
+
+    expect(screen.queryByRole('button', { name: /New Enterprise Org/i })).not.toBeInTheDocument();
+  });
+
   it('filters organisations by contact email search', async () => {
     render(<OrganizationsPage />, { wrapper: createWrapper() });
 
@@ -135,9 +142,20 @@ describe('OrganizationsPage - Customer Support & Read-Only Access', () => {
   it('shows an empty directory without fabricated organisations', async () => {
     vi.mocked(adminApi.getOrganizations).mockResolvedValue([]);
     render(<OrganizationsPage />, { wrapper: createWrapper() });
-    await screen.findByText('No organisations match your search criteria.');
+    await screen.findByText('No organisations are available yet.');
     expect(screen.queryByText('Acme Corporation')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Support View/i })).not.toBeInTheDocument();
+  });
+
+  it('shows server project counts instead of deriving values from organisation names', async () => {
+    vi.mocked(adminApi.getOrganizations).mockResolvedValue([
+      { ...mockOrgs[0], name: 'Acme Corporation', projectCount: 0, memberCount: 0 },
+    ]);
+    render(<OrganizationsPage />, { wrapper: createWrapper() });
+
+    await screen.findByText('Acme Corporation');
+    expect(screen.getByText('0 projects')).toBeInTheDocument();
+    expect(screen.getByText('0 members')).toBeInTheDocument();
   });
 
   it('shows a recoverable directory failure without fabricated organisations or internal details', async () => {

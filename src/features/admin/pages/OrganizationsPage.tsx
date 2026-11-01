@@ -4,7 +4,7 @@ import {
   Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2,
   FolderKanban, Users, AlertCircle, ArrowRight, ArrowLeft
 } from 'lucide-react';
-import { adminApi, OrganizationDto, EngagementTypeDto } from '../api/admin.api';
+import { adminApi, OrganizationDto, EngagementTypeDto, OrganizationInvitationStatus } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
 import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -13,9 +13,10 @@ export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
   const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
+  const canManageOrganizations = Boolean(user) && hasPermission('organizations.manage');
 
   const [organizations, setOrganizations] = useState<OrganizationDto[]>([]);
-  const [, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
+  const [engagementTypes, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,12 +30,14 @@ export const OrganizationsPage: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [inviteWarning, setInviteWarning] = useState(false);
+  const [requestId, setRequestId] = useState('');
 
   const [newOrg, setNewOrg] = useState({
     name: '',
     domain: '',
     adminEmail: '',
-    engagementType: 'ENTERPRISE_T1',
+    engagementType: 'Enterprise Pilot',
     trialDays: 30,
   });
 
@@ -48,8 +51,13 @@ export const OrganizationsPage: React.FC = () => {
       ]);
       setOrganizations(orgs);
       setEngagementTypes(types);
+      const activeNames = types.filter((type) => type.isActive).map((type) => type.name);
+      if (activeNames.length) {
+        setNewOrg((current) => activeNames.includes(current.engagementType)
+          ? current
+          : { ...current, engagementType: activeNames[0] });
+      }
     } catch {
-      setOrganizations([]);
       setLoadError('Unable to load organisations. Please try again.');
     } finally {
       setLoading(false);
@@ -75,6 +83,14 @@ export const OrganizationsPage: React.FC = () => {
       setFormError('Please enter a valid admin email address format (e.g. name@domain.com).');
       return false;
     }
+    if (newOrg.domain.trim() && !/^(?=.{1,253}$)(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(newOrg.domain.trim())) {
+      setFormError('Enter a valid domain name, such as company.com.');
+      return false;
+    }
+    if (!Number.isInteger(newOrg.trialDays) || newOrg.trialDays < 1 || newOrg.trialDays > 3650) {
+      setFormError('Trial period must be between 1 and 3650 days.');
+      return false;
+    }
     return true;
   };
 
@@ -86,47 +102,50 @@ export const OrganizationsPage: React.FC = () => {
   };
 
   const handleConfirmProvisioning = async () => {
+    if (submitting || !canManageOrganizations) return;
     try {
       setSubmitting(true);
       setFormError(null);
-
-      let createdId = `org-${newOrg.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-      let tempPassword = 'DefaultSecurePass123!';
-
-      const res = await adminApi.createEnterpriseOrganization(newOrg);
-      if (res.organization?.id) createdId = res.organization.id;
-      if (res.temporaryPassword) tempPassword = res.temporaryPassword;
-
-      const createdRecord: OrganizationDto = {
-        id: createdId,
+      const currentRequestId = requestId || window.crypto.randomUUID();
+      setRequestId(currentRequestId);
+      const res = await adminApi.createEnterpriseOrganization({
         name: newOrg.name.trim(),
-        domain: newOrg.domain.trim() || `${newOrg.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-        contactEmail: newOrg.adminEmail.trim(),
-        type: newOrg.engagementType === 'MANAGED_PARTNER' ? 'PARTNER' : 'ENTERPRISE',
-        status: 'ACTIVE',
+        domain: newOrg.domain.trim() || undefined,
+        contactEmail: newOrg.adminEmail.trim().toLowerCase(),
         engagementType: newOrg.engagementType,
-        memberCount: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        trialDays: newOrg.trialDays,
+        requestId: currentRequestId,
+      });
+      setOrganizations((prev) => [res.organization, ...prev.filter((org) => org.id !== res.organization.id)]);
+      const warning = res.invitationStatus === 'FAILED' || res.invitationStatus === 'PENDING';
+      setInviteWarning(warning);
+      const messages: Record<OrganizationInvitationStatus, string> = {
+        SENT: `Organisation “${res.organization.name}” was created. A secure account setup link was sent to ${newOrg.adminEmail.trim()}.`,
+        NOT_REQUIRED: `Organisation “${res.organization.name}” was created and linked to the existing administrator account.`,
+        FAILED: `Organisation “${res.organization.name}” was created, but the setup email could not be sent. Ask the administrator to use Forgot password.`,
+        PENDING: `Organisation “${res.organization.name}” was created. The account setup email is pending; ask the administrator to use Forgot password if it does not arrive.`,
       };
-
-      setOrganizations((prev) => [createdRecord, ...prev]);
       setShowCreateModal(false);
       setCreateStep(1);
-      setSuccessMsg(
-        `Organisation "${newOrg.name}" successfully provisioned! Admin account (${newOrg.adminEmail}) simulated with temporary key: ${tempPassword}`
-      );
+      setSuccessMsg(messages[res.invitationStatus]);
+      setRequestId('');
       setNewOrg({
         name: '',
         domain: '',
         adminEmail: '',
-        engagementType: 'ENTERPRISE_T1',
+        engagementType: 'Enterprise Pilot',
         trialDays: 30,
       });
+      void fetchData();
       setTimeout(() => setSuccessMsg(null), 6000);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to provision enterprise organisation';
-      setFormError(msg);
+      const error = err as { status?: number; response?: { status?: number; data?: { message?: string | string[] } } };
+      const status = error.status ?? error.response?.status;
+      const message = error.response?.data?.message;
+      if (status === 400) setFormError(Array.isArray(message) ? message.join(' ') : message || 'Check the organisation details and try again.');
+      else if (status === 403) setFormError('You do not have permission to create organisations.');
+      else if (status === 409) setFormError(typeof message === 'string' ? message : 'An organisation with these details already exists.');
+      else setFormError('The organisation could not be created right now. Your request is safe to retry.');
     } finally {
       setSubmitting(false);
     }
@@ -193,22 +212,27 @@ export const OrganizationsPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
+            disabled={loading}
+            aria-busy={loading}
             className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button
-            onClick={() => {
-              setCreateStep(1);
-              setFormError(null);
-              setShowCreateModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            New Enterprise Org
-          </button>
+          {canManageOrganizations && (
+            <button
+              onClick={() => {
+                setCreateStep(1);
+                setFormError(null);
+                setRequestId(window.crypto.randomUUID());
+                setShowCreateModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Enterprise Org
+            </button>
+          )}
         </div>
       </div>
 
@@ -219,7 +243,7 @@ export const OrganizationsPage: React.FC = () => {
 
       {/* Alert Messages */}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+        <div role="status" className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center justify-between ${inviteWarning ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
@@ -236,6 +260,7 @@ export const OrganizationsPage: React.FC = () => {
               type="text"
               aria-label="Search organisations"
               placeholder="Search by organisation name or contact email..."
+              maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
@@ -309,7 +334,7 @@ export const OrganizationsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#E5EAF0]" aria-live="polite" aria-busy={loading}>
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
@@ -319,17 +344,25 @@ export const OrganizationsPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                    The organisation directory could not be loaded. Use Refresh to try again.
+                  </td>
+                </tr>
               ) : filteredOrgs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
                     <Building className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
-                    No organisations match your search criteria.
+                    {organizations.length === 0
+                      ? 'No organisations are available yet.'
+                      : 'No organisations match your search criteria.'}
                   </td>
                 </tr>
               ) : (
                 filteredOrgs.map((org) => {
-                  const projectCount = org.name.includes('Acme') ? 3 : org.name.includes('Fintech') ? 2 : 1;
-                  const memberCount = org.memberCount ?? org.members?.length ?? 5;
+                  const projectCount = org.projectCount ?? 0;
+                  const memberCount = org.memberCount ?? org.members?.length ?? 0;
                   return (
                     <tr
                       key={org.id}
@@ -416,6 +449,7 @@ export const OrganizationsPage: React.FC = () => {
       <Modal
         isOpen={showCreateModal}
         onClose={() => {
+          if (submitting) return;
           setShowCreateModal(false);
           setCreateStep(1);
         }}
@@ -476,10 +510,10 @@ export const OrganizationsPage: React.FC = () => {
                   onChange={(e) => setNewOrg({ ...newOrg, engagementType: e.target.value })}
                   className="w-full px-3 py-2 border border-[#D9E2EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
                 >
-                  <option value="ENTERPRISE_T1">Enterprise Tier 1 (Unlimited)</option>
-                  <option value="ENTERPRISE_T2">Enterprise Tier 2 (Standard)</option>
-                  <option value="MANAGED_PARTNER">Managed Partner Engagement</option>
-                  <option value="STANDARD">Standard Self-Service Tier</option>
+                  {(engagementTypes.filter((type) => type.isActive).length
+                    ? engagementTypes.filter((type) => type.isActive).map((type) => type.name)
+                    : ['Trial', 'Enterprise Pilot', 'Enterprise Production']
+                  ).map((name) => <option key={name} value={name}>{name}</option>)}
                 </select>
               </div>
               <div>
@@ -497,6 +531,7 @@ export const OrganizationsPage: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={submitting}
                 onClick={() => setShowCreateModal(false)}
               >
                 Cancel
@@ -538,9 +573,8 @@ export const OrganizationsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-              <span className="font-bold block mb-0.5">Simulated Provisioning Notice:</span>
-              On confirmation, the organisation will be instantiated in local mock state and accessible in the directory. A simulated temporary password will be issued without sending external emails.
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-[11px] leading-relaxed">
+              The organisation and its initial administrator will be created. If the email is new, the administrator receives a secure, expiring link to set a password.
             </div>
 
             {formError && (
@@ -554,6 +588,7 @@ export const OrganizationsPage: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={submitting}
                 onClick={() => setCreateStep(1)}
               >
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
@@ -564,6 +599,7 @@ export const OrganizationsPage: React.FC = () => {
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={submitting}
                   onClick={() => setShowCreateModal(false)}
                 >
                   Cancel

@@ -11,6 +11,8 @@ export interface OrganizationDto {
   memberCount?: number;
   trialExpiresAt?: string;
   limits?: {
+    maxScreens?: number;
+    maxPrograms?: number;
     maxProjects: number;
     maxConversionsPerMonth: number;
     maxStorageGb: number;
@@ -64,12 +66,24 @@ export interface EngagementTypeDto {
   name: string;
   code: string;
   description?: string;
+  price?: number;
+  trialLimits?: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
+  usageLimits?: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
   features: string[];
+  includesCobolConversion?: boolean;
   supportTier: string;
   slaHours: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
+
+export type OrganizationInvitationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'NOT_REQUIRED';
+
+export type UpdateEngagementTypeRequest = Partial<Pick<EngagementTypeDto,
+  'name' | 'code' | 'description' | 'price' | 'trialLimits' | 'usageLimits' |
+  'features' | 'includesCobolConversion' | 'supportTier' | 'slaHours' | 'isActive'
+>>;
 
 export interface RevenueSummaryDto {
   totalRevenue: number;
@@ -106,12 +120,13 @@ export const adminApi = {
 
   createEnterpriseOrganization: async (data: {
     name: string;
-    domain: string;
-    adminEmail: string;
-    engagementType?: string;
+    domain?: string;
+    contactEmail: string;
+    engagementType: string;
     trialDays?: number;
-  }): Promise<{ organization: OrganizationDto; temporaryPassword?: string }> => {
-    return apiClient.post<{ organization: OrganizationDto; temporaryPassword?: string }>(
+    requestId: string;
+  }): Promise<{ organization: OrganizationDto; invitationStatus: OrganizationInvitationStatus; replayed: boolean }> => {
+    return apiClient.post<{ organization: OrganizationDto; invitationStatus: OrganizationInvitationStatus; replayed: boolean }>(
       '/admin/organizations/enterprise',
       data
     );
@@ -122,7 +137,8 @@ export const adminApi = {
     data: {
       engagementType?: string;
       status?: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
-      limits?: Partial<OrganizationDto['limits']>;
+      trialExpiresAt?: string;
+      limits?: Partial<NonNullable<OrganizationDto['limits']>>;
     }
   ): Promise<OrganizationDto> => {
     return apiClient.patch<OrganizationDto>(`/admin/organizations/${id}/engagement`, data);
@@ -136,16 +152,21 @@ export const adminApi = {
     name: string;
     code: string;
     description?: string;
+    price: number;
+    trialLimits: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
+    usageLimits: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
     features?: string[];
+    includesCobolConversion: boolean;
     supportTier?: string;
     slaHours?: number;
-  }): Promise<EngagementTypeDto> => {
-    return apiClient.post<EngagementTypeDto>('/admin/engagement-types', data);
+    requestId: string;
+  }): Promise<{ engagementType: EngagementTypeDto; replayed: boolean }> => {
+    return apiClient.post<{ engagementType: EngagementTypeDto; replayed: boolean }>('/admin/engagement-types', data);
   },
 
   updateEngagementType: async (
     id: string,
-    data: Partial<EngagementTypeDto>
+    data: UpdateEngagementTypeRequest
   ): Promise<EngagementTypeDto> => {
     return apiClient.patch<EngagementTypeDto>(`/admin/engagement-types/${id}`, data);
   },
