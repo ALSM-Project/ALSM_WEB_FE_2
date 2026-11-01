@@ -341,7 +341,21 @@ describe('Platform Administration UI Enhancements', () => {
 
   describe('Feature F: Engagement Type Management', () => {
     it('renders engagement types with search, trial and usage limits, and shows warning if limits reduced', async () => {
-      vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([]);
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([{
+        id: 'plan-premium',
+        name: 'Enterprise Tier 1 (Unlimited Acceleration)',
+        code: 'ENTERPRISE_T1',
+        description: 'Premium enterprise plan',
+        price: 36000,
+        trialLimits: { maxScreens: 30, maxPrograms: 15, maxStorageGb: 10 },
+        usageLimits: { maxScreens: 500, maxPrograms: 200, maxStorageGb: 150 },
+        features: ['AST Grammar Verification', 'COBOL 85 Modernizer'],
+        includesCobolConversion: true,
+        supportTier: 'PREMIER',
+        slaHours: 4,
+        isActive: true,
+        createdAt: '2026-01-15T08:00:00Z',
+      }]);
 
       renderWithContext(<EngagementTypesPage />);
 
@@ -366,6 +380,43 @@ describe('Platform Administration UI Enhancements', () => {
       // Warning notice should dynamically appear
       expect(screen.getByText(/Quota Reduction Detected/i)).toBeInTheDocument();
       expect(screen.getByText(/affected customer tenant organisations will receive simulated update notices/i)).toBeInTheDocument();
+    });
+
+    it('creates an engagement type through the API and refreshes the persisted catalog', async () => {
+      const createdPlan = {
+        id: 'plan-new',
+        name: 'New Enterprise Plan',
+        code: 'NEW_ENTERPRISE_PLAN',
+        description: 'New plan description',
+        price: 18000,
+        trialLimits: { maxScreens: 15, maxPrograms: 8, maxStorageGb: 5 },
+        usageLimits: { maxScreens: 150, maxPrograms: 60, maxStorageGb: 50 },
+        features: ['BMS conversion'],
+        includesCobolConversion: true,
+        supportTier: 'STANDARD',
+        slaHours: 12,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValueOnce([]).mockResolvedValueOnce([createdPlan]);
+      vi.mocked(adminApi.createEngagementType).mockResolvedValue({ engagementType: createdPlan, replayed: false });
+
+      renderWithContext(<EngagementTypesPage />);
+      fireEvent.click(await screen.findByRole('button', { name: /Create Engagement Type/i }));
+      fireEvent.change(screen.getByPlaceholderText('Enterprise Pro Plus'), { target: { value: 'New Enterprise Plan' } });
+      fireEvent.change(screen.getByPlaceholderText('Targeted at tier-1 enterprise migrations'), { target: { value: 'New plan description' } });
+      const submitButtons = screen.getAllByRole('button', { name: /Create Engagement Type/i });
+      fireEvent.click(submitButtons[submitButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(adminApi.createEngagementType).toHaveBeenCalledWith(expect.objectContaining({
+          name: 'New Enterprise Plan',
+          code: 'NEW_ENTERPRISE_PLAN',
+          requestId: expect.any(String),
+        }));
+        expect(screen.getByText(/was created and saved to the platform catalog/i)).toBeInTheDocument();
+        expect(screen.getByText('New Enterprise Plan')).toBeInTheDocument();
+      });
     });
   });
 
