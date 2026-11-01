@@ -87,10 +87,29 @@ describe('temporaryRolesApi talks to the routes the backend has', () => {
       reason: 'No project context',
     });
 
+    await temporaryRolesApi.approveRequest({
+      requestId: 'r-1',
+      approved: true,
+      durationHours: 6,
+    });
+    expect(apiClient.post).toHaveBeenLastCalledWith('/rbac/temporary-roles/requests/r-1/review', {
+      approved: true,
+      durationHours: 6,
+    });
+
     await temporaryRolesApi.revokeRole({ assignmentId: 'tr-1', reason: 'Work finished early' });
     expect(apiClient.post).toHaveBeenLastCalledWith('/rbac/temporary-roles/tr-1/revoke', {
       reason: 'Work finished early',
     });
+  });
+
+  it('fetches requester personal requests through getMyRequests (UC-95)', async () => {
+    vi.mocked(apiClient.get).mockResolvedValueOnce([stored({ id: 'tr-my-1', requestStatus: 'PENDING' })]);
+    const myRequests = await temporaryRolesApi.getMyRequests();
+    expect(apiClient.get).toHaveBeenCalledWith('/rbac/temporary-roles/my-requests');
+    expect(myRequests).toHaveLength(1);
+    expect(myRequests[0].id).toBe('tr-my-1');
+    expect(myRequests[0].status).toBe('PENDING');
   });
 
   it('lists only running elevations as active and keeps everything in the history', async () => {

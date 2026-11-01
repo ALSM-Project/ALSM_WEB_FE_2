@@ -292,7 +292,9 @@ export const TemporaryRolesPage: React.FC = () => {
       await temporaryRolesApi.approveRequest({
         requestId: approveTarget.id,
         approved: true,
-        durationHours: approveDuration,
+        ...(approveDuration && approveDuration !== approveTarget.durationHours
+          ? { durationHours: approveDuration }
+          : {}),
       });
       await fetchData();
       setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveDuration} hours.`);
