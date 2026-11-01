@@ -135,16 +135,47 @@ export const crmApi = {
       discountReason?: string;
     }
   ): Promise<LeadQuote> => {
-    try {
-      const res = await apiClient.post<LeadQuote>(`/sales/crm/leads/${leadId}/quotes`, data);
-      if (res && res.id) {
-        crmStore.createQuote(leadId, data);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.createQuote(leadId, data);
+    const lead = await apiClient.post<LeadDto>(`/sales/crm/leads/${encodeURIComponent(leadId)}/quotes`, {
+      planName: data.plan,
+      projectScope: data.projectScope,
+      amount: data.basePrice,
+      discountPercent: data.discountPercent,
+      discountReason: data.discountReason,
+    });
+    const saved = lead.quotes?.[lead.quotes.length - 1] as unknown as ({
+      id?: string;
+      quoteNumber?: string;
+      plan?: string;
+      planName?: string;
+      projectScope?: string;
+      amount?: number;
+      basePrice?: number;
+      discountPercent?: number;
+      approvalStatus?: LeadQuote['approvalStatus'];
+      status: string;
+      discountApproved?: boolean;
+      discountReason?: string;
+      approvedBy?: string;
+      approvedAt?: string;
+      rejectionReason?: string;
+      sentAt?: string;
+      createdAt?: string;
+    } | undefined);
+    if (!saved?.id) throw new Error('The quote was not returned by the server. Refresh the lead and try again.');
+    const amount = Number(saved.amount ?? saved.basePrice ?? data.basePrice);
+    const discountPercent = Number(saved.discountPercent ?? data.discountPercent ?? 0);
+    return {
+      ...saved,
+      quoteNumber: saved.quoteNumber || saved.id,
+      plan: saved.plan || saved.planName || data.plan,
+      basePrice: amount,
+      finalPrice: Math.round(amount * (1 - discountPercent / 100)),
+      discountPercent,
+      requiresApproval: saved.status === 'PENDING_APPROVAL',
+      approvalStatus: saved.approvalStatus || (saved.status === 'PENDING_APPROVAL' ? 'PENDING' : 'APPROVED'),
+      status: (saved.status === 'PENDING_APPROVAL' ? 'DRAFT' : saved.status) as LeadQuote['status'],
+      createdAt: saved.createdAt || new Date().toISOString(),
+    } as LeadQuote;
   },
 
   acceptQuote: async (leadId: string, quoteId: string): Promise<LeadQuote> => {
@@ -270,39 +301,24 @@ export const crmApi = {
   },
 
   getPendingDiscounts: async (): Promise<PendingDiscountDto[]> => {
-    try {
-      const data = await apiClient.get<PendingDiscountDto[]>('/sales/crm/discounts/pending');
-      if (Array.isArray(data)) return data;
-    } catch {
-      // Fallback
-    }
-    return crmStore.getPendingDiscounts();
+    return apiClient.get<PendingDiscountDto[]>('/sales/crm/discounts/requests');
   },
 
   reviewDiscount: async (data: {
     leadId: string;
     quoteId: string;
-    approved: boolean;
-    rejectionReason?: string;
-    escalateToVP?: boolean;
-    reviewer?: string;
-  }): Promise<{ message: string }> => {
-    try {
-      const res = await apiClient.post<{ message: string }>('/sales/crm/discounts/review', data);
-      if (res && res.message) {
-        crmStore.reviewDiscount(data.leadId, data.quoteId, data.approved, data.rejectionReason, data.escalateToVP, data.reviewer);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    crmStore.reviewDiscount(data.leadId, data.quoteId, data.approved, data.rejectionReason, data.escalateToVP, data.reviewer);
-    return {
-      message: data.escalateToVP
-        ? 'Quote discount escalated to VP of Sales for executive approval.'
-        : data.approved
-        ? 'Quote discount approved successfully.'
-        : 'Quote discount rejected.',
-    };
+    outcome: 'APPROVE' | 'REJECT' | 'ESCALATE';
+    reason?: string;
+  }): Promise<{ message: string; success: boolean; replayed: boolean }> => {
+    const route = data.outcome === 'APPROVE'
+      ? 'approve'
+      : data.outcome === 'REJECT'
+        ? 'reject'
+        : 'escalate';
+    return apiClient.post(`/sales/crm/discounts/${route}`, {
+      leadId: data.leadId,
+      quoteId: data.quoteId,
+      ...(data.reason ? { reason: data.reason } : {}),
+    });
   },
 };

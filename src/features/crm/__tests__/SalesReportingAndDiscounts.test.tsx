@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { crmStore } from '../services/crm-store';
 import { SalesReportsPage } from '../pages/SalesReportsPage';
@@ -36,6 +36,17 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       'sales.discounts.reject',
     ];
     vi.spyOn(crmApi, 'getReports').mockImplementation(async (filters) => crmStore.getReports(filters));
+    vi.spyOn(crmApi, 'getPendingDiscounts').mockImplementation(async () => crmStore.getPendingDiscounts());
+    vi.spyOn(crmApi, 'reviewDiscount').mockImplementation(async (request) => {
+      crmStore.reviewDiscount({
+        leadId: request.leadId,
+        quoteId: request.quoteId,
+        approved: request.outcome === 'APPROVE',
+        rejectionReason: request.reason,
+        escalateToVP: request.outcome === 'ESCALATE',
+      });
+      return { message: 'Saved', success: true, replayed: false };
+    });
   });
 
   describe('1. Sales & Revenue Reports Accounting', () => {
@@ -277,6 +288,30 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       // Titan Cloud 25% should have 'Requires VP Approval'
       expect(screen.getByText('Titan Cloud Infrastructures')).toBeInTheDocument();
       expect(screen.getAllByText('Requires VP Approval').length).toBeGreaterThan(0);
+    });
+
+    it('loads the queue from the API and submits approval with the selected lead and quote', async () => {
+      render(<MemoryRouter><DiscountApprovalPage /></MemoryRouter>);
+
+      await screen.findByText('Fintech Nexus International');
+      fireEvent.click(screen.getAllByRole('button', { name: /^approve$/i })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm Approval' }));
+
+      expect(await screen.findByRole('status')).toHaveTextContent(/approved/i);
+      expect(crmApi.reviewDiscount).toHaveBeenCalledWith({
+        leadId: expect.any(String),
+        quoteId: expect.any(String),
+        outcome: 'APPROVE',
+      });
+    });
+
+    it('shows a retryable error when the discount queue API is unavailable', async () => {
+      vi.spyOn(crmApi, 'getPendingDiscounts').mockRejectedValueOnce(new Error('dependency failure'));
+      render(<MemoryRouter><DiscountApprovalPage /></MemoryRouter>);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/could not be processed/i);
+      expect(screen.getByRole('button', { name: 'Retry loading requests' })).toBeInTheDocument();
+      expect(screen.queryByText('Fintech Nexus International')).not.toBeInTheDocument();
     });
 
     it('enforces granular action-level permissions: hides action buttons and displays View Only when lacking approve/reject rights', async () => {
