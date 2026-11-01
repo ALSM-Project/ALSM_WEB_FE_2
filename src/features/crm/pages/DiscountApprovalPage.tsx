@@ -13,7 +13,10 @@ const discountErrorMessage = (error: any): string => {
   const code = error?.response?.data?.code || error?.response?.data?.message?.code;
   if (status === 401) return 'Your session expired. Sign in again to continue.';
   if (status === 403) return 'Your account does not have permission for this discount action.';
-  if (status === 404) return 'The discount request could not be found. Refresh the queue.';
+  if (status === 404 && (code === 'LEAD_NOT_FOUND' || code === 'QUOTE_NOT_FOUND')) {
+    return 'The discount request could not be found. Refresh the queue.';
+  }
+  if (status === 404) return 'The discount approval API is unavailable. Restart the latest backend and try again.';
   if (code === 'DISCOUNT_AUTHORITY_EXCEEDED') return 'Discounts above 20% require higher approval.';
   if (code === 'DISCOUNT_NOT_PENDING' || code === 'DISCOUNT_REVIEW_CONFLICT') return 'This request changed during review. Refresh the queue.';
   if (code === 'INVALID_REJECTION_REASON') return 'Enter a rejection reason between 5 and 500 characters.';
