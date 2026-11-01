@@ -21,6 +21,7 @@ export const TemporaryRolesPage: React.FC = () => {
   const canRequest = hasPermission('roles.temporary.request') || !!user?.isPlatformAdmin;
   const canReview = hasPermission('roles.temporary.requests.review') || hasPermission('roles.temporary.requests.approve') || !!user?.isPlatformAdmin;
   const canRevoke = hasPermission('roles.temporary.revoke') || !!user?.isPlatformAdmin;
+  const canViewHistory = hasPermission('roles.temporary.history.view') || !!user?.isPlatformAdmin;
 
   const [activeTab, setActiveTab] = useState<'active' | 'requests' | 'history'>('active');
   const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>([]);
@@ -91,10 +92,10 @@ export const TemporaryRolesPage: React.FC = () => {
       setLoading(true);
       setErrorMsg(null);
       const [actives, history, allRoles, allUsers, projects] = await Promise.all([
-        temporaryRolesApi.getActiveRoles(),
-        temporaryRolesApi.getHistory(),
+        temporaryRolesApi.getActiveRoles().catch(() => []),
+        (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
         rbacApi.getRoles().catch(() => [] as RoleDto[]),
-        rbacApi.getAllUsers().catch(() => [] as UserRbacDto[]),
+        (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
         partnersApi.getProjects().catch(() => []),
       ]);
       setActiveRoles(actives);
@@ -117,7 +118,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user?.id, canViewHistory]);
 
   // Compute countdown & status label
   const computeTimeRemaining = (expiresAtStr: string) => {
@@ -625,16 +626,18 @@ export const TemporaryRolesPage: React.FC = () => {
 
         {activeTab === 'history' && (
           <div className="flex items-center gap-2 mb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={exporting}
-              className="text-xs border-[#E5EAF0] text-[#0652CC]"
-              onClick={handleExportCsv}
-            >
-              <Download className="w-3.5 h-3.5 mr-1" />
-              CSV Export
-            </Button>
+            {canViewHistory && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={exporting}
+                className="text-xs border-[#E5EAF0] text-[#0652CC]"
+                onClick={handleExportCsv}
+              >
+                <Download className="w-3.5 h-3.5 mr-1" />
+                CSV Export
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"

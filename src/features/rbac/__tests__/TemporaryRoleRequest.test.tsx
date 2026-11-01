@@ -137,7 +137,7 @@ describe('UC-95 Request Temporary Role Frontend Workflow', () => {
   });
 
   it('prevents self-approval on requester own pending requests', async () => {
-    vi.mocked(temporaryRolesApi.getHistory).mockResolvedValueOnce([
+    vi.mocked(temporaryRolesApi.getMyRequests).mockResolvedValueOnce([
       {
         id: 'pending-1',
         userId: 'staff-01',
@@ -178,6 +178,7 @@ describe('UC-95 Request Temporary Role Frontend Workflow', () => {
       isPlatformAdmin: false,
       effectivePermissions: [
         'roles.temporary.view',
+        'roles.temporary.history.view',
         'roles.temporary.requests.review',
         'roles.temporary.requests.approve',
       ],
