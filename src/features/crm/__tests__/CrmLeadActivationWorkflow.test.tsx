@@ -96,6 +96,15 @@ describe('Section 3.11: CRM & Sales Lead-to-Customer Activation Workflow', () =>
       email: 'elena@fintechgateway.io',
     });
 
+    let quoteCall = 0;
+    vi.spyOn(apiClient, 'post').mockImplementation(async () => {
+      const highDiscount = quoteCall++ > 0;
+      const quote = highDiscount
+        ? { id: 'quote-2', planName: 'Enterprise Tier 2', amount: 120000, discountPercent: 20, status: 'PENDING_APPROVAL' }
+        : { id: 'quote-1', planName: 'Enterprise Tier 1', amount: 80000, discountPercent: 10, status: 'SENT' };
+      return { ...lead, quotes: [quote] } as any;
+    });
+
     // Standard quote: 10% discount -> no approval required
     const standardQuote = await crmApi.createQuote(lead.id, {
       plan: 'Enterprise Tier 1',

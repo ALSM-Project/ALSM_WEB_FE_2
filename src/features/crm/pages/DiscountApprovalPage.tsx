@@ -8,6 +8,18 @@ import { Button, Modal } from '@/shared/ui';
 import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
+const discountErrorMessage = (error: any): string => {
+  const status = error?.response?.status;
+  const code = error?.response?.data?.code || error?.response?.data?.message?.code;
+  if (status === 401) return 'Your session expired. Sign in again to continue.';
+  if (status === 403) return 'Your account does not have permission for this discount action.';
+  if (status === 404) return 'The discount request could not be found. Refresh the queue.';
+  if (code === 'DISCOUNT_AUTHORITY_EXCEEDED') return 'Discounts above 20% require higher approval.';
+  if (code === 'DISCOUNT_NOT_PENDING' || code === 'DISCOUNT_REVIEW_CONFLICT') return 'This request changed during review. Refresh the queue.';
+  if (code === 'INVALID_REJECTION_REASON') return 'Enter a rejection reason between 5 and 500 characters.';
+  return 'The discount request could not be processed. Refresh the queue and try again.';
+};
+
 export const DiscountApprovalPage: React.FC = () => {
   const { user, hasPermission } = useAuth();
   const canApprove = Boolean(user?.isPlatformAdmin || hasPermission('sales.discounts.approve'));
@@ -17,6 +29,7 @@ export const DiscountApprovalPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Status Filter
@@ -33,10 +46,11 @@ export const DiscountApprovalPage: React.FC = () => {
   const fetchDiscounts = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const data = await crmApi.getPendingDiscounts();
       setDiscounts(data);
     } catch (err: any) {
-      console.error('Failed to load pending discounts:', err);
+      setLoadError(discountErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -54,16 +68,15 @@ export const DiscountApprovalPage: React.FC = () => {
       await crmApi.reviewDiscount({
         leadId: approveItem.leadId,
         quoteId: approveItem.quote.id,
-        approved: true,
-        reviewer: 'Sales Manager (Alex Mercer)',
+        outcome: 'APPROVE',
       });
-      setSuccessMsg(`Quote discount for ${approveItem.leadCompany} approved. Quote is now marked APPROVED and eligible for client delivery.`);
+      setSuccessMsg(`Quote discount for ${approveItem.leadCompany} approved. The quote is now cleared for delivery.`);
       setApproveItem(null);
       if (detailItem?.quote.id === approveItem.quote.id) setDetailItem(null);
-      fetchDiscounts();
+      await fetchDiscounts();
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to approve discount');
+      setErrorMsg(discountErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -77,16 +90,14 @@ export const DiscountApprovalPage: React.FC = () => {
       await crmApi.reviewDiscount({
         leadId: item.leadId,
         quoteId: item.quote.id,
-        approved: false,
-        escalateToVP: true,
-        reviewer: 'Sales Manager (Alex Mercer)',
+        outcome: 'ESCALATE',
       });
       setSuccessMsg(`Quote discount for ${item.leadCompany} escalated to VP of Sales for executive approval.`);
       if (detailItem?.quote.id === item.quote.id) setDetailItem(null);
-      fetchDiscounts();
+      await fetchDiscounts();
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to escalate discount');
+      setErrorMsg(discountErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -109,18 +120,17 @@ export const DiscountApprovalPage: React.FC = () => {
       await crmApi.reviewDiscount({
         leadId: rejectItem.leadId,
         quoteId: rejectItem.quote.id,
-        approved: false,
-        rejectionReason: rejectionReason.trim(),
-        reviewer: 'Sales Manager (Alex Mercer)',
+        outcome: 'REJECT',
+        reason: rejectionReason.trim(),
       });
       setSuccessMsg(`Discount request for ${rejectItem.leadCompany} rejected. Rationale recorded in audit log.`);
       setRejectItem(null);
       setRejectionReason('');
       if (detailItem?.quote.id === rejectItem.quote.id) setDetailItem(null);
-      fetchDiscounts();
+      await fetchDiscounts();
       setTimeout(() => setSuccessMsg(null), 4000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to reject discount');
+      setErrorMsg(discountErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -151,10 +161,11 @@ export const DiscountApprovalPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchDiscounts}
+            disabled={loading || actionLoading}
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1" />
-            Refresh Queue
+            {loading ? 'Refreshing...' : 'Refresh Queue'}
           </button>
         </div>
       </div>
@@ -168,7 +179,7 @@ export const DiscountApprovalPage: React.FC = () => {
           <div>
             <h4 className="font-bold text-blue-950">Active Manager Authorization Scope</h4>
             <p className="text-slate-600 mt-0.5 leading-relaxed">
-              You are signed in as <strong>Alex Mercer (Commercial Sales Manager)</strong>. Your pre-authorized margin discount limit is <strong>20.0%</strong>.
+              You are signed in as <strong>{user?.fullName || user?.email || 'Sales Manager'}</strong>. Your pre-authorized discount limit is <strong>20.0%</strong>.
               Requests above 20% are flagged as <em>Requires Higher Approval</em> and must be escalated to executive leadership.
             </p>
           </div>
@@ -210,7 +221,7 @@ export const DiscountApprovalPage: React.FC = () => {
 
       {/* Notifications */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
+        <div role="alert" className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMsg}</span>
@@ -219,12 +230,19 @@ export const DiscountApprovalPage: React.FC = () => {
         </div>
       )}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
+        <div role="status" aria-live="polite" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
           <button onClick={() => setSuccessMsg(null)} className="text-emerald-500 font-bold">&times;</button>
+        </div>
+      )}
+
+      {loadError && (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+          <p>{loadError}</p>
+          <button onClick={fetchDiscounts} disabled={loading} className="mt-2 font-semibold underline disabled:opacity-50">Retry loading requests</button>
         </div>
       )}
 
@@ -254,6 +272,8 @@ export const DiscountApprovalPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
+              ) : loadError ? (
+                <tr><td colSpan={8} className="py-12 text-center text-rose-700">Discount requests are unavailable.</td></tr>
               ) : filteredDiscounts.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-[#6B778C]">
@@ -538,7 +558,7 @@ export const DiscountApprovalPage: React.FC = () => {
       {approveItem && (
         <Modal
           isOpen={!!approveItem}
-          onClose={() => setApproveItem(null)}
+          onClose={actionLoading ? () => undefined : () => setApproveItem(null)}
           title="Confirm Discount Authorization"
         >
           <div className="space-y-4 text-xs">
@@ -595,7 +615,7 @@ export const DiscountApprovalPage: React.FC = () => {
       {rejectItem && (
         <Modal
           isOpen={!!rejectItem}
-          onClose={() => setRejectItem(null)}
+          onClose={actionLoading ? () => undefined : () => setRejectItem(null)}
           title="Reject Discount Request"
         >
           <form onSubmit={handleRejectSubmit} className="space-y-4 text-xs">
@@ -610,6 +630,9 @@ export const DiscountApprovalPage: React.FC = () => {
               </label>
               <textarea
                 required
+                minLength={5}
+                maxLength={500}
+                aria-label="Rejection Reason"
                 rows={3}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}

@@ -51,8 +51,10 @@ export const SalesOverview: React.FC = () => {
   const reviewMutation = useMutation({
     mutationFn: (variables: { leadId: string; quoteId: string; approved: boolean; rejectionReason?: string }) =>
       crmApi.reviewDiscount({
-        ...variables,
-        reviewer: user?.fullName || 'Sales Manager',
+        leadId: variables.leadId,
+        quoteId: variables.quoteId,
+        outcome: variables.approved ? 'APPROVE' : 'REJECT',
+        reason: variables.rejectionReason,
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sales', 'dashboard', 'discounts'] });
@@ -65,7 +67,8 @@ export const SalesOverview: React.FC = () => {
     },
   });
 
-  const canApproveDiscounts = hasPermission('crm.discounts.approve') || user?.isPlatformAdmin;
+  const canApproveDiscounts = hasPermission('sales.discounts.approve') || user?.isPlatformAdmin;
+  const canRejectDiscounts = hasPermission('sales.discounts.reject') || user?.isPlatformAdmin;
 
   // Pipeline breakdown counts
   const stageCounts: Record<string, number> = {
@@ -306,8 +309,9 @@ export const SalesOverview: React.FC = () => {
                     </p>
                   </div>
 
-                  {canApproveDiscounts && (
+                  {(canApproveDiscounts || canRejectDiscounts) && (
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {canApproveDiscounts && (
                       <button
                         type="button"
                         onClick={() =>
@@ -323,7 +327,9 @@ export const SalesOverview: React.FC = () => {
                         <Check className="w-3.5 h-3.5" />
                         <span>Duyệt</span>
                       </button>
+                      )}
 
+                      {canRejectDiscounts && (
                       <button
                         type="button"
                         onClick={() =>
@@ -340,6 +346,7 @@ export const SalesOverview: React.FC = () => {
                         <X className="w-3.5 h-3.5" />
                         <span>Từ chối</span>
                       </button>
+                      )}
                     </div>
                   )}
                 </div>
