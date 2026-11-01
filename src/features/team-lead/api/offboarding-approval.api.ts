@@ -18,7 +18,7 @@ export interface OffboardingRequestDto {
   targetUserId: string;
   targetUserName: string;
   targetUserEmail: string;
-  targetUserRoles: string[];
+  targetUserRoles?: string[];
   requestedById: string;
   requestedByName: string;
   requestedByEmail?: string;
@@ -38,10 +38,27 @@ export interface OffboardingRequestDto {
   updatedAt: string;
 }
 
+export interface OffboardingEligibleCandidate {
+  id: string;
+  fullName: string;
+  email: string;
+  roles?: string[];
+  activeWorkload?: number;
+  activeProjectCount?: number;
+}
+
 export interface OffboardingLiveSummary {
-  activeSessionsCount: number;
-  apiKeysCount: number;
-  assignedProjects: Array<{
+  activeSessionsCount?: number;
+  activeSessions?: Array<{
+    id: string;
+    deviceType?: string;
+    browser?: string;
+    ipAddress?: string;
+    lastActiveAt?: string | Date;
+  }>;
+  apiCredentialsCount?: number;
+  apiKeysCount?: number;
+  assignedProjects?: Array<{
     id: string;
     name: string;
     status: string;
@@ -49,14 +66,9 @@ export interface OffboardingLiveSummary {
     assignedStaffName?: string;
     conversionType?: string;
   }>;
-  pendingJobsCount: number;
-  eligibleSuccessors: Array<{
-    id: string;
-    fullName: string;
-    email: string;
-    roles: string[];
-    activeProjectCount: number;
-  }>;
+  pendingJobsCount?: number;
+  eligibleStaff?: OffboardingEligibleCandidate[];
+  eligibleSuccessors?: OffboardingEligibleCandidate[];
   error?: string;
 }
 

@@ -285,6 +285,21 @@ export const UserOffboardingApprovalPage: React.FC = () => {
     });
   }, [requests, searchTerm]);
 
+  // Safe candidates and assigned projects for detail modal
+  const eligibleCandidates = useMemo(() => {
+    if (!detailData?.liveSummary) return [];
+    return (
+      detailData.liveSummary.eligibleStaff ||
+      detailData.liveSummary.eligibleSuccessors ||
+      []
+    );
+  }, [detailData]);
+
+  const assignedProjects = useMemo(() => {
+    if (!detailData?.liveSummary) return [];
+    return detailData.liveSummary.assignedProjects || [];
+  }, [detailData]);
+
   // KPI Metrics
   const totalCount = requests.length;
   const pendingCount = requests.filter((r) => r.status === 'PENDING').length;
@@ -503,7 +518,7 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                           <div className="font-semibold text-slate-900">{req.targetUserName}</div>
                           <div className="text-[11px] text-slate-500">{req.targetUserEmail}</div>
                           <div className="flex flex-wrap gap-1 mt-0.5">
-                            {req.targetUserRoles.map((role) => (
+                            {(req.targetUserRoles || []).map((role) => (
                               <span
                                 key={role}
                                 className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-slate-100 text-slate-600"
@@ -700,9 +715,9 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                     <span>Active Sessions</span>
                   </div>
                   <div className="text-lg font-bold text-slate-800 mt-1">
-                    {detailData.liveSummary.activeSessionsCount}
+                    {detailData.liveSummary.activeSessionsCount ?? detailData.liveSummary.activeSessions?.length ?? 0}
                   </div>
-                  {detailData.liveSummary.activeSessionsCount > 0 && (
+                  {(detailData.liveSummary.activeSessionsCount ?? detailData.liveSummary.activeSessions?.length ?? 0) > 0 && (
                     <span className="text-[10px] text-amber-600 font-semibold block mt-0.5">
                       Will be terminated
                     </span>
@@ -715,9 +730,9 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                     <span>API Credentials</span>
                   </div>
                   <div className="text-lg font-bold text-slate-800 mt-1">
-                    {detailData.liveSummary.apiKeysCount}
+                    {detailData.liveSummary.apiCredentialsCount ?? detailData.liveSummary.apiKeysCount ?? 0}
                   </div>
-                  {detailData.liveSummary.apiKeysCount > 0 && (
+                  {(detailData.liveSummary.apiCredentialsCount ?? detailData.liveSummary.apiKeysCount ?? 0) > 0 && (
                     <span className="text-[10px] text-rose-600 font-semibold block mt-0.5">
                       Will be revoked
                     </span>
@@ -730,7 +745,7 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                     <span>Assigned Projects</span>
                   </div>
                   <div className="text-lg font-bold text-slate-800 mt-1">
-                    {detailData.liveSummary.assignedProjects.length}
+                    {assignedProjects.length}
                   </div>
                   <span className="text-[10px] text-blue-600 font-semibold block mt-0.5">
                     Requires reassignment
@@ -743,7 +758,7 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                     <span>In-flight Jobs</span>
                   </div>
                   <div className="text-lg font-bold text-slate-800 mt-1">
-                    {detailData.liveSummary.pendingJobsCount}
+                    {detailData.liveSummary.pendingJobsCount ?? 0}
                   </div>
                   <span className="text-[10px] text-slate-500 block mt-0.5">
                     Conversion pipeline
@@ -753,12 +768,12 @@ export const UserOffboardingApprovalPage: React.FC = () => {
             </div>
 
             {/* Assigned Projects Reassignment Section */}
-            {detailData.liveSummary.assignedProjects.length > 0 && (
+            {assignedProjects.length > 0 && (
               <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40">
                 <h4 className="text-xs font-bold text-[#091E42] flex items-center justify-between mb-2">
                   <span className="flex items-center gap-1.5">
                     <FolderKanban className="w-4 h-4 text-[#0652CC]" />
-                    Transferable Projects ({detailData.liveSummary.assignedProjects.length})
+                    Transferable Projects ({assignedProjects.length})
                   </span>
                   <span className="text-[11px] font-normal text-slate-500">
                     SRS 4.8: Reassign to an eligible team successor
@@ -766,7 +781,7 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                 </h4>
 
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {detailData.liveSummary.assignedProjects.map((proj) => (
+                  {assignedProjects.map((proj) => (
                     <div
                       key={proj.id}
                       className="p-2.5 rounded-lg bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
@@ -792,9 +807,9 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                             className="text-xs py-1 px-2 border border-slate-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#0652CC]"
                           >
                             <option value="">Default Successor</option>
-                            {detailData.liveSummary.eligibleSuccessors.map((s) => (
+                            {eligibleCandidates.map((s) => (
                               <option key={s.id} value={s.id}>
-                                {s.fullName} ({s.activeProjectCount} active)
+                                {s.fullName} ({s.activeWorkload ?? s.activeProjectCount ?? 0} active)
                               </option>
                             ))}
                           </select>
@@ -825,9 +840,9 @@ export const UserOffboardingApprovalPage: React.FC = () => {
                   className="w-full text-xs py-2 px-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
                 >
                   <option value="">Select an active team member...</option>
-                  {detailData.liveSummary.eligibleSuccessors.map((succ) => (
+                  {eligibleCandidates.map((succ) => (
                     <option key={succ.id} value={succ.id}>
-                      {succ.fullName} ({succ.email}) - {succ.activeProjectCount} active projects
+                      {succ.fullName} ({succ.email}) - {succ.activeWorkload ?? succ.activeProjectCount ?? 0} active projects
                     </option>
                   ))}
                 </select>
