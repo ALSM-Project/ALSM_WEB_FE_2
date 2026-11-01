@@ -313,6 +313,21 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             openInNewTab: false,
           });
         }
+
+        const hasOffboardingApprovals = children.some((c) => c.path === '/team-lead/offboarding-approvals');
+        if (!hasOffboardingApprovals) {
+          children.push({
+            id: 'web2_tl_offboarding_approvals',
+            label: 'Offboarding Approvals',
+            icon: 'UserMinus',
+            path: '/team-lead/offboarding-approvals',
+            order: 2.6,
+            isVisible: true,
+            permissions: ['users.offboard'],
+            openInNewTab: false,
+          });
+        }
+
         }
         return { ...group, children };
       }
