@@ -278,4 +278,59 @@ describe('[UC-72] View Organisation Details (Web 2)', () => {
       expect(screen.getByText('Organizations Directory Page')).toBeInTheDocument();
     });
   });
+
+  it('updates engagement through the API and refreshes the view from the saved response', async () => {
+    const updated: OrganizationDto = {
+      ...mockOrg,
+      status: 'TRIAL',
+      engagementType: 'Enterprise Production',
+      trialExpiresAt: '2026-12-31T00:00:00.000Z',
+      limits: {
+        ...mockOrg.limits!,
+        maxProjects: 25,
+        maxConversionsPerMonth: 300,
+        trialScreens: 30,
+        trialPrograms: 12,
+        trialStorageGb: 8.5,
+      },
+    };
+    vi.mocked(adminApi.getOrganizationById).mockResolvedValueOnce(mockOrg);
+    vi.mocked(adminApi.updateEngagement).mockResolvedValueOnce(updated);
+
+    renderComponent();
+    await screen.findByText('Acme Modernization Global');
+    fireEvent.click(screen.getByRole('button', { name: /Edit Engagement/i }));
+    fireEvent.change(screen.getByLabelText('Status'), { target: { value: 'TRIAL' } });
+    fireEvent.change(screen.getByLabelText('Engagement Type'), { target: { value: 'Enterprise Production' } });
+    fireEvent.change(screen.getByLabelText('Max Projects'), { target: { value: '25' } });
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Engagement Changes/i }));
+
+    await waitFor(() => {
+      expect(adminApi.updateEngagement).toHaveBeenCalledWith(mockOrg.id, expect.objectContaining({
+        status: 'TRIAL',
+        engagementType: 'Enterprise Production',
+        trialExpiresAt: '2026-12-31T00:00:00.000Z',
+        limits: expect.objectContaining({ maxProjects: 25, trialScreens: 15 }),
+      }));
+      expect(screen.getByText('Engagement settings were saved successfully.')).toBeInTheDocument();
+      expect(screen.getAllByText('TRIAL').length).toBeGreaterThan(0);
+      expect(screen.getByText(/25 projects/)).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('shows a safe validation error and keeps the editor open when the API rejects values', async () => {
+    vi.mocked(adminApi.getOrganizationById).mockResolvedValueOnce(mockOrg);
+    vi.mocked(adminApi.updateEngagement).mockRejectedValueOnce({ response: { status: 400 } });
+
+    renderComponent();
+    await screen.findByText('Acme Modernization Global');
+    fireEvent.click(screen.getByRole('button', { name: /Edit Engagement/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Save Engagement Changes/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Some engagement values are invalid.');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.queryByText(/private|stack|mongo/i)).not.toBeInTheDocument();
+  });
 });

@@ -11,6 +11,8 @@ export interface OrganizationDto {
   memberCount?: number;
   trialExpiresAt?: string;
   limits?: {
+    maxScreens?: number;
+    maxPrograms?: number;
     maxProjects: number;
     maxConversionsPerMonth: number;
     maxStorageGb: number;
@@ -122,7 +124,8 @@ export const adminApi = {
     data: {
       engagementType?: string;
       status?: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
-      limits?: Partial<OrganizationDto['limits']>;
+      trialExpiresAt?: string;
+      limits?: Partial<NonNullable<OrganizationDto['limits']>>;
     }
   ): Promise<OrganizationDto> => {
     return apiClient.patch<OrganizationDto>(`/admin/organizations/${id}/engagement`, data);
