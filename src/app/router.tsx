@@ -29,6 +29,7 @@ import {
 } from '@/features/admin';
 import { TeamLeadProjectsPage } from '@/features/team-lead/pages/TeamLeadProjectsPage';
 import { ResourceTransferApprovalPage } from '@/features/team-lead/pages/ResourceTransferApprovalPage';
+import { UserOffboardingApprovalPage } from '@/features/team-lead/pages/UserOffboardingApprovalPage';
 import { EmployeeWorkQueuePage } from '@/features/employees/pages/EmployeeWorkQueuePage';
 import {
   PartnerListPage,
@@ -158,6 +159,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="teams.manage">
             <ResourceTransferApprovalPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/offboarding-approvals',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <UserOffboardingApprovalPage />
           </PermissionGuard>
         ),
       },
