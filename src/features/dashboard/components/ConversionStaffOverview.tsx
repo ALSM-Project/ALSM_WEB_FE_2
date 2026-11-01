@@ -11,11 +11,13 @@ import {
   Search,
   ArrowRight,
   Code2,
+  KeyRound,
 } from 'lucide-react';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { temporaryRolesApi } from '@/features/rbac/api/temporary-roles.api';
 
 export const ConversionStaffOverview: React.FC = () => {
   const navigate = useNavigate();
@@ -29,6 +31,21 @@ export const ConversionStaffOverview: React.FC = () => {
     queryFn: () => partnersApi.getProjects(),
     staleTime: 15000,
   });
+
+  // Load temporary elevations for staff (UC-95)
+  const { data: myElevations = [] } = useQuery({
+    queryKey: ['temporary-roles', 'my-elevations'],
+    queryFn: () => temporaryRolesApi.getMyRequests().catch(() => []),
+    staleTime: 15000,
+  });
+
+  const activeElevation = useMemo(() => {
+    return myElevations.find((e) => e.status === 'ACTIVE');
+  }, [myElevations]);
+
+  const pendingElevation = useMemo(() => {
+    return myElevations.find((e) => e.status === 'PENDING');
+  }, [myElevations]);
 
   const allProjects = Array.isArray(rawProjects) ? rawProjects : [];
 
@@ -88,6 +105,15 @@ export const ConversionStaffOverview: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 shrink-0 self-start md:self-center">
+            <button
+              type="button"
+              onClick={() => navigate('/admin/temporary-roles')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold bg-white border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
+              title="Yêu cầu vai trò tạm thời (UC-95)"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Yêu cầu quyền tạm thời</span>
+            </button>
             <a
               href={web1Url}
               target="_blank"
@@ -108,6 +134,67 @@ export const ConversionStaffOverview: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Active or Pending Temporary Role Notice (UC-95) ───────────── */}
+      {activeElevation && (
+        <div className="bg-gradient-to-r from-indigo-50/90 to-blue-50/90 border border-indigo-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold shrink-0">
+              <KeyRound className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-xs text-indigo-950 flex flex-wrap items-center gap-2">
+                <span>Đang kích hoạt vai trò tạm thời:</span>
+                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded border border-indigo-200 text-xs font-bold">
+                  {activeElevation.role}
+                </span>
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                  Đang hoạt động
+                </span>
+              </div>
+              <p className="text-[11px] text-indigo-800/90 mt-0.5">
+                Hiệu lực đến {new Date(activeElevation.expiresAt).toLocaleTimeString()} ({new Date(activeElevation.expiresAt).toLocaleDateString()}). Lý do: {activeElevation.reason}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/admin/temporary-roles')}
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer shrink-0"
+          >
+            Quản lý vai trò &rarr;
+          </button>
+        </div>
+      )}
+
+      {pendingElevation && !activeElevation && (
+        <div className="bg-amber-50/90 border border-amber-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
+              <KeyRound className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-xs text-amber-950 flex flex-wrap items-center gap-2">
+                <span>Yêu cầu quyền tạm thời đang chờ duyệt:</span>
+                <span className="font-mono text-amber-800 bg-white px-2 py-0.5 rounded border border-amber-300 text-xs font-bold">
+                  {pendingElevation.role} ({pendingElevation.durationHours}h)
+                </span>
+                <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                  Chờ duyệt
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-800/90 mt-0.5">
+                Đã gửi yêu cầu lúc {new Date(pendingElevation.createdAt).toLocaleTimeString()} ({new Date(pendingElevation.createdAt).toLocaleDateString()}). Đang chờ Team Lead xem xét.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate('/admin/temporary-roles')}
+            className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline cursor-pointer shrink-0"
+          >
+            Xem tiến độ &rarr;
+          </button>
+        </div>
+      )}
 
       {/* ── 2. KPI Metric Cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
