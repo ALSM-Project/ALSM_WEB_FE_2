@@ -7,6 +7,7 @@ import {
 import { temporaryRolesApi, TemporaryRoleDto } from '../api/temporary-roles.api';
 import { rbacApi, RoleDto, UserRbacDto } from '../api/rbac.api';
 import { partnersApi } from '@/features/partners/api/partners.api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 /** Roles that must never be handed out through a temporary elevation. */
 const PLATFORM_ADMIN_ROLE_IDS = new Set(['platform_admin', 'system_admin', 'admin']);
@@ -15,6 +16,13 @@ import { Button, Modal, Input } from '@/shared/ui';
 const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
 
 export const TemporaryRolesPage: React.FC = () => {
+  const { user, hasPermission } = useAuth();
+  const canGrant = hasPermission('roles.temporary.grant') || !!user?.isPlatformAdmin;
+  const canRequest = hasPermission('roles.temporary.request') || !!user?.isPlatformAdmin;
+  const canReview = hasPermission('roles.temporary.requests.review') || hasPermission('roles.temporary.requests.approve') || !!user?.isPlatformAdmin;
+  const canRevoke = hasPermission('roles.temporary.revoke') || !!user?.isPlatformAdmin;
+  const canViewHistory = hasPermission('roles.temporary.history.view') || !!user?.isPlatformAdmin;
+
   const [activeTab, setActiveTab] = useState<'active' | 'requests' | 'history'>('active');
   const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>([]);
   const [pendingRequests, setPendingRequests] = useState<TemporaryRoleDto[]>([]);
@@ -84,10 +92,10 @@ export const TemporaryRolesPage: React.FC = () => {
       setLoading(true);
       setErrorMsg(null);
       const [actives, history, allRoles, allUsers, projects] = await Promise.all([
-        temporaryRolesApi.getActiveRoles(),
-        temporaryRolesApi.getHistory(),
+        temporaryRolesApi.getActiveRoles().catch(() => []),
+        (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
         rbacApi.getRoles().catch(() => [] as RoleDto[]),
-        rbacApi.getAllUsers().catch(() => [] as UserRbacDto[]),
+        (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
         partnersApi.getProjects().catch(() => []),
       ]);
       setActiveRoles(actives);
@@ -110,7 +118,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user?.id, canViewHistory]);
 
   // Compute countdown & status label
   const computeTimeRemaining = (expiresAtStr: string) => {
@@ -132,6 +140,21 @@ export const TemporaryRolesPage: React.FC = () => {
     if (!targetUserId) return null;
     return activeRoles.find((a) => a.userId === targetUserId && a.status === 'ACTIVE');
   }, [targetUserId, activeRoles]);
+
+  // Current logged in user's active elevation & pending requests (UC-95)
+  const myActiveRole = useMemo(() => {
+    if (!user) return null;
+    return activeRoles.find(
+      (a) => (user.id && a.userId === user.id) || (user.email && a.userEmail === user.email)
+    );
+  }, [activeRoles, user]);
+
+  const userHasPendingRequest = useMemo(() => {
+    if (!user) return false;
+    return pendingRequests.some(
+      (p) => (user.id && p.userId === user.id) || (user.email && p.userEmail === user.email)
+    );
+  }, [pendingRequests, user]);
 
   // Handle Grant Submit
   const handleGrantSubmit = async (e: React.FormEvent) => {
@@ -266,10 +289,16 @@ export const TemporaryRolesPage: React.FC = () => {
     try {
       setApproving(true);
       setErrorMsg(null);
-      // The elevation runs for the duration that was requested, starting now.
-      await temporaryRolesApi.approveRequest({ requestId: approveTarget.id, approved: true });
+      // The elevation runs for the approved duration, starting now (UC-91 & UC-95 integration).
+      await temporaryRolesApi.approveRequest({
+        requestId: approveTarget.id,
+        approved: true,
+        ...(approveDuration && approveDuration !== approveTarget.durationHours
+          ? { durationHours: approveDuration }
+          : {}),
+      });
       await fetchData();
-      setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveTarget.durationHours} hours.`);
+      setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveDuration} hours.`);
       setApproveTarget(null);
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
@@ -479,29 +508,58 @@ export const TemporaryRolesPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setRequestReason('');
-              setRequestProject('');
-              setShowRequestModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-2xs cursor-pointer"
-          >
-            <KeyRound className="w-4 h-4 text-indigo-600" />
-            Request Elevation
-          </button>
-          <button
-            onClick={() => {
-              setGrantConfirmed(false);
-              setShowGrantModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            Grant Temporary Role
-          </button>
+          {canRequest && (
+            <button
+              onClick={() => {
+                setRequestReason('');
+                setRequestProject('');
+                setShowRequestModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-2xs cursor-pointer"
+            >
+              <KeyRound className="w-4 h-4 text-indigo-600" />
+              Request Elevation
+            </button>
+          )}
+          {canGrant && (
+            <button
+              onClick={() => {
+                setGrantConfirmed(false);
+                setShowGrantModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              Grant Temporary Role
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Active User Elevation Notice (UC-95) */}
+      {myActiveRole && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-blue-50/70 to-sky-50/80 border border-indigo-200 text-indigo-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-sm text-indigo-950 flex flex-wrap items-center gap-2">
+                <span>Active Temporary Elevation:</span>
+                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 text-xs font-bold">
+                  {myActiveRole.role}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                  {computeTimeRemaining(myActiveRole.expiresAt).label}
+                </span>
+              </div>
+              <p className="text-xs text-indigo-800/90 mt-0.5">
+                Elevated privileges expire at {new Date(myActiveRole.expiresAt).toLocaleTimeString()} ({new Date(myActiveRole.expiresAt).toLocaleDateString()}). Reason: {myActiveRole.reason}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notifications */}
       {errorMsg && (
@@ -568,16 +626,18 @@ export const TemporaryRolesPage: React.FC = () => {
 
         {activeTab === 'history' && (
           <div className="flex items-center gap-2 mb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={exporting}
-              className="text-xs border-[#E5EAF0] text-[#0652CC]"
-              onClick={handleExportCsv}
-            >
-              <Download className="w-3.5 h-3.5 mr-1" />
-              CSV Export
-            </Button>
+            {canViewHistory && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={exporting}
+                className="text-xs border-[#E5EAF0] text-[#0652CC]"
+                onClick={handleExportCsv}
+              >
+                <Download className="w-3.5 h-3.5 mr-1" />
+                CSV Export
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -734,19 +794,21 @@ export const TemporaryRolesPage: React.FC = () => {
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1"
-                                onClick={() => {
-                                  setRevokeTarget(item);
-                                  setRevokeConfirmed(false);
-                                  setRevokeReason('Task completed ahead of schedule');
-                                }}
-                              >
-                                <XCircle className="w-3.5 h-3.5 mr-1" />
-                                Revoke
-                              </Button>
+                              {canRevoke && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1"
+                                  onClick={() => {
+                                    setRevokeTarget(item);
+                                    setRevokeConfirmed(false);
+                                    setRevokeReason('Task completed ahead of schedule');
+                                  }}
+                                >
+                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  Revoke
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -848,32 +910,58 @@ export const TemporaryRolesPage: React.FC = () => {
                           {new Date(req.createdAt).toLocaleString()}
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
-                              onClick={() => {
-                                setRejectTarget(req);
-                                setRejectReason('');
-                              }}
-                            >
-                              <X className="w-3.5 h-3.5 mr-1" />
-                              Reject
-                            </Button>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                              onClick={() => {
-                                setApproveTarget(req);
-                                setApproveDuration(req.durationHours);
-                              }}
-                            >
-                              <Check className="w-3.5 h-3.5 mr-1" />
-                              Approve
-                            </Button>
-                          </div>
+                          {(() => {
+                            const isSelfRequest = Boolean(
+                              user &&
+                                ((user.id && req.userId === user.id) ||
+                                  (user.email && req.userEmail === user.email))
+                            );
+
+                            if (isSelfRequest) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                  Self-Request (Awaiting Review)
+                                </span>
+                              );
+                            }
+
+                            if (canReview) {
+                              return (
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
+                                    onClick={() => {
+                                      setRejectTarget(req);
+                                      setRejectReason('');
+                                    }}
+                                  >
+                                    <X className="w-3.5 h-3.5 mr-1" />
+                                    Reject
+                                  </Button>
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    onClick={() => {
+                                      setApproveTarget(req);
+                                      setApproveDuration(req.durationHours);
+                                    }}
+                                  >
+                                    <Check className="w-3.5 h-3.5 mr-1" />
+                                    Approve
+                                  </Button>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <span className="text-[11px] text-[#6B778C]">
+                                Awaiting Team Lead Review
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))
@@ -1300,12 +1388,37 @@ export const TemporaryRolesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 3.E Request Temporary Role Modal (Self-Service) */}
+      {/* 3.E Request Temporary Role Modal (Self-Service - UC-95) */}
       <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title="Request Temporary Role Elevation">
         <form onSubmit={handleRequestSubmit} className="space-y-4 text-xs">
           <p className="text-xs text-[#6B778C]">
-            Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are capped at 24 hours.
+            Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are strictly capped at 24 hours.
           </p>
+
+          {myActiveRole && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 space-y-1">
+              <div className="font-semibold text-amber-900 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                Active Elevation Conflict (UC-95 Policy)
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                You already hold an active temporary role (<strong className="font-mono">{myActiveRole.role}</strong>). Under platform security policy, only 1 active temporary role is permitted per user.
+              </p>
+            </div>
+          )}
+
+          {userHasPendingRequest && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 space-y-1">
+              <div className="font-semibold text-amber-900 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                Pending Request Awaiting Review
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                You already have a pending elevation request awaiting Team Lead review. You cannot submit another request until the current request is reviewed.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
@@ -1315,10 +1428,23 @@ export const TemporaryRolesPage: React.FC = () => {
                 className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
                 value={requestRole}
                 onChange={(e) => setRequestRole(e.target.value)}
+                disabled={!!myActiveRole || userHasPendingRequest}
               >
-                <option value="conversion_staff">Conversion Staff</option>
-                <option value="team_lead">Team Lead</option>
-                <option value="internal_support">Internal Support</option>
+                {roles.length > 0 ? (
+                  roles
+                    .filter((r) => !PLATFORM_ADMIN_ROLE_IDS.has(String(r.id).toLowerCase()))
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name || r.id}
+                      </option>
+                    ))
+                ) : (
+                  <>
+                    <option value="conversion_staff">Conversion Staff</option>
+                    <option value="team_lead">Team Lead</option>
+                    <option value="internal_support">Internal Support</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -1329,6 +1455,7 @@ export const TemporaryRolesPage: React.FC = () => {
                 className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
                 value={requestDuration}
                 onChange={(e) => setRequestDuration(parseInt(e.target.value))}
+                disabled={!!myActiveRole || userHasPendingRequest}
               >
                 {PREDEFINED_DURATIONS.map((h) => (
                   <option key={h} value={h}>{h} hours</option>
@@ -1345,20 +1472,33 @@ export const TemporaryRolesPage: React.FC = () => {
               required
               value={requestProject}
               onChange={(e) => setRequestProject(e.target.value)}
+              disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="e.g. Core Banking Modernization AST Inspection"
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-              Business Need & Justification (Min 10 chars) *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block">
+                Business Need & Justification (Min 10 chars) *
+              </label>
+              <span
+                className={`text-[10px] font-medium ${
+                  requestReason.trim().length >= 10 ? 'text-emerald-600' : 'text-[#6B778C]'
+                }`}
+              >
+                {requestReason.trim().length >= 10
+                  ? '✓ Justification valid'
+                  : `${requestReason.trim().length}/10 chars min`}
+              </span>
+            </div>
             <textarea
               required
               rows={3}
               value={requestReason}
               onChange={(e) => setRequestReason(e.target.value)}
+              disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="Explain why temporary elevated permissions are necessary for this task..."
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
             />
@@ -1368,7 +1508,18 @@ export const TemporaryRolesPage: React.FC = () => {
             <Button type="button" variant="outline" size="sm" onClick={() => setShowRequestModal(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm" disabled={requesting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={
+                requesting ||
+                !!myActiveRole ||
+                userHasPendingRequest ||
+                requestReason.trim().length < 10
+              }
+              className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {requesting ? 'Submitting...' : 'Submit Elevation Request'}
             </Button>
           </div>

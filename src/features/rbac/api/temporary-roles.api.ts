@@ -88,6 +88,11 @@ export const temporaryRolesApi = {
     return (Array.isArray(docs) ? docs : []).map((d) => toTemporaryRole(d));
   },
 
+  getMyRequests: async (): Promise<TemporaryRoleDto[]> => {
+    const docs = await apiClient.get<ServerTemporaryRole[]>(`${BASE}/my-requests`);
+    return (Array.isArray(docs) ? docs : []).map((d) => toTemporaryRole(d));
+  },
+
   exportHistoryCsv: async (): Promise<string> => {
     return apiClient.get<string>(`${BASE}/history/export`);
   },
@@ -110,11 +115,17 @@ export const temporaryRolesApi = {
     return toTemporaryRole(doc);
   },
 
-  requestRole: async (data: { role: string; durationHours: number; reason: string }): Promise<TemporaryRoleDto> => {
+  requestRole: async (data: {
+    role: string;
+    durationHours: number;
+    reason: string;
+    projectId?: string;
+  }): Promise<TemporaryRoleDto> => {
     const doc = await apiClient.post<ServerTemporaryRole>(`${BASE}/request`, {
       roleId: data.role,
       durationHours: data.durationHours,
       reason: data.reason,
+      ...(data.projectId ? { projectId: data.projectId } : {}),
     });
     return toTemporaryRole(doc);
   },
@@ -123,10 +134,12 @@ export const temporaryRolesApi = {
     requestId: string;
     approved: boolean;
     rejectionReason?: string;
+    durationHours?: number;
   }): Promise<TemporaryRoleDto> => {
     const doc = await apiClient.post<ServerTemporaryRole>(`${BASE}/requests/${data.requestId}/review`, {
       approved: data.approved,
       ...(data.rejectionReason ? { reason: data.rejectionReason } : {}),
+      ...(data.durationHours ? { durationHours: data.durationHours } : {}),
     });
     return toTemporaryRole(doc);
   },

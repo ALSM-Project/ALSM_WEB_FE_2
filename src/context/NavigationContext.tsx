@@ -182,6 +182,22 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         },
       ];
     }
+    const hasOpsTempRoles = opsGroup.children?.some((c) => c.path === '/admin/temporary-roles');
+    if (!hasOpsTempRoles) {
+      opsGroup.children = [
+        ...(opsGroup.children || []),
+        {
+          id: 'web2_ops_temporary_roles',
+          label: 'Temporary Roles',
+          icon: 'KeyRound',
+          path: '/admin/temporary-roles',
+          order: 3,
+          isVisible: true,
+          permissions: ['roles.temporary.request', 'roles.temporary.view'],
+          openInNewTab: false,
+        },
+      ];
+    }
 
     // Ensure Customer Support group exists with Organisation Access and Conversion Support
     let supportGroup = mapped.find((g) => g.id === 'web2_group_support' || g.label?.toLowerCase() === 'customer support');
@@ -340,11 +356,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { ...group, children };
       }
 
-      // 4. Ensure Conversions has My Assigned Work for employees
+      // 4. Ensure Conversions has My Assigned Work and Temporary Roles for employees
       if (group.id === 'web2_group_conversions' || group.label?.toLowerCase() === 'conversions') {
-        const hasMyWork = group.children?.some((c) => c.path === '/my-work');
+        let children = [...(group.children || [])];
+        const hasMyWork = children.some((c) => c.path === '/my-work');
         if (!hasMyWork) {
-          const children = [...(group.children || [])];
           children.unshift({
             id: 'web2_my_assigned_work',
             label: 'My Assigned Work',
@@ -355,8 +371,21 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             permissions: ['conversions.view'],
             openInNewTab: false,
           });
-          return { ...group, children };
         }
+        const hasTempRoles = children.some((c) => c.path === '/admin/temporary-roles');
+        if (!hasTempRoles) {
+          children.push({
+            id: 'web2_conv_temporary_roles',
+            label: 'Temporary Roles',
+            icon: 'KeyRound',
+            path: '/admin/temporary-roles',
+            order: 5,
+            isVisible: true,
+            permissions: ['roles.temporary.request', 'roles.temporary.view'],
+            openInNewTab: false,
+          });
+        }
+        return { ...group, children };
       }
 
       return group;
