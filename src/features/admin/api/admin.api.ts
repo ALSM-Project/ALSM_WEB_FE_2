@@ -80,6 +80,11 @@ export interface EngagementTypeDto {
 
 export type OrganizationInvitationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'NOT_REQUIRED';
 
+export type UpdateEngagementTypeRequest = Partial<Pick<EngagementTypeDto,
+  'name' | 'code' | 'description' | 'price' | 'trialLimits' | 'usageLimits' |
+  'features' | 'includesCobolConversion' | 'supportTier' | 'slaHours' | 'isActive'
+>>;
+
 export interface RevenueSummaryDto {
   totalRevenue: number;
   annualRecurringRevenue: number;
@@ -161,7 +166,7 @@ export const adminApi = {
 
   updateEngagementType: async (
     id: string,
-    data: Partial<EngagementTypeDto>
+    data: UpdateEngagementTypeRequest
   ): Promise<EngagementTypeDto> => {
     return apiClient.patch<EngagementTypeDto>(`/admin/engagement-types/${id}`, data);
   },

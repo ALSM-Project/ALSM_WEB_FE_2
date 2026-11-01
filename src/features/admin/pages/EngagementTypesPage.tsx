@@ -106,6 +106,7 @@ export const EngagementTypesPage: React.FC = () => {
   };
 
   const openEditModal = (item: FullEngagementTypeDto) => {
+    setErrorMsg(null);
     setEditingItem(item);
     setName(item.name);
     setCode(item.code);
@@ -200,12 +201,32 @@ export const EngagementTypesPage: React.FC = () => {
       };
 
       if (editingItem) {
-        await adminApi.updateEngagementType(editingItem.id, payload as any);
-        setTypes((prev) => prev.map((t) => (t.id === editingItem.id ? payload : t)));
+        const updated = await adminApi.updateEngagementType(editingItem.id, {
+          name: payload.name,
+          code: payload.code,
+          description: payload.description,
+          price: payload.price,
+          trialLimits: payload.trialLimits,
+          usageLimits: payload.usageLimits,
+          features: parsedFeatures,
+          includesCobolConversion: payload.includesCobolConversion,
+          supportTier: payload.supportTier,
+          slaHours: payload.slaHours,
+        });
+        const refreshed: FullEngagementTypeDto = {
+          ...updated,
+          price: updated.price ?? payload.price,
+          trialLimits: updated.trialLimits ?? payload.trialLimits,
+          usageLimits: updated.usageLimits ?? payload.usageLimits,
+          features: updated.features || [],
+          includesCobolConversion: updated.includesCobolConversion ?? payload.includesCobolConversion,
+        };
+        setTypes((prev) => prev.map((t) => (t.id === editingItem.id ? refreshed : t)));
         const reductionNotice = hasReducedLimits()
-          ? ' Warning: Limits were reduced; simulated notification dispatched to affected tenant accounts.'
+          ? ' Quotas were reduced; review existing organisation usage against the new limits.'
           : '';
-        setSuccessMsg(`Engagement type "${cleanName}" updated successfully in local mock state.${reductionNotice}`);
+        setSuccessMsg(`Engagement type “${refreshed.name}” was updated and saved.${reductionNotice}`);
+        void fetchTypes();
       } else {
         const result = await adminApi.createEngagementType({
           name: cleanName,
@@ -246,6 +267,7 @@ export const EngagementTypesPage: React.FC = () => {
       else if (status === 401) setErrorMsg('Your session has expired. Sign in again and retry.');
       else if (status === 403) setErrorMsg(`You do not have permission to ${editingItem ? 'update' : 'create'} engagement types.`);
       else if (status === 409) setErrorMsg(typeof message === 'string' ? message : 'An engagement type with this name or code already exists.');
+      else if (status === 404) setErrorMsg('This engagement type no longer exists. Refresh the catalog and try again.');
       else setErrorMsg('The engagement type could not be saved. Your request is safe to retry.');
     } finally {
       setSubmitting(false);
@@ -448,14 +470,16 @@ export const EngagementTypesPage: React.FC = () => {
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
                           View
                         </button>
-                        <button
-                          onClick={() => openEditModal(t)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#0652CC] bg-white text-xs font-semibold text-[#0652CC] hover:bg-blue-50 transition-colors"
-                          title="Edit limits and configuration"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          Edit
-                        </button>
+                        {canManageEngagementTypes && (
+                          <button
+                            onClick={() => openEditModal(t)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#0652CC] bg-white text-xs font-semibold text-[#0652CC] hover:bg-blue-50 transition-colors"
+                            title="Edit limits and configuration"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            Edit
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -542,9 +566,9 @@ export const EngagementTypesPage: React.FC = () => {
             <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <div>
-                <strong>Simulated Warning: Quota Reduction Detected</strong>
+                <strong>Quota Reduction Detected</strong>
                 <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">
-                  You are reducing limits below currently established tier levels. In accordance with policy, affected customer tenant organisations will receive simulated update notices regarding reduced allocations.
+                  You are reducing limits below the current plan values. Review organisation usage before saving; the new limits apply to organisations using this engagement type.
                 </p>
               </div>
             </div>

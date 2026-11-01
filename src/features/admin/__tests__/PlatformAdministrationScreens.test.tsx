@@ -379,7 +379,7 @@ describe('Platform Administration UI Enhancements', () => {
 
       // Warning notice should dynamically appear
       expect(screen.getByText(/Quota Reduction Detected/i)).toBeInTheDocument();
-      expect(screen.getByText(/affected customer tenant organisations will receive simulated update notices/i)).toBeInTheDocument();
+      expect(screen.getByText(/review organisation usage before saving/i)).toBeInTheDocument();
     });
 
     it('creates an engagement type through the API and refreshes the persisted catalog', async () => {
@@ -416,6 +416,52 @@ describe('Platform Administration UI Enhancements', () => {
         }));
         expect(screen.getByText(/was created and saved to the platform catalog/i)).toBeInTheDocument();
         expect(screen.getByText('New Enterprise Plan')).toBeInTheDocument();
+      });
+    });
+
+    it('edits an engagement type through the API and shows the persisted response', async () => {
+      const existing = {
+        id: 'plan-edit',
+        name: 'Editable Plan',
+        code: 'EDITABLE_PLAN',
+        description: 'Original description',
+        price: 18000,
+        trialLimits: { maxScreens: 15, maxPrograms: 8, maxStorageGb: 5 },
+        usageLimits: { maxScreens: 150, maxPrograms: 60, maxStorageGb: 50 },
+        features: ['BMS conversion'],
+        includesCobolConversion: true,
+        supportTier: 'STANDARD',
+        slaHours: 12,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      const updated = {
+        ...existing,
+        name: 'Editable Plan Plus',
+        code: 'EDITABLE_PLAN_PLUS',
+        price: 22000,
+        updatedAt: new Date().toISOString(),
+      };
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValueOnce([existing]).mockResolvedValueOnce([updated]);
+      vi.mocked(adminApi.updateEngagementType).mockResolvedValue(updated);
+
+      renderWithContext(<EngagementTypesPage />);
+      await screen.findByText('Editable Plan');
+      fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
+      fireEvent.change(screen.getByPlaceholderText('Enterprise Pro Plus'), { target: { value: 'Editable Plan Plus' } });
+      fireEvent.change(screen.getByPlaceholderText('ENTERPRISE_PRO'), { target: { value: 'EDITABLE_PLAN_PLUS' } });
+      fireEvent.change(screen.getByPlaceholderText('Targeted at tier-1 enterprise migrations'), { target: { value: 'Updated plan description' } });
+      fireEvent.change(screen.getByLabelText('Annual Price (VND) *'), { target: { value: '22000' } });
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+      await waitFor(() => {
+        expect(adminApi.updateEngagementType).toHaveBeenCalledWith('plan-edit', expect.objectContaining({
+          name: 'Editable Plan Plus',
+          code: 'EDITABLE_PLAN_PLUS',
+          price: 22000,
+        }));
+        expect(screen.getByText(/was updated and saved/i)).toBeInTheDocument();
+        expect(screen.getByText('Editable Plan Plus')).toBeInTheDocument();
       });
     });
   });
