@@ -1,35 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, Download, TrendingUp, DollarSign, Users, 
   ArrowUpRight, Printer, Filter, CheckCircle2, Calendar, 
   Briefcase
 } from 'lucide-react';
 import { crmApi, SalesReportsDto } from '../api/crm.api';
-import { SalesTeamPerformanceView } from '../components/SalesTeamPerformanceView';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { formatVnd } from '@/shared/utils/currency';
 
 export const SalesReportsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'team'>('overview');
   const [reports, setReports] = useState<SalesReportsDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [exporting, setExporting] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { hasPermission } = useAuth();
 
   // Filters
   const [dateRange, setDateRange] = useState<string>('ALL');
-  const [teamMember, setTeamMember] = useState<string>('ALL');
-  const [region, setRegion] = useState<string>('ALL');
 
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const data = await crmApi.getReports({
-        dateRange,
-        teamMember,
-        region,
-      });
+      setError(null);
+      const data = await crmApi.getReports({ dateRange });
       setReports(data);
-    } catch (err: any) {
-      console.error('Failed to load sales reports:', err);
+    } catch (requestError) {
+      const status = (requestError as { response?: { status?: number } })?.response?.status;
+      setError(status === 403
+        ? 'You do not have permission to view sales reports.'
+        : status === 401
+          ? 'Your session has expired. Sign in again to view sales reports.'
+          : 'Sales reports could not be loaded. Check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -37,16 +41,13 @@ export const SalesReportsPage: React.FC = () => {
 
   useEffect(() => {
     fetchReports();
-  }, [dateRange, teamMember, region]);
+  }, [dateRange]);
 
   const handleExportCsv = async () => {
     try {
       setExporting(true);
-      const csvData = await crmApi.exportReportsCsv({
-        dateRange,
-        teamMember,
-        region,
-      });
+      setExportError(null);
+      const csvData = await crmApi.exportReportsCsv({ dateRange });
       const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -55,8 +56,9 @@ export const SalesReportsPage: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (err: any) {
-      console.error('Export failed:', err);
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError('The report export failed. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -106,35 +108,30 @@ export const SalesReportsPage: React.FC = () => {
           </button>
         </div>
       </div>
+      {exportError && <p role="alert" className="text-sm text-rose-700">{exportError}</p>}
 
       {/* Navigation View Switcher */}
       <div className="flex items-center gap-2 border-b border-[#E5EAF0]">
         <button
-          onClick={() => setActiveTab('overview')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            activeTab === 'overview'
-              ? 'border-[#0652CC] text-[#0652CC]'
-              : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
-          }`}
+          aria-current="page"
+          className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 border-[#0652CC] text-[#0652CC]"
         >
           <BarChart3 className="w-4 h-4" />
           <span>Sales & Revenue Overview</span>
         </button>
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            activeTab === 'team'
-              ? 'border-[#0652CC] text-[#0652CC]'
-              : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
-          }`}
-        >
-          <Users className="w-4 h-4" />
-          <span>Team Representative Performance</span>
-        </button>
+        {hasPermission('sales.team-performance.view') && (
+          <button
+            onClick={() => navigate('/reports/team-performance')}
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 border-transparent text-[#6B778C] hover:text-[#091E42] transition-all cursor-pointer"
+          >
+            <Users className="w-4 h-4" />
+            <span>Team Representative Performance</span>
+          </button>
+        )}
       </div>
 
       {/* TAB 1: Sales & Revenue Overview */}
-      {activeTab === 'overview' && (
+      {(
         <div className="space-y-6">
           {/* Filter Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-[#E5EAF0] shadow-xs">
@@ -160,37 +157,6 @@ export const SalesReportsPage: React.FC = () => {
                 </select>
               </div>
 
-              {/* Team Member Filter */}
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[#6B778C]">Representative:</span>
-                <select
-                  aria-label="Sales Rep Filter"
-                  value={teamMember}
-                  onChange={(e) => setTeamMember(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#E5EAF0] bg-[#F7F9FC] text-xs font-medium text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
-                >
-                  <option value="ALL">All Representatives</option>
-                  <option value="Sarah Jenkins">Sarah Jenkins</option>
-                  <option value="David Nguyen">David Nguyen</option>
-                  <option value="Elena Rostova">Elena Rostova</option>
-                </select>
-              </div>
-
-              {/* Region Filter */}
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-[#6B778C]">Region:</span>
-                <select
-                  aria-label="Sales Region Filter"
-                  value={region}
-                  onChange={(e) => setRegion(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#E5EAF0] bg-[#F7F9FC] text-xs font-medium text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
-                >
-                  <option value="ALL">All Regions</option>
-                  <option value="North America">North America</option>
-                  <option value="EMEA">EMEA</option>
-                  <option value="APAC">APAC</option>
-                </select>
-              </div>
             </div>
           </div>
 
@@ -199,13 +165,18 @@ export const SalesReportsPage: React.FC = () => {
               <div className="w-8 h-8 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               Aggregating verified sales revenue and conversion records...
             </div>
+          ) : error ? (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center" role="alert">
+              <p className="text-sm text-rose-800">{error}</p>
+              <button onClick={fetchReports} className="mt-3 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-rose-800 border border-rose-200">Retry</button>
+            </div>
           ) : (
             <>
               {/* KPI Stat Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B778C]">Realised Revenue</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B778C]">Sent / Accepted Quote Value</span>
                     <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
                       <DollarSign className="w-4 h-4" />
                     </div>
@@ -215,7 +186,7 @@ export const SalesReportsPage: React.FC = () => {
                       {formatVnd(monthlyRevenue)}
                     </div>
                     <p className="text-[11px] text-emerald-700 flex items-center mt-1 font-medium">
-                      <ArrowUpRight className="w-3 h-3 mr-0.5" /> Confirmed closed contracts
+                      <ArrowUpRight className="w-3 h-3 mr-0.5" /> Sum of sent and accepted quotes
                     </p>
                   </div>
                 </div>
@@ -239,7 +210,7 @@ export const SalesReportsPage: React.FC = () => {
 
                 <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B778C]">Average Deal Size</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B778C]">Average Quote Size</span>
                     <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
                       <BarChart3 className="w-4 h-4" />
                     </div>
@@ -248,7 +219,7 @@ export const SalesReportsPage: React.FC = () => {
                     <div className="text-2xl font-bold text-[#091E42]">
                       {formatVnd(averageDealSize)}
                     </div>
-                    <p className="text-[11px] text-[#6B778C] mt-1 font-medium">Mean value per closed deal</p>
+                    <p className="text-[11px] text-[#6B778C] mt-1 font-medium">Mean value per sent or accepted quote</p>
                   </div>
                 </div>
 
@@ -453,14 +424,6 @@ export const SalesReportsPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: Sales Team Performance */}
-      {activeTab === 'team' && (
-        <SalesTeamPerformanceView
-          initialDateRange={dateRange}
-          initialRegion={region}
-          initialMember={teamMember}
-        />
-      )}
     </div>
   );
 };
