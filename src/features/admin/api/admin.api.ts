@@ -73,6 +73,8 @@ export interface EngagementTypeDto {
   createdAt: string;
 }
 
+export type OrganizationInvitationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'NOT_REQUIRED';
+
 export interface RevenueSummaryDto {
   totalRevenue: number;
   annualRecurringRevenue: number;
@@ -108,12 +110,13 @@ export const adminApi = {
 
   createEnterpriseOrganization: async (data: {
     name: string;
-    domain: string;
-    adminEmail: string;
-    engagementType?: string;
+    domain?: string;
+    contactEmail: string;
+    engagementType: string;
     trialDays?: number;
-  }): Promise<{ organization: OrganizationDto; temporaryPassword?: string }> => {
-    return apiClient.post<{ organization: OrganizationDto; temporaryPassword?: string }>(
+    requestId: string;
+  }): Promise<{ organization: OrganizationDto; invitationStatus: OrganizationInvitationStatus; replayed: boolean }> => {
+    return apiClient.post<{ organization: OrganizationDto; invitationStatus: OrganizationInvitationStatus; replayed: boolean }>(
       '/admin/organizations/enterprise',
       data
     );

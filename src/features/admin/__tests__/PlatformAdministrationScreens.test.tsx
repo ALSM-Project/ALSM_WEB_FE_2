@@ -133,7 +133,9 @@ describe('Platform Administration UI Enhancements', () => {
     });
 
     it('implements 2-step enterprise organisation provisioning with email validation and review', async () => {
-      vi.mocked(adminApi.getOrganizations).mockResolvedValue([]);
+      vi.mocked(adminApi.getOrganizations)
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ id: 'org-stellar', name: 'Stellar FinTech', type: 'ENTERPRISE', status: 'TRIAL', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]);
       vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([]);
       vi.mocked(adminApi.createEnterpriseOrganization).mockResolvedValue({
         organization: {
@@ -144,7 +146,8 @@ describe('Platform Administration UI Enhancements', () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
-        temporaryPassword: 'TempPassword123!',
+        invitationStatus: 'SENT',
+        replayed: false,
       });
 
       renderWithContext(<OrganizationsPage />);
@@ -188,9 +191,15 @@ describe('Platform Administration UI Enhancements', () => {
 
       // Added to directory and success notification shown
       await waitFor(() => {
-        expect(screen.getByText(/successfully provisioned/i)).toBeInTheDocument();
+        expect(screen.getByText(/secure account setup link was sent/i)).toBeInTheDocument();
         expect(screen.getByText('Stellar FinTech')).toBeInTheDocument();
       });
+      expect(screen.queryByText(/temporary password|TempPassword/i)).not.toBeInTheDocument();
+      expect(adminApi.createEnterpriseOrganization).toHaveBeenCalledWith(expect.objectContaining({
+        contactEmail: 'admin@stellarfintech.com',
+        engagementType: 'Enterprise Pilot',
+        requestId: expect.any(String),
+      }));
     });
   });
 
@@ -233,6 +242,15 @@ describe('Platform Administration UI Enhancements', () => {
           },
         ],
       });
+      vi.mocked(adminApi.updateEngagement).mockResolvedValue({
+        id: 'org-fnx-prod',
+        name: 'Fintech Nexus International',
+        type: 'ENTERPRISE',
+        status: 'ACTIVE',
+        engagementType: 'ENTERPRISE_T2',
+        createdAt: '2026-08-15T09:00:00Z',
+        updatedAt: '2026-10-19T11:30:00Z',
+      });
 
       renderWithContext(
         <Routes>
@@ -272,7 +290,7 @@ describe('Platform Administration UI Enhancements', () => {
       fireEvent.click(saveBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Engagement parameters and limits updated successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/Engagement settings were saved successfully/i)).toBeInTheDocument();
       });
     });
   });
