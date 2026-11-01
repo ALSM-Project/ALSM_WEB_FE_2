@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ResourceTransferApprovalPage } from '../pages/ResourceTransferApprovalPage';
@@ -59,7 +59,13 @@ const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/team-lead/resource-transfers']}>
-        {children}
+        <Routes>
+          <Route path="/team-lead/resource-transfers" element={children} />
+          <Route
+            path="/team-lead/resource-transfers/:transferId"
+            element={<div>Transfer Request Detail View</div>}
+          />
+        </Routes>
       </MemoryRouter>
     </QueryClientProvider>
   );
@@ -100,8 +106,7 @@ describe('ResourceTransferApprovalPage (UC-88)', () => {
   it('renders page header, metrics, and transfer requests table', async () => {
     render(<ResourceTransferApprovalPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/Resource Transfer Approvals/i)).toBeInTheDocument();
-    expect(screen.getByText(/UC-88 Approve Resource Transfer/i)).toBeInTheDocument();
+    expect(screen.getByText(/Transfer Approvals/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Core Banking BMS Modernization')).toBeInTheDocument();
@@ -112,7 +117,7 @@ describe('ResourceTransferApprovalPage (UC-88)', () => {
     expect(screen.getAllByText(/Approved/i).length).toBeGreaterThan(0);
   });
 
-  it('opens request details modal with authoritative validation info', async () => {
+  it('navigates to dedicated transfer request detail page when Details button is clicked', async () => {
     render(<ResourceTransferApprovalPage />, { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -123,10 +128,23 @@ describe('ResourceTransferApprovalPage (UC-88)', () => {
     fireEvent.click(detailsButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText(/Transfer Request Details & Validation Check/i)).toBeInTheDocument();
-      expect(screen.getByText(/Authoritative Validation Passed/i)).toBeInTheDocument();
-      expect(screen.getAllByText(/Alex Mercer/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/David Chen/i).length).toBeGreaterThan(0);
+      expect(screen.getByText('Transfer Request Detail View')).toBeInTheDocument();
+    });
+  });
+
+  it('navigates to dedicated transfer request detail page when clicking a request row', async () => {
+    render(<ResourceTransferApprovalPage />, { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(screen.getByText('Payments Gateway Migration')).toBeInTheDocument();
+    });
+
+    const row = screen.getByText('Payments Gateway Migration').closest('tr');
+    expect(row).toBeInTheDocument();
+    fireEvent.click(row!);
+
+    await waitFor(() => {
+      expect(screen.getByText('Transfer Request Detail View')).toBeInTheDocument();
     });
   });
 
@@ -141,7 +159,7 @@ describe('ResourceTransferApprovalPage (UC-88)', () => {
     fireEvent.click(approveButton);
 
     await waitFor(() => {
-      expect(screen.getByText(/Confirm Resource Transfer Approval \(UC-88\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Confirm Transfer Approval/i)).toBeInTheDocument();
     });
 
     const submitBtn = screen.getByRole('button', { name: /Confirm & Execute Approval/i });
