@@ -66,11 +66,16 @@ export interface EngagementTypeDto {
   name: string;
   code: string;
   description?: string;
+  price?: number;
+  trialLimits?: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
+  usageLimits?: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
   features: string[];
+  includesCobolConversion?: boolean;
   supportTier: string;
   slaHours: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type OrganizationInvitationStatus = 'PENDING' | 'SENT' | 'FAILED' | 'NOT_REQUIRED';
@@ -142,11 +147,16 @@ export const adminApi = {
     name: string;
     code: string;
     description?: string;
+    price: number;
+    trialLimits: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
+    usageLimits: { maxScreens: number; maxPrograms: number; maxStorageGb: number };
     features?: string[];
+    includesCobolConversion: boolean;
     supportTier?: string;
     slaHours?: number;
-  }): Promise<EngagementTypeDto> => {
-    return apiClient.post<EngagementTypeDto>('/admin/engagement-types', data);
+    requestId: string;
+  }): Promise<{ engagementType: EngagementTypeDto; replayed: boolean }> => {
+    return apiClient.post<{ engagementType: EngagementTypeDto; replayed: boolean }>('/admin/engagement-types', data);
   },
 
   updateEngagementType: async (
