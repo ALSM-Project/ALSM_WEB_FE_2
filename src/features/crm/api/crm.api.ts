@@ -228,32 +228,23 @@ export const crmApi = {
 
   getReports: async (filters?: {
     dateRange?: string;
-    teamMember?: string;
-    region?: string;
   }): Promise<SalesReportsDto> => {
-    try {
-      const raw = await apiClient.get<any>('/sales/crm/reports', { params: filters });
-      if (raw && typeof raw.totalLeads === 'number') {
-        return {
-          totalLeads: Number(raw.totalLeads ?? 0),
-          wonLeads: Number(raw.wonLeads ?? 0),
-          monthlyRevenue: Number(raw.monthlyRevenue ?? raw.totalRevenue ?? 0),
-          totalRevenue: Number(raw.totalRevenue ?? raw.monthlyRevenue ?? 0),
-          averageDealSize: Number(raw.averageDealSize ?? raw.avgDealSize ?? 0),
-          avgDealSize: Number(raw.avgDealSize ?? raw.averageDealSize ?? 0),
-          conversionRate: Number(raw.conversionRate ?? 0),
-          stageDistribution: raw.stageDistribution || raw.pipelineBreakdown || {},
-          pipelineBreakdown: raw.pipelineBreakdown || raw.stageDistribution || {},
-          sourceDistribution: raw.sourceDistribution || raw.leadSources || {},
-          leadSources: raw.leadSources || raw.sourceDistribution || {},
-          revenueOverTime: raw.revenueOverTime || [],
-          recentWonDeals: raw.recentWonDeals || [],
-        };
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.getReports(filters);
+    const raw = await apiClient.get<any>('/sales/crm/reports', { params: filters });
+    return {
+      totalLeads: Number(raw?.totalLeads ?? 0),
+      wonLeads: Number(raw?.wonLeads ?? 0),
+      monthlyRevenue: Number(raw?.monthlyRevenue ?? raw?.totalRevenue ?? 0),
+      totalRevenue: Number(raw?.totalRevenue ?? raw?.monthlyRevenue ?? 0),
+      averageDealSize: Number(raw?.averageDealSize ?? raw?.avgDealSize ?? 0),
+      avgDealSize: Number(raw?.avgDealSize ?? raw?.averageDealSize ?? 0),
+      conversionRate: Number(raw?.conversionRate ?? 0),
+      stageDistribution: raw?.stageDistribution || raw?.pipelineBreakdown || {},
+      pipelineBreakdown: raw?.pipelineBreakdown || raw?.stageDistribution || {},
+      sourceDistribution: raw?.sourceDistribution || raw?.leadSources || {},
+      leadSources: raw?.leadSources || raw?.sourceDistribution || {},
+      revenueOverTime: raw?.revenueOverTime || [],
+      recentWonDeals: raw?.recentWonDeals || [],
+    };
   },
 
   getTeamPerformance: async (filters?: {
@@ -274,16 +265,8 @@ export const crmApi = {
 
   exportReportsCsv: async (filters?: {
     dateRange?: string;
-    teamMember?: string;
-    region?: string;
   }): Promise<string> => {
-    try {
-      const res = await apiClient.get<string>('/sales/crm/reports/export', { params: filters });
-      if (res) return res;
-    } catch {
-      // Fallback
-    }
-    return crmStore.exportReportsCsv(filters);
+    return apiClient.get<string>('/sales/crm/reports/export', { params: filters });
   },
 
   getPendingDiscounts: async (): Promise<PendingDiscountDto[]> => {

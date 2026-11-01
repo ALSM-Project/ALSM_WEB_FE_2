@@ -5,6 +5,7 @@ import { crmStore } from '../services/crm-store';
 import { SalesReportsPage } from '../pages/SalesReportsPage';
 import { DiscountApprovalPage } from '../pages/DiscountApprovalPage';
 import { SalesTeamPerformanceView } from '../components/SalesTeamPerformanceView';
+import { crmApi } from '../api/crm.api';
 
 // Mock auth hook
 let mockUserPermissions: string[] = [
@@ -34,6 +35,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       'sales.discounts.approve',
       'sales.discounts.reject',
     ];
+    vi.spyOn(crmApi, 'getReports').mockImplementation(async (filters) => crmStore.getReports(filters));
   });
 
   describe('1. Sales & Revenue Reports Accounting', () => {
@@ -86,13 +88,21 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Verify KPI titles
-      expect(screen.getAllByText('Realised Revenue').length).toBeGreaterThan(0);
-      expect(screen.getByText('Average Deal Size')).toBeInTheDocument();
+      expect(screen.getAllByText('Sent / Accepted Quote Value').length).toBeGreaterThan(0);
+      expect(screen.getByText('Average Quote Size')).toBeInTheDocument();
       expect(screen.getByText('Total Leads in Scope')).toBeInTheDocument();
 
       // Verify Revenue Over Time section
       expect(screen.getByText('Revenue Over Time & Booking Cadence')).toBeInTheDocument();
       expect(screen.getByText('Recent Closed Won Deals (Audited Revenue)')).toBeInTheDocument();
+    });
+
+    it('shows an actionable error when the reports API is unavailable', async () => {
+      vi.spyOn(crmApi, 'getReports').mockRejectedValueOnce(new Error('dependency failure'));
+      render(<MemoryRouter><SalesReportsPage /></MemoryRouter>);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/could not be loaded/i);
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
     });
 
     it('generates a CSV export containing filtered metadata and lead dossiers', () => {
@@ -289,8 +299,8 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve and Reject buttons should NOT be rendered in table
-      expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve\b/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject\b/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
 
       // View Only indicators should be displayed
@@ -315,10 +325,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve button should be visible
-      expect(screen.getAllByRole('button', { name: /approve/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^approve\b/i }).length).toBeGreaterThan(0);
 
       // Reject button should NOT be visible
-      expect(screen.queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject\b/i })).not.toBeInTheDocument();
     });
 
     it('displays Reject button when user has sales.discounts.reject, but hides Approve if sales.discounts.approve is missing', async () => {
@@ -339,10 +349,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Reject button should be visible
-      expect(screen.getAllByRole('button', { name: /reject/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^reject\b/i }).length).toBeGreaterThan(0);
 
       // Approve and Escalate buttons should NOT be visible
-      expect(screen.queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve\b/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
     });
   });
