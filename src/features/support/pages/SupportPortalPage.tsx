@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState, useSyncExternalStore } from 'react';
-import { Search, ShieldCheck } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Badge, Button, Card, Input, PageHeader } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { tokenStore } from '@/services/api/tokenStore';
@@ -60,16 +60,7 @@ function SupportPortal({
   const disabled = busy || state.blocked || unavailable;
   return (
     <div className="space-y-5 max-w-[1400px] mx-auto">
-      <PageHeader
-        title="Internal Support Portal"
-        subtitle="Search an Organisation, enter its read-only diagnostic workspace, and exit when finished."
-        badge={
-          <Badge variant="info">
-            <ShieldCheck className="w-3 h-3 mr-1" />
-            UC-66
-          </Badge>
-        }
-      />
+      <PageHeader title="Customer Support" />
       {adapter.mode === 'mock' && (
         <Card padding="sm" role="status" className="bg-blue-50 border-blue-200 text-sm">
           Synthetic preview · No customer data or operational access. Use “Example” or
