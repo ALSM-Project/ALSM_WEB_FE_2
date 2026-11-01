@@ -13,6 +13,7 @@ export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
   const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
+  const canManageOrganizations = Boolean(user) && hasPermission('organizations.manage');
 
   const [organizations, setOrganizations] = useState<OrganizationDto[]>([]);
   const [, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
@@ -193,22 +194,26 @@ export const OrganizationsPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
+            disabled={loading}
+            aria-busy={loading}
             className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button
-            onClick={() => {
-              setCreateStep(1);
-              setFormError(null);
-              setShowCreateModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            New Enterprise Org
-          </button>
+          {canManageOrganizations && (
+            <button
+              onClick={() => {
+                setCreateStep(1);
+                setFormError(null);
+                setShowCreateModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Enterprise Org
+            </button>
+          )}
         </div>
       </div>
 
@@ -236,6 +241,7 @@ export const OrganizationsPage: React.FC = () => {
               type="text"
               aria-label="Search organisations"
               placeholder="Search by organisation name or contact email..."
+              maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
@@ -309,7 +315,7 @@ export const OrganizationsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#E5EAF0]" aria-live="polite" aria-busy={loading}>
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
@@ -319,17 +325,25 @@ export const OrganizationsPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                    The organisation directory could not be loaded. Use Refresh to try again.
+                  </td>
+                </tr>
               ) : filteredOrgs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
                     <Building className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
-                    No organisations match your search criteria.
+                    {organizations.length === 0
+                      ? 'No organisations are available yet.'
+                      : 'No organisations match your search criteria.'}
                   </td>
                 </tr>
               ) : (
                 filteredOrgs.map((org) => {
-                  const projectCount = org.name.includes('Acme') ? 3 : org.name.includes('Fintech') ? 2 : 1;
-                  const memberCount = org.memberCount ?? org.members?.length ?? 5;
+                  const projectCount = org.projectCount ?? 0;
+                  const memberCount = org.memberCount ?? org.members?.length ?? 0;
                   return (
                     <tr
                       key={org.id}
