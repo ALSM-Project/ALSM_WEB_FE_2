@@ -30,10 +30,10 @@ const NavInspector: React.FC = () => {
   return (
     <div data-testid="nav-inspector">
       {sidebarNav.map((group) => (
-        <div key={group.id} data-testid={`group-${group.id}`}>
+        <div key={group.id} data-testid={`group-${group.id}`} data-route={group.path}>
           <span data-testid={`label-${group.id}`}>{group.label}</span>
           {group.children?.map((child) => (
-            <div key={child.id} data-testid={`child-${child.id}`}>
+            <div key={child.id} data-testid={`child-${child.id}`} data-route={child.path}>
               {child.label}
             </div>
           ))}
@@ -43,7 +43,7 @@ const NavInspector: React.FC = () => {
   );
 };
 
-const setupTestContext = (permissions: string[], isPlatformAdmin: boolean = false) => {
+const setupTestContext = (permissions: string[], isPlatformAdmin: boolean = false, roles: string[] = []) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
@@ -52,6 +52,8 @@ const setupTestContext = (permissions: string[], isPlatformAdmin: boolean = fals
     id: 'test-user',
     email: 'user@alsm.io',
     isPlatformAdmin,
+    isActive: true,
+    roles,
     effectivePermissions: permissions,
   });
 
@@ -313,7 +315,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     cleanup();
   });
 
-  it('renders Customer Support, Operations, and Demo Projects for INTERNAL_SUPPORT', () => {
+  it('renders flattened Customer Support, Operations, and Demo Projects for INTERNAL_SUPPORT', () => {
     const supportPermissions = [
       'conversions.queue.view',
       'conversions.troubleshoot.view',
@@ -326,16 +328,16 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     ];
 
     render(<NavInspector />, {
-      wrapper: setupTestContext(supportPermissions),
+      wrapper: setupTestContext(supportPermissions, false, ['INTERNAL_SUPPORT']),
     });
 
-    // Customer Support group should be visible with both children
-    expect(screen.getByTestId('group-web2_group_support')).toBeInTheDocument();
+    // Staff navigation is flat; assert the actual links rather than Admin group headings.
+    expect(screen.getByTestId('group-web2_support_org_access')).toBeInTheDocument();
     expect(screen.getByText('Organisation Access')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_support_org_access')).toHaveAttribute('data-route', '/support');
     expect(screen.getByText('Conversion Support')).toBeInTheDocument();
 
-    // Operations group should be visible with Conversion Queue
-    expect(screen.getByTestId('group-web2_group_operations')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_conversion_queue')).toBeInTheDocument();
     expect(screen.getByText('Conversion Queue')).toBeInTheDocument();
 
     // Demo Projects should be visible under Partner Management
@@ -386,14 +388,14 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.getByText('Demo Projects')).toBeInTheDocument();
   });
 
-  it('renders Conversions group with My Assigned Work for CONVERSION_STAFF, and prunes it for roles lacking conversions.view', () => {
+  it('renders flattened My Assigned Work for CONVERSION_STAFF and hides it without conversions.view', () => {
     // 1. Permitted user with conversions.view
     const staffPermissions = ['conversions.view', 'partner.view'];
     const { unmount } = render(<NavInspector />, {
       wrapper: setupTestContext(staffPermissions),
     });
 
-    expect(screen.getByTestId('group-web2_group_conversions')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_my_assigned_work')).toBeInTheDocument();
     expect(screen.getByText('My Assigned Work')).toBeInTheDocument();
     // Quality Review requires quality-review.manage, so it is hidden
     expect(screen.queryByText('Quality Review')).not.toBeInTheDocument();
@@ -409,7 +411,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
   });
 
-  it('renders CRM & Sales group with Sales Reports, Team Performance, and Discount Approvals for SALES_MANAGER, and prunes it for CONVERSION_STAFF', () => {
+  it('renders flattened Sales links for SALES_MANAGER and hides unauthorized reports', () => {
     // 1. Sales Manager with full commercial authorization
     const salesManagerPermissions = [
       'sales.leads.view',
@@ -425,7 +427,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
       wrapper: setupTestContext(salesManagerPermissions),
     });
 
-    expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_leads')).toBeInTheDocument();
     expect(screen.getByText('Leads (CRM)')).toBeInTheDocument();
     expect(screen.getByText('Sales Reports')).toBeInTheDocument();
     expect(screen.getByText('Team Performance')).toBeInTheDocument();
@@ -441,7 +443,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     const { unmount: unmountRep } = render(<NavInspector />, {
       wrapper: setupTestContext(salesRepPermissions),
     });
-    expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_leads')).toBeInTheDocument();
     expect(screen.getByText('Discount Approvals')).toBeInTheDocument();
     expect(screen.queryByText('Sales Reports')).not.toBeInTheDocument();
     expect(screen.queryByText('Team Performance')).not.toBeInTheDocument();
