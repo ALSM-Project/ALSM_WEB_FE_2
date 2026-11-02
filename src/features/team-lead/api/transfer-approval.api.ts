@@ -38,6 +38,13 @@ export interface TransferRequestDetailResponse {
     assignedStaffId?: string;
     assignedStaffName?: string;
     assignedTeamLeadId?: string;
+    description?: string;
+    organizationId?: string;
+    serviceType?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    staffAssignmentNote?: string;
+    [key: string]: any;
   } | null;
 }
 
