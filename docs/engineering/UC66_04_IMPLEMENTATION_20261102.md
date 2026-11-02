@@ -146,8 +146,30 @@ Added:
 - `src/features/support/__tests__/SupportSession.test.ts`.
 - `src/features/support/__tests__/support.api.test.ts`.
 - `src/features/support/__tests__/SupportPortalPage.test.tsx`.
+- `src/features/support/__tests__/SupportWorkspace.pagination.test.tsx`.
 - `src/services/api/apiClient.support-replay.test.ts`.
 - This handoff document.
+
+## P2 Project pagination correction
+
+The reviewed feature was preserved in checkpoint `aacb936` before this correction.
+Project details deliberately clear the generic resource page while retaining the
+Project list in `state.projects`. The pagination controls previously read the
+cleared generic page's cursor, disabling Next page after inspecting a Project.
+SupportWorkspace now derives the displayed rows, Next page availability and cursor
+from the same existing page: `state.projects` for Projects, `state.page` otherwise.
+No pagination state, API request or controller change was added. Scope clearing,
+AbortController/generation checks, expiry and uncertain-outcome handling are unchanged.
+
+Three StrictMode UI regressions use 25 synthetic Projects per Organisation and
+10/10/5 pages. They cover opening and closing details without reloading, exact
+page-two/page-three cursors and rows, Organisation/Context switching with an aborted
+but late-delivered old response, and returning from a child collection to another
+Project without reusing the child cursor. Request-count assertions exclude extra
+list/status calls from the application. The new tests fail on `aacb936` at the
+disabled Next page assertions (0 PASS / 3 FAIL / 0 SKIP), and pass after the fix
+(3 PASS / 0 FAIL / 0 SKIP). The independent review's original P2 reproduction also
+now passes (1 PASS / 0 FAIL / 0 SKIP).
 
 ## Verification and handoff
 
@@ -159,12 +181,19 @@ time, mock parent isolation and no background activity. The page flow is tested
 under React StrictMode. Existing auth/session, navigation, disabled legacy Support
 View and Platform Admin UI tests are included in the focused regression run.
 
-Actual counts and command outputs are in
+Original implementation counts and command outputs are in
 `E:/ALSM/alsmv2-1050-uc66-04-evidence-20261102/verification-summary.json`, alongside
 focused-tests.json/log, baseline-focused.json/log, typescript.log, lint.log and
-build.log. The focused run has **88 PASS, 0 FAIL, 0 SKIP** across eleven files,
-including **45 new Support cases**. TypeScript, lint and production build pass. No live Support HTTP end-to-end
-or native-browser visual verification is claimed.
+build.log (88 passing focused tests, including 45 Support/transport cases).
+Pagination-correction evidence is retained separately in
+`E:/ALSM/alsmv2-1050-uc66-04-pagination-fix-evidence-20261102`. The corrected focused
+run has **91 PASS, 0 FAIL, 0 SKIP** across twelve files, including **48 Support/transport
+cases**. TypeScript, repository Oxlint, changed-file ESLint, production build and
+changed-file formatting pass. Since this repository has no ESLint configuration or
+dependency, the scoped ESLint check uses the already installed ESLint 9/TypeScript
+recommended rules with a temporary configuration in the evidence directory; no
+tooling/dependency change is introduced. No live Support HTTP end-to-end or native
+Chrome/Edge verification is claimed by this correction.
 
 An isolated baseline at f3d5fc0 reproduced three stale navigation test assertions
 that expected Admin-style groups for staff, and three Sales discount UI failures.

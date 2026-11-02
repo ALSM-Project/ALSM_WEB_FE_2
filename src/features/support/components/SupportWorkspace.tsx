@@ -39,7 +39,8 @@ export function SupportWorkspace({
   const context = state.context!,
     organization = state.organization!;
   const busy = state.pending !== null;
-  const rows = state.kind === 'projects' ? state.projects?.items : state.page?.items;
+  const page = state.kind === 'projects' ? state.projects : state.page;
+  const rows = page?.items;
   return (
     <div className="space-y-5">
       <section
@@ -214,10 +215,8 @@ export function SupportWorkspace({
                   <Button
                     variant="outline"
                     size="sm"
-                    disabled={!state.page?.nextAfterId}
-                    onClick={() =>
-                      void session.list(state.kind, state.page?.nextAfterId ?? undefined)
-                    }
+                    disabled={!page?.nextAfterId}
+                    onClick={() => void session.list(state.kind, page?.nextAfterId ?? undefined)}
                   >
                     Next page
                   </Button>
