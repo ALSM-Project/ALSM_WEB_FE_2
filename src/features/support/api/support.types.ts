@@ -99,9 +99,23 @@ export const RESOURCE_LABELS: Record<ResourceKind, string> = {
   'error-logs': 'Error Logs',
 };
 
-// There is deliberately no reconciliation method: no pure read-only endpoint exists at ba9f91e.
+export interface SupportRecovery {
+  outcome: 'FOUND' | 'UNRESOLVED';
+  context: SupportContext | null;
+  organization: SupportOrganization | null;
+  usable: boolean;
+  operation: { id: string; state: 'COMMITTED' | 'UNRESOLVED'; kind: string | null } | null;
+  observedAt: string;
+}
+
 export interface SupportAdapter {
   mode: 'mock' | 'unavailable' | 'http';
+  // Available only on the isolated HTTP adapter; never an audited status read.
+  recover?(
+    organizationId: string,
+    reference?: Pick<OperationReference, 'contextId' | 'operationId'>,
+    signal?: AbortSignal,
+  ): Promise<SupportRecovery>;
   search(input: OrganizationSearch, signal?: AbortSignal): Promise<Page<SupportOrganization>>;
   enter(organizationId: string, signal?: AbortSignal): Promise<SupportContext>;
   context(scope: ContextScope, signal?: AbortSignal): Promise<SupportContext>; // Audited activity, not reconciliation.

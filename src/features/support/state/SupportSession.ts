@@ -10,6 +10,7 @@ import type {
   SupportContext,
   SupportOrganization,
   SupportProject,
+  SupportRecovery,
   WorkspacePage,
   WorkspaceScope,
 } from '../api/support.types';
@@ -22,6 +23,7 @@ export interface SupportNotice {
   reference?: OperationReference;
 }
 export interface SupportState {
+  recovery: SupportRecovery | null;
   organizations: Page<SupportOrganization> | null;
   search: OrganizationSearch | null;
   organization: SupportOrganization | null;
@@ -39,6 +41,7 @@ export interface SupportState {
   idleDeadline: number | null;
 }
 const empty = (): SupportState => ({
+  recovery: null,
   organizations: null,
   search: null,
   organization: null,
@@ -225,7 +228,7 @@ export class SupportSession {
           code: 'SUPPORT_CONTEXT_OUTCOME_UNCONFIRMED',
           reference: { ...reference, mutationCommitted: 'unknown' },
           message:
-            'Outcome unconfirmed. The operation may have committed. Data is hidden and the operation will not be repeated. No read-only reconciliation endpoint is available.',
+            'Outcome unconfirmed. The operation may have committed. Data is hidden and the operation will not be repeated. Use authorized recovery when available.',
         },
       });
     } else if (info.code === 'SUPPORT_CONTEXT_INACTIVE') {
@@ -287,6 +290,88 @@ export class SupportSession {
     }
   };
   closeDetail = () => this.update({ detail: null });
+  async recover(
+    organizationId: string,
+    reference: { contextId?: string; operationId?: string } = {},
+  ) {
+    if (!this.authorized()) {
+      this.clear('Support authority or the original login changed.', true);
+      return;
+    }
+    if (!this.api.recover || this.state.context || this.state.pending || !this.authorized()) return;
+    const previouslyBlocked = this.state.blocked;
+    const request = this.begin('Inspecting recovery');
+    this.update({ recovery: null, organizations: null, search: null });
+    try {
+      const recovery = await this.api.recover(organizationId, reference, request.signal);
+      if (!this.current(request)) return;
+      // Anchor before notifying subscribers; transport delay cannot extend deadlines.
+      this.recoveryStarted = request.started;
+      this.update({
+        recovery,
+        pending: null,
+        blocked:
+          recovery.operation?.state === 'UNRESOLVED' ||
+          recovery.usable ||
+          (recovery.outcome === 'UNRESOLVED' && previouslyBlocked),
+        notice: {
+          code: 'SUPPORT_RECOVERY',
+          reference: {
+            organizationId,
+            ...(recovery.context
+              ? { contextId: recovery.context.id }
+              : reference.contextId
+                ? { contextId: reference.contextId }
+                : {}),
+            ...(reference.operationId ? { operationId: reference.operationId } : {}),
+          },
+          message:
+            recovery.operation?.state === 'UNRESOLVED' || recovery.outcome === 'UNRESOLVED'
+              ? 'Outcome remains unresolved. No operation was repeated and no rollback is assumed.'
+              : recovery.usable
+                ? 'Existing context found. Resume explicitly; no activity has been repeated.'
+                : 'The recovered context is terminal or expired. Enter explicitly to start a new context.',
+        },
+      });
+    } catch (error) {
+      if (this.current(request)) {
+        this.failure(error, { organizationId, ...reference }, false);
+        this.update({ blocked: true });
+      }
+    }
+  }
+  private recoveryStarted = 0;
+  resumeRecovered = () => {
+    if (!this.authorized()) {
+      this.clear('Support authority or the original login changed.', true);
+      return;
+    }
+    const recovery = this.state.recovery;
+    if (
+      !recovery?.usable ||
+      !recovery.context ||
+      !recovery.organization ||
+      recovery.operation?.state === 'UNRESOLVED' ||
+      this.state.pending ||
+      !this.authorized()
+    )
+      return;
+    const context = recovery.context;
+    const observedAt = Date.parse(recovery.observedAt);
+    const absoluteDeadline =
+      this.recoveryStarted + Math.min(ABSOLUTE_MS, Date.parse(context.expiresAt) - observedAt);
+    const idleDeadline = Math.min(
+      absoluteDeadline,
+      this.recoveryStarted + Math.min(IDLE_MS, Date.parse(context.idleExpiresAt) - observedAt),
+    );
+    if (this.now() >= Math.min(absoluteDeadline, idleDeadline)) {
+      this.clear('Recovered context has expired. Enter explicitly again.');
+      return;
+    }
+    this.clear();
+    this.update({ context, organization: recovery.organization, absoluteDeadline, idleDeadline });
+    this.tick();
+  };
   async search(input: OrganizationSearch) {
     if (!this.authorized()) {
       this.clear('Support authority or the original login changed.', true);

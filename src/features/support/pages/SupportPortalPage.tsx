@@ -9,6 +9,7 @@ import { SupportSession } from '../state/SupportSession';
 import { canUseSupport } from '../state/supportAccess';
 import { SupportWorkspace } from '../components/SupportWorkspace';
 import { SupportOutcomeNotice } from '../components/SupportOutcomeNotice';
+import { SupportRecoveryPanel } from '../components/SupportRecoveryPanel';
 
 const loginSnapshot = () =>
   `${tokenStore.epoch()}:${Boolean(tokenStore.getAccessToken())}:${tokenStore.isLogoutPending()}`;
@@ -82,6 +83,13 @@ function SupportPortal({
         </Card>
       )}
       {state.notice && <SupportOutcomeNotice notice={state.notice} />}
+      {!state.context && adapter.recover && (
+        <SupportRecoveryPanel
+          key={state.notice?.reference?.contextId ?? 'recovery'}
+          session={session}
+          state={state}
+        />
+      )}
       {state.context && state.organization ? (
         <SupportWorkspace session={session} state={state} actor={actor} />
       ) : (
@@ -186,6 +194,16 @@ function SupportPortal({
                             <Badge variant="success">{org.status}</Badge>
                           </td>
                           <td className="p-4 text-right">
+                            {adapter.recover && (
+                              <Button
+                                variant="outline"
+                                disabled={busy}
+                                onClick={() => void session.recover(org.id)}
+                                aria-label={`Recover Organisation ${org.name}`}
+                              >
+                                Recover
+                              </Button>
+                            )}
                             <Button
                               disabled={disabled}
                               onClick={() => {

@@ -1,5 +1,9 @@
 # ALSMV2-1050 / UC66-04 — isolated Frontend Support View
 
+This records the accepted UC66-04 checkpoint. The later
+[UC66-05A handoff](UC66_05A_IMPLEMENTATION_20261102.md) adds restricted development
+HTTP integration and pure recovery; production remains unavailable.
+
 Implemented on 2 November 2026 in `E:/ALSM/ALSM_WEB_FE_2`, the existing React/Vite
 Internal Staff Portal. Base: `f3d5fc0`; branch:
 `feature/alsmv2-1050-uc66-04-support-view`. The customer frontend `ALSM_WEB_FE_1`

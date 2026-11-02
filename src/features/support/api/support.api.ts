@@ -10,6 +10,7 @@ import type {
   SupportAdapter,
   SupportContext,
   SupportOrganization,
+  SupportRecovery,
   WorkspaceScope,
 } from './support.types';
 
@@ -167,6 +168,59 @@ const config = (signal?: AbortSignal): ApiRequestConfig => ({
 export function createHttpSupportAdapter(client: Client = apiClient): SupportAdapter {
   return {
     mode: 'http',
+    async recover(organizationId, reference = {}, signal): Promise<SupportRecovery> {
+      const params = {
+        ...(reference.contextId ? { contextId: contextId(reference.contextId) } : {}),
+        ...(reference.operationId ? { operationId: contextId(reference.operationId) } : {}),
+      };
+      if (params.operationId && !params.contextId)
+        throw new SupportApiError('INVALID_SUPPORT_INPUT', 400);
+      const value = object(
+        await client.get(`/support/organizations/${objectId(organizationId)}/recovery`, {
+          ...config(signal),
+          params,
+        }),
+      );
+      if (
+        !['FOUND', 'UNRESOLVED'].includes(String(value.outcome)) ||
+        typeof value.usable !== 'boolean'
+      )
+        invalid();
+      const context =
+        value.context === null
+          ? null
+          : decodeContext(value.context, organizationId, reference.contextId);
+      const org = value.organization === null ? null : organization(value.organization);
+      if (org && org.id !== organizationId) invalid();
+      if (
+        (value.outcome === 'FOUND') !== Boolean(context) ||
+        (value.usable && (!context || !org || context.state !== 'ACTIVE'))
+      )
+        invalid();
+      const operation = value.operation === null ? null : object(value.operation);
+      if (
+        operation &&
+        (!reference.operationId ||
+          contextId(operation.id) !== reference.operationId ||
+          !['COMMITTED', 'UNRESOLVED'].includes(String(operation.state)))
+      )
+        invalid();
+      if (Boolean(reference.operationId) !== Boolean(operation)) invalid();
+      return {
+        outcome: value.outcome as SupportRecovery['outcome'],
+        context,
+        organization: org,
+        usable: value.usable === true,
+        operation: operation
+          ? {
+              id: contextId(operation.id),
+              state: operation.state as 'COMMITTED' | 'UNRESOLVED',
+              kind: operation.kind === null ? null : text(operation.kind),
+            }
+          : null,
+        observedAt: date(value.observedAt),
+      };
+    },
     async search(input, signal) {
       const params = searchOptions(input);
       return decodePage(
