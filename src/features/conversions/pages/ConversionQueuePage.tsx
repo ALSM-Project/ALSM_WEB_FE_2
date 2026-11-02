@@ -359,7 +359,8 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                 ? <p role="alert">Unable to load job: {conversionError(details.error)}</p>
                 : detailJob && <ConversionTroubleshootingWorkspace job={detailJob} projectName={authorizedProject?.name}
                     onBack={() => { setTroubleshootTargetJobId(''); setActivePageTab('queue'); }}
-                    onRetry={canRetry ? () => setRetryTargetJob(detailJob) : undefined} retrying={Boolean(retryingJobId)} />
+                    onRetry={canRetry ? () => setRetryTargetJob(detailJob) : undefined} retrying={Boolean(retryingJobId)}
+                    onPatched={() => { void jobs.refetch(); void details.refetch(); }} />
             )}
             {/* Summary Metrics Section */}
             {authorizedProject && jobs.isSuccess && (

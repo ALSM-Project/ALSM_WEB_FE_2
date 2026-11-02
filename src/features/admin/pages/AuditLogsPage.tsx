@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileSearch, Download, RefreshCw, User, ChevronLeft, ChevronRight,
-  FileText, Info, CheckCircle2
+  FileText, Info, CheckCircle2, Eye, AlertCircle
 } from 'lucide-react';
 import { adminApi, AuditLogDto } from '../api/admin.api';
 import { Button } from '@/shared/ui';
+import { AuditDetailModal } from '../components/AuditDetailModal';
 
 const MOCK_AUDIT_LOGS: AuditLogDto[] = [
   {
@@ -132,8 +133,11 @@ const MOCK_AUDIT_LOGS: AuditLogDto[] = [
 export const AuditLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isUsingMock, setIsUsingMock] = useState<boolean>(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [exportingCsv, setExportingCsv] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogDto | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -149,27 +153,31 @@ export const AuditLogsPage: React.FC = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true);
-      const data = await adminApi
-        .getAuditLogs({
-          actor: searchTerm || undefined,
-          action: actionFilter || undefined,
-          resourceType: resourceFilter || undefined,
-          limit: 100,
-        })
-        .catch(() => []);
+      setErrorMsg(null);
+      const data = await adminApi.getAuditLogs({
+        actor: searchTerm || undefined,
+        action: actionFilter || undefined,
+        resourceType: resourceFilter || undefined,
+        limit: 100,
+      });
 
       if (Array.isArray(data) && data.length > 0) {
-        // Merge with mock logs to guarantee IP addresses and complete records
-        const merged = data.map((d, index) => ({
-          ...d,
-          ipAddress: d.ipAddress || MOCK_AUDIT_LOGS[index % MOCK_AUDIT_LOGS.length]?.ipAddress || '192.168.1.100',
-        }));
-        setLogs(merged);
+        setLogs(data);
+        setIsUsingMock(false);
       } else {
         setLogs(MOCK_AUDIT_LOGS);
+        setIsUsingMock(true);
       }
-    } catch {
+    } catch (err: any) {
+      console.error('Failed to load audit logs:', err);
+      const msg = err?.response?.data?.message || err?.message;
+      if (err?.response?.status === 403 || err?.response?.status === 401) {
+        setErrorMsg('Access Denied: Platform Administrator authority is required to view system audit logs.');
+      } else {
+        setErrorMsg(msg || 'Failed to connect to audit log service');
+      }
       setLogs(MOCK_AUDIT_LOGS);
+      setIsUsingMock(true);
     } finally {
       setLoading(false);
     }
@@ -197,7 +205,7 @@ export const AuditLogsPage: React.FC = () => {
 
         // Date range filter
         const logTime = new Date(log.timestamp).getTime();
-        const now = new Date('2026-10-21T23:59:59Z').getTime();
+        const now = isUsingMock ? new Date('2026-10-21T23:59:59Z').getTime() : Date.now();
         let matchesDate = true;
         if (dateRangeFilter === 'TODAY') {
           matchesDate = now - logTime <= 24 * 60 * 60 * 1000;
@@ -324,18 +332,42 @@ export const AuditLogsPage: React.FC = () => {
         </div>
       </div>
 
+      {errorMsg && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+          <button onClick={() => setErrorMsg(null)} className="text-rose-500 font-bold">&times;</button>
+        </div>
+      )}
+
       {/* Prominent Simulated Records Notice (Requirement H) */}
-      <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-950 text-xs flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <Info className="w-4 h-4 text-amber-700 shrink-0" />
-          <span>
-            <strong>Simulated Audit Trail:</strong> The audit log entries presented below are generated test records representing platform activities, administrative interventions, and role adjustments. They do not constitute immutable production system logs.
+      {isUsingMock ? (
+        <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-300 text-amber-950 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <Info className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>
+              <strong>Simulated Audit Trail:</strong> The audit log entries presented below are generated test records representing platform activities, administrative interventions, and role adjustments. They do not constitute immutable production system logs.
+            </span>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
+            Mock Audit Data
           </span>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
-          Mock Audit Data
-        </span>
-      </div>
+      ) : (
+        <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-950 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>Live Immutable Audit Trail:</strong> Displaying authoritative system audit records persisted in the database.
+            </span>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-200 text-blue-900 shrink-0">
+            Live Records ({logs.length})
+          </span>
+        </div>
+      )}
 
       {exportNotice && (
         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
@@ -483,7 +515,11 @@ export const AuditLogsPage: React.FC = () => {
                 </tr>
               ) : (
                 paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-[#F9FBFF] transition-colors">
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelectedLog(log)}
+                    className="hover:bg-[#F0F4FA] transition-colors cursor-pointer group"
+                  >
                     {/* Timestamp */}
                     <td className="py-3.5 px-4 font-mono text-[11px] text-[#6B778C] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
@@ -499,7 +535,7 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* Action */}
                     <td className="py-3.5 px-4">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F0F4FA] border border-[#D9E2EC] text-[#091E42]">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F0F4FA] border border-[#D9E2EC] text-[#091E42] group-hover:border-[#0652CC]/30 transition-colors">
                         {log.action}
                       </span>
                     </td>
@@ -516,18 +552,31 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* IP Address (Requirement H) */}
                     <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                      {log.ipAddress || '192.168.1.100'}
+                      {log.ipAddress || '-'}
                     </td>
 
                     {/* Context / Metadata */}
                     <td className="py-3.5 px-4 text-[#6B778C] font-mono text-[11px]">
-                      {log.metadata ? (
-                        <span className="line-clamp-2 max-w-sm text-slate-700">
-                          {JSON.stringify(log.metadata)}
+                      <div className="flex items-center justify-between gap-2 max-w-sm">
+                        <span className="truncate text-slate-700">
+                          {log.metadata && Object.keys(log.metadata).length > 0
+                            ? Object.entries(log.metadata)
+                                .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+                                .join(' | ')
+                            : '-'}
                         </span>
-                      ) : (
-                        '-'
-                      )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedLog(log);
+                          }}
+                          className="shrink-0 text-[#0652CC] hover:text-[#0540A0] hover:bg-blue-100/70 p-1 rounded-md transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+                          title="View audit details"
+                          aria-label="View audit details"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -587,6 +636,13 @@ export const AuditLogsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Audit Log Detail Modal */}
+      <AuditDetailModal
+        isOpen={!!selectedLog}
+        onClose={() => setSelectedLog(null)}
+        log={selectedLog}
+      />
     </div>
   );
 };

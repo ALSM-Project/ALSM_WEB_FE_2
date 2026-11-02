@@ -6,98 +6,27 @@ import {
   Calendar, } from 'lucide-react';
 import { temporaryRolesApi, TemporaryRoleDto } from '../api/temporary-roles.api';
 import { rbacApi, RoleDto, UserRbacDto } from '../api/rbac.api';
+import { partnersApi } from '@/features/partners/api/partners.api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+
+/** Roles that must never be handed out through a temporary elevation. */
+const PLATFORM_ADMIN_ROLE_IDS = new Set(['platform_admin', 'system_admin', 'admin']);
 import { Button, Modal, Input } from '@/shared/ui';
-
-// Mock initial data if backend is offline or returns empty
-const MOCK_ACTIVE_ELEVATIONS: TemporaryRoleDto[] = [
-  {
-    id: 'temp-01',
-    userId: 'usr-02',
-    userEmail: 'david.kim@alsm.io',
-    userFullName: 'David Kim',
-    role: 'CONVERSION_STAFF',
-    durationHours: 8,
-    reason: 'Coverage for batch COBOL conversion milestone',
-    grantedBy: 'sarah.jenkins@alsm.io',
-    status: 'ACTIVE',
-    createdAt: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 5 * 3600 * 1000).toISOString(),
-    targetProject: 'Core Banking Modernization',
-  },
-  {
-    id: 'temp-02',
-    userId: 'usr-03',
-    userEmail: 'elena.rostova@alsm.io',
-    userFullName: 'Elena Rostova',
-    role: 'TEAM_LEAD',
-    durationHours: 4,
-    reason: 'Emergency code review approval sign-off during lead absence',
-    grantedBy: 'platform.admin@alsm.io',
-    status: 'ACTIVE',
-    createdAt: new Date(Date.now() - 3.5 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(), // ~30m left (Expiring soon)
-    targetProject: 'Retail Portal Modernization',
-  },
-];
-
-const MOCK_PENDING_REQUESTS: TemporaryRoleDto[] = [
-  {
-    id: 'req-01',
-    userId: 'usr-04',
-    userEmail: 'marcus.vance@alsm.io',
-    userFullName: 'Marcus Vance',
-    role: 'CONVERSION_STAFF',
-    durationHours: 6,
-    reason: 'Need AST debugger tool access for banking mainframe patch',
-    grantedBy: 'Pending Review',
-    status: 'PENDING',
-    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    expiresAt: '',
-    targetProject: 'High-Volume Mainframe Pipeline',
-  },
-];
-
-const MOCK_HISTORY_ELEVATIONS: TemporaryRoleDto[] = [
-  {
-    id: 'hist-01',
-    userId: 'usr-05',
-    userEmail: 'sam.torres@alsm.io',
-    userFullName: 'Sam Torres',
-    role: 'INTERNAL_SUPPORT',
-    durationHours: 12,
-    reason: 'Weekend production support escalation',
-    grantedBy: 'sarah.jenkins@alsm.io',
-    status: 'EXPIRED',
-    createdAt: new Date(Date.now() - 48 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-    targetProject: 'Support Operations',
-  },
-  {
-    id: 'hist-02',
-    userId: 'usr-06',
-    userEmail: 'lisa.wong@alsm.io',
-    userFullName: 'Lisa Wong',
-    role: 'CONVERSION_STAFF',
-    durationHours: 8,
-    reason: 'Urgent DSPF migration QA',
-    grantedBy: 'platform.admin@alsm.io',
-    status: 'REVOKED',
-    createdAt: new Date(Date.now() - 72 * 3600 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() - 64 * 3600 * 1000).toISOString(),
-    revokedAt: new Date(Date.now() - 69 * 3600 * 1000).toISOString(),
-    revokedBy: 'platform.admin@alsm.io',
-    revokeReason: 'Verification testing completed early',
-    targetProject: 'Logistics DSPF Conversion',
-  },
-];
 
 const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
 
 export const TemporaryRolesPage: React.FC = () => {
+  const { user, hasPermission } = useAuth();
+  const canGrant = hasPermission('roles.temporary.grant') || !!user?.isPlatformAdmin;
+  const canRequest = hasPermission('roles.temporary.request') || !!user?.isPlatformAdmin;
+  const canReview = hasPermission('roles.temporary.requests.review') || hasPermission('roles.temporary.requests.approve') || !!user?.isPlatformAdmin;
+  const canRevoke = hasPermission('roles.temporary.revoke') || !!user?.isPlatformAdmin;
+  const canViewHistory = hasPermission('roles.temporary.history.view') || !!user?.isPlatformAdmin;
+
   const [activeTab, setActiveTab] = useState<'active' | 'requests' | 'history'>('active');
-  const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>(MOCK_ACTIVE_ELEVATIONS);
-  const [pendingRequests, setPendingRequests] = useState<TemporaryRoleDto[]>(MOCK_PENDING_REQUESTS);
-  const [historyRoles, setHistoryRoles] = useState<TemporaryRoleDto[]>(MOCK_HISTORY_ELEVATIONS);
+  const [activeRoles, setActiveRoles] = useState<TemporaryRoleDto[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<TemporaryRoleDto[]>([]);
+  const [historyRoles, setHistoryRoles] = useState<TemporaryRoleDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [users, setUsers] = useState<UserRbacDto[]>([]);
 
@@ -128,6 +57,7 @@ export const TemporaryRolesPage: React.FC = () => {
   const [durationHours, setDurationHours] = useState(8);
   const [grantReason, setGrantReason] = useState('Coverage for urgent batch conversion queue');
   const [grantTargetProject, setGrantTargetProject] = useState('');
+  const [projectOptions, setProjectOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [grantConfirmed, setGrantConfirmed] = useState(false);
   const [granting, setGranting] = useState<boolean>(false);
 
@@ -161,20 +91,23 @@ export const TemporaryRolesPage: React.FC = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const [actives, history, allRoles, allUsers] = await Promise.all([
-        temporaryRolesApi.getActiveRoles().catch(() => MOCK_ACTIVE_ELEVATIONS),
-        temporaryRolesApi.getHistory().catch(() => MOCK_HISTORY_ELEVATIONS),
-        rbacApi.getRoles().catch(() => []),
-        rbacApi.getAllUsers().catch(() => []),
+      const [actives, history, allRoles, allUsers, projects] = await Promise.all([
+        temporaryRolesApi.getActiveRoles().catch(() => []),
+        (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
+        rbacApi.getRoles().catch(() => [] as RoleDto[]),
+        (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
+        partnersApi.getProjects().catch(() => []),
       ]);
-      if (Array.isArray(actives) && actives.length > 0) {
-        setActiveRoles(actives);
-      }
-      if (Array.isArray(history) && history.length > 0) {
-        setHistoryRoles(history);
-      }
-      setRoles(allRoles.filter((r) => r.id !== 'platform_admin' && r.key !== 'platform_admin'));
+      setActiveRoles(actives);
+      setPendingRequests(history.filter((r) => r.status === 'PENDING'));
+      setHistoryRoles(history.filter((r) => r.status !== 'PENDING' && r.status !== 'ACTIVE'));
+      setRoles(
+        allRoles.filter(
+          (r) => !PLATFORM_ADMIN_ROLE_IDS.has(String(r.id).toLowerCase()) && !PLATFORM_ADMIN_ROLE_IDS.has(String(r.key ?? '').toLowerCase()),
+        ),
+      );
       setUsers(allUsers);
+      setProjectOptions(projects.map((p) => ({ id: p.id, name: p.name })));
     } catch (err: any) {
       console.error('Failed to load temporary roles:', err);
       setErrorMsg(err.message || 'Failed to load temporary role records');
@@ -185,7 +118,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [user?.id, canViewHistory]);
 
   // Compute countdown & status label
   const computeTimeRemaining = (expiresAtStr: string) => {
@@ -208,6 +141,21 @@ export const TemporaryRolesPage: React.FC = () => {
     return activeRoles.find((a) => a.userId === targetUserId && a.status === 'ACTIVE');
   }, [targetUserId, activeRoles]);
 
+  // Current logged in user's active elevation & pending requests (UC-95)
+  const myActiveRole = useMemo(() => {
+    if (!user) return null;
+    return activeRoles.find(
+      (a) => (user.id && a.userId === user.id) || (user.email && a.userEmail === user.email)
+    );
+  }, [activeRoles, user]);
+
+  const userHasPendingRequest = useMemo(() => {
+    if (!user) return false;
+    return pendingRequests.some(
+      (p) => (user.id && p.userId === user.id) || (user.email && p.userEmail === user.email)
+    );
+  }, [pendingRequests, user]);
+
   // Handle Grant Submit
   const handleGrantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,11 +163,15 @@ export const TemporaryRolesPage: React.FC = () => {
       setErrorMsg('Please select a target user.');
       return;
     }
+    if (PLATFORM_ADMIN_ROLE_IDS.has(grantRole.toLowerCase())) {
+      setErrorMsg('The Platform Admin role can never be granted as a temporary elevation.');
+      return;
+    }
     if (grantReason.trim().length < 10) {
       setErrorMsg('A detailed justification of at least 10 characters is required.');
       return;
     }
-    if (durationHours <= 0 || durationHours > 24) {
+    if (durationHours < 1 || durationHours > 24) {
       setErrorMsg('Elevation duration must be between 1 and 24 hours strictly.');
       return;
     }
@@ -236,45 +188,26 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setGranting(true);
-      const targetUser = users.find((u) => u.id === targetUserId);
-      const now = new Date();
-      const expires = new Date(now.getTime() + durationHours * 3600 * 1000);
-
-      const newElevation: TemporaryRoleDto = {
-        id: `temp-${Date.now()}`,
-        userId: targetUserId,
-        userEmail: targetUser?.email || 'staff@alsm.io',
-        userFullName: targetUser?.fullName || 'Staff Member',
+      setErrorMsg(null);
+      const granted = await temporaryRolesApi.grantRole({
+        targetUserId,
         role: grantRole,
         durationHours,
         reason: grantReason.trim(),
-        grantedBy: 'Platform Admin',
-        status: 'ACTIVE',
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
-        targetProject: grantTargetProject.trim() || undefined,
-      };
-
-      try {
-        await temporaryRolesApi.grantRole({
-          targetUserId,
-          role: grantRole,
-          durationHours,
-          reason: grantReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setActiveRoles((prev) => [newElevation, ...prev]);
+        projectId: grantTargetProject || undefined,
+      });
+      await fetchData();
       setShowGrantModal(false);
       setGrantConfirmed(false);
-      setGrantReason('Coverage for urgent batch conversion queue');
+      setGrantReason('');
+      setGrantTargetProject('');
       setTargetUserId('');
-      setSuccessMsg(`Temporary elevation (${grantRole}) successfully granted to ${newElevation.userFullName}.`);
+      const who = users.find((u) => u.id === targetUserId)?.fullName || 'the user';
+      setSuccessMsg(`Temporary elevation (${granted.role}) granted to ${who} until ${new Date(granted.expiresAt).toLocaleString()}.`);
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to grant temporary role');
+      // The server refuses what breaks a rule (duration, justification, Platform Admin, one at a time...).
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to grant temporary role');
     } finally {
       setGranting(false);
     }
@@ -287,47 +220,27 @@ export const TemporaryRolesPage: React.FC = () => {
       setErrorMsg('A detailed justification of at least 10 characters is required.');
       return;
     }
-    if (requestDuration <= 0 || requestDuration > 24) {
-      setErrorMsg('Requested duration must not exceed 24 hours.');
+    if (requestDuration < 1 || requestDuration > 24) {
+      setErrorMsg('Requested duration must be between 1 and 24 hours.');
       return;
     }
 
     try {
       setRequesting(true);
-      const newRequest: TemporaryRoleDto = {
-        id: `req-${Date.now()}`,
-        userId: 'usr-self',
-        userEmail: 'me@alsm.io',
-        userFullName: 'Current User',
+      setErrorMsg(null);
+      await temporaryRolesApi.requestRole({
         role: requestRole,
         durationHours: requestDuration,
         reason: requestReason.trim(),
-        grantedBy: 'Pending Review',
-        status: 'PENDING',
-        createdAt: new Date().toISOString(),
-        expiresAt: '',
-        targetProject: requestProject.trim() || 'Internal Workflow',
-      };
-
-      try {
-        await temporaryRolesApi.requestRole({
-          role: requestRole,
-          durationHours: requestDuration,
-          reason: requestReason.trim(),
-          targetProject: requestProject.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => [newRequest, ...prev]);
+      });
+      await fetchData();
       setShowRequestModal(false);
       setRequestReason('');
       setRequestProject('');
       setSuccessMsg('Temporary elevation request dispatched for Team Lead & Administrator approval.');
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to submit request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to submit request');
     } finally {
       setRequesting(false);
     }
@@ -348,35 +261,21 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setRevoking(true);
-      try {
-        await temporaryRolesApi.revokeRole({
-          assignmentId: revokeTarget.id,
-          reason: revokeReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      // Optimistic state transition: remove from active, move to history
-      const nowStr = new Date().toISOString();
-      const archived: TemporaryRoleDto = {
-        ...revokeTarget,
-        status: 'REVOKED',
-        revokedAt: nowStr,
-        revokedBy: 'Platform Admin',
-        revokeReason: revokeReason.trim(),
-      };
-
-      setActiveRoles((prev) => prev.filter((item) => item.id !== revokeTarget.id));
-      setHistoryRoles((prev) => [archived, ...prev]);
+      setErrorMsg(null);
+      await temporaryRolesApi.revokeRole({
+        assignmentId: revokeTarget.id,
+        reason: revokeReason.trim(),
+      });
+      await fetchData();
+      const revoked = revokeTarget;
       setRevokeTarget(null);
       setRevokeConfirmed(false);
       setSuccessMsg(
-        `Temporary elevation for ${revokeTarget.userFullName || revokeTarget.userEmail} revoked immediately. User reverted to baseline roles.`
+        `Temporary elevation for ${revoked.userFullName || revoked.userEmail} revoked immediately. User reverted to baseline roles.`
       );
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to revoke temporary role');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to revoke temporary role');
     } finally {
       setRevoking(false);
     }
@@ -389,34 +288,21 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setApproving(true);
-      const now = new Date();
-      const expires = new Date(now.getTime() + approveDuration * 3600 * 1000);
-
-      const approvedElevation: TemporaryRoleDto = {
-        ...approveTarget,
-        status: 'ACTIVE',
-        durationHours: approveDuration,
-        grantedBy: 'Team Lead Approver',
-        createdAt: now.toISOString(),
-        expiresAt: expires.toISOString(),
-      };
-
-      try {
-        await temporaryRolesApi.approveRequest({
-          requestId: approveTarget.id,
-          approved: true,
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => prev.filter((r) => r.id !== approveTarget.id));
-      setActiveRoles((prev) => [approvedElevation, ...prev]);
-      setApproveTarget(null);
+      setErrorMsg(null);
+      // The elevation runs for the approved duration, starting now (UC-91 & UC-95 integration).
+      await temporaryRolesApi.approveRequest({
+        requestId: approveTarget.id,
+        approved: true,
+        ...(approveDuration && approveDuration !== approveTarget.durationHours
+          ? { durationHours: approveDuration }
+          : {}),
+      });
+      await fetchData();
       setSuccessMsg(`Elevation request approved. ${approveTarget.userFullName} is now granted "${approveTarget.role}" for ${approveDuration} hours.`);
+      setApproveTarget(null);
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to approve request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to approve request');
     } finally {
       setApproving(false);
     }
@@ -433,32 +319,19 @@ export const TemporaryRolesPage: React.FC = () => {
 
     try {
       setRejecting(true);
-      const rejectedRecord: TemporaryRoleDto = {
-        ...rejectTarget,
-        status: 'REJECTED',
-        revokedAt: new Date().toISOString(),
-        revokedBy: 'Team Lead Approver',
-        revokeReason: rejectReason.trim(),
-      };
-
-      try {
-        await temporaryRolesApi.approveRequest({
-          requestId: rejectTarget.id,
-          approved: false,
-          rejectionReason: rejectReason.trim(),
-        });
-      } catch {
-        // Fallback local state
-      }
-
-      setPendingRequests((prev) => prev.filter((r) => r.id !== rejectTarget.id));
-      setHistoryRoles((prev) => [rejectedRecord, ...prev]);
+      setErrorMsg(null);
+      await temporaryRolesApi.approveRequest({
+        requestId: rejectTarget.id,
+        approved: false,
+        rejectionReason: rejectReason.trim(),
+      });
+      await fetchData();
       setRejectTarget(null);
       setRejectReason('');
-      setSuccessMsg(`Elevation request rejected with audit note.`);
+      setSuccessMsg('Elevation request rejected with audit note.');
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to reject request');
+      setErrorMsg(err.response?.data?.message || err.message || 'Failed to reject request');
     } finally {
       setRejecting(false);
     }
@@ -635,29 +508,58 @@ export const TemporaryRolesPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setRequestReason('');
-              setRequestProject('');
-              setShowRequestModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-2xs cursor-pointer"
-          >
-            <KeyRound className="w-4 h-4 text-indigo-600" />
-            Request Elevation
-          </button>
-          <button
-            onClick={() => {
-              setGrantConfirmed(false);
-              setShowGrantModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs cursor-pointer"
-          >
-            <UserPlus className="w-4 h-4" />
-            Grant Temporary Role
-          </button>
+          {canRequest && (
+            <button
+              onClick={() => {
+                setRequestReason('');
+                setRequestProject('');
+                setShowRequestModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-2xs cursor-pointer"
+            >
+              <KeyRound className="w-4 h-4 text-indigo-600" />
+              Request Elevation
+            </button>
+          )}
+          {canGrant && (
+            <button
+              onClick={() => {
+                setGrantConfirmed(false);
+                setShowGrantModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              Grant Temporary Role
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Active User Elevation Notice (UC-95) */}
+      {myActiveRole && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-blue-50/70 to-sky-50/80 border border-indigo-200 text-indigo-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-sm text-indigo-950 flex flex-wrap items-center gap-2">
+                <span>Active Temporary Elevation:</span>
+                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 text-xs font-bold">
+                  {myActiveRole.role}
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                  {computeTimeRemaining(myActiveRole.expiresAt).label}
+                </span>
+              </div>
+              <p className="text-xs text-indigo-800/90 mt-0.5">
+                Elevated privileges expire at {new Date(myActiveRole.expiresAt).toLocaleTimeString()} ({new Date(myActiveRole.expiresAt).toLocaleDateString()}). Reason: {myActiveRole.reason}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notifications */}
       {errorMsg && (
@@ -724,16 +626,18 @@ export const TemporaryRolesPage: React.FC = () => {
 
         {activeTab === 'history' && (
           <div className="flex items-center gap-2 mb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={exporting}
-              className="text-xs border-[#E5EAF0] text-[#0652CC]"
-              onClick={handleExportCsv}
-            >
-              <Download className="w-3.5 h-3.5 mr-1" />
-              CSV Export
-            </Button>
+            {canViewHistory && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={exporting}
+                className="text-xs border-[#E5EAF0] text-[#0652CC]"
+                onClick={handleExportCsv}
+              >
+                <Download className="w-3.5 h-3.5 mr-1" />
+                CSV Export
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -890,19 +794,21 @@ export const TemporaryRolesPage: React.FC = () => {
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1"
-                                onClick={() => {
-                                  setRevokeTarget(item);
-                                  setRevokeConfirmed(false);
-                                  setRevokeReason('Task completed ahead of schedule');
-                                }}
-                              >
-                                <XCircle className="w-3.5 h-3.5 mr-1" />
-                                Revoke
-                              </Button>
+                              {canRevoke && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1"
+                                  onClick={() => {
+                                    setRevokeTarget(item);
+                                    setRevokeConfirmed(false);
+                                    setRevokeReason('Task completed ahead of schedule');
+                                  }}
+                                >
+                                  <XCircle className="w-3.5 h-3.5 mr-1" />
+                                  Revoke
+                                </Button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1004,32 +910,58 @@ export const TemporaryRolesPage: React.FC = () => {
                           {new Date(req.createdAt).toLocaleString()}
                         </td>
                         <td className="py-3.5 px-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
-                              onClick={() => {
-                                setRejectTarget(req);
-                                setRejectReason('');
-                              }}
-                            >
-                              <X className="w-3.5 h-3.5 mr-1" />
-                              Reject
-                            </Button>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                              onClick={() => {
-                                setApproveTarget(req);
-                                setApproveDuration(req.durationHours);
-                              }}
-                            >
-                              <Check className="w-3.5 h-3.5 mr-1" />
-                              Approve
-                            </Button>
-                          </div>
+                          {(() => {
+                            const isSelfRequest = Boolean(
+                              user &&
+                                ((user.id && req.userId === user.id) ||
+                                  (user.email && req.userEmail === user.email))
+                            );
+
+                            if (isSelfRequest) {
+                              return (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                                  Self-Request (Awaiting Review)
+                                </span>
+                              );
+                            }
+
+                            if (canReview) {
+                              return (
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
+                                    onClick={() => {
+                                      setRejectTarget(req);
+                                      setRejectReason('');
+                                    }}
+                                  >
+                                    <X className="w-3.5 h-3.5 mr-1" />
+                                    Reject
+                                  </Button>
+                                  <Button
+                                    variant="primary"
+                                    size="sm"
+                                    className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    onClick={() => {
+                                      setApproveTarget(req);
+                                      setApproveDuration(req.durationHours);
+                                    }}
+                                  >
+                                    <Check className="w-3.5 h-3.5 mr-1" />
+                                    Approve
+                                  </Button>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <span className="text-[11px] text-[#6B778C]">
+                                Awaiting Team Lead Review
+                              </span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))
@@ -1350,6 +1282,15 @@ export const TemporaryRolesPage: React.FC = () => {
                   </button>
                 ))}
               </div>
+              <p data-testid="grant-expiry-preview" className="mt-1.5 text-[11px] text-[#6B778C]">
+                Will be revoked automatically at{' '}
+                {new Date(Date.now() + durationHours * 3600 * 1000).toLocaleString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  day: '2-digit',
+                  month: '2-digit',
+                })}
+              </p>
             </div>
           </div>
 
@@ -1357,13 +1298,19 @@ export const TemporaryRolesPage: React.FC = () => {
             <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
               Target Project or Context (Optional)
             </label>
-            <input
-              type="text"
+            <select
+              aria-label="Target project"
               value={grantTargetProject}
               onChange={(e) => setGrantTargetProject(e.target.value)}
-              placeholder="e.g. Core Banking Modernization (Project PRJ-102)"
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-            />
+            >
+              <option value="">Not tied to a project</option>
+              {projectOptions.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -1441,12 +1388,37 @@ export const TemporaryRolesPage: React.FC = () => {
         </form>
       </Modal>
 
-      {/* 3.E Request Temporary Role Modal (Self-Service) */}
+      {/* 3.E Request Temporary Role Modal (Self-Service - UC-95) */}
       <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title="Request Temporary Role Elevation">
         <form onSubmit={handleRequestSubmit} className="space-y-4 text-xs">
           <p className="text-xs text-[#6B778C]">
-            Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are capped at 24 hours.
+            Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are strictly capped at 24 hours.
           </p>
+
+          {myActiveRole && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 space-y-1">
+              <div className="font-semibold text-amber-900 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                Active Elevation Conflict (UC-95 Policy)
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                You already hold an active temporary role (<strong className="font-mono">{myActiveRole.role}</strong>). Under platform security policy, only 1 active temporary role is permitted per user.
+              </p>
+            </div>
+          )}
+
+          {userHasPendingRequest && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 space-y-1">
+              <div className="font-semibold text-amber-900 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                Pending Request Awaiting Review
+              </div>
+              <p className="text-[11px] leading-relaxed">
+                You already have a pending elevation request awaiting Team Lead review. You cannot submit another request until the current request is reviewed.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
@@ -1456,10 +1428,23 @@ export const TemporaryRolesPage: React.FC = () => {
                 className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
                 value={requestRole}
                 onChange={(e) => setRequestRole(e.target.value)}
+                disabled={!!myActiveRole || userHasPendingRequest}
               >
-                <option value="conversion_staff">Conversion Staff</option>
-                <option value="team_lead">Team Lead</option>
-                <option value="internal_support">Internal Support</option>
+                {roles.length > 0 ? (
+                  roles
+                    .filter((r) => !PLATFORM_ADMIN_ROLE_IDS.has(String(r.id).toLowerCase()))
+                    .map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name || r.id}
+                      </option>
+                    ))
+                ) : (
+                  <>
+                    <option value="conversion_staff">Conversion Staff</option>
+                    <option value="team_lead">Team Lead</option>
+                    <option value="internal_support">Internal Support</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -1470,6 +1455,7 @@ export const TemporaryRolesPage: React.FC = () => {
                 className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
                 value={requestDuration}
                 onChange={(e) => setRequestDuration(parseInt(e.target.value))}
+                disabled={!!myActiveRole || userHasPendingRequest}
               >
                 {PREDEFINED_DURATIONS.map((h) => (
                   <option key={h} value={h}>{h} hours</option>
@@ -1486,20 +1472,33 @@ export const TemporaryRolesPage: React.FC = () => {
               required
               value={requestProject}
               onChange={(e) => setRequestProject(e.target.value)}
+              disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="e.g. Core Banking Modernization AST Inspection"
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-              Business Need & Justification (Min 10 chars) *
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block">
+                Business Need & Justification (Min 10 chars) *
+              </label>
+              <span
+                className={`text-[10px] font-medium ${
+                  requestReason.trim().length >= 10 ? 'text-emerald-600' : 'text-[#6B778C]'
+                }`}
+              >
+                {requestReason.trim().length >= 10
+                  ? '✓ Justification valid'
+                  : `${requestReason.trim().length}/10 chars min`}
+              </span>
+            </div>
             <textarea
               required
               rows={3}
               value={requestReason}
               onChange={(e) => setRequestReason(e.target.value)}
+              disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="Explain why temporary elevated permissions are necessary for this task..."
               className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
             />
@@ -1509,7 +1508,18 @@ export const TemporaryRolesPage: React.FC = () => {
             <Button type="button" variant="outline" size="sm" onClick={() => setShowRequestModal(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm" disabled={requesting} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={
+                requesting ||
+                !!myActiveRole ||
+                userHasPendingRequest ||
+                requestReason.trim().length < 10
+              }
+              className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {requesting ? 'Submitting...' : 'Submit Elevation Request'}
             </Button>
           </div>

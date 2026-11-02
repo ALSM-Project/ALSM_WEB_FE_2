@@ -8,6 +8,7 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
+import { workloadLevel } from '../utils/workload';
 import { Button, Modal, Input } from '@/shared/ui';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
@@ -65,7 +66,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
 
   const openAllocateModal = (proj: PartnerProject) => {
     setAllocationTarget(proj);
-    setSelectedStaffId(proj.assignedStaffId || 'staff-01');
+    setSelectedStaffId(proj.assignedStaffId || '');
     setAssignmentNote('');
   };
 
@@ -81,6 +82,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
       const updated = await partnersApi.assignProject(allocationTarget.id, {
         staffId: selectedStaffId,
         staffName,
+        staffNote: assignmentNote,
       });
 
       // Update state
@@ -137,9 +139,9 @@ export const TeamLeadProjectsPage: React.FC = () => {
     (p) => p.status === 'READY_FOR_EXPORT' || p.status === 'COMPLETED'
   ).length;
 
-  const conversionStaffOnly = staffRoster.filter(
-    (s) => s.role === 'CONVERSION_STAFF' || s.id.startsWith('staff')
-  );
+  // The server already returns only active Conversion Staff.
+  const conversionStaffOnly = staffRoster;
+  const selectedStaff = conversionStaffOnly.find((s) => s.id === selectedStaffId);
 
   const transferCandidates: CandidateAssignee[] = conversionStaffOnly.map((staff) => ({
     id: staff.id,
@@ -155,31 +157,34 @@ export const TeamLeadProjectsPage: React.FC = () => {
     resourceId: string,
     newAssignee: CandidateAssignee,
     reason: string,
-    _notes: string
+    notes: string
   ) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === resourceId
-          ? {
-              ...p,
-              assignedStaffId: newAssignee.id,
-              assignedStaffName: newAssignee.fullName,
-            }
-          : p
-      )
-    );
     try {
-      await partnersApi.assignProject(resourceId, {
+      const updated = await partnersApi.assignProject(resourceId, {
         staffId: newAssignee.id,
         staffName: newAssignee.fullName,
+        reason,
+        staffNote: notes,
       });
-    } catch {
-      // Local state fallback
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === resourceId
+            ? {
+                ...p,
+                assignedStaffId: newAssignee.id,
+                assignedStaffName: newAssignee.fullName,
+              }
+            : p
+        )
+      );
+      setSuccessMsg(
+        `Project "${updated?.name || resourceId}" assignment successfully transferred to ${newAssignee.fullName} (${reason}).`
+      );
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to transfer project assignment');
+      throw err;
     }
-    setSuccessMsg(
-      `Project "${resourceId}" assignment successfully transferred to ${newAssignee.fullName} (${reason}).`
-    );
-    setTimeout(() => setSuccessMsg(null), 5000);
   };
 
   return (
@@ -201,6 +206,13 @@ export const TeamLeadProjectsPage: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            to="/team-lead/resource-transfers"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 text-[#0652CC]" />
+            Transfer Approvals (UC-88)
+          </Link>
           <Link
             to="/admin/projects"
             className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
@@ -635,7 +647,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 <option value="">-- Choose Eligible Conversion Engineer --</option>
                 {conversionStaffOnly.map((staff) => (
                   <option key={staff.id} value={staff.id}>
-                    {staff.fullName} ({staff.email}) • Active Workload: {staff.activeWorkload} projects
+                    {staff.fullName} • Running {staff.activeWorkload} project{staff.activeWorkload === 1 ? '' : 's'} ({workloadLevel(staff.activeWorkload).label})
                   </option>
                 ))}
               </select>
@@ -643,6 +655,15 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 <ChevronDown className="w-4 h-4" />
               </div>
             </div>
+            {selectedStaff && (
+              <span
+                data-testid="staff-workload-badge"
+                className={`mt-1.5 inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${workloadLevel(selectedStaff.activeWorkload).className}`}
+              >
+                {selectedStaff.fullName} • {selectedStaff.activeWorkload} active project
+                {selectedStaff.activeWorkload === 1 ? '' : 's'} • {workloadLevel(selectedStaff.activeWorkload).label}
+              </span>
+            )}
           </div>
 
           <div>
@@ -695,6 +716,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                 currentOwnerId: transferTargetProject.assignedStaffId,
                 currentOwnerName: transferTargetProject.assignedStaffName || 'Unallocated',
                 details: `${transferTargetProject.conversionType || 'Modernization'} • ${transferTargetProject.partnerName || 'Internal'}`,
+                pendingTasksCount: (transferTargetProject.screensTotal || 0) + (transferTargetProject.programsTotal || 0),
               }
             : null
         }

@@ -315,7 +315,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     cleanup();
   });
 
-  it('renders flattened Customer Support, Operations, and Demo Projects for INTERNAL_SUPPORT', () => {
+  it('renders Customer Support, Operations, and Demo Projects with the isolated Support route for INTERNAL_SUPPORT', () => {
     const supportPermissions = [
       'conversions.queue.view',
       'conversions.troubleshoot.view',
@@ -331,13 +331,13 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
       wrapper: setupTestContext(supportPermissions, false, ['INTERNAL_SUPPORT']),
     });
 
-    // Staff navigation is flat; assert the actual links rather than Admin group headings.
-    expect(screen.getByTestId('group-web2_support_org_access')).toBeInTheDocument();
+    // Staff navigation retains the incoming group hierarchy and the isolated Support link.
+    expect(screen.getByTestId('group-web2_group_support')).toBeInTheDocument();
     expect(screen.getByText('Organisation Access')).toBeInTheDocument();
-    expect(screen.getByTestId('group-web2_support_org_access')).toHaveAttribute('data-route', '/support');
+    expect(screen.getByTestId('child-web2_support_org_access')).toHaveAttribute('data-route', '/support');
     expect(screen.getByText('Conversion Support')).toBeInTheDocument();
 
-    expect(screen.getByTestId('group-web2_conversion_queue')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_group_operations')).toBeInTheDocument();
     expect(screen.getByText('Conversion Queue')).toBeInTheDocument();
 
     // Demo Projects should be visible under Partner Management
@@ -388,14 +388,14 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.getByText('Demo Projects')).toBeInTheDocument();
   });
 
-  it('renders flattened My Assigned Work for CONVERSION_STAFF and hides it without conversions.view', () => {
+  it('renders the Conversions group for CONVERSION_STAFF and hides My Assigned Work without conversions.view', () => {
     // 1. Permitted user with conversions.view
     const staffPermissions = ['conversions.view', 'partner.view'];
     const { unmount } = render(<NavInspector />, {
       wrapper: setupTestContext(staffPermissions),
     });
 
-    expect(screen.getByTestId('group-web2_my_assigned_work')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_group_conversions')).toBeInTheDocument();
     expect(screen.getByText('My Assigned Work')).toBeInTheDocument();
     // Quality Review requires quality-review.manage, so it is hidden
     expect(screen.queryByText('Quality Review')).not.toBeInTheDocument();
@@ -411,7 +411,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
   });
 
-  it('renders flattened Sales links for SALES_MANAGER and hides unauthorized reports', () => {
+  it('renders the CRM & Sales group for SALES_MANAGER and hides unauthorized reports', () => {
     // 1. Sales Manager with full commercial authorization
     const salesManagerPermissions = [
       'sales.leads.view',
@@ -427,7 +427,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
       wrapper: setupTestContext(salesManagerPermissions),
     });
 
-    expect(screen.getByTestId('group-web2_leads')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
     expect(screen.getByText('Leads (CRM)')).toBeInTheDocument();
     expect(screen.getByText('Sales Reports')).toBeInTheDocument();
     expect(screen.getByText('Team Performance')).toBeInTheDocument();
@@ -443,7 +443,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     const { unmount: unmountRep } = render(<NavInspector />, {
       wrapper: setupTestContext(salesRepPermissions),
     });
-    expect(screen.getByTestId('group-web2_leads')).toBeInTheDocument();
+    expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
     expect(screen.getByText('Discount Approvals')).toBeInTheDocument();
     expect(screen.queryByText('Sales Reports')).not.toBeInTheDocument();
     expect(screen.queryByText('Team Performance')).not.toBeInTheDocument();

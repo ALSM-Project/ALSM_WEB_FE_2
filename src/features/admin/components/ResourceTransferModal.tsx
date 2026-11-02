@@ -276,6 +276,15 @@ export const ResourceTransferModal: React.FC<ResourceTransferModalProps> = ({
               for <strong>"{resource.name}"</strong> will transition immediately to the designated successor.
             </span>
           </div>
+
+          {typeof resource.pendingTasksCount === 'number' && resource.pendingTasksCount > 0 && (
+            <div className="text-[11px] text-amber-800 bg-amber-50/80 p-2.5 rounded-lg border border-amber-200/80 flex items-center justify-between">
+              <span className="font-semibold">Affected Resources & Work Items:</span>
+              <span className="font-mono font-bold bg-amber-200/60 px-2 py-0.5 rounded text-amber-900">
+                {resource.pendingTasksCount} screen(s) / program(s)
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Explicit Confirmation Step */}

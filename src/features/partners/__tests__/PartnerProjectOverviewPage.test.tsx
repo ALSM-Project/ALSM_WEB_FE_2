@@ -53,12 +53,15 @@ function assignProjectFixture() {
         partnerId: '6650cc00cc00cc00cc00cc01',
         partnerName: 'Fintech Nexus International',
         assignedTeamLeadName: 'Lena Lead',
-        assignedStaffId: 'u-staff',
-        assignedStaffName: 'Sam Staff',
       },
     }),
   );
-  mockServer({ projects: [{ ...serverProject, assignedTeamLeadId: 'u-lead' }] });
+  // The engineer allocation is stored on the server (UC-86); only the lead name is kept locally.
+  mockServer({
+    projects: [
+      { ...serverProject, assignedTeamLeadId: 'u-lead', assignedStaffId: 'u-staff', assignedStaffName: 'Sam Staff' },
+    ],
+  });
 }
 
 describe('PartnerProjectOverviewPage', () => {

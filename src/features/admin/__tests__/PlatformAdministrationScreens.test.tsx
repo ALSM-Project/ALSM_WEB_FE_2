@@ -133,7 +133,9 @@ describe('Platform Administration UI Enhancements', () => {
     });
 
     it('implements 2-step enterprise organisation provisioning with email validation and review', async () => {
-      vi.mocked(adminApi.getOrganizations).mockResolvedValue([]);
+      vi.mocked(adminApi.getOrganizations)
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([{ id: 'org-stellar', name: 'Stellar FinTech', type: 'ENTERPRISE', status: 'TRIAL', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]);
       vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([]);
       vi.mocked(adminApi.createEnterpriseOrganization).mockResolvedValue({
         organization: {
@@ -144,7 +146,8 @@ describe('Platform Administration UI Enhancements', () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
-        temporaryPassword: 'TempPassword123!',
+        invitationStatus: 'SENT',
+        replayed: false,
       });
 
       renderWithContext(<OrganizationsPage />);
@@ -188,9 +191,15 @@ describe('Platform Administration UI Enhancements', () => {
 
       // Added to directory and success notification shown
       await waitFor(() => {
-        expect(screen.getByText(/successfully provisioned/i)).toBeInTheDocument();
+        expect(screen.getByText(/secure account setup link was sent/i)).toBeInTheDocument();
         expect(screen.getByText('Stellar FinTech')).toBeInTheDocument();
       });
+      expect(screen.queryByText(/temporary password|TempPassword/i)).not.toBeInTheDocument();
+      expect(adminApi.createEnterpriseOrganization).toHaveBeenCalledWith(expect.objectContaining({
+        contactEmail: 'admin@stellarfintech.com',
+        engagementType: 'Enterprise Pilot',
+        requestId: expect.any(String),
+      }));
     });
   });
 
@@ -233,6 +242,15 @@ describe('Platform Administration UI Enhancements', () => {
           },
         ],
       });
+      vi.mocked(adminApi.updateEngagement).mockResolvedValue({
+        id: 'org-fnx-prod',
+        name: 'Fintech Nexus International',
+        type: 'ENTERPRISE',
+        status: 'ACTIVE',
+        engagementType: 'ENTERPRISE_T2',
+        createdAt: '2026-08-15T09:00:00Z',
+        updatedAt: '2026-10-19T11:30:00Z',
+      });
 
       renderWithContext(
         <Routes>
@@ -253,7 +271,7 @@ describe('Platform Administration UI Enhancements', () => {
       // Verify Billing History
       expect(screen.getByText('Commercial Billing & Invoices')).toBeInTheDocument();
       expect(screen.getByText('INV-2026-0891')).toBeInTheDocument();
-      expect(screen.getByText('$18,000 USD')).toBeInTheDocument();
+      expect(screen.getByText('18.000 VND')).toBeInTheDocument();
 
       // Verify Members
       expect(screen.getByText('Organisation Members')).toBeInTheDocument();
@@ -272,7 +290,7 @@ describe('Platform Administration UI Enhancements', () => {
       fireEvent.click(saveBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Engagement parameters and limits updated successfully/i)).toBeInTheDocument();
+        expect(screen.getByText(/Engagement settings were saved successfully/i)).toBeInTheDocument();
       });
     });
   });
@@ -302,7 +320,7 @@ describe('Platform Administration UI Enhancements', () => {
       expect(screen.getByText(/Audited Mock Ledger/i)).toBeInTheDocument();
 
       // Realised revenue KPI
-      expect(screen.getByText('$398,000')).toBeInTheDocument();
+      expect(screen.getByText('398.000 VND')).toBeInTheDocument();
 
       // Bank Transfer stats
       expect(screen.getByText('Bank Transfer Payment Infrastructure Statistics')).toBeInTheDocument();
@@ -323,7 +341,21 @@ describe('Platform Administration UI Enhancements', () => {
 
   describe('Feature F: Engagement Type Management', () => {
     it('renders engagement types with search, trial and usage limits, and shows warning if limits reduced', async () => {
-      vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([]);
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValue([{
+        id: 'plan-premium',
+        name: 'Enterprise Tier 1 (Unlimited Acceleration)',
+        code: 'ENTERPRISE_T1',
+        description: 'Premium enterprise plan',
+        price: 36000,
+        trialLimits: { maxScreens: 30, maxPrograms: 15, maxStorageGb: 10 },
+        usageLimits: { maxScreens: 500, maxPrograms: 200, maxStorageGb: 150 },
+        features: ['AST Grammar Verification', 'COBOL 85 Modernizer'],
+        includesCobolConversion: true,
+        supportTier: 'PREMIER',
+        slaHours: 4,
+        isActive: true,
+        createdAt: '2026-01-15T08:00:00Z',
+      }]);
 
       renderWithContext(<EngagementTypesPage />);
 
@@ -347,7 +379,90 @@ describe('Platform Administration UI Enhancements', () => {
 
       // Warning notice should dynamically appear
       expect(screen.getByText(/Quota Reduction Detected/i)).toBeInTheDocument();
-      expect(screen.getByText(/affected customer tenant organisations will receive simulated update notices/i)).toBeInTheDocument();
+      expect(screen.getByText(/review organisation usage before saving/i)).toBeInTheDocument();
+    });
+
+    it('creates an engagement type through the API and refreshes the persisted catalog', async () => {
+      const createdPlan = {
+        id: 'plan-new',
+        name: 'New Enterprise Plan',
+        code: 'NEW_ENTERPRISE_PLAN',
+        description: 'New plan description',
+        price: 18000,
+        trialLimits: { maxScreens: 15, maxPrograms: 8, maxStorageGb: 5 },
+        usageLimits: { maxScreens: 150, maxPrograms: 60, maxStorageGb: 50 },
+        features: ['BMS conversion'],
+        includesCobolConversion: true,
+        supportTier: 'STANDARD',
+        slaHours: 12,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValueOnce([]).mockResolvedValueOnce([createdPlan]);
+      vi.mocked(adminApi.createEngagementType).mockResolvedValue({ engagementType: createdPlan, replayed: false });
+
+      renderWithContext(<EngagementTypesPage />);
+      fireEvent.click(await screen.findByRole('button', { name: /Create Engagement Type/i }));
+      fireEvent.change(screen.getByPlaceholderText('Enterprise Pro Plus'), { target: { value: 'New Enterprise Plan' } });
+      fireEvent.change(screen.getByPlaceholderText('Targeted at tier-1 enterprise migrations'), { target: { value: 'New plan description' } });
+      const submitButtons = screen.getAllByRole('button', { name: /Create Engagement Type/i });
+      fireEvent.click(submitButtons[submitButtons.length - 1]);
+
+      await waitFor(() => {
+        expect(adminApi.createEngagementType).toHaveBeenCalledWith(expect.objectContaining({
+          name: 'New Enterprise Plan',
+          code: 'NEW_ENTERPRISE_PLAN',
+          requestId: expect.any(String),
+        }));
+        expect(screen.getByText(/was created and saved to the platform catalog/i)).toBeInTheDocument();
+        expect(screen.getByText('New Enterprise Plan')).toBeInTheDocument();
+      });
+    });
+
+    it('edits an engagement type through the API and shows the persisted response', async () => {
+      const existing = {
+        id: 'plan-edit',
+        name: 'Editable Plan',
+        code: 'EDITABLE_PLAN',
+        description: 'Original description',
+        price: 18000,
+        trialLimits: { maxScreens: 15, maxPrograms: 8, maxStorageGb: 5 },
+        usageLimits: { maxScreens: 150, maxPrograms: 60, maxStorageGb: 50 },
+        features: ['BMS conversion'],
+        includesCobolConversion: true,
+        supportTier: 'STANDARD',
+        slaHours: 12,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+      };
+      const updated = {
+        ...existing,
+        name: 'Editable Plan Plus',
+        code: 'EDITABLE_PLAN_PLUS',
+        price: 22000,
+        updatedAt: new Date().toISOString(),
+      };
+      vi.mocked(adminApi.getEngagementTypes).mockResolvedValueOnce([existing]).mockResolvedValueOnce([updated]);
+      vi.mocked(adminApi.updateEngagementType).mockResolvedValue(updated);
+
+      renderWithContext(<EngagementTypesPage />);
+      await screen.findByText('Editable Plan');
+      fireEvent.click(screen.getByRole('button', { name: /Edit/i }));
+      fireEvent.change(screen.getByPlaceholderText('Enterprise Pro Plus'), { target: { value: 'Editable Plan Plus' } });
+      fireEvent.change(screen.getByPlaceholderText('ENTERPRISE_PRO'), { target: { value: 'EDITABLE_PLAN_PLUS' } });
+      fireEvent.change(screen.getByPlaceholderText('Targeted at tier-1 enterprise migrations'), { target: { value: 'Updated plan description' } });
+      fireEvent.change(screen.getByLabelText('Annual Price (VND) *'), { target: { value: '22000' } });
+      fireEvent.click(screen.getByRole('button', { name: /Save Changes/i }));
+
+      await waitFor(() => {
+        expect(adminApi.updateEngagementType).toHaveBeenCalledWith('plan-edit', expect.objectContaining({
+          name: 'Editable Plan Plus',
+          code: 'EDITABLE_PLAN_PLUS',
+          price: 22000,
+        }));
+        expect(screen.getByText(/was updated and saved/i)).toBeInTheDocument();
+        expect(screen.getByText('Editable Plan Plus')).toBeInTheDocument();
+      });
     });
   });
 

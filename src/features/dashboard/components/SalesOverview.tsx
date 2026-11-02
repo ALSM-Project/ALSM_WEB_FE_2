@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { formatVnd } from '@/shared/utils/currency';
 import {
   TrendingUp,
   DollarSign,
@@ -50,8 +51,10 @@ export const SalesOverview: React.FC = () => {
   const reviewMutation = useMutation({
     mutationFn: (variables: { leadId: string; quoteId: string; approved: boolean; rejectionReason?: string }) =>
       crmApi.reviewDiscount({
-        ...variables,
-        reviewer: user?.fullName || 'Sales Manager',
+        leadId: variables.leadId,
+        quoteId: variables.quoteId,
+        outcome: variables.approved ? 'APPROVE' : 'REJECT',
+        reason: variables.rejectionReason,
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sales', 'dashboard', 'discounts'] });
@@ -64,7 +67,8 @@ export const SalesOverview: React.FC = () => {
     },
   });
 
-  const canApproveDiscounts = hasPermission('crm.discounts.approve') || user?.isPlatformAdmin;
+  const canApproveDiscounts = hasPermission('sales.discounts.approve') || user?.isPlatformAdmin;
+  const canRejectDiscounts = hasPermission('sales.discounts.reject') || user?.isPlatformAdmin;
 
   // Pipeline breakdown counts
   const stageCounts: Record<string, number> = {
@@ -123,7 +127,7 @@ export const SalesOverview: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-[#0F172A] mt-2">
-            ${reports?.monthlyRevenue?.toLocaleString() || '185,000'}
+            {formatVnd(reports?.monthlyRevenue ?? 185000)}
           </p>
           <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
             <span className="font-medium text-emerald-600">+14.2% so với tháng trước</span>
@@ -198,7 +202,7 @@ export const SalesOverview: React.FC = () => {
             </div>
           </div>
           <p className="text-2xl font-bold text-[#0F172A] mt-2">
-            ${reports?.avgDealSize?.toLocaleString() || '24,500'}
+            {formatVnd(reports?.avgDealSize ?? 24500)}
           </p>
           <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
             <span className="font-medium text-purple-700">Enterprise Tiers</span>
@@ -300,13 +304,14 @@ export const SalesOverview: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-[11px] text-[#64748B] mt-1">
-                      Sale Rep: <b className="text-[#0F172A]">{item.assignedToName || item.requestId}</b> • Trị giá: $
-                      {item.proposedFinalPrice?.toLocaleString()}
+                      Sale Rep: <b className="text-[#0F172A]">{item.assignedToName || item.requestId}</b> • Trị giá:
+                      {formatVnd(item.proposedFinalPrice)}
                     </p>
                   </div>
 
-                  {canApproveDiscounts && (
+                  {(canApproveDiscounts || canRejectDiscounts) && (
                     <div className="flex items-center gap-1.5 shrink-0">
+                      {canApproveDiscounts && (
                       <button
                         type="button"
                         onClick={() =>
@@ -322,7 +327,9 @@ export const SalesOverview: React.FC = () => {
                         <Check className="w-3.5 h-3.5" />
                         <span>Duyệt</span>
                       </button>
+                      )}
 
+                      {canRejectDiscounts && (
                       <button
                         type="button"
                         onClick={() =>
@@ -339,6 +346,7 @@ export const SalesOverview: React.FC = () => {
                         <X className="w-3.5 h-3.5" />
                         <span>Từ chối</span>
                       </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -393,7 +401,7 @@ export const SalesOverview: React.FC = () => {
 
                   <div className="text-right">
                     <span className="text-xs font-bold text-[#0652CC]">
-                      ${lead.dealValue?.toLocaleString() || '15,000'}
+                      {formatVnd(lead.dealValue ?? 15000)}
                     </span>
                     <p className="text-[10px] text-[#64748B] mt-0.5">Mở hồ sơ &rarr;</p>
                   </div>

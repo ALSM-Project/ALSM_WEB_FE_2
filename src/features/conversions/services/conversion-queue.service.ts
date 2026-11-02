@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
+import type { SupportPatchRule } from '../utils/supportPatchRules';
 
 export type JobStatus = 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'DEAD' | 'CANCELLED';
 export interface QueueProject { id: string; name: string; organizationId: string }
@@ -27,11 +28,26 @@ export interface ConversionResult {
   files: { relativePath: string; content: string }[];
 }
 
-export interface FieldMappingEntry {
-  sourceField: string;
-  targetProperty: string;
-  dataType?: string;
-  transformRule?: string;
+export interface SupportPatchHistoryEntry {
+  id: string;
+  rules: SupportPatchRule[];
+  note: string;
+  changedRuleCount: number;
+  appliedBy: string;
+  appliedAt: string;
+}
+
+/** The mapping rules saved for a job and every patch applied to it (newest first). */
+export interface SupportPatchView {
+  job: QueueJob;
+  rules: SupportPatchRule[];
+  history: SupportPatchHistoryEntry[];
+}
+
+export interface ApplySupportPatchResult {
+  job: QueueJob;
+  patch: SupportPatchHistoryEntry;
+  warnings: string[];
 }
 
 const organizationConfig = (organizationId?: string) => organizationId
@@ -43,12 +59,11 @@ export const conversionQueueService = {
   getJob: (jobId: string, signal?: AbortSignal, organizationId?: string) => apiClient.get<QueueJob>(`/conversions/${encodeURIComponent(jobId)}`, { signal, ...organizationConfig(organizationId) }),
   getResult: (jobId: string, organizationId?: string) => apiClient.get<ConversionResult>(`/conversions/${encodeURIComponent(jobId)}/result`, organizationConfig(organizationId)),
   retryJob: (jobId: string, organizationId?: string) => apiClient.post<QueueJob>(`/conversions/${encodeURIComponent(jobId)}/retry`, undefined, organizationConfig(organizationId)),
-  getFieldMapping: (projectId: string, screenId: string) =>
-    apiClient.get<{ mappings: FieldMappingEntry[] }>(`/projects/${encodeURIComponent(projectId)}/screens/${encodeURIComponent(screenId)}/field-mapping`),
-  applySupportPatch: async (projectId: string, screenId: string, jobId: string, mappings: FieldMappingEntry[]) => {
-    await apiClient.put(`/projects/${encodeURIComponent(projectId)}/screens/${encodeURIComponent(screenId)}/field-mapping`, { mappings });
-    return apiClient.post<QueueJob>(`/conversions/${encodeURIComponent(jobId)}/retry`);
-  },
+  getSupportPatch: (jobId: string, organizationId?: string, signal?: AbortSignal) =>
+    apiClient.get<SupportPatchView>(`/conversions/${encodeURIComponent(jobId)}/support-patch`, { signal, ...organizationConfig(organizationId) }),
+  /** Saves the rules and note, resets the job to QUEUED (attempts 0, HIGH priority) and enqueues it. */
+  applySupportPatch: (jobId: string, patch: { rules: SupportPatchRule[]; note: string }, organizationId?: string) =>
+    apiClient.post<ApplySupportPatchResult>(`/conversions/${encodeURIComponent(jobId)}/support-patch`, patch, organizationConfig(organizationId)),
 };
 
 export function queueError(error: unknown): string {

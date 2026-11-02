@@ -26,6 +26,8 @@ export const serverProject = {
   organizationId: 'org-1',
   conversionType: 'BMS_DSPF_TO_FRONTEND',
   status: 'ACTIVE',
+  assignedStaffId: 'staff-01',
+  assignedStaffName: 'Marcus Vance',
   createdAt: '2026-10-22T03:00:00.000Z',
   updatedAt: '2026-10-22T03:00:00.000Z',
 };

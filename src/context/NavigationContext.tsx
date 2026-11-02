@@ -183,6 +183,22 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         },
       ];
     }
+    const hasOpsTempRoles = opsGroup.children?.some((c) => c.path === '/admin/temporary-roles');
+    if (!hasOpsTempRoles) {
+      opsGroup.children = [
+        ...(opsGroup.children || []),
+        {
+          id: 'web2_ops_temporary_roles',
+          label: 'Temporary Roles',
+          icon: 'KeyRound',
+          path: '/admin/temporary-roles',
+          order: 3,
+          isVisible: true,
+          permissions: ['roles.temporary.request', 'roles.temporary.view'],
+          openInNewTab: false,
+        },
+      ];
+    }
 
     // Ensure Customer Support group exists with Organisation Access and Conversion Support
     let supportGroup = mapped.find((g) => g.id === 'web2_group_support' || g.label?.toLowerCase() === 'customer support');
@@ -304,6 +320,35 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           children = children.map((c) =>
             c.path === '/team-lead/projects' ? { ...c, label: 'Employee Allocation' } : c
           );
+
+        const hasTransferApprovals = children.some((c) => c.path === '/team-lead/resource-transfers');
+        if (!hasTransferApprovals) {
+          children.push({
+            id: 'web2_tl_transfer_approvals',
+            label: 'Transfer Approvals',
+            icon: 'ArrowRightLeft',
+            path: '/team-lead/resource-transfers',
+            order: 2.5,
+            isVisible: true,
+            permissions: ['teams.manage'],
+            openInNewTab: false,
+          });
+        }
+
+        const hasOffboardingApprovals = children.some((c) => c.path === '/team-lead/offboarding-approvals');
+        if (!hasOffboardingApprovals) {
+          children.push({
+            id: 'web2_tl_offboarding_approvals',
+            label: 'Offboarding Approvals',
+            icon: 'UserMinus',
+            path: '/team-lead/offboarding-approvals',
+            order: 2.6,
+            isVisible: true,
+            permissions: ['users.offboard'],
+            openInNewTab: false,
+          });
+        }
+
         }
         return { ...group, children };
       }
@@ -316,11 +361,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { ...group, children };
       }
 
-      // 4. Ensure Conversions has My Assigned Work for employees
+      // 4. Ensure Conversions has My Assigned Work and Temporary Roles for employees
       if (group.id === 'web2_group_conversions' || group.label?.toLowerCase() === 'conversions') {
-        const hasMyWork = group.children?.some((c) => c.path === '/my-work');
+        let children = [...(group.children || [])];
+        const hasMyWork = children.some((c) => c.path === '/my-work');
         if (!hasMyWork) {
-          const children = [...(group.children || [])];
           children.unshift({
             id: 'web2_my_assigned_work',
             label: 'My Assigned Work',
@@ -331,8 +376,21 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             permissions: ['conversions.view'],
             openInNewTab: false,
           });
-          return { ...group, children };
         }
+        const hasTempRoles = children.some((c) => c.path === '/admin/temporary-roles');
+        if (!hasTempRoles) {
+          children.push({
+            id: 'web2_conv_temporary_roles',
+            label: 'Temporary Roles',
+            icon: 'KeyRound',
+            path: '/admin/temporary-roles',
+            order: 5,
+            isVisible: true,
+            permissions: ['roles.temporary.request', 'roles.temporary.view'],
+            openInNewTab: false,
+          });
+        }
+        return { ...group, children };
       }
 
       return group;
@@ -367,33 +425,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const filtered = filterTree(processed);
     filtered.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-    // Admin sees the full overview hierarchy with parent groups.
-    // Non-admin roles (Conversion Staff, Team Lead, Sales, Support, Partner, etc.)
-    // have few items and display all detailed screens directly without a parent accordion layer.
-    const isUserAdmin = Boolean(
-      user?.isPlatformAdmin ||
-      user?.roles?.some((r) => ['ADMIN', 'SYSTEM_ADMIN'].includes(String(r).toUpperCase()))
-    );
-
-    if (user && !isUserAdmin) {
-      const flattenItems = (items: MenuItem[]): MenuItem[] => {
-        const flat: MenuItem[] = [];
-        const extract = (nodes: MenuItem[]) => {
-          for (const node of nodes) {
-            if (node.path) {
-              flat.push({ ...node, parentId: undefined, children: undefined });
-            } else if (node.children && node.children.length > 0) {
-              extract(node.children);
-            }
-          }
-        };
-        extract(items);
-        return flat.map((item, idx) => ({ ...item, order: idx + 1 }));
-      };
-
-      return flattenItems(filtered);
-    }
 
     return filtered;
   }, [backendNavNodes, user, hasPermission]);

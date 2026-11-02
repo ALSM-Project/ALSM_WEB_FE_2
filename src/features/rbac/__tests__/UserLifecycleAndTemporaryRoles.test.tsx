@@ -304,6 +304,22 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
     });
 
     it('allows Approver to review pending requests and approve/reject with mandatory note', async () => {
+      // The request comes from the server; once it is approved the next read no longer lists it.
+      const pendingRequest = {
+        id: 'req-01',
+        userId: 'usr-02',
+        userEmail: 'marcus.vance@alsm.io',
+        userFullName: 'Marcus Vance',
+        role: 'CONVERSION_STAFF',
+        durationHours: 4,
+        reason: 'AST debugger tool access for an urgent fix',
+        grantedBy: '',
+        status: 'PENDING' as const,
+        expiresAt: '',
+        createdAt: new Date().toISOString(),
+      };
+      (temporaryRolesApi.getHistory as any).mockResolvedValueOnce([pendingRequest]).mockResolvedValue([]);
+      (temporaryRolesApi.approveRequest as any).mockResolvedValue({ ...pendingRequest, status: 'ACTIVE' });
       render(
         <MemoryRouter>
           <TemporaryRolesPage />
@@ -332,6 +348,74 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
       await waitFor(() => {
         expect(screen.queryByText('Marcus Vance')).not.toBeInTheDocument();
         expect(screen.getByText(/Elevation request approved/i)).toBeInTheDocument();
+      });
+      expect(temporaryRolesApi.approveRequest).toHaveBeenCalledWith({ requestId: 'req-01', approved: true });
+    });
+
+    describe('everything goes to the server and nothing is faked in the browser', () => {
+      const openGrantModal = async () => {
+        render(
+          <MemoryRouter>
+            <TemporaryRolesPage />
+          </MemoryRouter>
+        );
+        await waitFor(() => expect(screen.getByText('David Kim')).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button', { name: /Grant Temporary Role/i }));
+        const selects = screen.getAllByRole('combobox');
+        // The first one picks the person; usr-01 has no elevation running.
+        fireEvent.change(selects[0], { target: { value: 'usr-01' } });
+        fireEvent.change(screen.getByPlaceholderText(/operational rationale/i), {
+          target: { value: 'Covering the urgent batch queue' },
+        });
+        fireEvent.click(screen.getByRole('checkbox'));
+        fireEvent.click(screen.getByRole('button', { name: /Confirm and Grant Elevation/i }));
+      };
+
+      it('shows the server refusal instead of pretending the grant worked', async () => {
+        (temporaryRolesApi.grantRole as any).mockRejectedValue(
+          Object.assign(new Error('HTTP 403'), {
+            response: { data: { message: 'Temporary role cannot grant Platform Admin privileges' } },
+          }),
+        );
+        await openGrantModal();
+
+        expect(await screen.findByText(/cannot grant Platform Admin privileges/i)).toBeInTheDocument();
+        expect(screen.queryByText(/successfully granted|granted to/i)).not.toBeInTheDocument();
+      });
+
+      it('sends the grant with the chosen duration and reloads the list from the server', async () => {
+        (temporaryRolesApi.grantRole as any).mockResolvedValue({
+          id: 'tr-9',
+          role: 'conversion_staff',
+          expiresAt: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
+        });
+        await openGrantModal();
+
+        await waitFor(() =>
+          expect(temporaryRolesApi.grantRole).toHaveBeenCalledWith(
+            expect.objectContaining({ targetUserId: 'usr-01', durationHours: 8 }),
+          ),
+        );
+        // initial load plus the reload after the grant
+        await waitFor(() => expect(temporaryRolesApi.getActiveRoles).toHaveBeenCalledTimes(2));
+      });
+
+      it('never offers the Platform Admin role to grant', async () => {
+        (rbacApi.getRoles as any).mockResolvedValue([
+          { id: 'conversion_staff', name: 'Conversion Staff', description: '', isSystem: true },
+          { id: 'ADMIN', key: 'ADMIN', name: 'Platform Admin', description: '', isSystem: true },
+          { id: 'system_admin', name: 'System Admin', description: '', isSystem: true },
+        ]);
+        render(
+          <MemoryRouter>
+            <TemporaryRolesPage />
+          </MemoryRouter>
+        );
+        await waitFor(() => expect(screen.getByText('David Kim')).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button', { name: /Grant Temporary Role/i }));
+
+        expect(screen.queryByRole('option', { name: /Platform Admin/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: /System Admin/i })).not.toBeInTheDocument();
       });
     });
   });

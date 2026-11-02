@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, } from 'lucide-react';
+  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, AlertCircle, RefreshCw, FolderGit2
+} from 'lucide-react';
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
 import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
+import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const OrganizationDetailPage: React.FC = () => {
@@ -12,6 +14,8 @@ export const OrganizationDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, hasPermission } = useAuth();
   const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
+  const canManageOrganizations = Boolean(user) && hasPermission('organizations.manage');
+  const canCreateDemoProjects = Boolean(user) && hasPermission('projects.demo.create');
 
   const [org, setOrg] = useState<OrganizationDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -22,6 +26,8 @@ export const OrganizationDetailPage: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editStatus, setEditStatus] = useState<'ACTIVE' | 'TRIAL' | 'SUSPENDED'>('ACTIVE');
   const [editEngagement, setEditEngagement] = useState('ENTERPRISE_T1');
+  const [editTrialExpiresAt, setEditTrialExpiresAt] = useState('');
+  const [engagementError, setEngagementError] = useState<string | null>(null);
 
   // Trial Limits (Section 3.13.4)
   const [trialScreens, setTrialScreens] = useState<number>(15);
@@ -42,6 +48,19 @@ export const OrganizationDetailPage: React.FC = () => {
 
   const [submitting, setSubmitting] = useState<boolean>(false);
 
+  const hydrateEngagementForm = (organization: OrganizationDto) => {
+    setEditStatus(organization.status);
+    setEditEngagement(organization.engagementType || 'ENTERPRISE_T1');
+    setEditTrialExpiresAt(organization.trialExpiresAt?.slice(0, 10) || '');
+    setMaxProjects(organization.limits?.maxProjects ?? 10);
+    setMaxConversions(organization.limits?.maxConversionsPerMonth ?? 100);
+    setMaxStorageGb(organization.limits?.maxStorageGb ?? 50);
+    setAiEnabled(organization.limits?.aiValidationEnabled ?? true);
+    setTrialScreens(organization.limits?.trialScreens ?? organization.limits?.maxScreens ?? 15);
+    setTrialPrograms(organization.limits?.trialPrograms ?? organization.limits?.maxPrograms ?? 8);
+    setTrialStorageGb(organization.limits?.trialStorageGb ?? 5);
+  };
+
   const fetchOrg = async () => {
     if (!orgId) return;
     try {
@@ -49,18 +68,7 @@ export const OrganizationDetailPage: React.FC = () => {
       setErrorMsg(null);
       const merged = await adminApi.getOrganizationById(orgId);
       setOrg(merged);
-      setEditStatus(merged.status);
-      setEditEngagement(merged.engagementType || 'ENTERPRISE_T1');
-
-      if (merged.limits) {
-        setMaxProjects(merged.limits.maxProjects ?? 10);
-        setMaxConversions(merged.limits.maxConversionsPerMonth ?? 100);
-        setMaxStorageGb(merged.limits.maxStorageGb ?? 50);
-        setAiEnabled(merged.limits.aiValidationEnabled ?? true);
-        setTrialScreens(merged.limits.trialScreens ?? 15);
-        setTrialPrograms(merged.limits.trialPrograms ?? 8);
-        setTrialStorageGb(merged.limits.trialStorageGb ?? 5);
-      }
+      hydrateEngagementForm(merged);
     } catch {
       setOrg(null);
       setErrorMsg('Unable to load organisation details. Please try again.');
@@ -75,10 +83,22 @@ export const OrganizationDetailPage: React.FC = () => {
 
   const handleUpdateEngagement = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!org) return;
+    if (!org || !canManageOrganizations || submitting) return;
+    if (editEngagement.trim().length === 0) {
+      setEngagementError('Select an engagement type.');
+      return;
+    }
+    if ([trialScreens, trialPrograms, maxProjects, maxConversions].some((value) =>
+      !Number.isInteger(value) || value < 1 || value > 1_000_000,
+    ) || [trialStorageGb, maxStorageGb].some((value) =>
+      !Number.isFinite(value) || value < 0.1 || value > 1_000_000,
+    )) {
+      setEngagementError('Enter positive limits within the supported range.');
+      return;
+    }
     try {
       setSubmitting(true);
-      setErrorMsg(null);
+      setEngagementError(null);
 
       const updatedLimits = {
         maxProjects,
@@ -88,36 +108,44 @@ export const OrganizationDetailPage: React.FC = () => {
         trialScreens,
         trialPrograms,
         trialStorageGb,
-        usageScreens: maxConversions,
-        usagePrograms: Math.round(maxConversions / 2),
-        usageStorageGb: maxStorageGb,
       };
 
-      await adminApi.updateEngagement(org.id, {
+      const updated = await adminApi.updateEngagement(org.id, {
         status: editStatus,
-        engagementType: editEngagement,
-        limits: updatedLimits as any,
+        engagementType: editEngagement.trim(),
+        ...(editTrialExpiresAt ? { trialExpiresAt: new Date(`${editTrialExpiresAt}T00:00:00.000Z`).toISOString() } : {}),
+        limits: updatedLimits,
       });
 
-      setOrg((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: editStatus,
-              engagementType: editEngagement,
-              limits: updatedLimits,
-            }
-          : prev
-      );
-
+      setOrg(updated);
+      hydrateEngagementForm(updated);
       setShowEditModal(false);
-      setSuccessMsg('Engagement parameters and limits updated successfully in local state.');
+      setSuccessMsg('Engagement settings were saved successfully.');
       setTimeout(() => setSuccessMsg(null), 4000);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to update engagement');
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      const message = status === 400
+        ? 'Some engagement values are invalid. Review the fields and try again.'
+        : status === 403
+          ? 'You do not have permission to update this organisation.'
+          : status === 404
+            ? 'This organisation no longer exists. Reload the page.'
+            : status === 409
+              ? 'The organisation changed while you were editing. Reload it and try again.'
+              : status === 503
+                ? 'The update could not be confirmed. Reload the organisation before retrying.'
+                : 'Unable to save engagement settings. Please try again.';
+      setEngagementError(message);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const openEngagementEditor = () => {
+    if (!org || !canManageOrganizations) return;
+    hydrateEngagementForm(org);
+    setEngagementError(null);
+    setShowEditModal(true);
   };
 
   const handleCreateDemo = async (e: React.FormEvent) => {
@@ -153,21 +181,30 @@ export const OrganizationDetailPage: React.FC = () => {
 
   if (!org) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-[#E5EAF0]">
+      <div className="p-8 text-center bg-white rounded-2xl border border-[#E5EAF0] max-w-md mx-auto mt-12 shadow-xs">
+        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+          <AlertCircle className="w-6 h-6" />
+        </div>
         <h2 className="text-base font-bold text-[#091E42]">Organisation Unavailable</h2>
         <p role="alert" className="text-xs text-[#6B778C] mt-1">{errorMsg || 'The requested organisation is unavailable.'}</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate('/admin/organizations')}>
-          Back to Organisations
-        </Button>
+        <div className="flex items-center justify-center gap-3 mt-5">
+          <Button variant="outline" size="sm" onClick={() => fetchOrg()} className="cursor-pointer">
+            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            Try Again
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => navigate('/admin/organizations')} className="cursor-pointer">
+            Back to Directory
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const usageStats = org.usageStats || {
-    totalScreensConverted: 0,
-    activeProjects: 0,
-    storageUsedGb: 0,
-    conversionsThisMonth: 0,
+  const usageStats = {
+    totalScreensConverted: org.usageStats?.totalScreensConverted ?? org.conversionJobCount ?? 0,
+    activeProjects: org.usageStats?.activeProjects ?? org.projectCount ?? 0,
+    storageUsedGb: org.usageStats?.storageUsedGb ?? 0,
+    conversionsThisMonth: org.usageStats?.conversionsThisMonth ?? org.conversionJobCount ?? 0,
   };
 
   const billingHistory = org.billingHistory || [];
@@ -226,25 +263,29 @@ export const OrganizationDetailPage: React.FC = () => {
             </Button>
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowDemoModal(true)}
-            className="text-xs border-[#D9E2EC] text-[#091E42] hover:bg-[#F7F9FC]"
-          >
-            <Cpu className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
-            Create Demo Project
-          </Button>
+          {canCreateDemoProjects && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDemoModal(true)}
+              className="text-xs border-[#D9E2EC] text-[#091E42] hover:bg-[#F7F9FC]"
+            >
+              <Cpu className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
+              Create Demo Project
+            </Button>
+          )}
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowEditModal(true)}
-            className="text-xs bg-[#0652CC] hover:bg-[#0543A8] text-white"
-          >
-            <Edit3 className="w-3.5 h-3.5 mr-1" />
-            Edit Engagement
-          </Button>
+          {canManageOrganizations && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={openEngagementEditor}
+              className="text-xs bg-[#0652CC] hover:bg-[#0543A8] text-white"
+            >
+              <Edit3 className="w-3.5 h-3.5 mr-1" />
+              Edit Engagement
+            </Button>
+          )}
         </div>
       </div>
 
@@ -442,7 +483,7 @@ export const OrganizationDetailPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3 text-[#091E42]">{inv.plan}</td>
                       <td className="py-3 px-3 font-bold text-emerald-700">
-                        ${inv.amount.toLocaleString()} USD
+                        {formatVnd(inv.amount)}
                       </td>
                       <td className="py-3 px-3 text-[#6B778C]">{inv.paymentMethod}</td>
                       <td className="py-3 px-3 text-right">
@@ -519,24 +560,86 @@ export const OrganizationDetailPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Modernization Projects (Associated Projects) */}
+      {org.projects && org.projects.length > 0 && (
+        <div className="bg-white rounded-2xl border border-[#E5EAF0] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FolderGit2 className="w-4 h-4 text-[#0652CC]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+                Modernization Projects
+              </h3>
+            </div>
+            <span className="text-[11px] text-[#6B778C] font-mono">{org.projects.length} projects</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase">
+                <tr>
+                  <th className="py-2.5 px-3">Project Name</th>
+                  <th className="py-2.5 px-3">Conversion Type</th>
+                  <th className="py-2.5 px-3">Type</th>
+                  <th className="py-2.5 px-3">Created</th>
+                  <th className="py-2.5 px-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E5EAF0]">
+                {org.projects.map((proj) => (
+                  <tr key={proj.id} className="hover:bg-[#F9FBFF]">
+                    <td className="py-3 px-3 font-semibold text-[#091E42]">
+                      {proj.name}
+                    </td>
+                    <td className="py-3 px-3 text-[#6B778C]">
+                      {proj.conversionType}
+                    </td>
+                    <td className="py-3 px-3">
+                      {proj.isDemo ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                          Demo
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#0652CC] border border-blue-200">
+                          Production
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-3 text-[#6B778C]">
+                      {new Date(proj.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        {proj.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Edit Engagement Modal (Requirement D) */}
       <Modal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
+        onClose={() => { if (!submitting) setShowEditModal(false); }}
         title="Edit Organisation Engagement & Limits (Section 3.13.4)"
       >
         <form onSubmit={handleUpdateEngagement} className="space-y-4 text-xs">
+          {engagementError && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700">{engagementError}</p>}
           <p className="text-xs text-[#6B778C]">
             Configure commercial engagement tier, Trial sandbox constraints, and post-upgrade production usage limits.
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Status</label>
+              <label htmlFor="engagement-status" className="block text-xs font-semibold text-[#091E42] mb-1">Status</label>
               <select
+                id="engagement-status"
                 className="w-full text-xs p-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
                 value={editStatus}
-                onChange={(e) => setEditStatus(e.target.value as any)}
+                disabled={submitting}
+                onChange={(e) => setEditStatus(e.target.value as 'ACTIVE' | 'TRIAL' | 'SUSPENDED')}
               >
                 <option value="ACTIVE">ACTIVE</option>
                 <option value="TRIAL">TRIAL</option>
@@ -544,18 +647,35 @@ export const OrganizationDetailPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Engagement Type</label>
+              <label htmlFor="engagement-type" className="block text-xs font-semibold text-[#091E42] mb-1">Engagement Type</label>
               <select
+                id="engagement-type"
                 className="w-full text-xs p-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
                 value={editEngagement}
                 onChange={(e) => setEditEngagement(e.target.value)}
+                disabled={submitting}
               >
                 <option value="ENTERPRISE_T1">ENTERPRISE_T1 (Tier 1 Premium)</option>
                 <option value="ENTERPRISE_T2">ENTERPRISE_T2 (Tier 2 Standard)</option>
                 <option value="MANAGED_PARTNER">MANAGED_PARTNER</option>
                 <option value="STANDARD">STANDARD (Self-Service)</option>
+                <option value="Trial">Trial</option>
+                <option value="Enterprise Pilot">Enterprise Pilot</option>
+                <option value="Enterprise Production">Enterprise Production</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="engagement-trial-expiry" className="block text-xs font-semibold text-[#091E42] mb-1">Trial Expiry Date</label>
+            <Input
+              id="engagement-trial-expiry"
+              type="date"
+              value={editTrialExpiresAt}
+              onChange={(e) => setEditTrialExpiresAt(e.target.value)}
+              disabled={submitting}
+              className="text-xs bg-white"
+            />
           </div>
 
           {/* Section 1: Trial Limits Group (Clearly Distinguished) */}
@@ -568,32 +688,42 @@ export const OrganizationDetailPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] font-medium text-amber-900 mb-1">Trial Screen Limit</label>
+                <label htmlFor="trial-screens-limit" className="block text-[11px] font-medium text-amber-900 mb-1">Trial Screen Limit</label>
                 <Input
+                  id="trial-screens-limit"
                   type="number"
                   min={1}
+                  max={1_000_000}
                   value={trialScreens}
                   onChange={(e) => setTrialScreens(parseInt(e.target.value) || 1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-amber-900 mb-1">Trial Program Limit</label>
+                <label htmlFor="trial-programs-limit" className="block text-[11px] font-medium text-amber-900 mb-1">Trial Program Limit</label>
                 <Input
+                  id="trial-programs-limit"
                   type="number"
                   min={1}
+                  max={1_000_000}
                   value={trialPrograms}
                   onChange={(e) => setTrialPrograms(parseInt(e.target.value) || 1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-amber-900 mb-1">Trial Storage (GB)</label>
+                <label htmlFor="trial-storage-limit" className="block text-[11px] font-medium text-amber-900 mb-1">Trial Storage (GB)</label>
                 <Input
+                  id="trial-storage-limit"
                   type="number"
-                  min={1}
+                  min={0.1}
+                  max={1_000_000}
+                  step={0.1}
                   value={trialStorageGb}
-                  onChange={(e) => setTrialStorageGb(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setTrialStorageGb(parseFloat(e.target.value) || 0.1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
@@ -610,32 +740,42 @@ export const OrganizationDetailPage: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] font-medium text-[#091E42] mb-1">Max Projects</label>
+                <label htmlFor="projects-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Max Projects</label>
                 <Input
+                  id="projects-limit"
                   type="number"
                   min={1}
+                  max={1_000_000}
                   value={maxProjects}
                   onChange={(e) => setMaxProjects(parseInt(e.target.value) || 1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-[#091E42] mb-1">Max Conv/Month</label>
+                <label htmlFor="conversions-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Max Conv/Month</label>
                 <Input
+                  id="conversions-limit"
                   type="number"
                   min={1}
+                  max={1_000_000}
                   value={maxConversions}
                   onChange={(e) => setMaxConversions(parseInt(e.target.value) || 1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-[#091E42] mb-1">Storage Quota (GB)</label>
+                <label htmlFor="storage-quota-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Storage Quota (GB)</label>
                 <Input
+                  id="storage-quota-limit"
                   type="number"
-                  min={1}
+                  min={0.1}
+                  max={1_000_000}
+                  step={0.1}
                   value={maxStorageGb}
-                  onChange={(e) => setMaxStorageGb(parseInt(e.target.value) || 1)}
+                  onChange={(e) => setMaxStorageGb(parseFloat(e.target.value) || 0.1)}
+                  disabled={submitting}
                   className="text-xs bg-white"
                 />
               </div>
@@ -647,6 +787,7 @@ export const OrganizationDetailPage: React.FC = () => {
                 id="aiCheck"
                 checked={aiEnabled}
                 onChange={(e) => setAiEnabled(e.target.checked)}
+                disabled={submitting}
                 className="rounded text-[#0652CC] focus:ring-[#0652CC]"
               />
               <label htmlFor="aiCheck" className="text-xs font-semibold text-[#091E42] cursor-pointer">
@@ -661,6 +802,7 @@ export const OrganizationDetailPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowEditModal(false)}
+              disabled={submitting}
             >
               Cancel
             </Button>
