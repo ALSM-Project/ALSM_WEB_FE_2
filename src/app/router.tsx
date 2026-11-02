@@ -42,6 +42,7 @@ import {
   ConversionItemReviewPage,
 } from '@/features/partners';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
+import { SupportPortalPage } from '@/features/support/pages/SupportPortalPage';
 
 export const router = createBrowserRouter([
   {
@@ -64,6 +65,8 @@ export const router = createBrowserRouter([
     ),
     children: [
       { path: '/dashboard', element: <StaffDashboardPage /> },
+      // UC66-04: own staff identity and isolated typed Support adapter, never customer APIs.
+      { path: '/support', element: <SupportPortalPage /> },
       // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
       {
         path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
