@@ -24,7 +24,7 @@ export default function TeamReportLayout({ kind, children }: { kind: TeamKind; c
     setParams(next);
   };
   return <div className="space-y-6">
-    <PageHeader title={kind === 'SALES' ? 'Team Performance' : 'Monitor Team Performance'} subtitle={kind === 'SALES' ? 'Sales Manager reporting for explicitly assigned teams.' : 'Team Lead monitoring for explicitly assigned conversion work.'} />
+    <PageHeader title={kind === 'SALES' ? 'Team Performance' : 'Monitor Team Performance'} />
     <nav aria-label="Team performance views" className="flex gap-4 text-sm">
       <Link to="/team-performance" aria-current={kind === 'SALES' ? 'page' : undefined} className="text-blue-700 underline">Overview</Link>
       <Link to="/team-performance/monitor" aria-current={kind === 'CONVERSION' ? 'page' : undefined} className="text-blue-700 underline">Monitoring</Link>
