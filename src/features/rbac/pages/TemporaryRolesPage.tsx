@@ -794,7 +794,7 @@ export const TemporaryRolesPage: React.FC = () => {
                               >
                                 <Eye className="w-3.5 h-3.5" />
                               </button>
-                              {canRevoke && (
+                              {canRevoke && !countdown.isExpired && item.status === 'ACTIVE' && (
                                 <Button
                                   variant="outline"
                                   size="sm"
