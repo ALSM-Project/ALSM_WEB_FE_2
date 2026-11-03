@@ -68,32 +68,23 @@ export const Web3AdminPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DFE3E8]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E8F1FF] text-[#0652CC] uppercase tracking-wider">
-              Web3 Administration
-            </span>
-            <span className="text-[11px] text-[#5E6C84]">Enterprise Blockchain Gateway</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#172B4D] tracking-tight mt-1">
-            Blockchain & Web3 Administration
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Web3 Administration
           </h1>
-          <p className="text-xs text-[#5E6C84] mt-1">
-            Manage multi-chain wallet connectivity, enterprise smart contract registries, and on-chain conversion proof anchoring.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
           {wallet.status === 'CONNECTED' ? (
-            <div className="flex items-center gap-2 bg-white border border-[#DFE3E8] px-3 py-1.5 rounded-xl text-xs">
+            <div className="flex items-center gap-2 bg-white border border-[#DCE3EC] px-3 py-1.5 rounded-xl text-xs">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: currentNetwork.color }} />
-              <span className="font-semibold text-[#172B4D]">{currentNetwork.name}</span>
+              <span className="font-semibold text-[#17263A]">{currentNetwork.name}</span>
               <select
                 value={wallet.chainId || 11155111}
                 onChange={(e) => switchNetwork(parseInt(e.target.value) as ChainId)}
                 aria-label="Switch Network"
-                className="bg-transparent text-[11px] font-medium text-[#5E6C84] hover:text-[#0652CC] border-none outline-none cursor-pointer ml-1"
+                className="bg-transparent text-[11px] font-medium text-[#8491A3] hover:text-[#244A70] border-none outline-none cursor-pointer ml-1"
               >
                 {supportedNetworks.map((n) => (
                   <option key={n.id} value={n.id}>
@@ -107,7 +98,7 @@ export const Web3AdminPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => connect()}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               <Wallet className="w-3.5 h-3.5 mr-1.5" />
               <span>Connect Wallet</span>
@@ -118,63 +109,63 @@ export const Web3AdminPage: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#5E6C84]">Wallet Status</span>
-            <div className="p-1.5 rounded-lg bg-blue-50 text-[#0652CC]">
+            <span className="text-xs font-semibold text-[#8491A3]">Wallet Status</span>
+            <div className="p-1.5 rounded-lg bg-blue-50 text-[#244A70]">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-lg font-bold text-[#172B4D]">
+            <div className="text-lg font-bold text-[#17263A]">
               {wallet.status === 'CONNECTED' ? 'Connected' : 'Disconnected'}
             </div>
-            <div className="text-[11px] text-[#5E6C84] font-mono mt-0.5 truncate">
+            <div className="text-[11px] text-[#8491A3] font-mono mt-0.5 truncate">
               {wallet.address || 'No wallet session active'}
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#5E6C84]">Active Network</span>
+            <span className="text-xs font-semibold text-[#8491A3]">Active Network</span>
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
               <Cpu className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-lg font-bold text-[#172B4D]">{currentNetwork.name}</div>
-            <div className="text-[11px] text-[#5E6C84] mt-0.5">
+            <div className="text-lg font-bold text-[#17263A]">{currentNetwork.name}</div>
+            <div className="text-[11px] text-[#8491A3] mt-0.5">
               Chain ID: <span className="font-mono font-semibold">{currentNetwork.id}</span>
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#5E6C84]">Network Gas Price</span>
+            <span className="text-xs font-semibold text-[#8491A3]">Network Gas Price</span>
             <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
               <Fuel className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-lg font-bold text-[#172B4D]">18.4 Gwei</div>
+            <div className="text-lg font-bold text-[#17263A]">18.4 Gwei</div>
             <div className="text-[11px] text-emerald-700 font-medium mt-0.5">
               Low Congestion (Optimal for Anchoring)
             </div>
           </div>
         </Card>
 
-        <Card className="p-4 bg-white border border-[#DFE3E8] rounded-xl shadow-xs">
+        <Card className="p-4 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-[#5E6C84]">Active Smart Contracts</span>
+            <span className="text-xs font-semibold text-[#8491A3]">Active Smart Contracts</span>
             <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2">
-            <div className="text-lg font-bold text-[#172B4D]">{contracts.length} Verified</div>
-            <div className="text-[11px] text-[#5E6C84] mt-0.5">
+            <div className="text-lg font-bold text-[#17263A]">{contracts.length} Verified</div>
+            <div className="text-[11px] text-[#8491A3] mt-0.5">
               Identity, Audit Proof & Treasury
             </div>
           </div>
@@ -182,14 +173,14 @@ export const Web3AdminPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-[#DFE3E8]">
+      <div className="border-b border-[#DCE3EC]">
         <nav className="flex space-x-6 text-xs font-semibold">
           <button
             onClick={() => setActiveTab('contracts')}
             className={`pb-3 border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'contracts'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#5E6C84] hover:text-[#172B4D]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -199,8 +190,8 @@ export const Web3AdminPage: React.FC = () => {
             onClick={() => setActiveTab('simulator')}
             className={`pb-3 border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'simulator'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#5E6C84] hover:text-[#172B4D]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <Send className="w-4 h-4" />
@@ -210,8 +201,8 @@ export const Web3AdminPage: React.FC = () => {
             onClick={() => setActiveTab('history')}
             className={`pb-3 border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'history'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#5E6C84] hover:text-[#172B4D]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <History className="w-4 h-4" />
@@ -227,24 +218,24 @@ export const Web3AdminPage: React.FC = () => {
             {contracts.map((contract) => (
               <Card
                 key={contract.id}
-                className="p-4 bg-white border border-[#DFE3E8] rounded-xl flex flex-col justify-between hover:shadow-xs transition-shadow"
+                className="p-4 bg-white border border-[#DCE3EC] rounded-xl flex flex-col justify-between hover:shadow-xs transition-shadow"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-sm text-[#172B4D]">{contract.name}</span>
+                    <span className="font-bold text-sm text-[#17263A]">{contract.name}</span>
                     <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                       <CheckCircle2 className="w-3 h-3" />
                       Verified
                     </span>
                   </div>
-                  <p className="text-xs text-[#5E6C84] mt-2">{contract.description}</p>
+                  <p className="text-xs text-[#8491A3] mt-2">{contract.description}</p>
 
-                  <div className="mt-4 pt-3 border-t border-[#DFE3E8] space-y-2">
+                  <div className="mt-4 pt-3 border-t border-[#DCE3EC] space-y-2">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#5E6C84]">Deployed Address:</span>
+                      <span className="text-[#8491A3]">Deployed Address:</span>
                       <button
                         onClick={() => handleCopy(contract.address, contract.id)}
-                        className="flex items-center gap-1 font-mono text-[#0652CC] hover:underline"
+                        className="flex items-center gap-1 font-mono text-[#244A70] hover:underline"
                         title="Copy contract address"
                       >
                         {shortenHash(contract.address)}
@@ -256,13 +247,13 @@ export const Web3AdminPage: React.FC = () => {
                       </button>
                     </div>
 
-                    <div className="text-[11px] text-[#5E6C84]">
+                    <div className="text-[11px] text-[#8491A3]">
                       <span>Methods: </span>
                       <div className="mt-1 space-y-0.5">
                         {contract.methods.map((m, i) => (
                           <div
                             key={i}
-                            className="font-mono text-[10px] bg-[#F7F9FC] text-[#172B4D] px-2 py-0.5 rounded border border-[#DFE3E8] truncate"
+                            className="font-mono text-[10px] bg-[#F8FAFC] text-[#17263A] px-2 py-0.5 rounded border border-[#DCE3EC] truncate"
                           >
                             {m}
                           </div>
@@ -272,13 +263,13 @@ export const Web3AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-[#DFE3E8] flex justify-between items-center text-[11px] text-[#5E6C84]">
+                <div className="mt-4 pt-3 border-t border-[#DCE3EC] flex justify-between items-center text-[11px] text-[#8491A3]">
                   <span>Deployed: {contract.deploymentDate}</span>
                   <a
                     href={`${currentNetwork.blockExplorerUrl}/address/${contract.address}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1 text-[#0652CC] hover:underline font-semibold"
+                    className="flex items-center gap-1 text-[#244A70] hover:underline font-semibold"
                   >
                     <span>Explorer</span>
                     <ExternalLink className="w-3 h-3" />
@@ -292,14 +283,14 @@ export const Web3AdminPage: React.FC = () => {
 
       {/* TAB 2: Simulator */}
       {activeTab === 'simulator' && (
-        <Card className="p-6 bg-white border border-[#DFE3E8] rounded-xl shadow-xs max-w-3xl">
-          <div className="flex items-center gap-2 pb-3 border-b border-[#DFE3E8]">
-            <Send className="w-5 h-5 text-[#0652CC]" />
+        <Card className="p-6 bg-white border border-[#DCE3EC] rounded-xl shadow-xs max-w-3xl">
+          <div className="flex items-center gap-2 pb-3 border-b border-[#DCE3EC]">
+            <Send className="w-5 h-5 text-[#244A70]" />
             <div>
-              <h2 className="text-sm font-bold text-[#172B4D]">
+              <h2 className="text-sm font-bold text-[#17263A]">
                 Simulate Smart Contract Execution & Proof Anchoring
               </h2>
-              <p className="text-xs text-[#5E6C84]">
+              <p className="text-xs text-[#8491A3]">
                 Broadcast state updates or verification requests to the enterprise ledger.
               </p>
             </div>
@@ -315,11 +306,11 @@ export const Web3AdminPage: React.FC = () => {
           <form onSubmit={handleRunSimulation} className="mt-4 space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold text-[#172B4D] mb-1">Target Contract</label>
+                <label className="block font-semibold text-[#17263A] mb-1">Target Contract</label>
                 <select
                   value={selectedContractId}
                   onChange={(e) => setSelectedContractId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DFE3E8] rounded-xl text-xs bg-white text-[#172B4D] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 >
                   {contracts.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -330,11 +321,11 @@ export const Web3AdminPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-semibold text-[#172B4D] mb-1">Contract Method</label>
+                <label className="block font-semibold text-[#17263A] mb-1">Contract Method</label>
                 <select
                   value={selectedMethod}
                   onChange={(e) => setSelectedMethod(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#DFE3E8] rounded-xl text-xs bg-white text-[#172B4D] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 >
                   <option value="anchorProof">anchorProof(bytes32 packageHash, string projectId)</option>
                   <option value="verifyOrganization">verifyOrganization(string orgId)</option>
@@ -344,7 +335,7 @@ export const Web3AdminPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-[#172B4D] mb-1">Project Identifier</label>
+              <label className="block font-semibold text-[#17263A] mb-1">Project Identifier</label>
               <Input
                 value={projectIdInput}
                 onChange={(e) => setProjectIdInput(e.target.value)}
@@ -353,7 +344,7 @@ export const Web3AdminPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-semibold text-[#172B4D] mb-1">
+              <label className="block font-semibold text-[#17263A] mb-1">
                 Merkle Root Package Hash (SHA-256)
               </label>
               <Input
@@ -364,21 +355,21 @@ export const Web3AdminPage: React.FC = () => {
               />
             </div>
 
-            <div className="p-3 bg-[#F7F9FC] rounded-xl border border-[#DFE3E8] flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-[#5E6C84]">
-                <Info className="w-4 h-4 text-[#0652CC]" />
+            <div className="p-3 bg-[#F8FAFC] rounded-xl border border-[#DCE3EC] flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-[#8491A3]">
+                <Info className="w-4 h-4 text-[#244A70]" />
                 <span>Estimated Gas: ~48,200 units (approx. $0.003 USD)</span>
               </div>
-              <span className="font-mono text-[#172B4D] font-semibold">18.4 Gwei</span>
+              <span className="font-mono text-[#17263A] font-semibold">18.4 Gwei</span>
             </div>
 
-            <div className="flex justify-end pt-3 border-t border-[#DFE3E8]">
+            <div className="flex justify-end pt-3 border-t border-[#DCE3EC]">
               <Button
                 type="submit"
                 variant="primary"
                 size="sm"
                 disabled={isSimulating}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 {isSimulating ? (
                   <>
@@ -399,11 +390,11 @@ export const Web3AdminPage: React.FC = () => {
 
       {/* TAB 3: On-Chain Transaction Log */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-xl border border-[#DFE3E8] overflow-hidden shadow-xs">
+        <div className="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-[#F7F9FC] border-b border-[#DFE3E8] text-[10px] font-bold text-[#5E6C84] uppercase tracking-wider">
+                <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                   <th className="py-3 px-4">Tx Hash</th>
                   <th className="py-3 px-4">Method</th>
                   <th className="py-3 px-4">Block</th>
@@ -413,25 +404,25 @@ export const Web3AdminPage: React.FC = () => {
                   <th className="py-3 px-4">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#DFE3E8]">
+              <tbody className="divide-y divide-[#DCE3EC]">
                 {transactions.map((tx) => (
-                  <tr key={tx.hash} className="hover:bg-[#F7F9FC]/60 transition-colors">
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#0652CC] font-semibold">
+                  <tr key={tx.hash} className="hover:bg-[#F8FAFC]/60 transition-colors">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#244A70] font-semibold">
                       {shortenHash(tx.hash)}
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#172B4D] font-bold">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#17263A] font-bold">
                       {tx.method}()
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#5E6C84]">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#8491A3]">
                       #{tx.blockNumber}
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#5E6C84]">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#8491A3]">
                       {shortenHash(tx.from)}
                     </td>
-                    <td className="py-3 px-4 font-mono text-[11px] text-[#172B4D]">
+                    <td className="py-3 px-4 font-mono text-[11px] text-[#17263A]">
                       {tx.gasUsed.toLocaleString()} ({tx.gasPriceGwei} Gwei)
                     </td>
-                    <td className="py-3 px-4 text-[#5E6C84] text-[11px]">
+                    <td className="py-3 px-4 text-[#8491A3] text-[11px]">
                       {new Date(tx.timestamp).toLocaleString()}
                     </td>
                     <td className="py-3 px-4">

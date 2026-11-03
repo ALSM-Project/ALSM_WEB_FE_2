@@ -24,6 +24,11 @@ export function useNavigation() {
     saveChanges: ctx.saveChanges,
     isDirty: ctx.isDirty,
     refreshNavigation: ctx.refreshNavigation,
+    dynamicLabels: ctx.dynamicLabels,
+    setDynamicLabel: ctx.setDynamicLabel,
+    removeDynamicLabel: ctx.removeDynamicLabel,
+    customBreadcrumbs: ctx.customBreadcrumbs,
+    setCustomBreadcrumbs: ctx.setCustomBreadcrumbs,
   };
 }
 
