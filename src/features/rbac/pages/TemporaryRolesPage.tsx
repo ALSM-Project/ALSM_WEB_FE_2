@@ -274,8 +274,12 @@ export const TemporaryRolesPage: React.FC = () => {
         `Temporary elevation for ${revoked.userFullName || revoked.userEmail} revoked immediately. User reverted to baseline roles.`
       );
       setTimeout(() => setSuccessMsg(null), 5000);
-    } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || err.message || 'Failed to revoke temporary role');
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as Error)?.message ||
+        'Failed to revoke temporary role';
+      setErrorMsg(msg);
     } finally {
       setRevoking(false);
     }
