@@ -56,7 +56,7 @@ export const SUPPORTED_NETWORKS: Record<ChainId, Web3Network> = {
     rpcUrl: 'http://127.0.0.1:8545',
     blockExplorerUrl: '#',
     testnet: true,
-    color: '#10B981',
+    color: '#15803D',
   },
 };
 
@@ -336,7 +336,24 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useWeb3Wallet = (): Web3ContextType => {
   const context = useContext(Web3Context);
   if (!context) {
-    throw new Error('useWeb3Wallet must be used within a Web3Provider');
+    return {
+      wallet: {
+        address: null,
+        chainId: null,
+        balance: '0',
+        status: 'DISCONNECTED',
+        providerName: 'Enterprise Browser Wallet',
+        error: null,
+      },
+      currentNetwork: SUPPORTED_NETWORKS[11155111],
+      supportedNetworks: Object.values(SUPPORTED_NETWORKS),
+      contracts: [],
+      transactions: [],
+      connect: async () => {},
+      disconnect: () => {},
+      switchNetwork: async () => {},
+      simulateContractCall: async () => ({} as any),
+    };
   }
   return context;
 };

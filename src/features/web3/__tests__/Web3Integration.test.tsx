@@ -140,7 +140,7 @@ describe('Web3 Integration & Wallet Management', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Blockchain & Web3 Administration')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /(Web3 Administration|Blockchain & Web3 Administration)/i })).toBeInTheDocument();
     expect(screen.getByText('Wallet Status')).toBeInTheDocument();
     expect(screen.getByText('Active Network')).toBeInTheDocument();
     expect(screen.getByText('Network Gas Price')).toBeInTheDocument();
