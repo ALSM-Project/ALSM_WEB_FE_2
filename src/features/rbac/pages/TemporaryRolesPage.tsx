@@ -1580,12 +1580,13 @@ export const TemporaryRolesPage: React.FC = () => {
             <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
               Revocation Reason (Mandatory) *
             </label>
-            <input
+            <textarea
               required
+              rows={2}
               value={revokeReason}
               onChange={(e) => setRevokeReason(e.target.value)}
               placeholder="e.g. Work completed early, Security incident, Reassignment"
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[#0652CC]"
             />
           </div>
 
@@ -1604,14 +1605,23 @@ export const TemporaryRolesPage: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
-            <Button type="button" variant="outline" size="sm" onClick={() => setRevokeTarget(null)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setRevokeTarget(null);
+                setRevokeConfirmed(false);
+                setRevokeReason('');
+              }}
+            >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="primary"
               size="sm"
-              disabled={revoking || !revokeConfirmed}
+              disabled={revoking || !revokeConfirmed || !revokeReason.trim()}
               className="bg-rose-600 hover:bg-rose-700 text-white"
             >
               {revoking ? 'Revoking Privileges...' : 'Confirm Revoke Elevation'}
