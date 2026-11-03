@@ -1552,6 +1552,22 @@ export const TemporaryRolesPage: React.FC = () => {
               <span className="text-[#6B778C]">Active Temporary Role:</span>
               <span className="font-mono font-bold text-[#0652CC]">{revokeTarget?.role}</span>
             </div>
+            {revokeTarget?.createdAt && (
+              <div className="flex justify-between">
+                <span className="text-[#6B778C]">Granted At:</span>
+                <span className="font-semibold text-[#091E42]">
+                  {new Date(revokeTarget.createdAt).toLocaleString()}
+                </span>
+              </div>
+            )}
+            {revokeTarget?.expiresAt && (
+              <div className="flex justify-between">
+                <span className="text-[#6B778C]">Scheduled Expiration:</span>
+                <span className="font-semibold text-[#091E42]">
+                  {new Date(revokeTarget.expiresAt).toLocaleString()}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-[#6B778C]">Remaining Time:</span>
               <span className="font-semibold text-[#091E42]">
