@@ -30,9 +30,9 @@ describe("truthful staff logout", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Fixture sign out" }));
     await waitFor(() =>
-      expect(alert).toHaveBeenCalledWith(
+      expect(screen.getByText(
         "Sign out could not be confirmed. Please try Sign Out again.",
-      ),
+      )).toBeInTheDocument()
     );
     expect(window.location.href).toBe(before);
     expect(
