@@ -5,25 +5,26 @@
 :root {
   /* Core Brand Colors */
   --alsm-primary: #0652CC;
-  --alsm-electric: #0655FF;
-  --alsm-soft-blue: #E8F1FF;
+  --alsm-primary-hover: #0544AB;
+  --alsm-electric: #2563EB;
+  --alsm-soft-blue: #EFF6FF;
 
-  /* Dark Navy Palette */
+  /* Dark Navy Palette (for Sidebar and technical dark surfaces) */
   --alsm-navy: #091E42;
-  --alsm-deep-navy: #020817;
+  --alsm-deep-navy: #0F172A;
 
   /* Background & Surfaces */
-  --alsm-background: #F7F9FC;
+  --alsm-background: #F8FAFC;
   --alsm-surface: #FFFFFF;
 
   /* Typography Colors */
-  --alsm-text-primary: #091E42;
-  --alsm-text-secondary: #42526E;
-  --alsm-text-muted: #6B778C;
+  --alsm-text-primary: #0F172A;
+  --alsm-text-secondary: #334155;
+  --alsm-text-muted: #64748B;
 
-  /* Borders */
-  --alsm-border: #D9E2EC;
-  --alsm-border-subtle: #E5EAF0;
+  /* Enterprise Borders */
+  --alsm-border: #E2E8F0;
+  --alsm-border-subtle: #F1F5F9;
 
   /* Semantic Colors */
   --alsm-success: #10B981;
@@ -32,19 +33,19 @@
   --alsm-warning-bg: #FFFBEB;
   --alsm-error: #EF4444;
   --alsm-error-bg: #FEF2F2;
-  --alsm-info: #3B82F6;
+  --alsm-info: #0652CC;
   --alsm-info-bg: #EFF6FF;
 
-  /* Border Radii */
-  --alsm-radius-card: 12px;
-  --alsm-radius-input: 8px;
-  --alsm-radius-button: 8px;
-  --alsm-radius-badge: 9999px;
+  /* Pragmatic Enterprise Border Radii (4-8px) */
+  --alsm-radius-card: 8px;
+  --alsm-radius-input: 6px;
+  --alsm-radius-button: 6px;
+  --alsm-radius-badge: 4px;
 
   /* Enterprise Shadows */
-  --alsm-shadow-sm: 0 1px 2px 0 rgba(9, 30, 66, 0.05);
-  --alsm-shadow-md: 0 4px 12px -2px rgba(9, 30, 66, 0.08), 0 2px 4px -1px rgba(9, 30, 66, 0.04);
-  --alsm-shadow-lg: 0 12px 24px -4px rgba(9, 30, 66, 0.12), 0 4px 6px -2px rgba(9, 30, 66, 0.04);
+  --alsm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --alsm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --alsm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
 
   --sans: Inter, system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', Consolas, monospace;
@@ -66,21 +67,97 @@ body {
   overflow-x: hidden;
 }
 
-code {
+code, kbd, samp, pre {
   font-family: var(--mono);
 }
 
+/* Sleek, professional modern scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #091E42;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #0652CC;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0655FF;
+  background: #94A3B8;
 }
+
+/* Smooth micro-fade transitions */
+.animate-fade-in {
+  animation: alsmFadeIn 0.15s ease-out forwards;
+}
+
+@keyframes alsmFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Enterprise Data Table Utilities */
+.alsm-table-container {
+  overflow-x: auto;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  background-color: #FFFFFF;
+}
+
+.alsm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem; /* 13px */
+  line-height: 1.25rem;
+  text-align: left;
+}
+
+.alsm-table th {
+  background-color: #F8FAFC;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.6875rem; /* 11px */
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.alsm-table td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid #F1F5F9;
+  color: #0F172A;
+  vertical-align: middle;
+}
+
+.alsm-table tr:last-child td {
+  border-bottom: none;
+}
+
+.alsm-table tr:hover td {
+  background-color: #F8FAFC;
+}
+
+/* Enterprise Metric Card Utility */
+.alsm-metric-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.alsm-metric-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+}
+
+

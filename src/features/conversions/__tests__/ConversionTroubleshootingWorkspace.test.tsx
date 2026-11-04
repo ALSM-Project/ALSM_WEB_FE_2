@@ -1,125 +1,66 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactElement } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConversionTroubleshootingWorkspace } from '../components/ConversionTroubleshootingWorkspace';
-import { INITIAL_MOCK_JOBS } from '../services/mock-queue-data';
+import { conversionQueueService, type QueueJob } from '../services/conversion-queue.service';
 
-const createWrapper = (permissions: string[] = [
-  'conversions.troubleshoot.view',
-  'conversions.mapping.validate',
-  'conversions.support_patch.apply',
-  'conversions.retry'
-]) => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  });
-  queryClient.setQueryData(['currentUser'], {
-    id: 'user-support',
-    email: 'support@alsm.io',
-    isPlatformAdmin: false,
-    effectivePermissions: permissions,
-  });
-
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+vi.mock('../services/conversion-queue.service', async () => {
+  const actual = await vi.importActual<typeof import('../services/conversion-queue.service')>(
+    '../services/conversion-queue.service',
   );
+  return { ...actual, conversionQueueService: { getSupportPatch: vi.fn(), applySupportPatch: vi.fn() } };
+});
+
+/** The workspace reads the job's saved mapping rules through react-query. */
+function render(ui: ReactElement) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  queryClient.setQueryData(['currentUser'], {
+    id: 'viewer', email: 'viewer@alsm.io', isPlatformAdmin: false, effectivePermissions: ['conversions.troubleshoot.view'],
+  });
+  const wrap = (node: ReactElement) => <QueryClientProvider client={queryClient}>{node}</QueryClientProvider>;
+  const view = rtlRender(wrap(ui));
+  return { ...view, rerender: (next: ReactElement) => view.rerender(wrap(next)) };
+}
+
+const job: QueueJob = {
+  id: 'persisted-job', organizationId: 'persisted-org', projectId: 'persisted-project', screenId: 'screen-id',
+  status: 'DEAD', conversionType: 'COBOL_TO_JAVA', priority: 'HIGH', attemptCount: 5, maxAttempts: 5,
+  createdBy: 'staff-id', createdAt: '2026-10-23T01:00:00Z', updatedAt: '2026-10-23T01:05:00Z',
+  errorCode: 'RECORDED_FAILURE', errorMessage: 'Recorded conversion error',
 };
-
-describe('ConversionTroubleshootingWorkspace - Error Investigation & Support Patch', () => {
-  const sampleJob = INITIAL_MOCK_JOBS[0]; // job-bms-custinq (DEAD)
-
-  it('renders workspace overview with target context and failure reason', () => {
-    render(
-      <ConversionTroubleshootingWorkspace
-        job={sampleJob}
-        onBack={vi.fn()}
-        onJobUpdated={vi.fn()}
-      />,
-      { wrapper: createWrapper() }
-    );
-
-    expect(screen.getByText(/Troubleshooting Workspace: CUSTINQ.bms/i)).toBeInTheDocument();
-    expect(screen.getByText('DEAD-LETTER LIMIT REACHED (3/3)')).toBeInTheDocument();
-    expect(screen.getByText('Acme Corporation')).toBeInTheDocument();
-    expect(screen.getAllByText(/SCHEMA_MAPPING_MISMATCH/i).length).toBeGreaterThan(0);
+beforeEach(() => {
+  vi.mocked(conversionQueueService.getSupportPatch).mockResolvedValue({ job, rules: [], history: [] });
+});
+afterEach(cleanup);
+describe('persisted queue investigation', () => {
+  it('renders persisted context and metadata without synthesizing missing artifacts', async () => {
+    render(<ConversionTroubleshootingWorkspace job={job} projectName="Persisted project" onBack={vi.fn()} />);
+    expect(screen.getByText('Persisted project')).toBeInTheDocument();
+    expect(screen.getByText('Recorded conversion error')).toBeInTheDocument();
+    expect(screen.getByText('5 / 5')).toBeInTheDocument();
+    for (const label of ['Legacy source code', 'Execution history', 'Worker logs']) {
+      expect(screen.getByRole('region', { name: label })).toHaveTextContent('Not available');
+    }
+    // Field mappings are read from the server; none are saved for this job, and none are invented.
+    expect(await screen.findByText('No mapping rules saved for this job yet.')).toBeInTheDocument();
+    expect(screen.queryByText(/Acme|Syntax.*Verified|4\.2s|worker-node/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Apply Support Patch|Validate Mapping|Retry Conversion/ })).not.toBeInTheDocument();
   });
-
-  it('navigates to mapping tab, edits target property, and marks as PATCHED', () => {
-    render(
-      <ConversionTroubleshootingWorkspace
-        job={sampleJob}
-        onBack={vi.fn()}
-        onJobUpdated={vi.fn()}
-      />,
-      { wrapper: createWrapper() }
-    );
-
-    // Switch to Mapping tab
-    const mappingTab = screen.getByRole('button', { name: /Field & Method Mapping/i });
-    fireEvent.click(mappingTab);
-
-    expect(screen.getByText(/Rule Engine & Field Mapping Overrides/i)).toBeInTheDocument();
-
-    // Find CUST_BAL_AMT input and change value
-    const targetInputs = screen.getAllByRole('textbox');
-    // First input is sourceField 'ACCTNO', second is targetProperty 'accountNumber'
-    fireEvent.change(targetInputs[1], { target: { value: 'accountNumberOverride' } });
-
-    expect(screen.getByText('PATCHED')).toBeInTheDocument();
+  it('delegates authorized retry to the queue confirmation without altering the supplied record', () => {
+    const retry = vi.fn();
+    const back = vi.fn();
+    render(<ConversionTroubleshootingWorkspace job={job} onBack={back} onRetry={retry} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry Conversion' }));
+    expect(retry).toHaveBeenCalledOnce();
+    expect(job.status).toBe('DEAD');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to Queue' }));
+    expect(back).toHaveBeenCalledOnce();
   });
-
-  it('navigates to validation tab and runs simulated AST validation', async () => {
-    render(
-      <ConversionTroubleshootingWorkspace
-        job={sampleJob}
-        onBack={vi.fn()}
-        onJobUpdated={vi.fn()}
-      />,
-      { wrapper: createWrapper() }
-    );
-
-    // Switch to Validation tab
-    const validationTab = screen.getByRole('button', { name: /Validation Simulation/i });
-    fireEvent.click(validationTab);
-
-    expect(screen.getByText('Simulated Mapping Validator')).toBeInTheDocument();
-
-    const validateBtn = screen.getByRole('button', { name: /Validate Mapping/i });
-    fireEvent.click(validateBtn);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Simulated Validation Passed/i)).toBeInTheDocument();
-    });
-  });
-
-  it('opens confirmation modal and applies support patch', async () => {
-    const handleJobUpdated = vi.fn();
-    render(
-      <ConversionTroubleshootingWorkspace
-        job={sampleJob}
-        onBack={vi.fn()}
-        onJobUpdated={handleJobUpdated}
-      />,
-      { wrapper: createWrapper() }
-    );
-
-    const applyPatchBtn = screen.getByRole('button', { name: /Apply Support Patch/i });
-    fireEvent.click(applyPatchBtn);
-
-    // Verify modal appears
-    expect(screen.getByText('Apply Support Patch & Re-Queue')).toBeInTheDocument();
-    expect(screen.getByText(/Confirm Support Patch Operation/i)).toBeInTheDocument();
-
-    // Confirm patch
-    const confirmBtn = screen.getByRole('button', { name: /Confirm & Apply Patch/i });
-    fireEvent.click(confirmBtn);
-
-    expect(handleJobUpdated).toHaveBeenCalled();
-    const updatedJob = handleJobUpdated.mock.calls[0][0];
-    expect(updatedJob.status).toBe('QUEUED');
-    expect(updatedJob.attemptCount).toBe(0);
-    expect(screen.getByText(/Support patch applied successfully!/i)).toBeInTheDocument();
+  it('blocks retries for active or completed jobs and during a pending submission', () => {
+    const view = render(<ConversionTroubleshootingWorkspace job={{ ...job, status: 'COMPLETED' }} onBack={vi.fn()} onRetry={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Retry Conversion' })).not.toBeInTheDocument();
+    view.rerender(<ConversionTroubleshootingWorkspace job={job} onBack={vi.fn()} onRetry={vi.fn()} retrying />);
+    expect(screen.getByRole('button', { name: 'Retry Conversion' })).toBeDisabled();
   });
 });

@@ -4,10 +4,14 @@ import {
   LeadQuote, LeadContract, SalesReportsDto, PendingDiscountDto 
 } from '../types/crm.types';
 import { crmStore } from '../services/crm-store';
+import type { SalesPipelineDto } from '../types/crm.types';
 
 export * from '../types/crm.types';
 
 export const crmApi = {
+  getSalesPipeline: async (params?: { stage?: string; search?: string }): Promise<SalesPipelineDto> =>
+    apiClient.get<SalesPipelineDto>('/sales/crm/pipeline', { params }),
+
   getLeads: async (params?: { stage?: string; search?: string; assignedTo?: string }): Promise<LeadDto[]> => {
     try {
       const data = await apiClient.get<LeadDto[]>('/sales/crm/leads', { params });
@@ -131,16 +135,47 @@ export const crmApi = {
       discountReason?: string;
     }
   ): Promise<LeadQuote> => {
-    try {
-      const res = await apiClient.post<LeadQuote>(`/sales/crm/leads/${leadId}/quotes`, data);
-      if (res && res.id) {
-        crmStore.createQuote(leadId, data);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.createQuote(leadId, data);
+    const lead = await apiClient.post<LeadDto>(`/sales/crm/leads/${encodeURIComponent(leadId)}/quotes`, {
+      planName: data.plan,
+      projectScope: data.projectScope,
+      amount: data.basePrice,
+      discountPercent: data.discountPercent,
+      discountReason: data.discountReason,
+    });
+    const saved = lead.quotes?.[lead.quotes.length - 1] as unknown as ({
+      id?: string;
+      quoteNumber?: string;
+      plan?: string;
+      planName?: string;
+      projectScope?: string;
+      amount?: number;
+      basePrice?: number;
+      discountPercent?: number;
+      approvalStatus?: LeadQuote['approvalStatus'];
+      status: string;
+      discountApproved?: boolean;
+      discountReason?: string;
+      approvedBy?: string;
+      approvedAt?: string;
+      rejectionReason?: string;
+      sentAt?: string;
+      createdAt?: string;
+    } | undefined);
+    if (!saved?.id) throw new Error('The quote was not returned by the server. Refresh the lead and try again.');
+    const amount = Number(saved.amount ?? saved.basePrice ?? data.basePrice);
+    const discountPercent = Number(saved.discountPercent ?? data.discountPercent ?? 0);
+    return {
+      ...saved,
+      quoteNumber: saved.quoteNumber || saved.id,
+      plan: saved.plan || saved.planName || data.plan,
+      basePrice: amount,
+      finalPrice: Math.round(amount * (1 - discountPercent / 100)),
+      discountPercent,
+      requiresApproval: saved.status === 'PENDING_APPROVAL',
+      approvalStatus: saved.approvalStatus || (saved.status === 'PENDING_APPROVAL' ? 'PENDING' : 'APPROVED'),
+      status: (saved.status === 'PENDING_APPROVAL' ? 'DRAFT' : saved.status) as LeadQuote['status'],
+      createdAt: saved.createdAt || new Date().toISOString(),
+    } as LeadQuote;
   },
 
   acceptQuote: async (leadId: string, quoteId: string): Promise<LeadQuote> => {
@@ -149,6 +184,7 @@ export const crmApi = {
 
   createContract: async (
     leadId: string,
+    requestId: string,
     data: {
       title: string;
       plan: string;
@@ -157,24 +193,35 @@ export const crmApi = {
       effectiveDate?: string;
     }
   ): Promise<LeadContract> => {
-    try {
-      const res = await apiClient.post<LeadContract>(`/sales/crm/leads/${leadId}/contracts`, data);
-      if (res && res.id) {
-        crmStore.createContract(leadId, data);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.createContract(leadId, data);
+    const res = await apiClient.post<{ contract: LeadContract }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts`,
+      data,
+      { headers: { 'Idempotency-Key': requestId } },
+    );
+    return res.contract;
   },
 
-  sendContractForSignature: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.sendContractForSignature(leadId, contractId);
+  sendContractForSignature: async (
+    leadId: string,
+    contractId: string,
+  ): Promise<{ contract: LeadContract; notificationSent: boolean }> => {
+    const response = await apiClient.post<{ lead: LeadDto; notificationSent: boolean }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/send`,
+      {},
+    );
+    const contract = response.lead.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The sent contract could not be loaded. Refresh the lead and try again.');
+    return { contract, notificationSent: response.notificationSent };
   },
 
   simulateSignContract: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    return crmStore.simulateSignContract(leadId, contractId);
+    const updated = await apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
+    const contract = updated.contracts?.find((item) => item.id === contractId);
+    if (!contract) throw new Error('The signed contract could not be loaded. Refresh the lead and try again.');
+    return contract;
   },
 
   confirmPayment: async (leadId: string, transactionRef?: string): Promise<LeadDto> => {
@@ -185,58 +232,50 @@ export const crmApi = {
     return crmStore.setPaymentPolicy(leadId, required);
   },
 
-  activateCustomer: async (
-    leadId: string,
-    options?: {
-      paymentRequired?: boolean;
-      simulateFailure?: boolean;
-    }
-  ): Promise<{
+  activateCustomer: async (leadId: string): Promise<{
     lead: LeadDto;
     organizationId: string;
-    adminEmail: string;
-    web3Url: string;
+    adminLinked: boolean;
+    replayed: boolean;
   }> => {
-    return crmStore.activateCustomer(leadId, options);
+    return apiClient.post<{
+      lead: LeadDto;
+      organizationId: string;
+      adminLinked: boolean;
+      replayed: boolean;
+    }>(`/sales/crm/leads/${encodeURIComponent(leadId)}/activate`, {});
   },
 
   // Legacy compatibility for any code that calls signContract
   signContract: async (
     leadId: string,
     contractId: string
-  ): Promise<{ lead: LeadDto; organizationId: string; adminEmail: string; web3Url: string }> => {
-    crmStore.simulateSignContract(leadId, contractId);
-    return crmStore.activateCustomer(leadId);
+  ): Promise<LeadDto> => {
+    return apiClient.post<LeadDto>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+      {},
+    );
   },
 
   getReports: async (filters?: {
     dateRange?: string;
-    teamMember?: string;
-    region?: string;
   }): Promise<SalesReportsDto> => {
-    try {
-      const raw = await apiClient.get<any>('/sales/crm/reports', { params: filters });
-      if (raw && typeof raw.totalLeads === 'number') {
-        return {
-          totalLeads: Number(raw.totalLeads ?? 0),
-          wonLeads: Number(raw.wonLeads ?? 0),
-          monthlyRevenue: Number(raw.monthlyRevenue ?? raw.totalRevenue ?? 0),
-          totalRevenue: Number(raw.totalRevenue ?? raw.monthlyRevenue ?? 0),
-          averageDealSize: Number(raw.averageDealSize ?? raw.avgDealSize ?? 0),
-          avgDealSize: Number(raw.avgDealSize ?? raw.averageDealSize ?? 0),
-          conversionRate: Number(raw.conversionRate ?? 0),
-          stageDistribution: raw.stageDistribution || raw.pipelineBreakdown || {},
-          pipelineBreakdown: raw.pipelineBreakdown || raw.stageDistribution || {},
-          sourceDistribution: raw.sourceDistribution || raw.leadSources || {},
-          leadSources: raw.leadSources || raw.sourceDistribution || {},
-          revenueOverTime: raw.revenueOverTime || [],
-          recentWonDeals: raw.recentWonDeals || [],
-        };
-      }
-    } catch {
-      // Fallback
-    }
-    return crmStore.getReports(filters);
+    const raw = await apiClient.get<any>('/sales/crm/reports', { params: filters });
+    return {
+      totalLeads: Number(raw?.totalLeads ?? 0),
+      wonLeads: Number(raw?.wonLeads ?? 0),
+      monthlyRevenue: Number(raw?.monthlyRevenue ?? raw?.totalRevenue ?? 0),
+      totalRevenue: Number(raw?.totalRevenue ?? raw?.monthlyRevenue ?? 0),
+      averageDealSize: Number(raw?.averageDealSize ?? raw?.avgDealSize ?? 0),
+      avgDealSize: Number(raw?.avgDealSize ?? raw?.averageDealSize ?? 0),
+      conversionRate: Number(raw?.conversionRate ?? 0),
+      stageDistribution: raw?.stageDistribution || raw?.pipelineBreakdown || {},
+      pipelineBreakdown: raw?.pipelineBreakdown || raw?.stageDistribution || {},
+      sourceDistribution: raw?.sourceDistribution || raw?.leadSources || {},
+      leadSources: raw?.leadSources || raw?.sourceDistribution || {},
+      revenueOverTime: raw?.revenueOverTime || [],
+      recentWonDeals: raw?.recentWonDeals || [],
+    };
   },
 
   getTeamPerformance: async (filters?: {
@@ -257,52 +296,29 @@ export const crmApi = {
 
   exportReportsCsv: async (filters?: {
     dateRange?: string;
-    teamMember?: string;
-    region?: string;
   }): Promise<string> => {
-    try {
-      const res = await apiClient.get<string>('/sales/crm/reports/export', { params: filters });
-      if (res) return res;
-    } catch {
-      // Fallback
-    }
-    return crmStore.exportReportsCsv(filters);
+    return apiClient.get<string>('/sales/crm/reports/export', { params: filters });
   },
 
   getPendingDiscounts: async (): Promise<PendingDiscountDto[]> => {
-    try {
-      const data = await apiClient.get<PendingDiscountDto[]>('/sales/crm/discounts/pending');
-      if (Array.isArray(data)) return data;
-    } catch {
-      // Fallback
-    }
-    return crmStore.getPendingDiscounts();
+    return apiClient.get<PendingDiscountDto[]>('/sales/crm/discounts/requests');
   },
 
   reviewDiscount: async (data: {
     leadId: string;
     quoteId: string;
-    approved: boolean;
-    rejectionReason?: string;
-    escalateToVP?: boolean;
-    reviewer?: string;
-  }): Promise<{ message: string }> => {
-    try {
-      const res = await apiClient.post<{ message: string }>('/sales/crm/discounts/review', data);
-      if (res && res.message) {
-        crmStore.reviewDiscount(data.leadId, data.quoteId, data.approved, data.rejectionReason, data.escalateToVP, data.reviewer);
-        return res;
-      }
-    } catch {
-      // Fallback
-    }
-    crmStore.reviewDiscount(data.leadId, data.quoteId, data.approved, data.rejectionReason, data.escalateToVP, data.reviewer);
-    return {
-      message: data.escalateToVP
-        ? 'Quote discount escalated to VP of Sales for executive approval.'
-        : data.approved
-        ? 'Quote discount approved successfully.'
-        : 'Quote discount rejected.',
-    };
+    outcome: 'APPROVE' | 'REJECT' | 'ESCALATE';
+    reason?: string;
+  }): Promise<{ message: string; success: boolean; replayed: boolean }> => {
+    const route = data.outcome === 'APPROVE'
+      ? 'approve'
+      : data.outcome === 'REJECT'
+        ? 'reject'
+        : 'escalate';
+    return apiClient.post(`/sales/crm/discounts/${route}`, {
+      leadId: data.leadId,
+      quoteId: data.quoteId,
+      ...(data.reason ? { reason: data.reason } : {}),
+    });
   },
 };

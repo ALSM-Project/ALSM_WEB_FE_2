@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { adminApi, EngagementTypeDto } from '../api/admin.api';
 import { Button, Modal, Input } from '@/shared/ui';
+import { formatVnd } from '@/shared/utils/currency';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export interface FullEngagementTypeDto extends EngagementTypeDto {
   price?: number;
@@ -22,96 +24,9 @@ export interface FullEngagementTypeDto extends EngagementTypeDto {
   includesCobolConversion?: boolean;
 }
 
-const DEFAULT_MOCK_ENGAGEMENT_TYPES: FullEngagementTypeDto[] = [
-  {
-    id: 'eng-ent-t1',
-    name: 'Enterprise Tier 1 (Unlimited Acceleration)',
-    code: 'ENTERPRISE_T1',
-    description: 'Premier tier for mission-critical core banking and mainframe modernization programs.',
-    price: 36000,
-    trialLimits: {
-      maxScreens: 30,
-      maxPrograms: 15,
-      maxStorageGb: 10,
-    },
-    usageLimits: {
-      maxScreens: 500,
-      maxPrograms: 200,
-      maxStorageGb: 150,
-    },
-    features: [
-      'AST Grammar Verification',
-      'COBOL 85 / MicroFocus Modernizer',
-      'BMS & DSPF Reactive Screens',
-      'Dedicated Private Conversion Runner',
-      '4-Hour SLA Escalation',
-      'Immutable Audit Trail Access',
-    ],
-    supportTier: 'PREMIER',
-    slaHours: 4,
-    includesCobolConversion: true,
-    isActive: true,
-    createdAt: '2026-01-15T08:00:00Z',
-  },
-  {
-    id: 'eng-ent-t2',
-    name: 'Enterprise Tier 2 (Standard Modernization)',
-    code: 'ENTERPRISE_T2',
-    description: 'Standard enterprise package with high throughput BMS/DSPF conversion and baseline COBOL parsing.',
-    price: 18000,
-    trialLimits: {
-      maxScreens: 15,
-      maxPrograms: 8,
-      maxStorageGb: 5,
-    },
-    usageLimits: {
-      maxScreens: 150,
-      maxPrograms: 60,
-      maxStorageGb: 50,
-    },
-    features: [
-      'BMS / DSPF Screen Converter',
-      'AST Simulated Validation',
-      'Standard COBOL Batch Translation',
-      'Shared Enterprise Queue',
-      '12-Hour SLA Support',
-    ],
-    supportTier: 'STANDARD_ENTERPRISE',
-    slaHours: 12,
-    includesCobolConversion: true,
-    isActive: true,
-    createdAt: '2026-03-01T09:00:00Z',
-  },
-  {
-    id: 'eng-std',
-    name: 'Standard Self-Service Tier',
-    code: 'STANDARD',
-    description: 'Lightweight entry plan for standalone screen pilot modernizations.',
-    price: 6000,
-    trialLimits: {
-      maxScreens: 5,
-      maxPrograms: 2,
-      maxStorageGb: 1,
-    },
-    usageLimits: {
-      maxScreens: 50,
-      maxPrograms: 15,
-      maxStorageGb: 15,
-    },
-    features: [
-      'Standard BMS to React Converter',
-      'Web-based Field Mapping Editor',
-      'Community Ticket Support',
-    ],
-    supportTier: 'COMMUNITY',
-    slaHours: 48,
-    includesCobolConversion: false,
-    isActive: true,
-    createdAt: '2026-05-10T11:00:00Z',
-  },
-];
-
 export const EngagementTypesPage: React.FC = () => {
+  const { user, hasPermission } = useAuth();
+  const canManageEngagementTypes = Boolean(user) && hasPermission('engagement-types.manage');
   const [types, setTypes] = useState<FullEngagementTypeDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -125,6 +40,7 @@ export const EngagementTypesPage: React.FC = () => {
   const [viewingItem, setViewingItem] = useState<FullEngagementTypeDto | null>(null);
   const [editingItem, setEditingItem] = useState<FullEngagementTypeDto | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [requestId, setRequestId] = useState('');
 
   // Form Fields
   const [name, setName] = useState('');
@@ -146,37 +62,21 @@ export const EngagementTypesPage: React.FC = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const data = await adminApi.getEngagementTypes().catch(() => []);
-      if (Array.isArray(data) && data.length > 0) {
-        // Merge with rich defaults
-        const merged: FullEngagementTypeDto[] = data.map((d) => {
-          const mockMatch = DEFAULT_MOCK_ENGAGEMENT_TYPES.find(
-            (m) => m.id === d.id || m.code === d.code || m.name === d.name
-          );
-          return {
-            ...d,
-            price: (d as any).price ?? mockMatch?.price ?? 12000,
-            trialLimits: (d as any).trialLimits ?? mockMatch?.trialLimits ?? {
-              maxScreens: 15,
-              maxPrograms: 8,
-              maxStorageGb: 5,
-            },
-            usageLimits: (d as any).usageLimits ?? mockMatch?.usageLimits ?? {
-              maxScreens: 150,
-              maxPrograms: 60,
-              maxStorageGb: 50,
-            },
-            features: d.features && d.features.length > 0 ? d.features : mockMatch?.features || ['Core Conversion Engine'],
-            includesCobolConversion:
-              (d as any).includesCobolConversion ?? mockMatch?.includesCobolConversion ?? true,
-          };
-        });
-        setTypes(merged);
-      } else {
-        setTypes(DEFAULT_MOCK_ENGAGEMENT_TYPES);
-      }
-    } catch {
-      setTypes(DEFAULT_MOCK_ENGAGEMENT_TYPES);
+      const data = await adminApi.getEngagementTypes();
+      const actualTypes: FullEngagementTypeDto[] = data.map((item) => ({
+        ...item,
+        price: item.price ?? 0,
+        trialLimits: item.trialLimits ?? { maxScreens: 10, maxPrograms: 5, maxStorageGb: 2 },
+        usageLimits: item.usageLimits ?? { maxScreens: 100, maxPrograms: 50, maxStorageGb: 20 },
+        features: item.features || [],
+        includesCobolConversion: item.includesCobolConversion ?? false,
+      }));
+      setTypes(actualTypes);
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      setErrorMsg(status === 403
+        ? 'You do not have permission to view engagement types.'
+        : 'Engagement types are temporarily unavailable. Retry to load them.');
     } finally {
       setLoading(false);
     }
@@ -200,10 +100,13 @@ export const EngagementTypesPage: React.FC = () => {
     setUsageStorage(50);
     setIncludesCobol(true);
     setFeaturesInput('BMS Screen Modernizer, AST Validation, Direct Code Export, Quality Review Access');
+    setRequestId(window.crypto.randomUUID());
+    setErrorMsg(null);
     setShowModal(true);
   };
 
   const openEditModal = (item: FullEngagementTypeDto) => {
+    setErrorMsg(null);
     setEditingItem(item);
     setName(item.name);
     setCode(item.code);
@@ -243,13 +146,29 @@ export const EngagementTypesPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setErrorMsg('Plan name is required.');
+    if (submitting || !canManageEngagementTypes) return;
+    const cleanName = name.trim().replace(/\s+/g, ' ');
+    if (cleanName.length < 2 || cleanName.length > 100) {
+      setErrorMsg('Plan name must be between 2 and 100 characters.');
       return;
     }
-
-    if (price < 0 || trialScreens <= 0 || usageScreens <= 0) {
-      setErrorMsg('Price and screen limits must be positive numerical values.');
+    const cleanCode = code.trim().toUpperCase() || cleanName.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    const normalizedCode = /^[A-Z]/.test(cleanCode) ? cleanCode : `PLAN_${cleanCode}`;
+    if (!/^[A-Z][A-Z0-9_]{1,49}$/.test(normalizedCode)) {
+      setErrorMsg('Plan code must contain 2–50 letters, numbers, or underscores and start with a letter.');
+      return;
+    }
+    const validIntegerLimits = [trialScreens, trialPrograms, usageScreens, usagePrograms]
+      .every((value) => Number.isInteger(value) && value >= 1 && value <= 1_000_000);
+    const validStorageLimits = [trialStorage, usageStorage]
+      .every((value) => Number.isFinite(value) && value >= 0.1 && value <= 1_000_000);
+    if (!Number.isFinite(price) || price < 0 || price > 1_000_000_000_000 || Math.round(price * 100) !== price * 100 || !validIntegerLimits || !validStorageLimits) {
+      setErrorMsg('Enter a valid price and positive trial and usage limits within the supported range.');
+      return;
+    }
+    const parsedFeatures = featuresInput.split(',').map((feature) => feature.trim()).filter(Boolean);
+    if (parsedFeatures.length > 50 || parsedFeatures.some((feature) => feature.length > 120)) {
+      setErrorMsg('Add at most 50 features, with no feature longer than 120 characters.');
       return;
     }
 
@@ -257,15 +176,10 @@ export const EngagementTypesPage: React.FC = () => {
       setSubmitting(true);
       setErrorMsg(null);
 
-      const parsedFeatures = featuresInput
-        .split(',')
-        .map((f) => f.trim())
-        .filter(Boolean);
-
       const payload: FullEngagementTypeDto = {
         id: editingItem?.id || `eng-${Date.now()}`,
-        name: name.trim(),
-        code: code.trim() || name.trim().toUpperCase().replace(/\s+/g, '_'),
+        name: cleanName,
+        code: normalizedCode,
         description: description.trim(),
         price,
         trialLimits: {
@@ -286,31 +200,75 @@ export const EngagementTypesPage: React.FC = () => {
         createdAt: editingItem?.createdAt || new Date().toISOString(),
       };
 
-      try {
-        if (editingItem) {
-          await adminApi.updateEngagementType(editingItem.id, payload as any);
-        } else {
-          await adminApi.createEngagementType(payload as any);
-        }
-      } catch {
-        // Fallback to local state update
-      }
-
       if (editingItem) {
-        setTypes((prev) => prev.map((t) => (t.id === editingItem.id ? payload : t)));
+        const updated = await adminApi.updateEngagementType(editingItem.id, {
+          name: payload.name,
+          code: payload.code,
+          description: payload.description,
+          price: payload.price,
+          trialLimits: payload.trialLimits,
+          usageLimits: payload.usageLimits,
+          features: parsedFeatures,
+          includesCobolConversion: payload.includesCobolConversion,
+          supportTier: payload.supportTier,
+          slaHours: payload.slaHours,
+        });
+        const refreshed: FullEngagementTypeDto = {
+          ...updated,
+          price: updated.price ?? payload.price,
+          trialLimits: updated.trialLimits ?? payload.trialLimits,
+          usageLimits: updated.usageLimits ?? payload.usageLimits,
+          features: updated.features || [],
+          includesCobolConversion: updated.includesCobolConversion ?? payload.includesCobolConversion,
+        };
+        setTypes((prev) => prev.map((t) => (t.id === editingItem.id ? refreshed : t)));
         const reductionNotice = hasReducedLimits()
-          ? ' Warning: Limits were reduced; simulated notification dispatched to affected tenant accounts.'
+          ? ' Quotas were reduced; review existing organisation usage against the new limits.'
           : '';
-        setSuccessMsg(`Engagement type "${name}" updated successfully in local mock state.${reductionNotice}`);
+        setSuccessMsg(`Engagement type “${refreshed.name}” was updated and saved.${reductionNotice}`);
+        void fetchTypes();
       } else {
-        setTypes((prev) => [payload, ...prev]);
-        setSuccessMsg(`New engagement type "${name}" created and added to platform catalog in local state.`);
+        const result = await adminApi.createEngagementType({
+          name: cleanName,
+          code: normalizedCode,
+          description: description.trim() || undefined,
+          price,
+          trialLimits: payload.trialLimits!,
+          usageLimits: payload.usageLimits!,
+          features: parsedFeatures,
+          includesCobolConversion: includesCobol,
+          supportTier: payload.supportTier,
+          slaHours: payload.slaHours,
+          requestId: requestId || window.crypto.randomUUID(),
+        });
+        const created: FullEngagementTypeDto = {
+          ...result.engagementType,
+          price: result.engagementType.price ?? price,
+          trialLimits: result.engagementType.trialLimits ?? payload.trialLimits,
+          usageLimits: result.engagementType.usageLimits ?? payload.usageLimits,
+          features: result.engagementType.features || [],
+          includesCobolConversion: result.engagementType.includesCobolConversion ?? includesCobol,
+        };
+        setTypes((prev) => [created, ...prev.filter((item) => item.id !== created.id)]);
+        setSuccessMsg(result.replayed
+          ? `Engagement type “${created.name}” was already created; the existing plan is shown.`
+          : `Engagement type “${created.name}” was created and saved to the platform catalog.`);
+        setRequestId('');
+        void fetchTypes();
       }
 
       setShowModal(false);
       setTimeout(() => setSuccessMsg(null), 5000);
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to save engagement type');
+    } catch (error: unknown) {
+      const apiError = error as { response?: { status?: number; data?: { message?: string | string[] } } };
+      const status = apiError.response?.status;
+      const message = apiError.response?.data?.message;
+      if (status === 400) setErrorMsg(Array.isArray(message) ? message.join(' ') : message || 'Review the submitted engagement type details.');
+      else if (status === 401) setErrorMsg('Your session has expired. Sign in again and retry.');
+      else if (status === 403) setErrorMsg(`You do not have permission to ${editingItem ? 'update' : 'create'} engagement types.`);
+      else if (status === 409) setErrorMsg(typeof message === 'string' ? message : 'An engagement type with this name or code already exists.');
+      else if (status === 404) setErrorMsg('This engagement type no longer exists. Refresh the catalog and try again.');
+      else setErrorMsg('The engagement type could not be saved. Your request is safe to retry.');
     } finally {
       setSubmitting(false);
     }
@@ -347,30 +305,34 @@ export const EngagementTypesPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchTypes}
+            disabled={loading}
+            aria-busy={loading}
             className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 mr-1 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button
-            onClick={openCreateModal}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#0652CC] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0543A8] transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" />
-            Create Engagement Type
-          </button>
+          {canManageEngagementTypes && (
+            <button
+              onClick={openCreateModal}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#0652CC] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#0543A8] transition-colors cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Create Engagement Type
+            </button>
+          )}
         </div>
       </div>
 
       {/* Notifications */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
+        <div role="alert" className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
           <span>{errorMsg}</span>
           <button onClick={() => setErrorMsg(null)} className="text-rose-500 font-bold">&times;</button>
         </div>
       )}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
+        <div role="status" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
@@ -431,7 +393,7 @@ export const EngagementTypesPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody aria-busy={loading} className="divide-y divide-[#E5EAF0]">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
@@ -445,7 +407,7 @@ export const EngagementTypesPage: React.FC = () => {
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
                     <Layers className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
-                    No engagement types match the selected filter.
+                    {errorMsg ? 'Engagement types could not be loaded. Use Refresh to try again.' : types.length === 0 ? 'No engagement types are available yet.' : 'No engagement types match the selected filter.'}
                   </td>
                 </tr>
               ) : (
@@ -459,7 +421,7 @@ export const EngagementTypesPage: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3.5 px-4 font-bold text-emerald-700 whitespace-nowrap">
-                      ${(t.price ?? 18000).toLocaleString()} <span className="text-[10px] text-slate-500 font-normal">/ yr</span>
+                      {formatVnd(t.price ?? 18000)} <span className="text-[10px] text-slate-500 font-normal">/ yr</span>
                     </td>
                     <td className="py-3.5 px-4 text-[#091E42]">
                       <div className="p-1.5 rounded-lg bg-amber-50/70 border border-amber-200/80 inline-block">
@@ -508,14 +470,16 @@ export const EngagementTypesPage: React.FC = () => {
                           <Eye className="w-3.5 h-3.5 text-slate-500" />
                           View
                         </button>
-                        <button
-                          onClick={() => openEditModal(t)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#0652CC] bg-white text-xs font-semibold text-[#0652CC] hover:bg-blue-50 transition-colors"
-                          title="Edit limits and configuration"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          Edit
-                        </button>
+                        {canManageEngagementTypes && (
+                          <button
+                            onClick={() => openEditModal(t)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#0652CC] bg-white text-xs font-semibold text-[#0652CC] hover:bg-blue-50 transition-colors"
+                            title="Edit limits and configuration"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            Edit
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -583,7 +547,7 @@ export const EngagementTypesPage: React.FC = () => {
       {/* Create / Edit Engagement Type Modal (Requirement F) */}
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => { if (!submitting) setShowModal(false); }}
         title={editingItem ? 'Edit Engagement Type' : 'Create New Engagement Type'}
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
@@ -591,14 +555,20 @@ export const EngagementTypesPage: React.FC = () => {
             Define pricing, Trial onboarding quotas, post-upgrade production usage limits, and COBOL capabilities.
           </p>
 
+          {errorMsg && (
+            <div role="alert" className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700">
+              {errorMsg}
+            </div>
+          )}
+
           {/* Dynamic Warning Notice if Limits are Reduced (Requirement F) */}
           {editingItem && hasReducedLimits() && (
             <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-start gap-2.5">
               <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <div>
-                <strong>Simulated Warning: Quota Reduction Detected</strong>
+                <strong>Quota Reduction Detected</strong>
                 <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">
-                  You are reducing limits below currently established tier levels. In accordance with policy, affected customer tenant organisations will receive simulated update notices regarding reduced allocations.
+                  You are reducing limits below the current plan values. Review organisation usage before saving; the new limits apply to organisations using this engagement type.
                 </p>
               </div>
             </div>
@@ -606,8 +576,9 @@ export const EngagementTypesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Plan Name *</label>
+              <label htmlFor="engagement-name" className="block text-xs font-semibold text-[#091E42] mb-1">Plan Name *</label>
               <Input
+                id="engagement-name"
                 required
                 placeholder="Enterprise Pro Plus"
                 value={name}
@@ -616,8 +587,9 @@ export const EngagementTypesPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Plan Code</label>
+              <label htmlFor="engagement-code" className="block text-xs font-semibold text-[#091E42] mb-1">Plan Code</label>
               <Input
+                id="engagement-code"
                 placeholder="ENTERPRISE_PRO"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
@@ -628,8 +600,9 @@ export const EngagementTypesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Annual Price ($ USD) *</label>
+              <label htmlFor="engagement-price" className="block text-xs font-semibold text-[#091E42] mb-1">Annual Price (VND) *</label>
               <Input
+                id="engagement-price"
                 type="number"
                 min={0}
                 required
@@ -639,8 +612,9 @@ export const EngagementTypesPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+              <label htmlFor="engagement-description" className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
               <Input
+                id="engagement-description"
                 placeholder="Targeted at tier-1 enterprise migrations"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -656,8 +630,9 @@ export const EngagementTypesPage: React.FC = () => {
             </h4>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Trial Screens</label>
+                <label htmlFor="trial-screens" className="block text-[11px] text-[#6B778C]">Trial Screens</label>
                 <Input
+                  id="trial-screens"
                   type="number"
                   min={1}
                   value={trialScreens}
@@ -666,8 +641,9 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Trial Programs</label>
+                <label htmlFor="trial-programs" className="block text-[11px] text-[#6B778C]">Trial Programs</label>
                 <Input
+                  id="trial-programs"
                   type="number"
                   min={1}
                   value={trialPrograms}
@@ -676,8 +652,9 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Trial Storage (GB)</label>
+                <label htmlFor="trial-storage" className="block text-[11px] text-[#6B778C]">Trial Storage (GB)</label>
                 <Input
+                  id="trial-storage"
                   type="number"
                   min={1}
                   value={trialStorage}
@@ -695,8 +672,9 @@ export const EngagementTypesPage: React.FC = () => {
             </h4>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Usage Screens</label>
+                <label htmlFor="usage-screens" className="block text-[11px] text-[#6B778C]">Usage Screens</label>
                 <Input
+                  id="usage-screens"
                   type="number"
                   min={1}
                   value={usageScreens}
@@ -705,8 +683,9 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Usage Programs</label>
+                <label htmlFor="usage-programs" className="block text-[11px] text-[#6B778C]">Usage Programs</label>
                 <Input
+                  id="usage-programs"
                   type="number"
                   min={1}
                   value={usagePrograms}
@@ -715,8 +694,9 @@ export const EngagementTypesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-[11px] text-[#6B778C]">Usage Storage (GB)</label>
+                <label htmlFor="usage-storage" className="block text-[11px] text-[#6B778C]">Usage Storage (GB)</label>
                 <Input
+                  id="usage-storage"
                   type="number"
                   min={1}
                   value={usageStorage}
@@ -729,10 +709,11 @@ export const EngagementTypesPage: React.FC = () => {
 
           {/* Included Features */}
           <div>
-            <label className="block text-xs font-semibold text-[#091E42] mb-1">
+            <label htmlFor="engagement-features" className="block text-xs font-semibold text-[#091E42] mb-1">
               Included Features (comma-separated)
             </label>
             <Input
+              id="engagement-features"
               value={featuresInput}
               onChange={(e) => setFeaturesInput(e.target.value)}
               placeholder="AST Grammar Validation, COBOL Engine, Dedicated Private Runner"
@@ -755,7 +736,7 @@ export const EngagementTypesPage: React.FC = () => {
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowModal(false)}>
+            <Button type="button" variant="outline" size="sm" disabled={submitting} onClick={() => setShowModal(false)}>
               Cancel
             </Button>
             <Button

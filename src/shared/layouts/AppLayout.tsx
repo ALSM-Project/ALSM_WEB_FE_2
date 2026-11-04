@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Search, ChevronDown, Settings, Wallet, LogOut } from 'lucide-react';
+import { Search, ChevronDown, Settings, Wallet, LogOut, Menu, X } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -28,7 +28,11 @@ export const AppLayout: React.FC = () => {
   const { pageTitle, sectionTitle } = useNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   // Detect OS for shortcut badge text
@@ -59,25 +63,40 @@ export const AppLayout: React.FC = () => {
     }
   };
 
-  const displayName = user?.fullName || 'System Administrator';
+  const displayName = user?.fullName || 'System Admin';
   const displayTitle = pageTitle || sectionTitle || 'Platform Administration';
+  const userRole = (user?.roles && user.roles[0]) ? String(user.roles[0]) : 'Specialist';
 
   return (
     <SupportViewProvider>
-      <div className="flex min-h-screen bg-[#F7F9FC]">
-        {/* Collapsible Enterprise Sidebar */}
-        <Sidebar isCollapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} onLogout={handleLogout} />
+      <div className="flex min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans">
+        {/* Responsive Sidebar */}
+        <Sidebar
+          isCollapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onLogout={handleLogout}
+          mobileOpen={mobileNavOpen}
+          onCloseMobile={() => setMobileNavOpen(false)}
+        />
 
         {/* Main Content Layout Container */}
         <div className="flex-1 flex flex-col min-w-0 transition-all duration-300">
           {/* Support Impersonation Banner */}
           <ImpersonationBanner />
 
-          {/* Global Header - Height 64px (h-16), Padding px-6 */}
-          <header className="sticky top-0 z-40 bg-white border-b border-[#DFE3E8] px-6 h-16 flex items-center justify-between shadow-2xs">
-            {/* Left: Dynamic Page Title */}
-            <div className="flex items-center space-x-3 min-w-0 shrink-0">
-              <h1 className="text-lg font-bold text-[#172B4D] tracking-tight truncate max-w-[200px] sm:max-w-[280px] lg:max-w-[360px]">
+          {/* Global Header */}
+          <header className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between shadow-xs">
+            {/* Left: Mobile Menu Toggle & Dynamic Page Title */}
+            <div className="flex items-center space-x-2.5 min-w-0 shrink-0">
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                className="md:hidden p-1.5 -ml-1 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors cursor-pointer"
+                aria-label="Open Navigation Menu"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <h1 className="text-base sm:text-lg font-bold text-[#0F172A] tracking-tight truncate max-w-[180px] sm:max-w-[280px] lg:max-w-[360px]">
                 {displayTitle}
               </h1>
             </div>
@@ -85,24 +104,24 @@ export const AppLayout: React.FC = () => {
             {/* Center: Global Search (Triggers Command Palette) */}
             <div
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden sm:flex flex-1 max-w-[380px] mx-6 items-center relative cursor-pointer group"
+              className="hidden sm:flex flex-1 max-w-[380px] mx-4 lg:mx-6 items-center relative cursor-pointer group"
             >
-              <Search className="w-4 h-4 text-[#5E6C84] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-[#0652CC] transition-colors" />
-              <div className="w-full pl-9 pr-14 py-2 text-xs bg-[#F7F9FC] group-hover:bg-white border border-[#DFE3E8] group-hover:border-[#0652CC] rounded-xl text-[#5E6C84] outline-none transition-all shadow-2xs h-9 flex items-center">
+              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-[#0652CC] transition-colors" />
+              <div className="w-full pl-8 pr-12 py-1.5 text-xs bg-[#F8FAFC] group-hover:bg-white border border-[#CBD5E1] group-hover:border-[#0652CC] rounded-md text-[#64748B] outline-none transition-all shadow-xs h-8 flex items-center">
                 Search pages, actions, commands...
               </div>
-              <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-[#5E6C84] bg-white border border-[#DFE3E8] rounded shadow-2xs pointer-events-none select-none">
+              <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] font-semibold text-[#64748B] bg-white border border-[#CBD5E1] rounded shadow-xs pointer-events-none select-none">
                 {shortcutText}
               </kbd>
             </div>
 
             {/* Right: Web3 Wallet Connect, Notifications & User Account */}
-            <div className="flex items-center space-x-3 text-xs text-[#5E6C84] shrink-0">
+            <div className="flex items-center space-x-2.5 sm:space-x-3 text-xs text-[#475569] shrink-0">
               {/* Mobile Search Button */}
               <button
                 type="button"
                 onClick={() => setCommandPaletteOpen(true)}
-                className="sm:hidden p-2 text-[#5E6C84] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors cursor-pointer"
+                className="sm:hidden p-1.5 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors cursor-pointer"
                 aria-label="Open Command Palette"
                 title="Search"
               >
@@ -121,13 +140,16 @@ export const AppLayout: React.FC = () => {
                   type="button"
                   onClick={() => setProfileOpen(!profileOpen)}
                   aria-label="User account menu"
-                  className="flex items-center space-x-2 p-1.5 rounded-xl hover:bg-[#F7F9FC] transition-colors cursor-pointer"
+                  className="flex items-center space-x-2 p-1 rounded-md hover:bg-[#F1F5F9] transition-colors cursor-pointer border border-transparent hover:border-[#E2E8F0]"
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-2xs shrink-0">
+                  <div className="w-7 h-7 rounded-md bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
                     {getInitials(user?.fullName)}
                   </div>
-                  <span className="hidden sm:inline font-semibold text-[#172B4D]">{displayName}</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#5E6C84]" />
+                  <div className="hidden sm:flex flex-col text-left leading-tight">
+                    <span className="font-semibold text-xs text-[#0F172A]">{displayName}</span>
+                    <span className="text-[10px] text-[#64748B] truncate">{userRole}</span>
+                  </div>
+                  <ChevronDown className="w-3.5 h-3.5 text-[#64748B]" />
                 </button>
 
                 {profileOpen && (
@@ -136,10 +158,13 @@ export const AppLayout: React.FC = () => {
                       className="fixed inset-0 z-40 bg-transparent"
                       onClick={() => setProfileOpen(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-56 bg-white border border-[#DFE3E8] rounded-xl shadow-lg py-1.5 z-50 text-xs">
-                      <div className="px-3.5 py-2 border-b border-[#DFE3E8]">
-                        <p className="font-semibold text-[#172B4D]">{displayName}</p>
-                        <p className="text-[10px] text-[#5E6C84] truncate">{user?.email || 'admin@alsm.io'}</p>
+                    <div className="absolute right-0 mt-1.5 w-56 bg-white border border-[#E2E8F0] rounded-lg shadow-md py-1 z-50 text-xs animate-fade-in">
+                      <div className="px-3.5 py-2.5 border-b border-[#F1F5F9]">
+                        <p className="font-semibold text-[#0F172A]">{displayName}</p>
+                        <p className="text-[11px] text-[#64748B] truncate mt-0.5">{user?.email || 'admin@alsm.io'}</p>
+                        <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#EFF6FF] text-[#0652CC] border border-[#BFDBFE]">
+                          {userRole}
+                        </span>
                       </div>
 
                       <div className="py-1">
@@ -149,9 +174,9 @@ export const AppLayout: React.FC = () => {
                             setProfileOpen(false);
                             navigate('/admin/web3');
                           }}
-                          className="w-full text-left px-3.5 py-2 text-[#172B4D] hover:bg-[#F7F9FC] flex items-center gap-2 cursor-pointer transition-colors"
+                          className="w-full text-left px-3.5 py-2 text-[#0F172A] hover:bg-[#F8FAFC] flex items-center gap-2 cursor-pointer transition-colors"
                         >
-                          <Wallet className="w-3.5 h-3.5 text-[#5E6C84]" />
+                          <Wallet className="w-3.5 h-3.5 text-[#64748B]" />
                           <span>Web3 Administration</span>
                         </button>
                         <button
@@ -160,18 +185,18 @@ export const AppLayout: React.FC = () => {
                             setProfileOpen(false);
                             navigate('/admin/settings');
                           }}
-                          className="w-full text-left px-3.5 py-2 text-[#172B4D] hover:bg-[#F7F9FC] flex items-center gap-2 cursor-pointer transition-colors"
+                          className="w-full text-left px-3.5 py-2 text-[#0F172A] hover:bg-[#F8FAFC] flex items-center gap-2 cursor-pointer transition-colors"
                         >
-                          <Settings className="w-3.5 h-3.5 text-[#5E6C84]" />
+                          <Settings className="w-3.5 h-3.5 text-[#64748B]" />
                           <span>Application Settings</span>
                         </button>
                       </div>
 
-                      <div className="pt-1 border-t border-[#DFE3E8]">
+                      <div className="pt-1 border-t border-[#E2E8F0]">
                         <button
                           type="button"
                           onClick={handleLogout}
-                          className="w-full text-left px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-semibold flex items-center gap-2 cursor-pointer transition-colors"
+                          className="w-full text-left px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-medium flex items-center gap-2 cursor-pointer transition-colors"
                         >
                           <LogOut className="w-3.5 h-3.5 text-rose-600" />
                           <span>Sign Out</span>
@@ -185,12 +210,12 @@ export const AppLayout: React.FC = () => {
           </header>
 
           {/* Dedicated Breadcrumb Row Directly Below Header */}
-          <div className="sticky top-16 z-30 bg-[#FAFBFD] border-b border-[#DFE3E8] px-6 sm:px-8 py-2 flex items-center min-h-[38px]">
+          <div className="sticky top-14 sm:top-16 z-30 bg-[#FAFBFD] border-b border-[#E2E8F0] px-4 sm:px-6 py-1.5 flex items-center min-h-[34px]">
             <Breadcrumb />
           </div>
 
           {/* Content Area - Protected with ErrorBoundary */}
-          <main className="flex-grow px-6 sm:px-8 py-6 w-full">
+          <main className="flex-grow px-4 sm:px-6 lg:px-8 py-5 w-full">
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>

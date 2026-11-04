@@ -576,7 +576,6 @@ export const INITIAL_LEADS: LeadDto[] = [
       organizationName: 'Global Transit Logistics',
       domain: 'globaltransit.com',
       adminEmail: 'rgreen@globaltransit.com',
-      adminTempPassword: 'DefaultSecurePass123!',
       engagementType: 'ENTERPRISE_T2',
       web3AccessUrl: 'https://web3.alsm.io/tenant/org-gtl-prod',
       completedAt: '2026-10-18T16:00:00Z',
@@ -668,7 +667,17 @@ class CrmStore {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        this.leads = JSON.parse(stored);
+        const parsed = JSON.parse(stored) as LeadDto[];
+        this.leads = parsed.map((lead) => {
+          if (!lead.provisioning) return lead;
+          const provisioning = { ...lead.provisioning } as LeadDto['provisioning'] & { adminTempPassword?: string };
+          if ('adminTempPassword' in provisioning) {
+            delete provisioning.adminTempPassword;
+            return { ...lead, provisioning };
+          }
+          return lead;
+        });
+        if (stored !== JSON.stringify(this.leads)) this.saveToStorage();
       } else {
         this.leads = [...INITIAL_LEADS];
         this.saveToStorage();
@@ -1076,7 +1085,7 @@ class CrmStore {
     contract.signedAt = new Date().toISOString();
     lead.updatedAt = new Date().toISOString();
 
-    if (lead.provisioning) {
+    if (lead.provisioning?.checklist) {
       lead.provisioning.checklist.contractSigned = true;
     }
 
@@ -1100,7 +1109,7 @@ class CrmStore {
     lead.payment.confirmedAt = new Date().toISOString();
     lead.payment.transactionRef = transactionRef || `SETTLE-${Date.now()}`;
 
-    if (lead.provisioning) {
+    if (lead.provisioning?.checklist) {
       lead.provisioning.checklist.paymentConfirmed = true;
     }
 
@@ -1199,7 +1208,6 @@ class CrmStore {
       organizationName: lead.company,
       domain: lead.email.split('@')[1] || `${orgSlug}.com`,
       adminEmail: lead.email,
-      adminTempPassword: 'DefaultSecurePass123!',
       engagementType: lead.contracts[0]?.plan || 'Enterprise Tier 1',
       web3AccessUrl: web3Url,
       completedAt: new Date().toISOString(),
@@ -1555,11 +1563,11 @@ class CrmStore {
       ['Filtered By Region', filters?.region || 'ALL'],
       [''],
       ['KEY METRIC', 'VALUE'],
-      ['Monthly Realised Revenue ($ USD)', reports.monthlyRevenue],
+      ['Monthly Realised Revenue (VND)', reports.monthlyRevenue],
       ['Total Leads in Scope', reports.totalLeads],
       ['Won Deals (Activated Customers)', reports.wonLeads],
       ['Lead-to-Customer Conversion Rate', `${reports.conversionRate}%`],
-      ['Average Deal Size ($ USD)', reports.averageDealSize],
+      ['Average Deal Size (VND)', reports.averageDealSize],
       [''],
       ['LEAD DOSSIER BREAKDOWN'],
       ['ID', 'Company', 'Contact', 'Email', 'Region', 'Stage', 'Deal Value ($)', 'Assigned Rep', 'Last Contact'],

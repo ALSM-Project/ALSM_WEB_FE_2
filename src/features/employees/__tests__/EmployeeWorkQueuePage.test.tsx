@@ -1,8 +1,13 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EmployeeWorkQueuePage } from '../pages/EmployeeWorkQueuePage';
+import { mockServer, SERVER_PROJECT_ID } from '@/features/partners/__tests__/serverFixture';
+
+vi.mock('@/services/api/apiClient', () => ({
+  apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -26,9 +31,23 @@ const createWrapper = () => {
 };
 
 describe('EmployeeWorkQueuePage - System Employee Modernization Workbench Queue', () => {
+  beforeEach(() => {
+    localStorage.setItem(
+      'alsm_partner_project_links_v1',
+      JSON.stringify({
+        [SERVER_PROJECT_ID]: {
+          partnerId: '6650cc00cc00cc00cc00cc01',
+          partnerName: 'Fintech Nexus International',
+          assignedStaffId: 'staff-01',
+          assignedStaffName: 'Marcus Vance',
+        },
+      }),
+    );
+    mockServer();
+  });
+
   afterEach(() => {
     cleanup();
-    vi.restoreAllMocks();
   });
 
   it('renders employee work queue with KPI metrics and project cards', async () => {

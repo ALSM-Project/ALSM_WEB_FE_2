@@ -132,18 +132,12 @@ export const AdminProjectsPage: React.FC = () => {
       const selectedLead = teamLeads.find((l) => l.id === selectedLeadId);
       const leadName = selectedLead?.fullName || 'Assigned Team Lead';
 
-      // Update partner project store
+      // Verify the global assignment before changing the partner project store.
+      await adminApi.assignTeamLead(assignTargetProject.id, selectedLeadId);
       await partnersApi.assignProject(assignTargetProject.id, {
         teamLeadId: selectedLeadId,
         teamLeadName: leadName,
       });
-
-      // Backend admin project assignment
-      try {
-        await adminApi.assignTeamLead(assignTargetProject.id, selectedLeadId);
-      } catch {
-        // Fallback handled
-      }
 
       setSuccessMsg(
         `Project "${assignTargetProject.name}" allocated to Team Lead ${leadName}. Workflow notification sent & audit logged (UC-3.13.3).`
@@ -207,6 +201,10 @@ export const AdminProjectsPage: React.FC = () => {
     reason: string,
     _notes: string
   ) => {
+    await adminApi.allocateProject(resourceId, {
+      teamLeadId: newAssignee.id,
+      teamLeadName: newAssignee.fullName,
+    });
     setProjects((prev) =>
       prev.map((p) =>
         p.id === resourceId
@@ -218,14 +216,6 @@ export const AdminProjectsPage: React.FC = () => {
           : p
       )
     );
-    try {
-      await adminApi.allocateProject(resourceId, {
-        teamLeadId: newAssignee.id,
-        teamLeadName: newAssignee.fullName,
-      });
-    } catch {
-      // Local state fallback
-    }
     setSuccessMsg(
       `Resource ownership for project "${resourceId}" successfully transferred to ${newAssignee.fullName} (${reason}).`
     );

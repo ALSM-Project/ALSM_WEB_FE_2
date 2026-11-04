@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, User, Layers } from 'lucide-react';
 import { Modal, Button, Input } from '@/shared/ui';
 import { partnersApi } from '../api/partners.api';
 import { Partner } from '../types/partner.types';
+import {
+  PartnerFormErrors,
+  PartnerFormField,
+  partnerErrorToFormErrors,
+  validatePartnerForm,
+} from '../utils/partnerForm';
 
 export interface RegisterPartnerModalProps {
   isOpen: boolean;
@@ -20,9 +26,23 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [engagementType, setEngagementType] = useState('Dedicated Modernization');
-  const [assignedStaff, setAssignedStaff] = useState('Sarah Jenkins (Sr. Conversion Specialist)');
+  const [assignedStaff, setAssignedStaff] = useState('');
+  const [staffOptions, setStaffOptions] = useState<Awaited<ReturnType<typeof partnersApi.getAssignableStaff>>>([]);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    partnersApi
+      .getAssignableStaff()
+      .then((list) => {
+        if (!cancelled) setStaffOptions(list);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const [errors, setErrors] = useState<PartnerFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const resetForm = () => {
@@ -31,7 +51,7 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
     setContactName('');
     setContactEmail('');
     setEngagementType('Dedicated Modernization');
-    setAssignedStaff('Sarah Jenkins (Sr. Conversion Specialist)');
+    setAssignedStaff('');
     setErrors({});
   };
 
@@ -41,26 +61,22 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
   };
 
   const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Organization name is required';
-    if (!domain.trim()) errs.domain = 'Primary domain is required';
-    else if (!/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(domain.trim())) {
-      errs.domain = 'Please enter a valid domain (e.g. partner.com)';
-    }
-
-    if (!contactName.trim()) errs.contactName = 'Primary contact name is required';
-    if (!contactEmail.trim()) errs.contactEmail = 'Contact email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
-      errs.contactEmail = 'Please enter a valid email address';
-    }
-
+    const errs = validatePartnerForm({ name, domain, contactName, contactEmail });
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  /** Editing a field clears its own error (and the server banner) so stale messages don't linger. */
+  const clearError = (field: PartnerFormField) => {
+    if (errors[field] || errors.form) {
+      setErrors(({ [field]: _removed, form: _form, ...rest }) => rest);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    // Guard against a second submit (e.g. Enter pressed again) while the request is in flight.
+    if (submitting || !validate()) return;
 
     try {
       setSubmitting(true);
@@ -78,8 +94,8 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
         onSuccess(newPartner);
       }
       onClose();
-    } catch (err: any) {
-      setErrors({ form: err?.message || 'Failed to register partner organization' });
+    } catch (err) {
+      setErrors(partnerErrorToFormErrors(err));
     } finally {
       setSubmitting(false);
     }
@@ -117,7 +133,10 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
               <Input
                 label="Organization / Company Name *"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  clearError('name');
+                }}
                 placeholder="e.g. Pacific Banking Systems Ltd."
                 error={errors.name}
               />
@@ -127,7 +146,10 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
               <Input
                 label="Primary Web Domain *"
                 value={domain}
-                onChange={(e) => setDomain(e.target.value)}
+                onChange={(e) => {
+                  setDomain(e.target.value);
+                  clearError('domain');
+                }}
                 placeholder="e.g. pacificbanking.com"
                 error={errors.domain}
               />
@@ -149,7 +171,10 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
               <Input
                 label="Contact Representative Name *"
                 value={contactName}
-                onChange={(e) => setContactName(e.target.value)}
+                onChange={(e) => {
+                  setContactName(e.target.value);
+                  clearError('contactName');
+                }}
                 placeholder="e.g. Jonathan Reynolds"
                 error={errors.contactName}
               />
@@ -160,7 +185,10 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
                 label="Contact Email Address *"
                 type="email"
                 value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
+                onChange={(e) => {
+                  setContactEmail(e.target.value);
+                  clearError('contactEmail');
+                }}
                 placeholder="e.g. jreynolds@pacificbanking.com"
                 error={errors.contactEmail}
               />
@@ -205,15 +233,12 @@ export const RegisterPartnerModal: React.FC<RegisterPartnerModalProps> = ({
                 onChange={(e) => setAssignedStaff(e.target.value)}
                 className="w-full text-xs p-2.5 bg-[#F7F9FC] focus:bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]"
               >
-                <option value="Sarah Jenkins (Sr. Conversion Specialist)">
-                  Sarah Jenkins (Sr. Conversion Specialist)
-                </option>
-                <option value="David Chen (Conversion Engineer)">
-                  David Chen (Conversion Engineer)
-                </option>
-                <option value="Michael Rossi (Team Lead)">
-                  Michael Rossi (Team Lead)
-                </option>
+                <option value="">Not assigned</option>
+                {staffOptions.map((m) => (
+                  <option key={m.id} value={m.fullName}>
+                    {m.fullName} ({m.email})
+                  </option>
+                ))}
               </select>
             </div>
           </div>

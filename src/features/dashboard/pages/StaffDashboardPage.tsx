@@ -85,18 +85,18 @@ export const StaffDashboardPage: React.FC = () => {
 
         {/* View Switcher: Only Admins can switch between all 4 role perspectives */}
         {isUserAdmin && (
-          <div className="inline-flex items-center p-1.5 rounded-2xl bg-[#091E42]/5 border border-[#E5EAF0] self-start lg:self-center shrink-0">
-            <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider px-2.5 hidden sm:inline">
+          <div className="inline-flex items-center p-1 rounded-md bg-[#F1F5F9] border border-[#CBD5E1] self-start lg:self-center shrink-0">
+            <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider px-2 hidden sm:inline">
               Xem theo vai trò:
             </span>
 
             <button
               type="button"
               onClick={() => setActiveTab('ADMIN')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'ADMIN'
-                  ? 'bg-white text-[#0652CC] shadow-xs'
-                  : 'text-[#6B778C] hover:text-[#091E42]'
+                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -106,10 +106,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('TEAM_LEAD')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'TEAM_LEAD'
-                  ? 'bg-white text-[#0652CC] shadow-xs'
-                  : 'text-[#6B778C] hover:text-[#091E42]'
+                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -119,10 +119,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('STAFF')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'STAFF'
-                  ? 'bg-white text-[#0652CC] shadow-xs'
-                  : 'text-[#6B778C] hover:text-[#091E42]'
+                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
@@ -132,10 +132,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('SALES')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'SALES'
-                  ? 'bg-white text-[#0652CC] shadow-xs'
-                  : 'text-[#6B778C] hover:text-[#091E42]'
+                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
+                  : 'text-[#64748B] hover:text-[#0F172A]'
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />

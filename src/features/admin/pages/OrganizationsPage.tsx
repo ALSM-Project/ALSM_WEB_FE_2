@@ -1,78 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2, ShieldAlert,
+  Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2,
   FolderKanban, Users, AlertCircle, ArrowRight, ArrowLeft
 } from 'lucide-react';
-import { adminApi, OrganizationDto, EngagementTypeDto } from '../api/admin.api';
+import { adminApi, OrganizationDto, EngagementTypeDto, OrganizationInvitationStatus } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
-import { useSupportView } from '../context/SupportViewContext';
+import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-
-const MOCK_ORGS: OrganizationDto[] = [
-  {
-    id: 'org-acme-corp',
-    name: 'Acme Corporation',
-    domain: 'acme.corp',
-    contactEmail: 'contact@acme.corp',
-    type: 'ENTERPRISE',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T1',
-    memberCount: 24,
-    createdAt: '2026-06-12T10:00:00Z',
-    updatedAt: '2026-10-18T14:00:00Z',
-  },
-  {
-    id: 'org-fnx-prod',
-    name: 'Fintech Nexus International',
-    domain: 'fintechnexus.io',
-    contactEmail: 'support@fintechnexus.io',
-    type: 'ENTERPRISE',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T2',
-    memberCount: 15,
-    createdAt: '2026-08-15T09:00:00Z',
-    updatedAt: '2026-10-19T11:30:00Z',
-  },
-  {
-    id: 'org-tokyo-marine',
-    name: 'Tokyo Marine Global Insurance',
-    domain: 'tokyomarine.jp',
-    contactEmail: 'support@tokyomarine.jp',
-    type: 'PARTNER',
-    status: 'ACTIVE',
-    engagementType: 'ENTERPRISE_T1',
-    memberCount: 8,
-    createdAt: '2026-09-01T08:00:00Z',
-    updatedAt: '2026-10-20T16:45:00Z',
-  },
-  {
-    id: 'org-metlife-legacy',
-    name: 'MetLife Modernization Labs',
-    domain: 'metlife-labs.com',
-    contactEmail: 'tech@metlife-labs.com',
-    type: 'STANDARD',
-    status: 'TRIAL',
-    engagementType: 'STANDARD',
-    memberCount: 5,
-    createdAt: '2026-09-20T12:00:00Z',
-    updatedAt: '2026-10-21T09:15:00Z',
-  },
-];
 
 export const OrganizationsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { enterSupportView, isSupportReadOnly, supportOrg } = useSupportView();
   const { user, hasPermission } = useAuth();
-  const canImpersonate = user ? hasPermission('organizations.impersonate') : true;
+  const canImpersonate = Boolean(user) && hasPermission('organizations.impersonate');
+  const canManageOrganizations = Boolean(user) && hasPermission('organizations.manage');
 
   const [organizations, setOrganizations] = useState<OrganizationDto[]>([]);
-  const [, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
+  const [engagementTypes, setEngagementTypes] = useState<EngagementTypeDto[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
-  const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'date_desc' | 'date_asc'>('date_desc');
+  const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'date_desc' | 'date_asc'>('name_asc');
 
   // Modal State for New Org Provisioning (2-Step Wizard)
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -80,42 +30,35 @@ export const OrganizationsPage: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
-  // Support View Modal State
-  const [supportTargetOrg, setSupportTargetOrg] = useState<OrganizationDto | null>(null);
+  const [inviteWarning, setInviteWarning] = useState(false);
+  const [requestId, setRequestId] = useState('');
 
   const [newOrg, setNewOrg] = useState({
     name: '',
     domain: '',
     adminEmail: '',
-    engagementType: 'ENTERPRISE_T1',
+    engagementType: 'Enterprise Pilot',
     trialDays: 30,
   });
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const [orgs, types] = await Promise.all([
-        adminApi.getOrganizations().catch(() => []),
+        adminApi.getOrganizations(),
         adminApi.getEngagementTypes().catch(() => []),
       ]);
-      if (orgs && orgs.length > 0) {
-        // Merge with mock details to ensure memberCount and type are present
-        const merged = orgs.map((o) => {
-          const mockMatch = MOCK_ORGS.find((m) => m.id === o.id || m.name === o.name);
-          return {
-            ...o,
-            type: o.type || mockMatch?.type || 'ENTERPRISE',
-            memberCount: o.memberCount ?? mockMatch?.memberCount ?? (o.members?.length || 4),
-          };
-        });
-        setOrganizations(merged);
-      } else {
-        setOrganizations(MOCK_ORGS);
-      }
+      setOrganizations(orgs);
       setEngagementTypes(types);
+      const activeNames = types.filter((type) => type.isActive).map((type) => type.name);
+      if (activeNames.length) {
+        setNewOrg((current) => activeNames.includes(current.engagementType)
+          ? current
+          : { ...current, engagementType: activeNames[0] });
+      }
     } catch {
-      setOrganizations(MOCK_ORGS);
+      setLoadError('Unable to load organisations. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -140,6 +83,14 @@ export const OrganizationsPage: React.FC = () => {
       setFormError('Please enter a valid admin email address format (e.g. name@domain.com).');
       return false;
     }
+    if (newOrg.domain.trim() && !/^(?=.{1,253}$)(?!-)[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(newOrg.domain.trim())) {
+      setFormError('Enter a valid domain name, such as company.com.');
+      return false;
+    }
+    if (!Number.isInteger(newOrg.trialDays) || newOrg.trialDays < 1 || newOrg.trialDays > 3650) {
+      setFormError('Trial period must be between 1 and 3650 days.');
+      return false;
+    }
     return true;
   };
 
@@ -151,66 +102,53 @@ export const OrganizationsPage: React.FC = () => {
   };
 
   const handleConfirmProvisioning = async () => {
+    if (submitting || !canManageOrganizations) return;
     try {
       setSubmitting(true);
       setFormError(null);
-
-      let createdId = `org-${newOrg.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
-      let tempPassword = 'DefaultSecurePass123!';
-
-      try {
-        const res = await adminApi.createEnterpriseOrganization(newOrg);
-        if (res.organization?.id) createdId = res.organization.id;
-        if (res.temporaryPassword) tempPassword = res.temporaryPassword;
-      } catch {
-        // Fallback to local mock state update if backend unavailable
-      }
-
-      const createdRecord: OrganizationDto = {
-        id: createdId,
+      const currentRequestId = requestId || window.crypto.randomUUID();
+      setRequestId(currentRequestId);
+      const res = await adminApi.createEnterpriseOrganization({
         name: newOrg.name.trim(),
-        domain: newOrg.domain.trim() || `${newOrg.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-        contactEmail: newOrg.adminEmail.trim(),
-        type: newOrg.engagementType === 'MANAGED_PARTNER' ? 'PARTNER' : 'ENTERPRISE',
-        status: 'ACTIVE',
+        domain: newOrg.domain.trim() || undefined,
+        contactEmail: newOrg.adminEmail.trim().toLowerCase(),
         engagementType: newOrg.engagementType,
-        memberCount: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        trialDays: newOrg.trialDays,
+        requestId: currentRequestId,
+      });
+      setOrganizations((prev) => [res.organization, ...prev.filter((org) => org.id !== res.organization.id)]);
+      const warning = res.invitationStatus === 'FAILED' || res.invitationStatus === 'PENDING';
+      setInviteWarning(warning);
+      const messages: Record<OrganizationInvitationStatus, string> = {
+        SENT: `Organisation “${res.organization.name}” was created. A secure account setup link was sent to ${newOrg.adminEmail.trim()}.`,
+        NOT_REQUIRED: `Organisation “${res.organization.name}” was created and linked to the existing administrator account.`,
+        FAILED: `Organisation “${res.organization.name}” was created, but the setup email could not be sent. Ask the administrator to use Forgot password.`,
+        PENDING: `Organisation “${res.organization.name}” was created. The account setup email is pending; ask the administrator to use Forgot password if it does not arrive.`,
       };
-
-      setOrganizations((prev) => [createdRecord, ...prev]);
       setShowCreateModal(false);
       setCreateStep(1);
-      setSuccessMsg(
-        `Organisation "${newOrg.name}" successfully provisioned! Admin account (${newOrg.adminEmail}) simulated with temporary key: ${tempPassword}`
-      );
+      setSuccessMsg(messages[res.invitationStatus]);
+      setRequestId('');
       setNewOrg({
         name: '',
         domain: '',
         adminEmail: '',
-        engagementType: 'ENTERPRISE_T1',
+        engagementType: 'Enterprise Pilot',
         trialDays: 30,
       });
+      void fetchData();
       setTimeout(() => setSuccessMsg(null), 6000);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to provision enterprise organisation';
-      setFormError(msg);
+      const error = err as { status?: number; response?: { status?: number; data?: { message?: string | string[] } } };
+      const status = error.status ?? error.response?.status;
+      const message = error.response?.data?.message;
+      if (status === 400) setFormError(Array.isArray(message) ? message.join(' ') : message || 'Check the organisation details and try again.');
+      else if (status === 403) setFormError('You do not have permission to create organisations.');
+      else if (status === 409) setFormError(typeof message === 'string' ? message : 'An organisation with these details already exists.');
+      else setFormError('The organisation could not be created right now. Your request is safe to retry.');
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const handleConfirmSupportView = () => {
-    if (!supportTargetOrg) return;
-    enterSupportView({
-      id: supportTargetOrg.id,
-      name: supportTargetOrg.name,
-      contactEmail: supportTargetOrg.contactEmail,
-      domain: supportTargetOrg.domain,
-    });
-    setSupportTargetOrg(null);
-    navigate('/partners/projects');
   };
 
   // Filter & Sort
@@ -274,48 +212,38 @@ export const OrganizationsPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
+            disabled={loading}
+            aria-busy={loading}
             className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
           >
             <RefreshCw className={`w-4 h-4 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
-          <button
-            onClick={() => {
-              setCreateStep(1);
-              setFormError(null);
-              setShowCreateModal(true);
-            }}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            New Enterprise Org
-          </button>
+          {canManageOrganizations && (
+            <button
+              onClick={() => {
+                setCreateStep(1);
+                setFormError(null);
+                setRequestId(window.crypto.randomUUID());
+                setShowCreateModal(true);
+              }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Enterprise Org
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Active Support View Indicator Banner */}
-      {isSupportReadOnly && supportOrg && (
-        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>
-              Currently assisting <strong>{supportOrg.name}</strong> ({supportOrg.id}) in Read-Only Support View.
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/partners/projects')}
-            className="text-xs border-amber-400 bg-white hover:bg-amber-100 text-amber-900"
-          >
-            Open Organisation Workspace
-          </Button>
-        </div>
-      )}
+      <p id="support-view-unavailable" role="status" className="text-xs text-[#6B778C]">
+        {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
+      </p>
+      {loadError && <p role="alert" className="text-xs text-rose-700">{loadError}</p>}
 
       {/* Alert Messages */}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+        <div role="status" className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center justify-between ${inviteWarning ? 'bg-amber-50 border-amber-200 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-800'}`}>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
@@ -332,6 +260,7 @@ export const OrganizationsPage: React.FC = () => {
               type="text"
               aria-label="Search organisations"
               placeholder="Search by organisation name or contact email..."
+              maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
@@ -405,7 +334,7 @@ export const OrganizationsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#E5EAF0]" aria-live="polite" aria-busy={loading}>
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
@@ -415,17 +344,25 @@ export const OrganizationsPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                    The organisation directory could not be loaded. Use Refresh to try again.
+                  </td>
+                </tr>
               ) : filteredOrgs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-[#6B778C]">
                     <Building className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
-                    No organisations match your search criteria.
+                    {organizations.length === 0
+                      ? 'No organisations are available yet.'
+                      : 'No organisations match your search criteria.'}
                   </td>
                 </tr>
               ) : (
                 filteredOrgs.map((org) => {
-                  const projectCount = org.name.includes('Acme') ? 3 : org.name.includes('Fintech') ? 2 : 1;
-                  const memberCount = org.memberCount ?? org.members?.length ?? 5;
+                  const projectCount = org.projectCount ?? 0;
+                  const memberCount = org.memberCount ?? org.members?.length ?? 0;
                   return (
                     <tr
                       key={org.id}
@@ -481,8 +418,9 @@ export const OrganizationsPage: React.FC = () => {
                               variant="primary"
                               size="sm"
                               className="text-xs bg-[#0652CC] text-white hover:bg-[#0543A8] py-1 px-2.5"
-                              onClick={() => setSupportTargetOrg(org)}
-                              title="Enter customer space in simulated read-only support mode"
+                              disabled
+                              aria-describedby="support-view-unavailable"
+                              title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
                             >
                               <Eye className="w-3 h-3 mr-1" />
                               Support View
@@ -507,77 +445,18 @@ export const OrganizationsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Confirmation Dialog: Enter Read-Only Support View */}
-      <Modal
-        isOpen={Boolean(supportTargetOrg)}
-        onClose={() => setSupportTargetOrg(null)}
-        title="Enter Customer Support View"
-      >
-        {supportTargetOrg && (
-          <div className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
-              <div className="flex items-center gap-2 font-bold text-sm text-amber-950">
-                <ShieldAlert className="w-5 h-5 text-amber-700 shrink-0" />
-                <span>Simulated Support Session Notice (Read-Only Support Session)</span>
-              </div>
-              <p>
-                You are about to simulate entering customer organization <strong>{supportTargetOrg.name}</strong> in strict Read-Only mode.
-              </p>
-              <div className="font-semibold text-amber-900 mt-2">Guardrails enforced in Support View:</div>
-              <ul className="list-disc pl-5 space-y-1 text-[11px] text-amber-800">
-                <li>No customer projects or mappings will be modified.</li>
-                <li>All actions are recorded in the immutable platform audit log.</li>
-                <li>You can exit this view at any time from the top warning banner.</li>
-              </ul>
-            </div>
-
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Target Organisation:</span>
-                <span className="font-semibold text-[#091E42]">{supportTargetOrg.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Identifier:</span>
-                <span className="font-mono text-[#091E42]">{supportTargetOrg.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#6B778C]">Support Staff:</span>
-                <span className="font-semibold text-[#0652CC]">System Administrator</span>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSupportTargetOrg(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleConfirmSupportView}
-                className="bg-[#0652CC] hover:bg-[#0543A8]"
-              >
-                Confirm & Enter Support View
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
       {/* 2-Step Provisioning Modal: New Enterprise Org (Requirement C) */}
       <Modal
         isOpen={showCreateModal}
         onClose={() => {
+          if (submitting) return;
           setShowCreateModal(false);
           setCreateStep(1);
         }}
         title={createStep === 1 ? 'Provision Enterprise Organisation (Step 1/2)' : 'Review & Confirm Provisioning (Step 2/2)'}
       >
         {createStep === 1 ? (
-          <form noValidate onSubmit={handleProceedToReview} className="space-y-4">
+          <form onSubmit={handleProceedToReview} noValidate className="space-y-4">
             <p className="text-xs text-[#6B778C]">
               Configure customer tenant parameters, contact details, and initial engagement level.
             </p>
@@ -631,10 +510,10 @@ export const OrganizationsPage: React.FC = () => {
                   onChange={(e) => setNewOrg({ ...newOrg, engagementType: e.target.value })}
                   className="w-full px-3 py-2 border border-[#D9E2EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
                 >
-                  <option value="ENTERPRISE_T1">Enterprise Tier 1 (Unlimited)</option>
-                  <option value="ENTERPRISE_T2">Enterprise Tier 2 (Standard)</option>
-                  <option value="MANAGED_PARTNER">Managed Partner Engagement</option>
-                  <option value="STANDARD">Standard Self-Service Tier</option>
+                  {(engagementTypes.filter((type) => type.isActive).length
+                    ? engagementTypes.filter((type) => type.isActive).map((type) => type.name)
+                    : ['Trial', 'Enterprise Pilot', 'Enterprise Production']
+                  ).map((name) => <option key={name} value={name}>{name}</option>)}
                 </select>
               </div>
               <div>
@@ -652,6 +531,7 @@ export const OrganizationsPage: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={submitting}
                 onClick={() => setShowCreateModal(false)}
               >
                 Cancel
@@ -693,9 +573,8 @@ export const OrganizationsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-[11px] leading-relaxed">
-              <span className="font-bold block mb-0.5">Simulated Provisioning Notice:</span>
-              On confirmation, the organisation will be instantiated in local mock state and accessible in the directory. A simulated temporary password will be issued without sending external emails.
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 text-[11px] leading-relaxed">
+              The organisation and its initial administrator will be created. If the email is new, the administrator receives a secure, expiring link to set a password.
             </div>
 
             {formError && (
@@ -709,6 +588,7 @@ export const OrganizationsPage: React.FC = () => {
                 type="button"
                 variant="outline"
                 size="sm"
+                disabled={submitting}
                 onClick={() => setCreateStep(1)}
               >
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
@@ -719,6 +599,7 @@ export const OrganizationsPage: React.FC = () => {
                   type="button"
                   variant="outline"
                   size="sm"
+                  disabled={submitting}
                   onClick={() => setShowCreateModal(false)}
                 >
                   Cancel

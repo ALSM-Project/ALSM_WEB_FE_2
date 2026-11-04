@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { crmStore } from '../services/crm-store';
 import { SalesReportsPage } from '../pages/SalesReportsPage';
 import { DiscountApprovalPage } from '../pages/DiscountApprovalPage';
 import { SalesTeamPerformanceView } from '../components/SalesTeamPerformanceView';
+import { crmApi } from '../api/crm.api';
 
 // Mock auth hook
 let mockUserPermissions: string[] = [
@@ -34,13 +35,25 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       'sales.discounts.approve',
       'sales.discounts.reject',
     ];
+    vi.spyOn(crmApi, 'getReports').mockImplementation(async (filters) => crmStore.getReports(filters));
+    vi.spyOn(crmApi, 'getPendingDiscounts').mockImplementation(async () => crmStore.getPendingDiscounts());
+    vi.spyOn(crmApi, 'reviewDiscount').mockImplementation(async (request) => {
+      crmStore.reviewDiscount({
+        leadId: request.leadId,
+        quoteId: request.quoteId,
+        approved: request.outcome === 'APPROVE',
+        rejectionReason: request.reason,
+        escalateToVP: request.outcome === 'ESCALATE',
+      });
+      return { message: 'Saved', success: true, replayed: false };
+    });
   });
 
   describe('1. Sales & Revenue Reports Accounting', () => {
     it('strictly counts only WON deals with confirmed contracts towards realised revenue', () => {
       const reports = crmStore.getReports();
-      // Realised revenue must strictly come from WON deals with signed contracts (Global Transit $150,000)
-      // Pending proposals/quotes (e.g. Apex $80k, FNX $85k, Titan $95k) must NEVER count as realised revenue
+      // Realised revenue must strictly come from WON deals with signed contracts (Global Transit 150,000 VND)
+      // Pending proposals/quotes (e.g. Apex 80k, FNX 85k, Titan 95k) must NEVER count as realised revenue
       expect(reports.monthlyRevenue).toBe(150000);
       expect(reports.wonLeads).toBe(1);
       expect(reports.averageDealSize).toBe(150000);
@@ -82,17 +95,25 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
 
       // Wait for data load
       await waitFor(() => {
-        expect(screen.getAllByText('$150,000').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('150.000 VND').length).toBeGreaterThan(0);
       });
 
       // Verify KPI titles
-      expect(screen.getAllByText('Realised Revenue').length).toBeGreaterThan(0);
-      expect(screen.getByText('Average Deal Size')).toBeInTheDocument();
+      expect(screen.getAllByText('Sent / Accepted Quote Value').length).toBeGreaterThan(0);
+      expect(screen.getByText('Average Quote Size')).toBeInTheDocument();
       expect(screen.getByText('Total Leads in Scope')).toBeInTheDocument();
 
       // Verify Revenue Over Time section
       expect(screen.getByText('Revenue Over Time & Booking Cadence')).toBeInTheDocument();
       expect(screen.getByText('Recent Closed Won Deals (Audited Revenue)')).toBeInTheDocument();
+    });
+
+    it('shows an actionable error when the reports API is unavailable', async () => {
+      vi.spyOn(crmApi, 'getReports').mockRejectedValueOnce(new Error('dependency failure'));
+      render(<MemoryRouter><SalesReportsPage /></MemoryRouter>);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/could not be loaded/i);
+      expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
     });
 
     it('generates a CSV export containing filtered metadata and lead dossiers', () => {
@@ -105,7 +126,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       expect(csv).toContain('ALSM ENTERPRISE SALES & REVENUE REPORT');
       expect(csv).toContain('Filtered By Representative,Sarah Jenkins');
       expect(csv).toContain('Filtered By Region,North America');
-      expect(csv).toContain('Monthly Realised Revenue ($ USD),150000');
+      expect(csv).toContain('Monthly Realised Revenue (VND),150000');
       expect(csv).toContain('"Global Transit Logistics"');
     });
   });
@@ -269,6 +290,30 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       expect(screen.getAllByText('Requires VP Approval').length).toBeGreaterThan(0);
     });
 
+    it('loads the queue from the API and submits approval with the selected lead and quote', async () => {
+      render(<MemoryRouter><DiscountApprovalPage /></MemoryRouter>);
+
+      await screen.findByText('Fintech Nexus International');
+      fireEvent.click(screen.getAllByRole('button', { name: /^approve$/i })[0]);
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm Approval' }));
+
+      expect(await screen.findByRole('status')).toHaveTextContent(/approved/i);
+      expect(crmApi.reviewDiscount).toHaveBeenCalledWith({
+        leadId: expect.any(String),
+        quoteId: expect.any(String),
+        outcome: 'APPROVE',
+      });
+    });
+
+    it('shows a retryable error when the discount queue API is unavailable', async () => {
+      vi.spyOn(crmApi, 'getPendingDiscounts').mockRejectedValueOnce(new Error('dependency failure'));
+      render(<MemoryRouter><DiscountApprovalPage /></MemoryRouter>);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(/could not be processed/i);
+      expect(screen.getByRole('button', { name: 'Retry loading requests' })).toBeInTheDocument();
+      expect(screen.queryByText('Fintech Nexus International')).not.toBeInTheDocument();
+    });
+
     it('enforces granular action-level permissions: hides action buttons and displays View Only when lacking approve/reject rights', async () => {
       // Set permissions to ONLY view queue (no approve, no reject)
       mockUserPermissions = ['sales.discounts.view'];
@@ -289,8 +334,8 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve and Reject buttons should NOT be rendered in table
-      expect(screen.queryByRole('button', { name: /^approve$/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /^reject$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve\b/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject\b/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
 
       // View Only indicators should be displayed
@@ -315,10 +360,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Approve button should be visible
-      expect(screen.getAllByRole('button', { name: /^approve$/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^approve\b/i }).length).toBeGreaterThan(0);
 
       // Reject button should NOT be visible
-      expect(screen.queryByRole('button', { name: /^reject$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^reject\b/i })).not.toBeInTheDocument();
     });
 
     it('displays Reject button when user has sales.discounts.reject, but hides Approve if sales.discounts.approve is missing', async () => {
@@ -339,10 +384,10 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       });
 
       // Reject button should be visible
-      expect(screen.getAllByRole('button', { name: /^reject$/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole('button', { name: /^reject\b/i }).length).toBeGreaterThan(0);
 
       // Approve and Escalate buttons should NOT be visible
-      expect(screen.queryByRole('button', { name: /^approve$/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /^approve\b/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
     });
   });

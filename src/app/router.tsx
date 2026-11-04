@@ -7,6 +7,7 @@ import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
+import { PullRequestStatusPage } from '@/features/ci-status/pages/PullRequestStatusPage';
 import TeamPerformancePage from '@/features/team-performance/pages/TeamPerformancePage';
 import { UsageDashboardPage, AdminQuoteRequestsPage, InvoicesPage } from '@/features/billing';
 import { Web3AdminPage } from '@/features/web3';
@@ -14,6 +15,7 @@ import { SettingsPage } from '@/features/settings/pages/SettingsPage';
 import { NotFoundPage } from '@/shared/pages/NotFoundPage';
 import { ForbiddenPage } from '@/shared/pages/ForbiddenPage';
 import { CreateMeetingRoomPage, MeetingsListPage } from '@/features/meetings';
+import { LeadsListPage } from '@/features/leads';
 import {
   LeadListPage,
   LeadDetailPage,
@@ -30,6 +32,8 @@ import {
   EngagementTypesPage,
 } from '@/features/admin';
 import { TeamLeadProjectsPage } from '@/features/team-lead/pages/TeamLeadProjectsPage';
+import { ResourceTransferApprovalPage } from '@/features/team-lead/pages/ResourceTransferApprovalPage';
+import { UserOffboardingApprovalPage } from '@/features/team-lead/pages/UserOffboardingApprovalPage';
 import { EmployeeWorkQueuePage } from '@/features/employees/pages/EmployeeWorkQueuePage';
 import {
   PartnerListPage,
@@ -42,8 +46,17 @@ import {
   ConversionItemReviewPage,
 } from '@/features/partners';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
+import { SupportPortalPage } from '@/features/support/pages/SupportPortalPage';
 
 export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Navigate to="/dashboard" replace />,
+  },
+  {
+    path: '/ci-status',
+    element: <PullRequestStatusPage />,
+  },
   {
     path: '/auth/callback',
     element: <AuthCallbackPage />,
@@ -55,7 +68,9 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: '/', element: <StaffDashboardPage /> },
+      { path: '/dashboard', element: <StaffDashboardPage /> },
+      // UC66-04: own staff identity and isolated typed Support adapter, never customer APIs.
+      { path: '/support', element: <SupportPortalPage /> },
       // UC-31: Admin Quality Review Oversight — restricted to admins with quality-review.manage
       {
         path: '/admin/projects/:projectId/conversions/:conversionJobId/quality-review',
@@ -146,15 +161,31 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
+      {
+        path: '/team-lead/resource-transfers',
+        element: (
+          <PermissionGuard permission="teams.manage">
+            <ResourceTransferApprovalPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/team-lead/offboarding-approvals',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <UserOffboardingApprovalPage />
+          </PermissionGuard>
+        ),
+      },
       { path: '/validation', element: <StaffDashboardPage /> },
       { path: '/review', element: <PermissionGuard permission="quality-review.manage"><ConversionQueuePage reviewOnly /></PermissionGuard> },
       
-      // Section 3.11 & 3.12: CRM & Sales Management
+      // UC-58 & UC-66: CRM & Sales - Leads Management
       {
         path: '/sales/leads',
         element: (
           <PermissionGuard permission="sales.leads.view">
-            <LeadListPage />
+            <LeadsListPage />
           </PermissionGuard>
         ),
       },
@@ -235,7 +266,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/projects',
         element: (
-          <PermissionGuard permission="organizations.manage">
+          <PermissionGuard permission="organizations.manage" platformAdminOnly>
             <AdminProjectsPage />
           </PermissionGuard>
         ),
@@ -243,7 +274,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/engagement-types',
         element: (
-          <PermissionGuard permission="organizations.manage">
+          <PermissionGuard permission="engagement-types.manage" platformAdminOnly>
             <EngagementTypesPage />
           </PermissionGuard>
         ),
@@ -251,7 +282,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/organizations',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -259,7 +290,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/organizations/:orgId',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationDetailPage />
           </PermissionGuard>
         ),
@@ -267,7 +298,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -275,7 +306,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations/partners',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -283,7 +314,7 @@ export const router = createBrowserRouter([
       {
         path: '/organisations/departments',
         element: (
-          <PermissionGuard permission="organizations.view">
+          <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
           </PermissionGuard>
         ),
@@ -299,7 +330,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/revenue',
         element: (
-          <PermissionGuard permission="revenue.view">
+          <PermissionGuard permission="revenue.view" platformAdminOnly>
             <RevenueDashboardPage />
           </PermissionGuard>
         ),
@@ -307,7 +338,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/finance/revenue',
         element: (
-          <PermissionGuard permission="revenue.view">
+          <PermissionGuard permission="revenue.view" platformAdminOnly>
             <RevenueDashboardPage />
           </PermissionGuard>
         ),
@@ -315,7 +346,7 @@ export const router = createBrowserRouter([
       {
         path: '/admin/audit-logs',
         element: (
-          <PermissionGuard permission="audit.view">
+          <PermissionGuard permission="audit.view" platformAdminOnly>
             <AuditLogsPage />
           </PermissionGuard>
         ),
@@ -397,7 +428,6 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
-      
       // UC-43: Create Online Meeting Room
       {
         path: '/enterprise/meetings/create',
@@ -428,6 +458,15 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="meetings.create">
             <CreateMeetingRoomPage />
+          </PermissionGuard>
+        ),
+      },
+      // UC-58 & UC-66: View Lead List (CRM & Sales) alias
+      {
+        path: '/leads',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <LeadsListPage />
           </PermissionGuard>
         ),
       },

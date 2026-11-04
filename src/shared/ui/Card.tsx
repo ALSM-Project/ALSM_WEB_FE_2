@@ -14,20 +14,20 @@ export const Card: React.FC<CardProps> = ({
   className,
   ...props
 }) => {
-  const baseStyles = 'bg-white rounded-xl transition-all duration-200';
+  const baseStyles = 'bg-white rounded-lg transition-all duration-150';
 
   const variants = {
-    default: 'border border-[#D9E2EC] shadow-[0_2px_4px_rgba(9,30,66,0.04)]',
-    outline: 'border border-[#E5EAF0]',
-    flat: 'bg-[#F7F9FC] border border-[#E5EAF0]',
-    interactive: 'border border-[#D9E2EC] shadow-sm hover:border-[#0652CC] hover:shadow-md cursor-pointer',
+    default: 'border border-[#E2E8F0] shadow-xs',
+    outline: 'border border-[#E2E8F0]',
+    flat: 'bg-[#F8FAFC] border border-[#E2E8F0]',
+    interactive: 'border border-[#E2E8F0] shadow-xs hover:border-[#0652CC] hover:shadow-sm cursor-pointer',
   };
 
   const paddings = {
     none: 'p-0',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    sm: 'p-3.5',
+    md: 'p-5',
+    lg: 'p-6',
   };
 
   return (

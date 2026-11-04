@@ -1,10 +1,32 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminProjectsPage } from '../pages/AdminProjectsPage';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '../api/admin.api';
+
+const mockProjects = [
+  {
+    id: '6650aa00aa00aa00aa00aa01',
+    name: 'General Ledger COBOL Migration',
+    organizationId: 'org-fnx-prod',
+    partnerId: 'partner-01',
+    partnerName: 'Fintech Nexus International',
+    conversionType: 'COBOL_TO_JAVA',
+    targetFramework: 'Spring Boot 3.3',
+    status: 'IN_PROGRESS',
+    screensTotal: 0,
+    screensCompleted: 0,
+    programsTotal: 12,
+    programsCompleted: 8,
+    assignedTeamLeadId: undefined,
+    assignedTeamLeadName: undefined,
+    assignedStaffId: undefined,
+    assignedStaffName: undefined,
+    createdAt: '2026-10-10T00:00:00.000Z',
+  },
+];
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -28,6 +50,15 @@ const createWrapper = () => {
 };
 
 describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
+  beforeEach(() => {
+    vi.spyOn(partnersApi, 'getProjects').mockResolvedValue(mockProjects as any);
+    vi.spyOn(partnersApi, 'assignProject').mockResolvedValue({
+      ...mockProjects[0],
+      assignedTeamLeadId: 'lead-01',
+      assignedTeamLeadName: 'Sarah Jenkins',
+    } as any);
+  });
+
   afterEach(() => {
     cleanup();
     vi.restoreAllMocks();
@@ -93,5 +124,17 @@ describe('AdminProjectsPage - Platform Project Allocation (UC-3.13.3)', () => {
       );
       expect(adminAssignSpy).toHaveBeenCalled();
     });
+  });
+
+  it('does not update the partner store or report success when global assignment is denied', async () => {
+    vi.spyOn(adminApi, 'assignTeamLead').mockRejectedValue(new Error('Global assignment denied'));
+    render(<AdminProjectsPage />, { wrapper: createWrapper() });
+    await screen.findByText('General Ledger COBOL Migration');
+    fireEvent.click(screen.getAllByRole('button', { name: /Assign to Lead|Reassign Lead/i })[0]);
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'lead-01' } });
+    fireEvent.click(screen.getByRole('button', { name: /Allocate to Team Lead|Confirm Reassignment/i }));
+    await screen.findByText('Global assignment denied');
+    expect(partnersApi.assignProject).not.toHaveBeenCalled();
+    expect(screen.queryByText(/successfully.*allocated/i)).not.toBeInTheDocument();
   });
 });

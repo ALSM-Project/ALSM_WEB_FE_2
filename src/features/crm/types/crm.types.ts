@@ -1,4 +1,27 @@
 export type LeadStage = 'NEW' | 'CONTACTED' | 'QUALIFIED' | 'PROPOSAL' | 'WON' | 'LOST';
+export type SalesPipelineStage = LeadStage | 'NEGOTIATION' | 'UNMAPPED';
+
+export interface SalesPipelineLeadDto {
+  id: string;
+  company: string;
+  contactName: string;
+  source: string;
+  stage: SalesPipelineStage;
+  score?: number;
+  dealValue?: number;
+  currency: 'VND';
+  assignedToName?: string;
+  lastContactAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SalesPipelineDto {
+  items: SalesPipelineLeadDto[];
+  total: number;
+  stageCounts: Record<SalesPipelineStage, number>;
+  lastUpdated: string;
+}
 
 export interface LeadInteraction {
   id: string;
@@ -52,7 +75,7 @@ export interface LeadContract {
   plan: string;
   quoteId?: string;
   annualValue: number;
-  status: 'DRAFT' | 'SENT_FOR_SIGNATURE' | 'PARTIALLY_SIGNED' | 'FULLY_SIGNED' | 'EXPIRED';
+  status: 'DRAFT' | 'SENT_FOR_SIGNATURE' | 'PARTIALLY_SIGNED' | 'SIGNED' | 'FULLY_SIGNED' | 'EXPIRED';
   effectiveDate: string;
   docusignEnvelopeId?: string;
   signedAt?: string;
@@ -83,12 +106,12 @@ export interface LeadProvisioning {
   organizationName?: string;
   domain?: string;
   adminEmail?: string;
-  adminTempPassword?: string;
+  adminLinked?: boolean;
   engagementType?: string;
   web3AccessUrl?: string;
   completedAt?: string;
   failureReason?: string;
-  checklist: ProvisioningChecklist;
+  checklist?: ProvisioningChecklist;
 }
 
 export interface StageAuditEntry {
@@ -103,6 +126,8 @@ export interface StageAuditEntry {
 export interface LeadDto {
   id: string;
   company: string;
+  companyName?: string;
+  title?: string;
   contactName: string;
   email: string;
   phone?: string;

@@ -1,8 +1,14 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PartnerProjectWorkspacePage } from '../pages/staff/PartnerProjectWorkspacePage';
+import { apiClient } from '@/services/api/apiClient';
+import { SERVER_PROJECT_ID, linkProjectToPartner, mockServer } from './serverFixture';
+
+vi.mock('@/services/api/apiClient', () => ({
+  apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}));
 
 const createWrapper = (
   permissions: string[] = [
@@ -26,7 +32,7 @@ const createWrapper = (
 
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/partners/projects/proj-fnx-core/workspace']}>
+      <MemoryRouter initialEntries={[`/partners/projects/${SERVER_PROJECT_ID}/workspace`]}>
         {children}
       </MemoryRouter>
     </QueryClientProvider>
@@ -34,6 +40,17 @@ const createWrapper = (
 };
 
 describe('PartnerProjectWorkspacePage', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    linkProjectToPartner();
+    mockServer();
+    vi.mocked(apiClient.post).mockResolvedValue({
+      packageName: 'core-banking-customer-portal-modernized-bundle-v1.zip',
+      summary: { targetFramework: 'React 19', screensIncluded: 1, programsIncluded: 0, excludedItems: [] },
+      metrics: { totalFiles: 10, totalLoc: 100, estimatedSizeKb: 4 },
+    });
+  });
+
   afterEach(() => {
     cleanup();
   });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   AlertCircle,
@@ -23,13 +23,15 @@ import {
 // ─── Query key factory ────────────────────────────────────────────────────────
 const adminQualityReviewKeys = {
   all: ['admin-quality-reviews'] as const,
-  byJob: (projectId: string, conversionJobId: string) =>
-    [...adminQualityReviewKeys.all, projectId, conversionJobId] as const,
+  byJob: (projectId: string, conversionJobId: string, organizationId?: string) =>
+    [...adminQualityReviewKeys.all, projectId, conversionJobId, organizationId] as const,
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export const AdminQualityReviewPage: React.FC = () => {
   const { projectId = '', conversionJobId = '' } = useParams();
+  const [searchParams] = useSearchParams();
+  const organizationId = searchParams.get('organizationId') || undefined;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -52,16 +54,19 @@ export const AdminQualityReviewPage: React.FC = () => {
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId),
-    queryFn: () => adminQualityReviewService.getQualityReview(projectId, conversionJobId),
+    queryKey: adminQualityReviewKeys.byJob(projectId, conversionJobId, organizationId),
+    queryFn: () => organizationId
+      ? adminQualityReviewService.getQualityReview(projectId, conversionJobId, organizationId)
+      : adminQualityReviewService.getQualityReview(projectId, conversionJobId),
     enabled: Boolean(projectId && conversionJobId),
-    retry: 1,
+    retry: false,
+    refetchInterval: 10000,
   });
 
   const resultQuery = useQuery({
-    queryKey: ['conversion-result', projectId, conversionJobId],
-    queryFn: () => conversionQueueService.getResult(conversionJobId),
-    enabled: Boolean(data?.review),
+    queryKey: ['conversion-result', projectId, conversionJobId, organizationId],
+    queryFn: () => organizationId ? conversionQueueService.getResult(conversionJobId, organizationId) : conversionQueueService.getResult(conversionJobId),
+    enabled: Boolean(data?.review && !isError),
     retry: false,
   });
 
@@ -78,9 +83,9 @@ export const AdminQualityReviewPage: React.FC = () => {
   // ─── Mutation: submit override ────────────────────────────────────────────
   const submitMutation = useMutation({
     mutationFn: (payload: SubmitQualityReviewPayload) =>
-      adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload),
+      organizationId ? adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload, organizationId) : adminQualityReviewService.submitQualityReview(projectId, conversionJobId, payload),
     onSuccess: (review) => {
-      queryClient.setQueryData(adminQualityReviewKeys.byJob(projectId, conversionJobId), (previous: typeof data) => previous ? { ...previous, review } : previous);
+      queryClient.setQueryData(adminQualityReviewKeys.byJob(projectId, conversionJobId, organizationId), (previous: typeof data) => previous ? { ...previous, review } : previous);
       setConflictError(false);
       setValidationError(null);
     },
@@ -109,7 +114,7 @@ export const AdminQualityReviewPage: React.FC = () => {
     setValidationError(null);
     setConflictError(false);
     submitMutation.reset();
-  }, [projectId, conversionJobId]);
+  }, [projectId, conversionJobId, organizationId]);
 
   // ─── Submit handler ───────────────────────────────────────────────────────
   const handleAdminSubmit = () => {

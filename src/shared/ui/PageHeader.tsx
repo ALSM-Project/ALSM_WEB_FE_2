@@ -14,15 +14,15 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   badge,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <div className="flex items-center space-x-3">
-          <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">{title}</h1>
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div className="min-w-0">
+        <div className="flex items-center flex-wrap gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">{title}</h1>
           {badge}
         </div>
-        {subtitle && <p className="mt-1 text-sm text-[#42526E]">{subtitle}</p>}
+        {subtitle && <p className="mt-1 text-xs sm:text-sm text-[#64748B] leading-relaxed max-w-3xl">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center space-x-3 shrink-0">{actions}</div>}
+      {actions && <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center">{actions}</div>}
     </div>
   );
 };

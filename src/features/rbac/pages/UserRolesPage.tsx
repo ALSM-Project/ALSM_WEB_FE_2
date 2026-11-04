@@ -7,8 +7,13 @@ import { rbacApi, UserRbacDto, RoleDto } from '../api/rbac.api';
 import { usersApi } from '../../users/api/users.api';
 import { OffboardingWizardModal } from '../../users/components/OffboardingWizardModal';
 import { Modal, Input, Button } from '@/shared/ui';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const UserRolesPage: React.FC = () => {
+  const { user: actor, hasPermission } = useAuth();
+  const canLock = actor?.isPlatformAdmin === true && hasPermission('users.lock');
+  const isTeamLeadOrAdmin = actor?.isPlatformAdmin === true || (actor?.roles || []).some((r: string) => r.toUpperCase().includes('LEAD') || r.toUpperCase().includes('ADMIN'));
+  const canOffboard = isTeamLeadOrAdmin && hasPermission('users.offboard');
   const [users, setUsers] = useState<UserRbacDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
   const [search, setSearch] = useState('');
@@ -171,7 +176,7 @@ export const UserRolesPage: React.FC = () => {
 
   const handleLockAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!lockTargetUser) return;
+    if (!lockTargetUser || !canLock) return;
     if (!confirmLock) {
       setErrorMsg('Please confirm authorization to lock this account.');
       return;
@@ -180,11 +185,7 @@ export const UserRolesPage: React.FC = () => {
       setIsLocking(true);
       setErrorMsg(null);
       const formattedDuration = lockDuration.replace(/_/g, ' ');
-      try {
-        await usersApi.lockUser(lockTargetUser.id, `${lockReason} (Duration: ${formattedDuration})`);
-      } catch {
-        // Fallback to local state simulation
-      }
+      await usersApi.lockUser(lockTargetUser.id, `${lockReason} (Duration: ${formattedDuration})`);
 
       setUsers((prev) =>
         prev.map((u) =>
@@ -205,13 +206,10 @@ export const UserRolesPage: React.FC = () => {
   };
 
   const handleUnlockAccount = async (user: UserRbacDto) => {
+    if (!canLock) return;
     try {
       setErrorMsg(null);
-      try {
-        await usersApi.unlockUser(user.id);
-      } catch {
-        // Fallback to local state simulation
-      }
+      await usersApi.unlockUser(user.id);
 
       setUsers((prev) =>
         prev.map((u) =>
@@ -348,7 +346,7 @@ export const UserRolesPage: React.FC = () => {
                             </span>
                           )}
                         </div>
-                      ) : user.isActive ? (
+                      ) : (user.isActive ?? true) ? (
                         <span className="px-2 py-0.5 text-[10px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
                           Active User
                         </span>
@@ -384,7 +382,7 @@ export const UserRolesPage: React.FC = () => {
                       </button>
 
                       {/* Lock / Unlock (SRS 3.13.9) */}
-                      {!user.isPlatformAdmin && (
+                      {canLock && !user.isPlatformAdmin && (
                         user.isLocked ? (
                           <button
                             onClick={() => handleUnlockAccount(user)}
@@ -407,7 +405,7 @@ export const UserRolesPage: React.FC = () => {
                       )}
 
                       {/* Controlled Offboard (SRS 3.14.2) */}
-                      {!user.isPlatformAdmin && user.isActive && (
+                      {canOffboard && !user.isPlatformAdmin && (user.isActive ?? true) && user.id !== actor?.id && (
                         <button
                           onClick={() => setOffboardTargetUser(user)}
                           className="px-2 py-1 rounded-lg text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 flex items-center gap-1"

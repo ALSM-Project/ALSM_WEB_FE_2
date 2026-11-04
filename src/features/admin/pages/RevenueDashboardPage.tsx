@@ -4,6 +4,7 @@ import {
   RefreshCw, Landmark, CreditCard, Calendar, CheckCircle2, Info, } from 'lucide-react';
 import { adminApi, RevenueSummaryDto } from '../api/admin.api';
 import { Card } from '@/shared/ui';
+import { formatVnd } from '@/shared/utils/currency';
 
 interface FinancialTransaction {
   id: string;
@@ -88,7 +89,7 @@ export const RevenueDashboardPage: React.FC = () => {
       if (data && data.totalRevenue > 0) {
         setSummary(data);
       } else {
-        // Fallback default mock metrics reflecting strictly confirmed transactions ($398,000)
+        // Fallback default mock metrics reflecting strictly confirmed transactions (398,000 VND)
         setSummary({
           totalRevenue: 398000,
           annualRecurringRevenue: 286000,
@@ -243,7 +244,7 @@ export const RevenueDashboardPage: React.FC = () => {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-bold text-[#091E42]">
-              ${totalRealisedRevenue.toLocaleString()} <span className="text-xs font-normal text-slate-500">USD</span>
+              {formatVnd(totalRealisedRevenue)}
             </div>
             <p className="text-[11px] text-emerald-700 flex items-center mt-1">
               <ArrowUpRight className="w-3 h-3 mr-0.5" /> 100% Confirmed and Paid Contracts
@@ -261,7 +262,7 @@ export const RevenueDashboardPage: React.FC = () => {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-bold text-[#091E42]">
-              ${(summary?.annualRecurringRevenue ?? Math.round(totalRealisedRevenue * 0.72)).toLocaleString()}
+              {formatVnd(summary?.annualRecurringRevenue ?? Math.round(totalRealisedRevenue * 0.72))}
             </div>
             <p className="text-[11px] text-[#6B778C] mt-1">Active enterprise annual commitments</p>
           </div>
@@ -277,7 +278,7 @@ export const RevenueDashboardPage: React.FC = () => {
           </div>
           <div className="mt-3">
             <div className="text-3xl font-bold text-[#091E42]">
-              ${bankTransferTotal.toLocaleString()}
+              {formatVnd(bankTransferTotal)}
             </div>
             <p className="text-[11px] text-indigo-700 flex items-center mt-1">
               {bankTransferPercent}% of platform settlements ({bankTransferCount} transfers)
@@ -320,7 +321,7 @@ export const RevenueDashboardPage: React.FC = () => {
                     <div className="flex justify-between text-xs mb-1">
                       <span className="font-semibold text-[#091E42]">{tier}</span>
                       <span className="font-mono text-[#6B778C]">
-                        ${rev.toLocaleString()} USD ({pct}%)
+                        {formatVnd(rev)} ({pct}%)
                       </span>
                     </div>
                     <div className="w-full bg-[#F7F9FC] h-2.5 rounded-full overflow-hidden border border-[#E5EAF0]">
@@ -365,7 +366,7 @@ export const RevenueDashboardPage: React.FC = () => {
                   <div className="flex justify-between text-xs mb-1">
                     <span className="font-semibold text-[#091E42]">{formatLabel}</span>
                     <span className="font-mono text-[#6B778C]">
-                      ${amount.toLocaleString()} USD ({pct}%)
+                      {formatVnd(amount)} ({pct}%)
                     </span>
                   </div>
                   <div className="w-full bg-[#F7F9FC] h-2.5 rounded-full overflow-hidden border border-[#E5EAF0]">
@@ -398,8 +399,8 @@ export const RevenueDashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
             <span className="text-[10px] uppercase font-bold text-slate-500">Total Bank Volume</span>
-            <div className="text-xl font-bold text-[#091E42] mt-1">${bankTransferTotal.toLocaleString()} USD</div>
-            <p className="text-[11px] text-slate-500 mt-0.5 font-mono">≈ 9,950,000,000 VND</p>
+            <div className="text-xl font-bold text-[#091E42] mt-1">{formatVnd(bankTransferTotal)}</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">All amounts are displayed in VND.</p>
           </div>
 
           <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
@@ -480,7 +481,7 @@ export const RevenueDashboardPage: React.FC = () => {
                     {new Date(t.settlementDate).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-4 font-bold text-emerald-700">
-                    ${t.contractValue.toLocaleString()} USD
+                    {formatVnd(t.contractValue)}
                   </td>
                   <td className="py-3 px-4 text-right">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">

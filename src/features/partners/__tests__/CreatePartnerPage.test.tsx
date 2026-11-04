@@ -7,6 +7,7 @@ import { partnersApi } from '../api/partners.api';
 vi.mock('../api/partners.api', () => ({
   partnersApi: {
     createPartner: vi.fn(),
+    getAssignableStaff: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -101,7 +102,7 @@ describe('CreatePartnerPage', () => {
         contactName: 'Elena Rostova',
         contactEmail: 'elena@pacificheritage.com',
         engagementType: 'Dedicated Modernization',
-        assignedStaffName: 'Sarah Jenkins (Sr. Conversion Specialist)',
+        assignedStaffName: '',
       });
     });
 

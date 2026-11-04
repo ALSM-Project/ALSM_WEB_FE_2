@@ -6,3 +6,4 @@ export * from './pages/RevenueDashboardPage';
 export * from './pages/AdminProjectsPage';
 export * from './pages/EngagementTypesPage';
 export * from './components/ImpersonationBanner';
+export * from './components/AuditDetailModal';
