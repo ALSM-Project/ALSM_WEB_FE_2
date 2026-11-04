@@ -712,12 +712,12 @@ export const TemporaryRolesPage: React.FC = () => {
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
-                    <th className="py-3 px-4">Elevated Staff User</th>
-                    <th className="py-3 px-4">Temporary Role</th>
+                    <th className="py-3 px-4">User</th>
+                    <th className="py-3 px-4">Role</th>
                     <th className="py-3 px-4">Granted By</th>
-                    <th className="py-3 px-4">Granted Date</th>
-                    <th className="py-3 px-4">Expires At & Time Remaining</th>
-                    <th className="py-3 px-4">Business Justification</th>
+                    <th className="py-3 px-4">Granted At</th>
+                    <th className="py-3 px-4">Expires At</th>
+                    <th className="py-3 px-4">Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -768,26 +768,30 @@ export const TemporaryRolesPage: React.FC = () => {
                           </td>
                           <td className="py-3.5 px-4">
                             <div className="font-semibold text-[#091E42]">
-                              {new Date(item.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </div>
-                            <div className="mt-0.5">
-                              {countdown.isExpired ? (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-100 text-rose-700">
-                                  <AlertCircle className="w-3 h-3" /> Expired
-                                </span>
-                              ) : countdown.isExpiringSoon ? (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-100 text-amber-800 animate-pulse">
-                                  <Clock className="w-3 h-3" /> {countdown.label} (Expiring Soon)
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                  <Clock className="w-3 h-3" /> {countdown.label}
-                                </span>
-                              )}
+                              {item.expiresAt ? new Date(item.expiresAt).toLocaleDateString() : 'N/A'}{' '}
+                              <span className="text-[10px] text-[#6B778C]">
+                                {item.expiresAt ? new Date(item.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                              </span>
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 text-[#6B778C] max-w-xs truncate" title={item.reason}>
-                            {item.reason}
+                          <td className="py-3.5 px-4">
+                            {item.status === 'REVOKED' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
+                                <XCircle className="w-3 h-3" /> Revoked
+                              </span>
+                            ) : countdown.isExpired || item.status === 'EXPIRED' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                <AlertCircle className="w-3 h-3" /> Expired
+                              </span>
+                            ) : countdown.isExpiringSoon ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 animate-pulse">
+                                <Clock className="w-3 h-3" /> Active ({countdown.label})
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3" /> Active ({countdown.label})
+                              </span>
+                            )}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
