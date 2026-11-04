@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuItemsApi, UpdateMenuItemInput } from '../api/menu-items.api';
 import { BackendNavItem } from '../../navigation/api/navigation.api';
 
-export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
+export const useMenuBuilder = (application: 'WEB_1' | 'WEB_2' | 'WEB_3' = 'WEB_2') => {
   const queryClient = useQueryClient();
 
   const menuTreeQuery = useQuery<BackendNavItem[]>({

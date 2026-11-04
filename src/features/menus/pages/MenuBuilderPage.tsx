@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const MenuBuilderPage: React.FC = () => {
-  const [selectedApp, setSelectedApp] = useState<'WEB_2' | 'WEB_3'>('WEB_2');
+  const [selectedApp, setSelectedApp] = useState<'WEB_1' | 'WEB_2' | 'WEB_3'>('WEB_2');
 
   // Fetch real menu tree from backend API (GET /api/v1/menu-items?application=WEB_2|WEB_3)
   const {
@@ -204,10 +204,11 @@ export const MenuBuilderPage: React.FC = () => {
             <span className="text-xs font-semibold text-[#091E42]">App Target:</span>
             <select
               value={selectedApp}
-              onChange={(e) => setSelectedApp(e.target.value as 'WEB_2' | 'WEB_3')}
+              onChange={(e) => setSelectedApp(e.target.value as 'WEB_1' | 'WEB_2' | 'WEB_3')}
               className="text-xs font-bold text-[#0652CC] bg-transparent outline-none cursor-pointer"
             >
-              <option value="WEB_2">WEB_2 (Internal Staff)</option>
+              <option value="WEB_1">WEB_1 (Modernization PoC)</option>
+              <option value="WEB_2">WEB_2 (Internal Staff & Admin)</option>
               <option value="WEB_3">WEB_3 (Future Enterprise)</option>
             </select>
           </div>
