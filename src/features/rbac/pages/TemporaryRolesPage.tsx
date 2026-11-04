@@ -664,7 +664,7 @@ export const TemporaryRolesPage: React.FC = () => {
             <div className="relative flex-1 min-w-64 max-w-md">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#6B778C]" />
               <Input
-                placeholder="Search active elevations by staff name or email..."
+                placeholder="Search by user name, email, or role name..."
                 value={activeSearch}
                 onChange={(e) => {
                   setActiveSearch(e.target.value);
@@ -736,7 +736,24 @@ export const TemporaryRolesPage: React.FC = () => {
                     <tr>
                       <td colSpan={7} className="py-12 text-center text-[#6B778C]">
                         <Clock className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
-                        No active temporary elevations matching criteria.
+                        {activeRoles.length === 0 ? (
+                          <span>No temporary role elevations recorded in system.</span>
+                        ) : (
+                          <div className="space-y-2">
+                            <p>No temporary roles match your search or filter criteria.</p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActiveSearch('');
+                                setActiveStatusFilter('ALL');
+                                setActivePage(1);
+                              }}
+                              className="text-xs text-[#0652CC] hover:underline font-semibold cursor-pointer"
+                            >
+                              Reset search and filters
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ) : (
@@ -745,8 +762,8 @@ export const TemporaryRolesPage: React.FC = () => {
                       return (
                         <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-[#091E42]">{item.userFullName || item.userEmail}</div>
-                            <div className="text-[11px] text-[#6B778C]">{item.userEmail}</div>
+                            <div className="font-semibold text-[#091E42]">{item.userFullName || item.userEmail || 'Unknown User'}</div>
+                            <div className="text-[11px] text-[#6B778C]">{item.userEmail || 'N/A'}</div>
                           </td>
                           <td className="py-3.5 px-4">
                             <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20 inline-block font-mono">
@@ -759,7 +776,7 @@ export const TemporaryRolesPage: React.FC = () => {
                             )}
                           </td>
                           <td className="py-3.5 px-4 text-[#6B778C] text-[11px]">
-                            {item.grantedBy}
+                            {item.grantedBy || 'System / N/A'}
                           </td>
                           <td className="py-3.5 px-4 text-[#6B778C]">
                             {new Date(item.createdAt).toLocaleDateString()}{' '}
