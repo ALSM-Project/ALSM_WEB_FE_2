@@ -43,6 +43,7 @@ vi.mock('@/features/partners/api/partners.api', () => ({
 vi.mock('../api/temporary-roles.api', () => ({
   temporaryRolesApi: {
     getActiveRoles: vi.fn().mockResolvedValue([]),
+    getTemporaryRoles: vi.fn().mockImplementation(() => temporaryRolesApi.getActiveRoles()),
     getHistory: vi.fn().mockResolvedValue([]),
     getMyRequests: vi.fn().mockResolvedValue([]),
     requestRole: vi.fn(),
@@ -110,7 +111,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    const revokeBtn = screen.getByRole('button', { name: /Revoke/i });
+    const revokeBtn = screen.getByRole('button', { name: /^revoke$/i });
     expect(revokeBtn).toBeInTheDocument();
   });
 
@@ -128,7 +129,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
     });
 
     expect(screen.getAllByText(/Expired/i).length).toBeGreaterThan(0);
-    expect(screen.queryByRole('button', { name: /Revoke/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
   });
 
   it('does NOT render Revoke button for unauthorized staff without roles.temporary.revoke', async () => {
@@ -152,7 +153,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: /Revoke/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^revoke$/i })).not.toBeInTheDocument();
   });
 
   it('opens Revoke modal displaying user details, role and remaining time upon clicking Revoke', async () => {
@@ -168,7 +169,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
 
     expect(screen.getByText(/Revoke Temporary Elevation Immediately/i)).toBeInTheDocument();
     expect(screen.getAllByText(/Alice Developer/i).length).toBeGreaterThan(0);
@@ -188,7 +189,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
     expect(screen.getByText(/Revoke Temporary Elevation Immediately/i)).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
@@ -211,7 +212,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
 
     const submitBtn = screen.getByRole('button', { name: /Confirm Revoke Elevation/i });
     expect(submitBtn).toBeDisabled();
@@ -244,7 +245,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
 
     const reasonInput = screen.getByPlaceholderText(/e\.g\. Work completed early/i);
     fireEvent.change(reasonInput, { target: { value: 'Security incident containment' } });
@@ -280,7 +281,7 @@ describe('UC-93 Revoke Temporary Role Frontend Workflow', () => {
       expect(screen.getByText('Alice Developer')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /Revoke/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^revoke$/i }));
 
     const checkbox = screen.getByRole('checkbox');
     fireEvent.click(checkbox);

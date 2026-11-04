@@ -92,7 +92,16 @@ export const TemporaryRolesPage: React.FC = () => {
       setLoading(true);
       setErrorMsg(null);
       const [actives, history, allRoles, allUsers, projects] = await Promise.all([
-        temporaryRolesApi.getTemporaryRoles().catch(() => []),
+        (async () => {
+          if (typeof temporaryRolesApi.getTemporaryRoles === 'function') {
+            const list = await temporaryRolesApi.getTemporaryRoles();
+            if (Array.isArray(list)) return list;
+          }
+          if (typeof temporaryRolesApi.getActiveRoles === 'function') {
+            return temporaryRolesApi.getActiveRoles();
+          }
+          return [];
+        })(),
         (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
         rbacApi.getRoles().catch(() => [] as RoleDto[]),
         (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
@@ -664,7 +673,7 @@ export const TemporaryRolesPage: React.FC = () => {
             <div className="relative flex-1 min-w-64 max-w-md">
               <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#6B778C]" />
               <Input
-                placeholder="Search by user name, email, or role name..."
+                placeholder="Search active elevations by user name, email, or role name..."
                 value={activeSearch}
                 onChange={(e) => {
                   setActiveSearch(e.target.value);
