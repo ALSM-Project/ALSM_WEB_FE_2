@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/shared/layouts/AppLayout';
 import StaffDashboardPage from '@/features/dashboard/pages/StaffDashboardPage';
 import { MenuBuilderPage } from '@/features/menus';
