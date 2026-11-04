@@ -76,6 +76,12 @@ export function toTemporaryRole(doc: ServerTemporaryRole, now = Date.now()): Tem
 const BASE = '/rbac/temporary-roles';
 
 export const temporaryRolesApi = {
+  /** View temporary roles with optional status filter and search query (UC-92). */
+  getTemporaryRoles: async (params?: { status?: string; search?: string }): Promise<TemporaryRoleDto[]> => {
+    const docs = await apiClient.get<ServerTemporaryRole[]>(BASE, { params });
+    return (Array.isArray(docs) ? docs : []).map((d) => toTemporaryRole(d));
+  },
+
   /** Elevations that are running now. */
   getActiveRoles: async (): Promise<TemporaryRoleDto[]> => {
     const docs = await apiClient.get<ServerTemporaryRole[]>(BASE, { params: { status: 'ACTIVE' } });
