@@ -37,7 +37,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
   // Active Tab Search, Filter & Sort
   const [activeSearch, setActiveSearch] = useState('');
-  const [activeStatusFilter, setActiveStatusFilter] = useState<'ALL' | 'ACTIVE' | 'EXPIRING_SOON' | 'EXPIRED'>('ALL');
+  const [activeStatusFilter, setActiveStatusFilter] = useState<'ALL' | 'ACTIVE' | 'EXPIRED' | 'REVOKED'>('ALL');
   const [activeSortOrder, setActiveSortOrder] = useState<'asc' | 'desc'>('asc');
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 5;
@@ -92,7 +92,7 @@ export const TemporaryRolesPage: React.FC = () => {
       setLoading(true);
       setErrorMsg(null);
       const [actives, history, allRoles, allUsers, projects] = await Promise.all([
-        temporaryRolesApi.getActiveRoles().catch(() => []),
+        temporaryRolesApi.getTemporaryRoles().catch(() => []),
         (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
         rbacApi.getRoles().catch(() => [] as RoleDto[]),
         (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
@@ -438,11 +438,12 @@ export const TemporaryRolesPage: React.FC = () => {
           item.userEmail.toLowerCase().includes(activeSearch.toLowerCase()) ||
           item.role.toLowerCase().includes(activeSearch.toLowerCase());
 
-        const { isExpired, isExpiringSoon } = computeTimeRemaining(item.expiresAt);
+        const { isExpired } = computeTimeRemaining(item.expiresAt);
+        const effectiveStatus = item.status === 'REVOKED' ? 'REVOKED' : (isExpired || item.status === 'EXPIRED') ? 'EXPIRED' : 'ACTIVE';
         let matchesStatus = true;
-        if (activeStatusFilter === 'ACTIVE') matchesStatus = !isExpired && !isExpiringSoon;
-        if (activeStatusFilter === 'EXPIRING_SOON') matchesStatus = isExpiringSoon && !isExpired;
-        if (activeStatusFilter === 'EXPIRED') matchesStatus = isExpired;
+        if (activeStatusFilter === 'ACTIVE') matchesStatus = effectiveStatus === 'ACTIVE';
+        if (activeStatusFilter === 'EXPIRED') matchesStatus = effectiveStatus === 'EXPIRED';
+        if (activeStatusFilter === 'REVOKED') matchesStatus = effectiveStatus === 'REVOKED';
 
         return matchesSearch && matchesStatus;
       })
@@ -676,7 +677,7 @@ export const TemporaryRolesPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-semibold text-[#6B778C]">Status:</span>
               <div className="flex items-center gap-1 bg-[#F4F6F8] p-1 rounded-xl">
-                {(['ALL', 'ACTIVE', 'EXPIRING_SOON', 'EXPIRED'] as const).map((st) => (
+                {(['ALL', 'ACTIVE', 'EXPIRED', 'REVOKED'] as const).map((st) => (
                   <button
                     key={st}
                     onClick={() => {
@@ -689,7 +690,7 @@ export const TemporaryRolesPage: React.FC = () => {
                         : 'text-[#6B778C] hover:text-[#091E42]'
                     }`}
                   >
-                    {st === 'ALL' ? 'All' : st === 'EXPIRING_SOON' ? 'Expiring Soon (<1h)' : st.charAt(0) + st.slice(1).toLowerCase()}
+                    {st === 'ALL' ? 'All' : st.charAt(0) + st.slice(1).toLowerCase()}
                   </button>
                 ))}
               </div>
