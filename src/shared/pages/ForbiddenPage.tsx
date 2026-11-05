@@ -8,7 +8,7 @@ export const ForbiddenPage: React.FC = () => {
 
   return (
     <div className="min-h-[550px] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white border border-[#DFE3E8] rounded-2xl p-8 shadow-sm text-center space-y-4">
+      <div className="max-w-md w-full bg-white border border-[#DCE3EC] rounded-2xl p-8 shadow-sm text-center space-y-4">
         <div className="w-14 h-14 bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl flex items-center justify-center mx-auto">
           <ShieldAlert className="w-7 h-7" />
         </div>
@@ -17,8 +17,8 @@ export const ForbiddenPage: React.FC = () => {
           <span className="font-mono text-xs font-bold text-amber-800 uppercase tracking-wider">
             HTTP 403 — Access Restricted
           </span>
-          <h1 className="text-xl font-bold text-[#172B4D]">Insufficient Privileges</h1>
-          <p className="text-xs text-[#5E6C84]">
+          <h1 className="text-xl font-bold text-[#17263A]">Insufficient Privileges</h1>
+          <p className="text-xs text-[#8491A3]">
             Your current assigned enterprise role lacks the required granular permission to access this administrative module. Contact a Platform Administrator if you require elevated clearance.
           </p>
         </div>
@@ -37,7 +37,7 @@ export const ForbiddenPage: React.FC = () => {
             variant="primary"
             size="sm"
             onClick={() => navigate('/')}
-            className="bg-[#0652CC] hover:bg-[#0543A8] text-white text-xs"
+            className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs"
           >
             <Home className="w-3.5 h-3.5 mr-1.5" />
             <span>Return to Dashboard</span>
