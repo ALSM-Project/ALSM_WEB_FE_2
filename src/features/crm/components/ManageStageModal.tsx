@@ -11,6 +11,7 @@ export interface ManageStageModalProps {
   onClose: () => void;
   onSuccess: (updatedLead: LeadDto) => void;
   onOpenActivation?: () => void;
+  hasProviderVerifiedContract?: boolean;
 }
 
 export const ManageStageModal: React.FC<ManageStageModalProps> = ({
@@ -19,6 +20,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
   onClose,
   onSuccess,
   onOpenActivation,
+  hasProviderVerifiedContract = false,
 }) => {
   const [selectedStage, setSelectedStage] = useState<LeadStage>(
     lead.stage === 'WON' ? 'WON' : lead.stage
@@ -68,8 +70,6 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
       setSubmitting(false);
     }
   };
-
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
 
   return (
     <Modal
@@ -137,8 +137,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                   </span>
                 </div>
                 <p className="text-slate-600 mt-1 leading-relaxed">
-                  Per Section 3.11 requirements, sales representatives cannot manually select "Won". 
-                  Transition to Won requires an executed contract, payment confirmation, and automated customer tenant provisioning.
+                  Sales cannot manually select "Won". The backend allows activation only after a provider-confirmed contract and verified evidence meet the configured business policy.
                 </p>
                 {lead.stage === 'PROPOSAL' && onOpenActivation && (
                   <div className="mt-2">
@@ -151,7 +150,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                       className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold text-xs"
                     >
                       <ArrowRight className="w-3.5 h-3.5" />
-                      {hasSignedContract ? 'Execute Customer Activation Now' : 'Open Activation Checklist & Requirements'}
+                      {hasProviderVerifiedContract ? 'Execute Customer Activation' : 'Review Activation Requirements'}
                     </button>
                   </div>
                 )}
