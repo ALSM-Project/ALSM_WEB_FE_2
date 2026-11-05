@@ -17,10 +17,10 @@ export const Card: React.FC<CardProps> = ({
   const baseStyles = 'bg-white rounded-lg transition-all duration-150';
 
   const variants = {
-    default: 'border border-[#E2E8F0] shadow-xs',
-    outline: 'border border-[#E2E8F0]',
-    flat: 'bg-[#F8FAFC] border border-[#E2E8F0]',
-    interactive: 'border border-[#E2E8F0] shadow-xs hover:border-[#0652CC] hover:shadow-sm cursor-pointer',
+    default: 'border border-[#DCE3EC] shadow-xs',
+    outline: 'border border-[#DCE3EC]',
+    flat: 'bg-[#F4F7FB] border border-[#DCE3EC]',
+    interactive: 'border border-[#DCE3EC] shadow-xs hover:border-[#244A70] hover:shadow-sm cursor-pointer',
   };
 
   const paddings = {
