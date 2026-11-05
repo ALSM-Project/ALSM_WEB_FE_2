@@ -1,7 +1,9 @@
+import axios from 'axios';
 import { apiClient } from '@/services/api/apiClient';
-import { 
-  LeadDto, LeadInteraction, LeadDemo, 
-  LeadQuote, LeadContract, SalesReportsDto, PendingDiscountDto 
+import {
+  LeadDto, LeadInteraction, LeadDemo,
+  LeadQuote, LeadContract, LegalContractRecord, ContractInvitationRecord, SalesReportsDto, PendingDiscountDto,
+  ApprovedContractTemplateVersion,
 } from '../types/crm.types';
 import { crmStore } from '../services/crm-store';
 import type { SalesPipelineDto } from '../types/crm.types';
@@ -15,9 +17,11 @@ export const crmApi = {
   getLeads: async (params?: { stage?: string; search?: string; assignedTo?: string }): Promise<LeadDto[]> => {
     try {
       const data = await apiClient.get<LeadDto[]>('/sales/crm/leads', { params });
-      if (Array.isArray(data) && data.length > 0) return data;
-    } catch {
-      // Fallback to local CRM store
+      if (Array.isArray(data)) return data;
+    } catch (error) {
+      // Don't mask backend validation or authorization errors with fake local leads.
+      if (axios.isAxiosError(error) && error.response) throw error;
+      // Keep the local demo store available when the API server is unreachable.
     }
     return crmStore.getLeads(params);
   },
@@ -26,8 +30,10 @@ export const crmApi = {
     try {
       const data = await apiClient.get<LeadDto>(`/sales/crm/leads/${id}`);
       if (data && data.id) return data;
-    } catch {
-      // Fallback to local CRM store
+    } catch (error) {
+      // A real API response (for example, invalid/non-persisted lead ID) must remain visible.
+      if (axios.isAxiosError(error) && error.response) throw error;
+      // Keep the local demo store available when the API server is unreachable.
     }
     const local = crmStore.getLeadById(id);
     if (!local) throw new Error(`Lead with ID "${id}" not found.`);
@@ -57,6 +63,9 @@ export const crmApi = {
     }
     return crmStore.createLead(data);
   },
+
+  adoptLegacyLead: async (leadId: string): Promise<LeadDto> =>
+    apiClient.post<LeadDto>(`/sales/crm/leads/${encodeURIComponent(leadId)}/adopt`, {}),
 
   updateLeadStage: async (
     id: string,
@@ -191,38 +200,123 @@ export const crmApi = {
       quoteId?: string;
       annualValue: number;
       effectiveDate?: string;
+      approvedTemplateVersionId: string;
     }
   ): Promise<LeadContract> => {
-    const res = await apiClient.post<{ contract: LeadContract }>(
-      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts`,
+    const res = await apiClient.post<LegalContractRecord>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts`,
       data,
       { headers: { 'Idempotency-Key': requestId } },
     );
-    return res.contract;
+    return {
+      id: res.contract.id,
+      contractNumber: res.contract.contractNumber,
+      title: res.version.title,
+      plan: res.version.plan,
+      quoteId: res.version.quoteId,
+      annualValue: res.version.annualValue,
+      status: 'DRAFT',
+      effectiveDate: res.version.effectiveDate,
+      createdAt: res.contract.createdAt,
+      workflowStatus: res.contract.lifecycleStatus,
+      reviewStatus: res.contract.reviewStatus,
+      versionId: res.version.id,
+      documentAvailable: res.documentAvailable,
+      signingAvailable: res.signingAvailable,
+      signingBlockedReason: res.signingBlockedReason,
+      signingReadiness: res.signingReadiness,
+      approvedTemplateVersionId: res.version.approvedTemplateVersionId,
+      approvedTemplateSnapshot: res.version.approvedTemplateSnapshot,
+    };
   },
 
-  sendContractForSignature: async (
+  listLegalContracts: async (leadId: string): Promise<LegalContractRecord[]> =>
+    apiClient.get<LegalContractRecord[]>(`/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts`),
+
+  downloadLegalContractReviewPdf: async (leadId: string, contractId: string): Promise<Blob> =>
+    apiClient.get<Blob>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/review-pdf`,
+      { responseType: 'blob' },
+    ),
+
+  downloadCanonicalContractPdf: async (leadId: string, contractId: string): Promise<Blob> =>
+    apiClient.get<Blob>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/contract-pdf`,
+      { responseType: 'blob' },
+    ),
+
+  listApprovedContractTemplates: async (): Promise<ApprovedContractTemplateVersion[]> =>
+    apiClient.get<ApprovedContractTemplateVersion[]>('/sales/contract-templates/approved'),
+
+  listContractTemplateVersions: async (): Promise<ApprovedContractTemplateVersion[]> =>
+    apiClient.get<ApprovedContractTemplateVersion[]>('/admin/contract-templates'),
+
+  createContractTemplateVersion: async (data: {
+    templateId: string;
+    title: string;
+    locale: 'vi' | 'en' | 'vi-en';
+    sections: Array<{ heading: string; body: string }>;
+  }): Promise<ApprovedContractTemplateVersion> =>
+    apiClient.post<ApprovedContractTemplateVersion>('/admin/contract-templates', data),
+
+  createNextContractTemplateVersion: async (templateId: string, data: {
+    title: string;
+    locale: 'vi' | 'en' | 'vi-en';
+    sections: Array<{ heading: string; body: string }>;
+  }): Promise<ApprovedContractTemplateVersion> =>
+    apiClient.post<ApprovedContractTemplateVersion>(`/admin/contract-templates/${encodeURIComponent(templateId)}/versions`, data),
+
+  approveContractTemplateVersion: async (versionId: string): Promise<ApprovedContractTemplateVersion> =>
+    apiClient.post<ApprovedContractTemplateVersion>(`/admin/contract-template-versions/${encodeURIComponent(versionId)}/approve`, {}),
+
+  rejectContractTemplateVersion: async (versionId: string, reason: string): Promise<ApprovedContractTemplateVersion> =>
+    apiClient.post<ApprovedContractTemplateVersion>(`/admin/contract-template-versions/${encodeURIComponent(versionId)}/reject`, { reason }),
+
+  submitLegalContractForReview: async (leadId: string, contractId: string): Promise<LegalContractRecord> =>
+    apiClient.post<LegalContractRecord>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/submit-review`,
+      {},
+    ),
+
+  reviseLegalContract: async (
     leadId: string,
     contractId: string,
-  ): Promise<{ contract: LeadContract; notificationSent: boolean }> => {
-    const response = await apiClient.post<{ lead: LeadDto; notificationSent: boolean }>(
-      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/send`,
-      {},
-    );
-    const contract = response.lead.contracts?.find((item) => item.id === contractId);
-    if (!contract) throw new Error('The sent contract could not be loaded. Refresh the lead and try again.');
-    return { contract, notificationSent: response.notificationSent };
-  },
+    requestId: string,
+    data: { title: string; plan: string; quoteId?: string; annualValue: number; effectiveDate?: string; approvedTemplateVersionId: string },
+  ): Promise<LegalContractRecord> =>
+    apiClient.post<LegalContractRecord>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/versions`,
+      data,
+      { headers: { 'Idempotency-Key': requestId } },
+    ),
 
-  simulateSignContract: async (leadId: string, contractId: string): Promise<LeadContract> => {
-    const updated = await apiClient.post<LeadDto>(
-      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
+  reviewLegalContract: async (
+    leadId: string,
+    contractId: string,
+    action: 'APPROVE' | 'RETURN' | 'REJECT',
+    reason?: string,
+  ): Promise<LegalContractRecord> =>
+    apiClient.post<LegalContractRecord>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/review`,
+      { action, ...(reason ? { reason } : {}) },
+    ),
+
+  listContractInvitations: async (leadId: string): Promise<ContractInvitationRecord[]> =>
+    apiClient.get<ContractInvitationRecord[]>(`/sales/crm/leads/${encodeURIComponent(leadId)}/contract-invitations`),
+
+  createContractInvitation: async (leadId: string, requestId: string): Promise<ContractInvitationRecord & { message: string }> =>
+    apiClient.post<ContractInvitationRecord & { message: string }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contract-invitations`,
       {},
-    );
-    const contract = updated.contracts?.find((item) => item.id === contractId);
-    if (!contract) throw new Error('The signed contract could not be loaded. Refresh the lead and try again.');
-    return contract;
-  },
+      { headers: { 'Idempotency-Key': requestId } },
+    ),
+
+  resendContractInvitation: async (leadId: string, invitationId: string, requestId: string): Promise<ContractInvitationRecord & { message: string }> =>
+    apiClient.post<ContractInvitationRecord & { message: string }>(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/contract-invitations/${encodeURIComponent(invitationId)}/resend`,
+      {},
+      { headers: { 'Idempotency-Key': requestId } },
+    ),
 
   confirmPayment: async (leadId: string, transactionRef?: string): Promise<LeadDto> => {
     return crmStore.confirmPayment(leadId, transactionRef);
@@ -244,17 +338,6 @@ export const crmApi = {
       adminLinked: boolean;
       replayed: boolean;
     }>(`/sales/crm/leads/${encodeURIComponent(leadId)}/activate`, {});
-  },
-
-  // Legacy compatibility for any code that calls signContract
-  signContract: async (
-    leadId: string,
-    contractId: string
-  ): Promise<LeadDto> => {
-    return apiClient.post<LeadDto>(
-      `/sales/crm/leads/${encodeURIComponent(leadId)}/contracts/${encodeURIComponent(contractId)}/sign`,
-      {},
-    );
   },
 
   getReports: async (filters?: {

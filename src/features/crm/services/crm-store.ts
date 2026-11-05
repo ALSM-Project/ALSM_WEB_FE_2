@@ -1059,40 +1059,6 @@ class CrmStore {
     return newContract;
   }
 
-  sendContractForSignature(leadId: string, contractId: string): LeadContract {
-    const lead = this.leads.find((l) => l.id === leadId);
-    if (!lead) throw new Error(`Lead with ID "${leadId}" not found.`);
-
-    const contract = lead.contracts.find((c) => c.id === contractId);
-    if (!contract) throw new Error(`Contract "${contractId}" not found.`);
-
-    contract.status = 'SENT_FOR_SIGNATURE';
-    contract.docusignEnvelopeId = `DS-ENV-${Math.floor(10000 + Math.random() * 90000)}-${lead.company.substring(0, 4).toUpperCase()}`;
-    lead.updatedAt = new Date().toISOString();
-
-    this.saveToStorage();
-    return contract;
-  }
-
-  simulateSignContract(leadId: string, contractId: string): LeadContract {
-    const lead = this.leads.find((l) => l.id === leadId);
-    if (!lead) throw new Error(`Lead with ID "${leadId}" not found.`);
-
-    const contract = lead.contracts.find((c) => c.id === contractId);
-    if (!contract) throw new Error(`Contract "${contractId}" not found.`);
-
-    contract.status = 'FULLY_SIGNED';
-    contract.signedAt = new Date().toISOString();
-    lead.updatedAt = new Date().toISOString();
-
-    if (lead.provisioning?.checklist) {
-      lead.provisioning.checklist.contractSigned = true;
-    }
-
-    this.saveToStorage();
-    return contract;
-  }
-
   confirmPayment(leadId: string, transactionRef?: string): LeadDto {
     const lead = this.leads.find((l) => l.id === leadId);
     if (!lead) throw new Error(`Lead with ID "${leadId}" not found.`);

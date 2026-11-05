@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Mail, Phone, Calendar, Clock, DollarSign,
+  Mail, Phone, Calendar, Clock, DollarSign, Download,
   FileText, CheckCircle2, AlertCircle, ArrowLeft,
   Video, Check, Award, Lock, Sparkles,
   ExternalLink, History, UserCheck
 } from 'lucide-react';
-import { crmApi, LeadDto, LeadQuote, LeadContract } from '../api/crm.api';
+import { crmApi, LeadDto, LeadQuote, LeadContract, LegalContractRecord, ContractInvitationRecord } from '../api/crm.api';
 import { formatVnd } from '@/shared/utils/currency';
-import { Button, Card } from '@/shared/ui';
+import { Button, Card, Modal } from '@/shared/ui';
 
 // Modals
 import { LogInteractionModal } from '../components/LogInteractionModal';
@@ -21,13 +21,30 @@ import { ManageStageModal } from '../components/ManageStageModal';
 import { CustomerActivationModal } from '../components/CustomerActivationModal';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
+type ContractEmailDeliveryStatus = NonNullable<LegalContractRecord['emailDelivery']>['status'];
+const emailDeliveryNote = (status?: ContractEmailDeliveryStatus) => {
+  if (status === 'QUEUED') return ' Email notification queued; delivery will retry if SMTP is temporarily unavailable.';
+  if (status === 'SENT') return ' Email notification sent.';
+  if (status === 'PARTIAL') return ' Email reached only some recipients; check SMTP and recipient accounts.';
+  if (status === 'NOT_CONFIGURED') return ' In-app notice was saved, but SMTP is not configured.';
+  if (status === 'FAILED') return ' In-app notice was saved, but email delivery failed.';
+  if (status === 'UNCONFIRMED') return ' In-app notice was saved, but email delivery was not confirmed.';
+  if (status === 'NO_VERIFIED_RECIPIENT') return ' In-app notice was saved, but no verified email recipient was available.';
+  return '';
+};
+
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { hasPermission } = useAuth();
   const canCreateContracts = hasPermission('sales.leads.manage');
+  const canReviewContracts = hasPermission('sales.contracts.review');
 
   const [lead, setLead] = useState<LeadDto | null>(null);
+  const [legalContracts, setLegalContracts] = useState<LegalContractRecord[]>([]);
+  const [contractInvitations, setContractInvitations] = useState<ContractInvitationRecord[]>([]);
+  const [invitationBusy, setInvitationBusy] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -44,6 +61,13 @@ export const LeadDetailPage: React.FC = () => {
   // Selected Documents for Preview Modals
   const [previewQuote, setPreviewQuote] = useState<LeadQuote | null>(null);
   const [previewContract, setPreviewContract] = useState<LeadContract | null>(null);
+  const [contractToRevise, setContractToRevise] = useState<LeadContract | null>(null);
+  const [reviewSubmissionId, setReviewSubmissionId] = useState<string | null>(null);
+  const [contractUnderReview, setContractUnderReview] = useState<LegalContractRecord | null>(null);
+  const [reviewReason, setReviewReason] = useState('');
+  const [reviewAction, setReviewAction] = useState<'APPROVE' | 'RETURN' | 'REJECT' | null>(null);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewPdfDownloadId, setReviewPdfDownloadId] = useState<string | null>(null);
   const [initialContractQuoteId, setInitialContractQuoteId] = useState<string | undefined>();
 
   const fetchLead = async () => {
@@ -52,6 +76,10 @@ export const LeadDetailPage: React.FC = () => {
       setLoading(true);
       const data = await crmApi.getLeadById(leadId);
       setLead(data);
+      const records = await crmApi.listLegalContracts(leadId);
+      setLegalContracts(Array.isArray(records) ? records : []);
+      const invitations = await crmApi.listContractInvitations(leadId);
+      setContractInvitations(Array.isArray(invitations) ? invitations : []);
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to fetch lead details');
     } finally {
@@ -62,6 +90,11 @@ export const LeadDetailPage: React.FC = () => {
   useEffect(() => {
     fetchLead();
   }, [leadId]);
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'contracts') setActiveTab('contracts');
+    if (searchParams.get('action') === 'create') setShowCreateContractModal(true);
+  }, [searchParams]);
 
   if (loading) {
     return (
@@ -93,8 +126,137 @@ export const LeadDetailPage: React.FC = () => {
     || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
     || lead.contactName?.trim()
     || `Lead ${lead.id.slice(0, 8)}`;
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
+  const hasLegacySignedStatus = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
+  const providerVerifiedContract = legalContracts.find(({ contract }) =>
+    contract.lifecycleStatus === 'COMPLETED'
+    && contract.providerCompletionStatus === 'CONFIRMED'
+    && contract.archiveStatus === 'VERIFIED'
+    && contract.activationStatus === 'ELIGIBLE',
+  );
   const isWon = lead.stage === 'WON';
+  const customerAccountReady = contractInvitations.some((invitation) => invitation.status === 'CONSUMED');
+  const previewLegalContract = (item: LegalContractRecord): LeadContract => ({
+    id: item.contract.id,
+    contractNumber: item.contract.contractNumber,
+    title: item.version.title,
+    plan: item.version.plan,
+    quoteId: item.version.quoteId,
+    annualValue: item.version.annualValue,
+    status: 'DRAFT',
+    effectiveDate: item.version.effectiveDate,
+    createdAt: item.contract.createdAt,
+    workflowStatus: item.contract.lifecycleStatus,
+    reviewStatus: item.contract.reviewStatus,
+    versionId: item.version.id,
+    documentAvailable: item.documentAvailable,
+    signingAvailable: item.signingAvailable,
+    signingBlockedReason: item.signingBlockedReason,
+    approvedTemplateVersionId: item.version.approvedTemplateVersionId,
+    approvedTemplateSnapshot: item.version.approvedTemplateSnapshot,
+  });
+
+  const submitContractReview = async (contractId: string) => {
+    if (reviewSubmissionId) return;
+    try {
+      setReviewSubmissionId(contractId);
+      setErrorMsg(null);
+      const result = await crmApi.submitLegalContractForReview(lead.id, contractId);
+      await fetchLead();
+      setSuccessMsg(`Contract draft submitted for internal review.${emailDeliveryNote(result.emailDelivery?.status)}`);
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.message || err.message || 'The contract could not be submitted for review.');
+    } finally {
+      setReviewSubmissionId(null);
+    }
+  };
+
+  const downloadReviewPdf = async (contractId: string, contractNumber: string) => {
+    if (!leadId || reviewPdfDownloadId) return;
+    try {
+      setReviewPdfDownloadId(contractId);
+      setErrorMsg(null);
+      const blob = await crmApi.downloadLegalContractReviewPdf(leadId, contractId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `contract-${contractNumber}-review-copy.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.message || err.message || 'The review PDF could not be downloaded.');
+    } finally {
+      setReviewPdfDownloadId(null);
+    }
+  };
+
+  const downloadCanonicalPdf = async (contractId: string, contractNumber: string) => {
+    if (!leadId || reviewPdfDownloadId) return;
+    try {
+      setReviewPdfDownloadId(contractId);
+      setErrorMsg(null);
+      const blob = await crmApi.downloadCanonicalContractPdf(leadId, contractId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `contract-${contractNumber}-unsigned.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.message || err.message || 'The unsigned contract PDF could not be downloaded.');
+    } finally {
+      setReviewPdfDownloadId(null);
+    }
+  };
+
+  const saveContractReview = async () => {
+    if (!contractUnderReview || !reviewAction || reviewSaving || reviewReason.trim().length < 3) return;
+    try {
+      setReviewSaving(true);
+      setErrorMsg(null);
+      const result = await crmApi.reviewLegalContract(
+        lead.id,
+        contractUnderReview.contract.id,
+        reviewAction,
+        reviewReason.trim() || undefined,
+      );
+      setContractUnderReview(null);
+      setReviewAction(null);
+      setReviewReason('');
+      await fetchLead();
+      const outcome = reviewAction === 'APPROVE'
+        ? 'Contract approved for customer review.'
+        : reviewAction === 'RETURN' ? 'Contract returned to Sales with your requested changes.' : 'Contract rejected and recorded in the audit trail.';
+      setSuccessMsg(`${outcome}${emailDeliveryNote(result.emailDelivery?.status)}`);
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.message || err.message || 'The contract review could not be saved.');
+    } finally {
+      setReviewSaving(false);
+    }
+  };
+
+  const sendCustomerInvitation = async (invitation?: ContractInvitationRecord) => {
+    if (invitationBusy) return;
+    try {
+      setInvitationBusy(true);
+      setErrorMsg(null);
+      const result = invitation
+        ? await crmApi.resendContractInvitation(lead.id, invitation.id, crypto.randomUUID())
+        : await crmApi.createContractInvitation(lead.id, crypto.randomUUID());
+      setSuccessMsg(result.message);
+      await fetchLead();
+      setTimeout(() => setSuccessMsg(null), 6000);
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.message || err.message || 'The customer invitation could not be sent.');
+    } finally {
+      setInvitationBusy(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -174,8 +336,10 @@ export const LeadDetailPage: React.FC = () => {
 
           {canCreateContracts && (
             <button
-              onClick={() => { setInitialContractQuoteId(undefined); setShowCreateContractModal(true); }}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
+              onClick={() => { setContractToRevise(null); setInitialContractQuoteId(undefined); setShowCreateContractModal(true); }}
+              disabled={!customerAccountReady}
+              title={customerAccountReady ? 'Create a contract draft' : 'Invite the Lead contact and have them verify their ALSM account first.'}
+              className={`flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold shadow-xs ${customerAccountReady ? 'hover:bg-[#F7F9FC] cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
             >
               <FileText className="w-4 h-4 text-blue-600" />
               Create Contract
@@ -191,12 +355,12 @@ export const LeadDetailPage: React.FC = () => {
 
           <button
             onClick={() => setShowActivationModal(true)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-white rounded-xl text-xs font-semibold shadow-xs cursor-pointer ${
+            disabled={!isWon}
+            title={isWon ? 'View provisioned tenant' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-white rounded-xl text-xs font-semibold shadow-xs ${
               isWon
                 ? 'bg-emerald-600 hover:bg-emerald-700'
-                : hasSignedContract
-                ? 'bg-blue-600 hover:bg-blue-700 ring-2 ring-blue-300'
-                : 'bg-slate-700 hover:bg-slate-800'
+                : 'bg-slate-400 cursor-not-allowed opacity-70'
             }`}
           >
             <Sparkles className="w-4 h-4 text-blue-200" />
@@ -325,7 +489,9 @@ export const LeadDetailPage: React.FC = () => {
               <div className="space-y-1">
                 <div className="text-amber-700 font-medium">In Pipeline ({lead.stage})</div>
                 <div className="text-[11px] text-slate-500">
-                  {hasSignedContract ? 'Contract executed; ready to activate.' : 'Contract signature pending.'}
+                  {hasLegacySignedStatus
+                    ? 'Legacy CRM signature state is unverified; provider evidence is required.'
+                    : 'Provider-confirmed signature and stored evidence are required before activation.'}
                 </div>
               </div>
             )}
@@ -339,7 +505,7 @@ export const LeadDetailPage: React.FC = () => {
           { key: 'activity', label: `Activity Timeline (${lead.interactions?.length || 0})` },
           { key: 'demos', label: `Scheduled Demos (${lead.demos?.length || 0})` },
           { key: 'quotes', label: `Quotes (${lead.quotes?.length || 0})` },
-          { key: 'contracts', label: `Contracts & E-Sign (${lead.contracts?.length || 0})` },
+          { key: 'contracts', label: `Contracts (${(lead.contracts?.length || 0) + legalContracts.length})` },
           { key: 'activation', label: `Customer Activation ${isWon ? '✓' : ''}` },
           { key: 'audit', label: `Audit Log (${lead.stageAudit?.length || 0})` },
         ].map((tab) => (
@@ -504,6 +670,33 @@ export const LeadDetailPage: React.FC = () => {
 
       {/* 4. Contracts Tab */}
       {activeTab === 'contracts' && (
+        <div className="space-y-3">
+        <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-900">Customer ALSM account</h3>
+              <p className="mt-1 text-xs text-slate-600">
+                Invite the Lead contact to create or sign in to an ALSM account and verify the invited email. Contract review is blocked until the customer accepts the invitation.
+              </p>
+              {contractInvitations.length > 0 && (
+                <p className="mt-2 text-xs text-slate-700" aria-live="polite">
+                  Latest invitation: {contractInvitations[0].recipientEmail} · {contractInvitations[0].status} · email {contractInvitations[0].deliveryStatus}
+                </p>
+              )}
+            </div>
+            {contractInvitations.some((item) => item.status === 'CONSUMED') ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-800">Verified ALSM account accepted invitation</span>
+            ) : contractInvitations.some((item) => item.status === 'ACTIVE') ? (
+              <Button variant="outline" size="sm" disabled={invitationBusy || !canCreateContracts} onClick={() => sendCustomerInvitation(contractInvitations.find((item) => item.status === 'ACTIVE'))}>
+                {invitationBusy ? 'Sending…' : 'Resend invitation'}
+              </Button>
+            ) : (
+              <Button variant="primary" size="sm" disabled={invitationBusy || !canCreateContracts} onClick={() => sendCustomerInvitation()}>
+                <Mail className="mr-1 h-3.5 w-3.5" />{invitationBusy ? 'Sending…' : 'Invite customer account'}
+              </Button>
+            )}
+          </div>
+        </Card>
         <Card variant="default" padding="none" className="bg-white border-[#E5EAF0] overflow-hidden">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[#6B778C] text-[11px] uppercase">
@@ -512,54 +705,127 @@ export const LeadDetailPage: React.FC = () => {
                 <th className="py-2.5 px-3">Title & Plan</th>
                 <th className="py-2.5 px-3">Annual Value</th>
                 <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3">DocuSign Envelope</th>
+                <th className="py-2.5 px-3">Legacy provider reference</th>
                 <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
-              {!lead.contracts || lead.contracts.length === 0 ? (
+              {(!lead.contracts || lead.contracts.length === 0) && legalContracts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-[#6B778C]">
-                    No legal contracts created yet. Click "Create Contract" above.
+                    No contract records yet. Create a metadata draft to start internal review.
                   </td>
                 </tr>
               ) : (
-                lead.contracts.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{c.contractNumber}</td>
-                    <td className="py-3 px-3">
-                      <div className="font-semibold text-[#091E42]">{c.title}</div>
-                      <div className="text-[11px] text-[#6B778C]">{c.plan}</div>
-                    </td>
-                    <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                        c.status === 'FULLY_SIGNED' || c.status === 'SIGNED' ? 'bg-emerald-100 text-emerald-800' :
-                        c.status === 'SENT_FOR_SIGNATURE' ? 'bg-blue-100 text-blue-800' :
-                        'bg-slate-100 text-slate-700'
-                      }`}>
-                        {c.status.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="py-3 px-3 font-mono text-[11px] text-[#6B778C]">
-                      {c.docusignEnvelopeId || 'Not dispatched'}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs border-[#E5EAF0] text-[#0652CC] hover:bg-[#F7F9FC]"
-                        onClick={() => setPreviewContract(c)}
-                      >
-                        Preview & E-Sign
-                      </Button>
-                    </td>
-                  </tr>
-                ))
+                <>
+                  {legalContracts.map((item) => {
+                    const contract = previewLegalContract(item);
+                    const canSubmitForReview = item.contract.lifecycleStatus === 'DRAFT' && customerAccountReady;
+                    const canRevise = item.contract.lifecycleStatus === 'CHANGES_REQUESTED';
+                    return (
+                      <tr key={item.contract.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{item.contract.contractNumber}</td>
+                        <td className="py-3 px-3">
+                          <div className="font-semibold text-[#091E42]">{item.version.title}</div>
+                          <div className="text-[11px] text-[#6B778C]">{item.version.plan} · v{item.version.versionNumber}</div>
+                        </td>
+                        <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(item.version.annualValue)}</td>
+                        <td className="py-3 px-3">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">
+                            {item.contract.lifecycleStatus.replace(/_/g, ' ')} · {item.contract.reviewStatus.replace(/_/g, ' ')}
+                          </span>
+                          {item.contract.customerDecision && item.contract.customerDecision !== 'NONE' && (
+                            <div className="mt-1 max-w-xs text-[11px] text-rose-800">
+                              Customer {item.contract.customerDecision === 'DECLINED' ? 'declined' : 'requested changes'}: {item.contract.customerDecisionReason}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-[11px] text-amber-800">
+                          {item.documentAvailable ? 'Final document available' : item.reviewPdfAvailable ? 'Review PDF available; not signed' : 'No downloadable PDF; signing provider unavailable'}
+                          {item.signingReadiness && (
+                            <ul className="mt-1 space-y-0.5 text-[10px]" aria-label="Online signing readiness">
+                              {item.signingReadiness.checks.map((check) => (
+                                <li key={check.code} className={check.status === 'READY' ? 'text-emerald-800' : check.status === 'PENDING' ? 'text-amber-800' : 'text-rose-800'}>
+                                  {check.status === 'READY' ? '✓ ' : check.status === 'PENDING' ? '○ ' : '× '}{check.code.replace(/_/g, ' ').toLowerCase()}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 text-right whitespace-nowrap">
+                          <Button variant="outline" size="sm" className="mr-2 text-xs" onClick={() => setPreviewContract(contract)}>
+                            Review draft
+                          </Button>
+                          {['READY_FOR_SIGNATURE', 'SENT_TO_CUSTOMER', 'CUSTOMER_VIEWED'].includes(item.contract.lifecycleStatus) && item.contract.reviewStatus === 'APPROVED' && (
+                            <>
+                            <Button variant="outline" size="sm" className="mr-2 text-xs" disabled={reviewPdfDownloadId !== null} onClick={() => void downloadCanonicalPdf(item.contract.id, item.contract.contractNumber)}>
+                              <Download className="mr-1 h-3.5 w-3.5" />
+                              {reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download unsigned PDF'}
+                            </Button>
+                            <Button variant="outline" size="sm" className="mr-2 text-xs" disabled={reviewPdfDownloadId !== null} onClick={() => void downloadReviewPdf(item.contract.id, item.contract.contractNumber)}>
+                              <Download className="mr-1 h-3.5 w-3.5" />
+                              {reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download review PDF'}
+                            </Button>
+                            </>
+                          )}
+                          {item.contract.lifecycleStatus === 'DRAFT' && canCreateContracts && !customerAccountReady && (
+                            <span className="mr-2 text-[11px] text-amber-800">Waiting for verified customer account</span>
+                          )}
+                          {canSubmitForReview && canCreateContracts && (
+                            <Button variant="primary" size="sm" className="text-xs" disabled={reviewSubmissionId !== null} onClick={() => submitContractReview(item.contract.id)}>
+                              {reviewSubmissionId === item.contract.id ? 'Submitting…' : 'Submit for review'}
+                            </Button>
+                          )}
+                          {canRevise && canCreateContracts && (
+                            <Button variant="primary" size="sm" className="text-xs" onClick={() => {
+                              setContractToRevise(contract);
+                              setShowCreateContractModal(true);
+                            }}>
+                              Create revised version
+                            </Button>
+                          )}
+                          {item.contract.lifecycleStatus === 'INTERNAL_REVIEW' && canReviewContracts && (
+                            <Button variant="outline" size="sm" className="text-xs" onClick={() => {
+                              setContractUnderReview(item);
+                              setReviewReason('');
+                              setReviewAction(null);
+                            }}>
+                              Review submission
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {(lead.contracts ?? []).map((c) => (
+                    <tr key={`legacy-${c.id}`} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{c.contractNumber}</td>
+                      <td className="py-3 px-3">
+                        <div className="font-semibold text-[#091E42]">{c.title}</div>
+                        <div className="text-[11px] text-[#6B778C]">{c.plan}</div>
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-900">
+                          LEGACY {c.status.replace(/_/g, ' ')} — UNVERIFIED
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-[#6B778C]">
+                        {c.docusignEnvelopeId ? 'Unverified legacy reference' : 'No provider transaction'}
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <Button variant="outline" size="sm" className="text-xs" onClick={() => setPreviewContract(c)}>
+                          Review legacy record
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               )}
             </tbody>
           </table>
         </Card>
+        </div>
       )}
 
       {/* 5. Customer Activation Tab */}
@@ -579,7 +845,9 @@ export const LeadDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => setShowActivationModal(true)}
-              className={isWon ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'}
+              disabled={!isWon}
+              title={isWon ? 'View provisioned tenant' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
+              className={isWon ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
             >
               {isWon ? 'View Provisioned Tenant Details' : 'Launch Customer Activation'}
             </Button>
@@ -594,8 +862,8 @@ export const LeadDetailPage: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600">Contract Countersigned:</span>
-                  <span className={`font-semibold ${hasSignedContract ? 'text-emerald-700' : 'text-amber-700'}`}>
-                    {hasSignedContract ? '✓ Verified' : '✗ Pending Signature'}
+                  <span className={`font-semibold ${hasLegacySignedStatus ? 'text-amber-700' : 'text-slate-600'}`}>
+                    {hasLegacySignedStatus ? 'Unverified legacy state' : 'Provider evidence pending'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -719,6 +987,13 @@ export const LeadDetailPage: React.FC = () => {
           fetchLead();
         }}
         onCreateContractFromQuote={(quote) => {
+          if (!customerAccountReady) {
+            setPreviewQuote(null);
+            setActiveTab('contracts');
+            setErrorMsg('Invite the Lead contact and have them verify and accept the ALSM invitation before creating a contract draft.');
+            return;
+          }
+          setContractToRevise(null);
           setInitialContractQuoteId(quote.id);
           setShowCreateContractModal(true);
         }}
@@ -730,12 +1005,24 @@ export const LeadDetailPage: React.FC = () => {
         leadCompany={leadDisplayName}
         quotes={lead.quotes}
         initialQuoteId={initialContractQuoteId}
-        canCreateContract={canCreateContracts}
-        onClose={() => setShowCreateContractModal(false)}
+        editingContract={contractToRevise}
+        canCreateContract={canCreateContracts && customerAccountReady}
+        onClose={() => {
+          setShowCreateContractModal(false);
+          setContractToRevise(null);
+          if (searchParams.has('action')) {
+            const next = new URLSearchParams(searchParams);
+            next.delete('action');
+            next.delete('tab');
+            setSearchParams(next, { replace: true });
+          }
+        }}
         onSuccess={(contract) => {
           fetchLead();
-          setPreviewContract(contract);
-          setSuccessMsg('Legal contract draft created');
+          if (!contractToRevise) setPreviewContract(contract);
+          setSuccessMsg(contractToRevise
+            ? 'A new contract version was saved. Submit it for internal review when ready.'
+            : 'Contract metadata draft created; it is not an issued or signable document.');
           setTimeout(() => setSuccessMsg(null), 3000);
         }}
       />
@@ -757,9 +1044,54 @@ export const LeadDetailPage: React.FC = () => {
         }}
       />
 
+      {contractUnderReview && (
+        <Modal
+          isOpen
+          maxWidth="xl"
+          title="Internal contract review"
+          onClose={() => { if (!reviewSaving) setContractUnderReview(null); }}
+        >
+          <section>
+            <p className="mt-2 text-sm text-slate-600">
+              {contractUnderReview.contract.contractNumber} · {contractUnderReview.version.title} · v{contractUnderReview.version.versionNumber}
+            </p>
+            <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              {contractUnderReview.version.approvedTemplateVersionId
+                ? 'Review the immutable contract version and its approved Legal template. Approval makes this version available to the linked customer; provider signing remains a separate step.'
+                : 'This version has no approved Legal template and cannot be approved. You may return or reject it with a recorded reason.'}
+            </div>
+            <label htmlFor="contract-review-reason" className="mt-4 block text-sm font-medium text-slate-800">Reason (required for return or rejection)</label>
+            <textarea
+              id="contract-review-reason"
+              value={reviewReason}
+              onChange={(event) => setReviewReason(event.target.value)}
+              minLength={reviewAction === 'APPROVE' ? undefined : 3}
+              maxLength={1000}
+              rows={4}
+              disabled={reviewSaving}
+              className="mt-1 w-full rounded-lg border border-slate-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-describedby="contract-review-reason-help"
+            />
+            <p id="contract-review-reason-help" className="mt-1 text-xs text-slate-500">A return or rejection reason of at least 3 characters is stored in the review audit record. Approval may include an optional note.</p>
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <Button variant="outline" size="sm" disabled={reviewSaving} onClick={() => setContractUnderReview(null)}>Cancel</Button>
+              <Button variant="outline" size="sm" disabled={reviewSaving || reviewReason.trim().length < 3} onClick={() => setReviewAction('RETURN')}>Return for changes</Button>
+              <Button variant="primary" size="sm" disabled={reviewSaving || reviewReason.trim().length < 3} onClick={() => setReviewAction('REJECT')}>Reject contract</Button>
+              <Button variant="primary" size="sm" disabled={reviewSaving || !contractUnderReview.version.approvedTemplateVersionId} onClick={() => setReviewAction('APPROVE')}>Approve for customer</Button>
+              {reviewAction && (
+                <Button variant="primary" size="sm" disabled={reviewSaving || (reviewAction !== 'APPROVE' && reviewReason.trim().length < 3)} onClick={saveContractReview}>
+                  {reviewSaving ? 'Saving review…' : `Confirm ${reviewAction === 'APPROVE' ? 'approval' : reviewAction === 'RETURN' ? 'return' : 'rejection'}`}
+                </Button>
+              )}
+            </div>
+          </section>
+        </Modal>
+      )}
+
       <ManageStageModal
         isOpen={showManageStageModal}
         lead={lead}
+        hasProviderVerifiedContract={Boolean(providerVerifiedContract)}
         onClose={() => setShowManageStageModal(false)}
         onSuccess={(updated) => {
           setLead(updated);
@@ -774,6 +1106,10 @@ export const LeadDetailPage: React.FC = () => {
       <CustomerActivationModal
         isOpen={showActivationModal}
         lead={lead}
+        providerVerifiedContract={providerVerifiedContract ? {
+          contractNumber: providerVerifiedContract.contract.contractNumber,
+          title: providerVerifiedContract.version.title,
+        } : undefined}
         canActivate={canCreateContracts}
         onClose={() => setShowActivationModal(false)}
         onSuccess={(updated) => {

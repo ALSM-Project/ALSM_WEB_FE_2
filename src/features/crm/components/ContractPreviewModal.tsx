@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { AlertTriangle, FileCheck2, Printer } from 'lucide-react';
 import { Button, Modal } from '@/shared/ui';
-import { 
-  FileCheck2, CheckCircle2, Send, 
-  Printer, ArrowRight, Stamp 
-} from 'lucide-react';
-import { LeadContract } from '../types/crm.types';
-import { crmApi } from '../api/crm.api';
 import { formatVnd } from '@/shared/utils/currency';
+import { LeadContract } from '../types/crm.types';
 
 export interface ContractPreviewModalProps {
   isOpen: boolean;
@@ -17,240 +13,90 @@ export interface ContractPreviewModalProps {
   contract: LeadContract | null;
   onClose: () => void;
   onContractUpdated?: (contract: LeadContract) => void;
+  /** Retained for caller compatibility; activation must happen only after the backend evidence gate passes. */
   onProceedToActivation?: () => void;
 }
 
 export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
   isOpen,
-  leadId,
   leadCompany,
   leadContact,
   leadEmail,
   contract,
   onClose,
-  onContractUpdated,
-  onProceedToActivation,
 }) => {
-  const [acting, setActing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
   if (!contract) return null;
 
-  const handleSendForSignature = async () => {
-    try {
-      setActing(true);
-      const result = await crmApi.sendContractForSignature(leadId, contract.id);
-      const updated = result.contract;
-      setSuccessMessage(result.notificationSent
-        ? 'Contract sent for electronic signature. The customer was notified in their ALSM account.'
-        : 'Contract sent, but no active ALSM account matches the contact email, so no in-app notification was delivered.');
-      onContractUpdated?.(updated);
-      setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: any) {
-      alert(err.message || 'Failed to dispatch contract.');
-    } finally {
-      setActing(false);
-    }
-  };
-
-  const handleSimulateSign = async () => {
-    try {
-      setActing(true);
-      const updated = await crmApi.simulateSignContract(leadId, contract.id);
-      setSuccessMessage('Contract successfully countersigned! Prerequisites for customer activation are fulfilled.');
-      onContractUpdated?.(updated);
-      setTimeout(() => setSuccessMessage(null), 4000);
-    } catch (err: any) {
-      alert(err.message || 'Failed to simulate signature.');
-    } finally {
-      setActing(false);
-    }
-  };
+  const legacySignatureState = contract.status === 'SIGNED'
+    || contract.status === 'FULLY_SIGNED'
+    || contract.status === 'SENT_FOR_SIGNATURE';
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={`Legal Contract: ${contract.contractNumber}`}
-    >
-      <div className="space-y-4 text-xs">
-        {successMessage && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-800 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="font-medium">{successMessage}</span>
-          </div>
-        )}
-
-        {/* Contract Meta Banner */}
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
+    <Modal isOpen={isOpen} onClose={onClose} title={`Contract draft: ${contract.contractNumber}`}>
+      <div className="space-y-4 text-sm">
+        <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Master Agreement</span>
-              <h3 className="text-sm font-bold text-[#091E42] flex items-center gap-2">
-                <FileCheck2 className="w-4 h-4 text-emerald-600" />
-                {contract.title}
-              </h3>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide ${
-                contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                contract.status === 'SENT_FOR_SIGNATURE' ? 'bg-blue-100 text-blue-800 border border-blue-300' :
-                contract.status === 'PARTIALLY_SIGNED' ? 'bg-amber-100 text-amber-800 border border-amber-300' :
-                'bg-slate-200 text-slate-700'
-              }`}>
-                {contract.status.replace(/_/g, ' ')}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-slate-700">
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Contract #</p>
-              <p className="font-mono font-semibold text-slate-900 mt-0.5">{contract.contractNumber}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Annual Value</p>
-              <p className="font-bold text-blue-600 mt-0.5">{formatVnd(contract.annualValue)}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Effective Date</p>
-              <p className="font-medium mt-0.5">{contract.effectiveDate || 'Upon countersignature'}</p>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase font-bold text-slate-400">Signed Date</p>
-              <p className="font-medium mt-0.5">
-                {contract.signedAt ? new Date(contract.signedAt).toLocaleDateString() : 'Pending'}
+              <p className="font-semibold">
+                {legacySignatureState ? 'Legacy signature status is unverified' : contract.workflowStatus ? `${contract.workflowStatus.replace(/_/g, ' ')} — metadata preview only` : 'Draft preview only'}
+              </p>
+              <p className="mt-1 text-sm">
+                {legacySignatureState
+                  ? 'This older CRM status has no verified signing-provider evidence. It is not proof of signature and cannot activate a customer.'
+                  : 'This is a text preview of the approved template snapshot. It is not a canonical PDF and has not been sent to a signing provider or signed.'}
               </p>
             </div>
           </div>
+        </div>
 
-          {contract.docusignEnvelopeId && (
-            <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[11px]">
-              <span className="text-slate-500">DocuSign Simulated Envelope ID:</span>
-              <span className="font-mono text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
-                {contract.docusignEnvelopeId}
-              </span>
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="mb-3 flex items-start justify-between gap-3 border-b border-slate-200 pb-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Contract record</p>
+              <h3 className="mt-1 flex items-center gap-2 font-semibold text-slate-900">
+                <FileCheck2 className="h-4 w-4 text-slate-600" />
+                {contract.title}
+              </h3>
             </div>
+            <span className="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700">
+              {(contract.workflowStatus || contract.status).replace(/_/g, ' ')}
+            </span>
+          </div>
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div><dt className="text-xs text-slate-500">Contract #</dt><dd className="mt-1 font-mono font-medium">{contract.contractNumber}</dd></div>
+            <div><dt className="text-xs text-slate-500">Annual value</dt><dd className="mt-1 font-semibold text-slate-900">{formatVnd(contract.annualValue)}</dd></div>
+            <div><dt className="text-xs text-slate-500">Effective date</dt><dd className="mt-1">{contract.effectiveDate || 'Not set'}</dd></div>
+            <div><dt className="text-xs text-slate-500">Customer signature</dt><dd className="mt-1">Not provider-confirmed</dd></div>
+          </dl>
+        </section>
+
+        <section className="max-h-96 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-white p-4">
+          <h4 className="font-semibold text-slate-900">Contract terms · version {contract.approvedTemplateSnapshot ? `v${contract.approvedTemplateSnapshot.templateVersionNumber}` : 'not available'}</h4>
+          <p><span className="font-medium">Provider:</span> ALSM Technologies</p>
+          <p><span className="font-medium">Customer:</span> {leadCompany}, represented by {leadContact} ({leadEmail})</p>
+          <p><span className="font-medium">Service plan:</span> {contract.plan}</p>
+          {contract.approvedTemplateSnapshot ? (
+            <>
+              <p className="text-xs text-slate-500">{contract.approvedTemplateSnapshot.title} · {contract.approvedTemplateSnapshot.locale.toUpperCase()} · template SHA-256 {contract.approvedTemplateSnapshot.contentDigest}</p>
+              {contract.approvedTemplateSnapshot.sections.map((section, index) => (
+                <article key={`${index}-${section.heading}`} className="space-y-1 border-t border-slate-100 pt-3">
+                  <h5 className="font-semibold text-slate-900">{index + 1}. {section.heading}</h5>
+                  <p className="whitespace-pre-wrap text-slate-700">{section.body}</p>
+                </article>
+              ))}
+            </>
+          ) : (
+            <p className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">The immutable legal template snapshot is unavailable. Do not submit this record for signing.</p>
           )}
-        </div>
+          <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">This preview is not a canonical PDF or signature evidence. Signer authority, provider evidence, and the private final-document archive are not yet configured.</p>
+        </section>
 
-        {/* Contract Legal Terms Document Box */}
-        <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="bg-slate-100 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
-            <span className="font-semibold text-slate-700 text-xs">Contract Terms & SLA Schedule</span>
-            <span className="text-[11px] text-slate-500">Jurisdiction: Standard Commercial Law</span>
-          </div>
-
-          <div className="p-4 space-y-3 font-serif text-slate-800 leading-relaxed text-xs max-h-56 overflow-y-auto bg-white">
-            <p className="font-sans font-bold text-slate-900">1. PARTIES AND PURPOSE</p>
-            <p>
-              This Master Services Agreement ("Agreement") is entered into between <strong>ALSM Technologies Corp.</strong> ("Provider") 
-              and <strong>{leadCompany}</strong> ("Client"), represented by {leadContact} ({leadEmail}).
-            </p>
-
-            <p className="font-sans font-bold text-slate-900 mt-2">2. SERVICES AND SCOPE</p>
-            <p>
-              Provider shall deliver automated COBOL-to-Modern-Architecture migration services under the <strong>{contract.plan}</strong> scope,
-              encompassing AST AST-driven parsing, business logic preservation, and target runtime execution in accordance with agreed specifications.
-            </p>
-
-            <p className="font-sans font-bold text-slate-900 mt-2">3. COMMERCIAL CONSIDERATION & PAYMENT</p>
-            <p>
-              Client agrees to pay the contract total of {formatVnd(contract.annualValue)} in accordance with standard Net-30 enterprise invoicing
-              or authorized wire transfer before enterprise tenant activation.
-            </p>
-
-            <p className="font-sans font-bold text-slate-900 mt-2">4. SERVICE LEVEL AGREEMENT (SLA)</p>
-            <p>
-              Provider guarantees 99.9% uptime for the Web 3 cloud runtime and modern conversion execution pipeline, with priority enterprise support resolution within 4 hours.
-            </p>
-
-            {(contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED') && (
-              <div className="mt-4 pt-3 border-t border-dashed border-emerald-400 bg-emerald-50/50 p-3 rounded-lg font-sans">
-                <div className="flex items-center gap-2 text-emerald-800 font-bold mb-1">
-                  <Stamp className="w-4 h-4 text-emerald-600" />
-                  Legally Executed Digital Signature
-                </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-                  <div>
-                    <p className="text-slate-400">Signed on behalf of Client:</p>
-                    <p className="font-semibold text-slate-800">{leadContact} ({leadEmail})</p>
-                    <p className="font-mono text-[10px] text-slate-500">Hash: SHA256:{contract.id.substring(0, 16)}...</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Signed on behalf of Provider:</p>
-                    <p className="font-semibold text-slate-800">ALSM Corporate Legal Officer</p>
-                    <p className="font-mono text-[10px] text-slate-500">Timestamp: {contract.signedAt ? new Date(contract.signedAt).toLocaleString() : ''}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Modal Actions */}
-        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200">
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-              className="text-slate-600"
-            >
-              <Printer className="w-3.5 h-3.5 mr-1" />
-              Print Contract
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {contract.status === 'DRAFT' && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleSendForSignature}
-                disabled={acting}
-              >
-                <Send className="w-3.5 h-3.5 mr-1 text-blue-600" />
-                Simulate Send for Signature
-              </Button>
-            )}
-
-            {contract.status === 'SENT_FOR_SIGNATURE' && (
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={handleSimulateSign}
-                disabled={acting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                <Stamp className="w-3.5 h-3.5 mr-1" />
-                Simulate Customer Signature
-              </Button>
-            )}
-
-            {(contract.status === 'FULLY_SIGNED' || contract.status === 'SIGNED') && onProceedToActivation && (
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  onProceedToActivation();
-                  onClose();
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white shadow"
-              >
-                Launch Customer Activation
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            )}
-
-            <Button type="button" variant="outline" size="sm" onClick={onClose}>
-              Close
-            </Button>
-          </div>
+        <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
+          <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
+            <Printer className="mr-1 h-3.5 w-3.5" /> Print draft preview
+          </Button>
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>Close</Button>
         </div>
       </div>
     </Modal>

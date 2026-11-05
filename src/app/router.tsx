@@ -19,6 +19,8 @@ import {
   SalesReportsPage,
   DiscountApprovalPage,
 } from '@/features/crm';
+import { ContractTemplateAdminPage } from '@/features/crm/pages/ContractTemplateAdminPage';
+import { ContractLaunchPage } from '@/features/crm/pages/ContractLaunchPage';
 import {
   OrganizationsPage,
   OrganizationDetailPage,
@@ -88,6 +90,14 @@ export const router = createBrowserRouter([
             <RolesPage />
           </PermissionGuard>
         ) 
+      },
+      {
+        path: '/admin/contract-templates',
+        element: (
+          <PermissionGuard permission="sales.contract-templates.manage">
+            <ContractTemplateAdminPage />
+          </PermissionGuard>
+        ),
       },
       { 
         path: '/admin/users', 
@@ -179,6 +189,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="sales.leads.view">
             <LeadsListPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/sales/contracts',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <ContractLaunchPage />
           </PermissionGuard>
         ),
       },
@@ -309,6 +327,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="organizations.view" platformAdminOnly>
             <OrganizationsPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/organisations/teams/manage',
+        element: (
+          <PermissionGuard permission="sales.leads.view">
+            <TeamPerformancePage />
           </PermissionGuard>
         ),
       },
