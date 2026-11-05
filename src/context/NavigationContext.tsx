@@ -5,6 +5,7 @@ import { resolveNavigationContext, BreadcrumbNode } from '@/shared/navigation/br
 import { useNavigationQuery } from '@/features/navigation/hooks/useNavigationQuery';
 import { BackendNavItem } from '@/features/navigation/api/navigation.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { canUseSupport } from '@/features/support/state/supportAccess';
 
 export interface NavigationContextType {
   sidebarNav: MenuItem[];
@@ -212,7 +213,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
       mapped.push(supportGroup);
     }
-    const hasOrgAccess = supportGroup.children?.some((c) => c.path === '/admin/organizations');
+    // The Support directory is independent from the Platform Admin Organisation directory.
+    supportGroup.children = supportGroup.children?.map((child) =>
+      child.path === '/admin/organizations' ? { ...child, path: '/support', permissions: ['organizations.impersonate'] } : child
+    );
+    const hasOrgAccess = supportGroup.children?.some((c) => c.path === '/support');
     if (!hasOrgAccess) {
       supportGroup.children = [
         ...(supportGroup.children || []),
@@ -220,7 +225,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           id: 'web2_support_org_access',
           label: 'Organisation Access',
           icon: 'Building2',
-          path: '/admin/organizations',
+          path: '/support',
           order: 1,
           isVisible: true,
           permissions: ['organizations.impersonate'],
@@ -412,6 +417,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     // Permission filtering & empty parent group pruning
     const isPermitted = (item: MenuItem): boolean => {
+      if (item.path === '/support') return canUseSupport(user);
       if (!user) return true; // If user profile is not yet loaded, avoid blanking during initial load
       if (user.isPlatformAdmin) return true;
       if (!item.permissions || item.permissions.length === 0) return true;

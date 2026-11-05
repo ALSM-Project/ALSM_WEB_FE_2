@@ -12,6 +12,11 @@ export interface ApiErrorResponse {
   message: string;
 }
 
+// Audited Support reads are activities. Authentication recovery must not replay them.
+export interface ApiRequestConfig extends AxiosRequestConfig {
+  skipAuthReplay?: boolean;
+}
+
 class ApiClient {
   private instance: AxiosInstance;
   private onAuthFailure?: () => void;
@@ -42,7 +47,7 @@ class ApiClient {
         const status = error.response?.status;
         const message = error.response?.data?.message || 'An unexpected error occurred';
 
-        if (status === 401 && !originalRequest?._retry && !originalRequest?.url?.includes('/auth/refresh') && !tokenStore.requiresPasswordChange()) {
+        if (status === 401 && !originalRequest?.skipAuthReplay && !originalRequest?._retry && !originalRequest?.url?.includes('/auth/refresh') && !tokenStore.requiresPasswordChange()) {
           if (originalRequest) {
             originalRequest._retry = true;
           }
@@ -105,12 +110,12 @@ class ApiClient {
     this.onAccessDenied = handler;
   }
 
-  public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  public async get<T>(url: string, config?: ApiRequestConfig): Promise<T> {
     const res = await this.instance.get(url, config);
     return res as unknown as T;
   }
 
-  public async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  public async post<T>(url: string, data?: any, config?: ApiRequestConfig): Promise<T> {
     const res = await this.instance.post(url, data, config);
     return res as unknown as T;
   }
