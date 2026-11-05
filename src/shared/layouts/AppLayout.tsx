@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Bell, Search, ChevronDown, X, Menu } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useNavigation } from '@/hooks/useNavigation';
 import { authApi } from '@/features/auth/api/auth.api';
+import { notificationsApi, type UserNotification } from '@/features/notifications/api/notifications.api';
 
 import { ImpersonationBanner } from '@/features/admin/components/ImpersonationBanner';
 import { SupportViewProvider } from '@/features/admin/context/SupportViewContext';
@@ -27,7 +28,31 @@ export const AppLayout: React.FC = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const loadNotifications = async () => {
+    try {
+      const result = await notificationsApi.list();
+      setNotifications(result.items);
+      setUnreadCount(result.unreadCount);
+      setNotificationsError(null);
+    } catch {
+      setNotificationsError('Could not load notifications. Try again.');
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    void loadNotifications();
+    const interval = window.setInterval(() => void loadNotifications(), 30000);
+    return () => window.clearInterval(interval);
+  }, [user?.id]);
 
   // Detect OS for shortcut badge text
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.userAgent || '');
@@ -57,6 +82,32 @@ export const AppLayout: React.FC = () => {
       window.location.href = `${loginUrl}/login`;
     } catch {
       window.alert('Sign out could not be confirmed. Please try Sign Out again.');
+    }
+  };
+
+  const handleNotificationClick = async (notification: UserNotification) => {
+    if (!notification.isRead) {
+      try {
+        await notificationsApi.markRead(notification.id);
+        setNotifications((current) => current.map((item) => item.id === notification.id ? { ...item, isRead: true } : item));
+        setUnreadCount((count) => Math.max(0, count - 1));
+      } catch {
+        setNotificationsError('Could not mark this notification as read.');
+        return;
+      }
+    }
+    setNotificationsOpen(false);
+    if (notification.link?.startsWith('/') && !notification.link.startsWith('//')) navigate(notification.link);
+  };
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await notificationsApi.markAllRead();
+      setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+      setUnreadCount(0);
+      setNotificationsError(null);
+    } catch {
+      setNotificationsError('Could not mark notifications as read. Try again.');
     }
   };
 
@@ -143,15 +194,55 @@ export const AppLayout: React.FC = () => {
               </button>
 
               {/* Notifications Bell */}
-              <button
-                type="button"
-                className="p-1.5 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors relative cursor-pointer"
-                aria-label="Notifications"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-                <span className="absolute 1 top-1 right-1 w-2 h-2 rounded-full bg-[#0652CC] ring-2 ring-white"></span>
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const opening = !notificationsOpen;
+                    setNotificationsOpen(opening);
+                    if (opening) {
+                      setNotificationsLoading(true);
+                      void loadNotifications().finally(() => setNotificationsLoading(false));
+                    }
+                  }}
+                  className="p-1.5 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors relative cursor-pointer"
+                  aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ''}`}
+                  aria-expanded={notificationsOpen}
+                  aria-haspopup="dialog"
+                  title="Notifications"
+                >
+                  <Bell className="w-4 h-4" />
+                  {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#0652CC] text-white text-[9px] leading-4 font-bold text-center ring-2 ring-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}
+                </button>
+                {notificationsOpen && (
+                  <div role="dialog" aria-label="Notifications" className="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 z-50 bg-white border border-[#E2E8F0] rounded-xl shadow-xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[#E2E8F0] flex items-center justify-between gap-3">
+                      <div>
+                        <h2 className="text-sm font-semibold text-[#0F172A]">Notifications</h2>
+                        <p className="text-xs text-[#64748B]">{unreadCount} unread</p>
+                      </div>
+                      {unreadCount > 0 && <button type="button" onClick={() => void handleMarkAllNotificationsRead()} className="text-xs font-medium text-[#0652CC] hover:underline">Mark all read</button>}
+                    </div>
+                    {notificationsError && <p role="alert" className="px-4 py-2 text-xs text-rose-700 bg-rose-50">{notificationsError}</p>}
+                    <div className="max-h-[min(65vh,24rem)] overflow-y-auto">
+                      {notificationsLoading ? <p className="px-4 py-8 text-sm text-center text-[#64748B]">Loading notifications…</p>
+                        : notifications.length === 0 ? <p className="px-4 py-8 text-sm text-center text-[#64748B]">You have no notifications yet.</p>
+                          : notifications.map((notification) => (
+                            <button key={notification.id} type="button" onClick={() => void handleNotificationClick(notification)} className={`w-full text-left px-4 py-3 border-b border-[#F1F5F9] hover:bg-[#F8FAFC] ${notification.isRead ? '' : 'bg-blue-50/50'}`}>
+                              <span className="flex items-start gap-2">
+                                {!notification.isRead && <span className="mt-1.5 w-2 h-2 rounded-full bg-[#0652CC] shrink-0" aria-label="Unread" />}
+                                <span className="min-w-0">
+                                  <span className="block text-sm font-semibold text-[#0F172A]">{notification.title}</span>
+                                  <span className="mt-1 block text-xs leading-5 text-[#475569]">{notification.message}</span>
+                                  <time className="mt-1 block text-[10px] text-[#94A3B8]" dateTime={notification.createdAt}>{new Date(notification.createdAt).toLocaleString()}</time>
+                                </span>
+                              </span>
+                            </button>
+                          ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* User Profile Avatar & Dropdown */}
               <div className="relative">

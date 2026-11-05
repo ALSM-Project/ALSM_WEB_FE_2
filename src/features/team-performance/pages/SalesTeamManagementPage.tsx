@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { conversionError } from '@/features/conversions/services/conversion-queue.service';
 import { Button, Card, PageHeader } from '@/shared/ui';
-import { teamPerformanceService, type TeamOrganizationMember } from '../services/team-performance.service';
+import { teamPerformanceService, type SalesTeamMemberCandidate, type TeamOrganizationMember } from '../services/team-performance.service';
 
 type Mode = 'existing' | 'create';
 
@@ -19,6 +19,7 @@ export default function SalesTeamManagementPage() {
   const [mode, setMode] = useState<Mode>('existing');
   const [teamId, setTeamId] = useState('');
   const [newMemberIds, setNewMemberIds] = useState<string[]>([]);
+  const [memberSearch, setMemberSearch] = useState('');
   const [teamName, setTeamName] = useState('');
   const [managerId, setManagerId] = useState('');
   const [creationId, setCreationId] = useState(newCreationId);
@@ -39,6 +40,15 @@ export default function SalesTeamManagementPage() {
   });
   const memberOptions = members.data ?? [];
   const managerCandidates = memberOptions.filter((member) => member.organizationRole !== 'VIEWER');
+  const normalizedMemberSearch = memberSearch.trim();
+  const candidates = useQuery({
+    queryKey: ['sales-team-admin-member-candidates', user?.id, normalizedMemberSearch],
+    queryFn: () => teamPerformanceService.searchMemberCandidates(normalizedMemberSearch),
+    enabled: canManage && normalizedMemberSearch.length >= 2,
+    retry: false,
+  });
+  const organizationMemberIds = new Set(memberOptions.map((member) => member.id));
+  const pendingOrganizationMemberCount = newMemberIds.filter((id) => !organizationMemberIds.has(id)).length;
 
   useEffect(() => {
     if (!managerId && managerCandidates.length) {
@@ -63,28 +73,53 @@ export default function SalesTeamManagementPage() {
       if (mode === 'existing') {
         if (!currentTeam) throw new Error('Load the selected Sales Team again before saving.');
         if (!newMemberIds.length) throw new Error('Select at least one person to add.');
-        return teamPerformanceService.updateTeam(currentTeam.id, {
-          name: currentTeam.name,
-          kind: 'SALES',
-          memberIds: Array.from(new Set([...currentTeam.memberIds, ...newMemberIds])),
-          managerIds: currentTeam.managerIds,
-          projectAssignments: currentTeam.projectAssignments,
-          expectedRevision: currentTeam.revision,
-        }, currentTeam.organizationId);
+        if (pendingOrganizationMemberCount) {
+          await teamPerformanceService.addExistingSalesMembers(
+            newMemberIds.filter((id) => !organizationMemberIds.has(id)),
+            currentTeam.organizationId,
+          );
+        }
+        try {
+          return await teamPerformanceService.updateTeam(currentTeam.id, {
+            name: currentTeam.name,
+            kind: 'SALES',
+            memberIds: Array.from(new Set([...currentTeam.memberIds, ...newMemberIds])),
+            managerIds: currentTeam.managerIds,
+            projectAssignments: currentTeam.projectAssignments,
+            expectedRevision: currentTeam.revision,
+          }, currentTeam.organizationId);
+        } catch (error) {
+          if (pendingOrganizationMemberCount) {
+            throw new Error(`The account was added to the organization, but the team update failed. Retry the team update. ${conversionError(error)}`);
+          }
+          throw error;
+        }
       }
 
       const normalizedName = teamName.trim();
       if (!normalizedName) throw new Error('Enter a team name.');
       if (!managerId) throw new Error('Select a team manager.');
-      return teamPerformanceService.createTeam({
-        creationId,
-        name: normalizedName,
-        kind: 'SALES',
-        memberIds: Array.from(new Set([...newMemberIds, managerId])),
-        managerIds: [managerId],
-        projectAssignments: [],
-        expectedRevision: 0,
-      });
+      if (pendingOrganizationMemberCount) {
+        await teamPerformanceService.addExistingSalesMembers(
+          newMemberIds.filter((id) => !organizationMemberIds.has(id)),
+        );
+      }
+      try {
+        return await teamPerformanceService.createTeam({
+          creationId,
+          name: normalizedName,
+          kind: 'SALES',
+          memberIds: Array.from(new Set([...newMemberIds, managerId])),
+          managerIds: [managerId],
+          projectAssignments: [],
+          expectedRevision: 0,
+        });
+      } catch (error) {
+        if (pendingOrganizationMemberCount) {
+          throw new Error(`The account was added to the organization, but team creation failed. Retry team creation. ${conversionError(error)}`);
+        }
+        throw error;
+      }
     },
     onSuccess: async (savedTeam) => {
       setSuccessMessage(mode === 'existing'
@@ -99,6 +134,8 @@ export default function SalesTeamManagementPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['sales-team-admin-list', user?.id] }),
         queryClient.invalidateQueries({ queryKey: ['sales-team-administration', user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ['sales-team-admin-members', user?.id] }),
+        queryClient.invalidateQueries({ queryKey: ['sales-team-admin-member-candidates', user?.id] }),
         queryClient.invalidateQueries({ queryKey: ['managed-report-teams', user?.id, undefined, 'SALES'] }),
       ]);
     },
@@ -108,6 +145,7 @@ export default function SalesTeamManagementPage() {
     setMode(nextMode);
     setTeamId('');
     setNewMemberIds([]);
+    setMemberSearch('');
     setCreationId(newCreationId());
     setSuccessMessage('');
     save.reset();
@@ -172,6 +210,15 @@ export default function SalesTeamManagementPage() {
           {currentTeam && <>
             <p className="text-sm text-slate-600">Current members: {currentTeam.memberIds.length}. Existing members will be kept.</p>
             <MemberChoices members={selectableMembers} selectedIds={newMemberIds} onToggle={toggleMember} emptyMessage="All active accounts are already members or managers of this team." />
+            <ExistingSalesAccountSearch
+              query={memberSearch}
+              onQueryChange={setMemberSearch}
+              candidates={candidates.data ?? []}
+              isLoading={candidates.isFetching}
+              isError={candidates.isError}
+              selectedIds={newMemberIds}
+              onToggle={toggleMember}
+            />
           </>}
         </>}
 
@@ -187,9 +234,21 @@ export default function SalesTeamManagementPage() {
           </label>
           <p className="text-sm text-slate-600">The selected manager is automatically included as a team member.</p>
           <MemberChoices members={memberOptions.filter((member) => member.id !== managerId)} selectedIds={newMemberIds} onToggle={toggleMember} emptyMessage="Choose a team manager above; they will be included automatically." />
+          <ExistingSalesAccountSearch
+            query={memberSearch}
+            onQueryChange={setMemberSearch}
+            candidates={candidates.data ?? []}
+            isLoading={candidates.isFetching}
+            isError={candidates.isError}
+            selectedIds={newMemberIds}
+            onToggle={toggleMember}
+          />
         </>}
 
-        {save.isError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">Could not save Sales Team: {conversionError(save.error)}. Saving requires an Owner/Admin account with users.manage, and every selected person must be an active member of this organization.</p>}
+        {pendingOrganizationMemberCount > 0 && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          Saving will add {pendingOrganizationMemberCount} selected account{pendingOrganizationMemberCount === 1 ? '' : 's'} to this organization with the regular Member role, then add them to the Sales Team. This does not grant organization admin rights.
+        </p>}
+        {save.isError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">Could not save Sales Team: {conversionError(save.error)}. Saving requires an organization Owner/Admin with users.manage. Accounts added from search must be active and have an internal Sales role.</p>}
         {successMessage && <p role="status" className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">{successMessage}</p>}
         <Button type="button" onClick={() => save.mutate()} isLoading={save.isPending} disabled={saveDisabled}>
           {mode === 'existing' ? (newMemberIds.length ? `Add ${newMemberIds.length} member${newMemberIds.length === 1 ? '' : 's'}` : 'Add members') : `Create Sales Team${selectedMemberCount ? ` · ${selectedMemberCount} members` : ''}`}
@@ -197,6 +256,48 @@ export default function SalesTeamManagementPage() {
       </Card>}
     </>}
   </div>;
+}
+
+function ExistingSalesAccountSearch({
+  query,
+  onQueryChange,
+  candidates,
+  isLoading,
+  isError,
+  selectedIds,
+  onToggle,
+}: {
+  query: string;
+  onQueryChange: (query: string) => void;
+  candidates: SalesTeamMemberCandidate[];
+  isLoading: boolean;
+  isError: boolean;
+  selectedIds: string[];
+  onToggle: (memberId: string) => void;
+}) {
+  return <section className="space-y-3 rounded-lg border border-slate-200 p-4" aria-label="Search existing Sales accounts">
+    <label className="block text-sm font-semibold">Search existing Sales accounts
+      <input
+        aria-label="Search existing Sales accounts"
+        type="search"
+        value={query}
+        onChange={(event) => onQueryChange(event.target.value)}
+        placeholder="Search by name or email (2 characters minimum)"
+        className="mt-1 block w-full rounded-lg border border-slate-300 p-2.5 font-normal"
+      />
+    </label>
+    <p className="text-xs text-slate-600">Searches active accounts with an internal Sales role. An account outside this organization is added as a regular organization member when you save the team.</p>
+    {query.trim().length < 2 && <p role="status" className="text-sm text-slate-500">Enter at least 2 characters to search registered Sales accounts.</p>}
+    {isLoading && query.trim().length >= 2 && <p role="status" className="text-sm text-slate-500">Searching registered accounts…</p>}
+    {isError && <p role="alert" className="text-sm text-red-700">Could not search existing accounts. Check your users.manage permission and try again.</p>}
+    {!isLoading && !isError && query.trim().length >= 2 && candidates.length === 0 && <p role="status" className="text-sm text-slate-500">No active Sales accounts outside this organization match that search.</p>}
+    {!!candidates.length && <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+      {candidates.map((candidate) => <label key={candidate.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm hover:bg-slate-50">
+        <input type="checkbox" checked={selectedIds.includes(candidate.id)} onChange={() => onToggle(candidate.id)} />
+        <span><span className="block font-medium">{candidate.fullName}</span><span className="text-xs text-slate-500">{candidate.email}</span></span>
+      </label>)}
+    </div>}
+  </section>;
 }
 
 function MemberChoices({ members, selectedIds, onToggle, emptyMessage }: {
