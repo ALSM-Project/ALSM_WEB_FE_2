@@ -45,6 +45,7 @@ export interface OrganizationDto {
     email: string;
     role: string;
     joinedDate?: string;
+    isActive?: boolean;
     status?: 'ACTIVE' | 'INVITED' | 'INACTIVE';
   }>;
   projectCount?: number;

@@ -120,10 +120,10 @@ export const UsageDashboardPage: React.FC = () => {
     );
   }
 
-  const { plan, screens, projects, storage, monthlyConversions } = data;
+  const { plan, screens: conversions, projects, storage, monthlyConversions } = data;
   const isEnterprise = plan.tier?.toUpperCase() === 'ENTERPRISE';
 
-  const screensStatus = getQuotaStatus(screens.used, screens.max);
+  const conversionsStatus = getQuotaStatus(conversions.used, conversions.max);
   const projectsStatus = getQuotaStatus(projects.used, projects.max);
   const storageStatus = getQuotaStatus(storage.usedGb, storage.maxGb);
 
@@ -180,14 +180,14 @@ export const UsageDashboardPage: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 text-xs font-medium text-[#6B778C] bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Quota enforcement active</span>
+            <span>Usage tracking active</span>
           </div>
         </div>
       </Card>
 
       {/* ── Quota Cards ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Screens */}
+        {/* Successful conversion quota */}
         <Card variant="default" padding="md">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -195,27 +195,27 @@ export const UsageDashboardPage: React.FC = () => {
                 <Monitor className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">
-                Screens / Month
+                Successful Conversions / Month
               </span>
             </div>
-            <Badge variant={screensStatus.badgeVariant}>{screensStatus.badgeText}</Badge>
+            <Badge variant={conversionsStatus.badgeVariant}>{conversionsStatus.badgeText}</Badge>
           </div>
           <div className="flex items-baseline justify-between mb-2">
             <span className="text-2xl font-black text-[#091E42]">
-              {screensStatus.isUnlimited ? '∞' : screens.used.toLocaleString()}
+              {conversionsStatus.isUnlimited ? '∞' : conversions.used.toLocaleString()}
             </span>
             <span className="text-xs font-semibold text-[#6B778C]">
-              {screensStatus.isUnlimited ? 'Unlimited' : `/ ${screens.max.toLocaleString()}`}
+              {conversionsStatus.isUnlimited ? 'Unlimited' : `/ ${conversions.max.toLocaleString()}`}
             </span>
           </div>
           <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${screensStatus.barColor}`}
-              style={{ width: `${screensStatus.pct}%` }}
+              className={`h-full rounded-full transition-all duration-500 ${conversionsStatus.barColor}`}
+              style={{ width: `${conversionsStatus.pct}%` }}
             />
           </div>
           <p className="text-[11px] text-[#6B778C] mt-2">
-            {screensStatus.isUnlimited ? 'No quota limit' : `${screensStatus.pct}% of monthly capacity`}
+            {conversionsStatus.isUnlimited ? 'No quota limit' : `${conversionsStatus.pct}% of monthly capacity`}
           </p>
         </Card>
 
@@ -338,9 +338,9 @@ export const UsageDashboardPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {monthlyConversions.map((item) => {
-                    const shareText = screens.max === -1
+                    const shareText = conversions.max === -1
                       ? 'N/A (Unlimited)'
-                      : `${Math.round((item.count / screens.max) * 100)}%`;
+                      : `${Math.round((item.count / conversions.max) * 100)}%`;
 
                     return (
                       <tr key={item.month} className="hover:bg-slate-50 transition-colors">

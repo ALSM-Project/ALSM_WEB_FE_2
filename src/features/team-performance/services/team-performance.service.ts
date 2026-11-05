@@ -4,6 +4,7 @@ export type TeamKind = 'SALES' | 'CONVERSION';
 export type ReportingDays = 7 | 30;
 export interface ManagedTeam { id: string; name: string; organizationId: string; kind: TeamKind; revision: number }
 export interface TeamOrganizationMember { id: string; fullName: string; email: string; organizationRole: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER' }
+export interface SalesTeamMemberCandidate { id: string; fullName: string; email: string }
 export interface TeamAdministration extends ManagedTeam {
   memberIds: string[];
   managerIds: string[];
@@ -47,6 +48,8 @@ const organizationHeaders = (organizationId?: string) => organizationId ? { 'x-o
 export const teamPerformanceService = {
   listTeams: (kind: TeamKind, organizationId?: string) => apiClient.get<ManagedTeam[]>('/teams', { params: { kind }, headers: organizationHeaders(organizationId) }),
   listOrganizationMembers: (organizationId?: string) => apiClient.get<TeamOrganizationMember[]>('/teams/members', { headers: organizationHeaders(organizationId) }),
+  searchMemberCandidates: (query: string, organizationId?: string) => apiClient.get<SalesTeamMemberCandidate[]>('/teams/members/candidates', { params: { q: query }, headers: organizationHeaders(organizationId) }),
+  addExistingSalesMembers: (userIds: string[], organizationId?: string) => apiClient.post<TeamOrganizationMember[]>('/teams/members', { userIds }, { headers: organizationHeaders(organizationId) }),
   getTeamAdministration: (teamId: string, organizationId?: string) => apiClient.get<TeamAdministration>(`/teams/${encodeURIComponent(teamId)}/administration`, { headers: organizationHeaders(organizationId) }),
   createTeam: (team: SaveTeamPayload, organizationId?: string) => apiClient.post<TeamAdministration>('/teams', team, { headers: organizationHeaders(organizationId) }),
   updateTeam: (teamId: string, team: SaveTeamPayload, organizationId?: string) => apiClient.put<TeamAdministration>(`/teams/${encodeURIComponent(teamId)}`, team, { headers: organizationHeaders(organizationId) }),
