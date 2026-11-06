@@ -91,19 +91,19 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
   const currentStepInfo = WORKFLOW_STEPS[currentIndex] ?? WORKFLOW_STEPS[0];
 
   return (
-    <div className={`bg-white border border-[#E5EAF0] rounded-xl overflow-hidden shadow-2xs ${className}`}>
+    <div className={`bg-white border border-[#DCE3EC] rounded-lg overflow-hidden shadow-xs ${className}`}>
       {/* Header */}
-      <div className="px-5 py-4 border-b border-[#E5EAF0] flex items-center justify-between">
+      <div className="px-5 py-3.5 border-b border-[#DCE3EC] flex items-center justify-between bg-[#F8FAFC]">
         <div>
-          <h3 className="text-sm font-bold text-[#091E42] tracking-tight">
+          <h3 className="text-sm font-bold text-[#17263A] tracking-tight">
             Modernization Workflow
           </h3>
-          <p className="text-xs text-[#6B778C] mt-0.5">
+          <p className="text-xs text-[#8491A3] mt-0.5">
             Deterministic stage progression for legacy assets
           </p>
         </div>
-        <div className="text-xs font-semibold text-[#42526E]">
-          Stage <span className="text-[#0652CC] font-bold">{currentIndex + 1}</span> of {WORKFLOW_STEPS.length}
+        <div className="text-xs font-semibold text-[#8491A3]">
+          Stage <span className="text-[#244A70] font-bold">{currentIndex + 1}</span> of {WORKFLOW_STEPS.length}
         </div>
       </div>
 
@@ -128,16 +128,16 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                   {/* Step Indicator */}
                   <div className="shrink-0 mt-0.5">
                     {isCompleted ? (
-                      <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-600 flex items-center justify-center shadow-2xs">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <div className="w-6 h-6 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-700 flex items-center justify-center shadow-2xs">
+                        <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                       </div>
                     ) : isCurrent ? (
-                      <div className="w-6 h-6 rounded-full bg-[#0652CC] text-white flex items-center justify-center shadow-2xs">
+                      <div className="w-6 h-6 rounded-md bg-[#244A70] text-white flex items-center justify-center shadow-2xs">
                         <span className="w-2 h-2 bg-white rounded-full"></span>
                       </div>
                     ) : (
-                      <div className="w-6 h-6 rounded-full bg-white border border-[#D9E2EC] text-[#6B778C] flex items-center justify-center">
-                        <span className="w-2 h-2 rounded-full border border-[#97A0AF]"></span>
+                      <div className="w-6 h-6 rounded-md bg-white border border-[#DCE3EC] text-[#8491A3] flex items-center justify-center">
+                        <span className="w-2 h-2 rounded-full border border-[#8491A3]"></span>
                       </div>
                     )}
                   </div>
@@ -147,15 +147,15 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                     <p
                       className={`text-xs font-bold transition-colors ${
                         isCurrent
-                          ? 'text-[#0652CC]'
+                          ? 'text-[#244A70]'
                           : isCompleted
-                          ? 'text-[#091E42]'
-                          : 'text-[#6B778C] group-hover:text-[#091E42]'
+                          ? 'text-[#17263A]'
+                          : 'text-[#8491A3] group-hover:text-[#17263A]'
                       }`}
                     >
                       {step.label}
                     </p>
-                    <p className="text-[11px] font-medium text-[#6B778C] truncate mt-0.5">
+                    <p className="text-[11px] font-medium text-[#8491A3] truncate mt-0.5">
                       {step.sublabel}
                     </p>
                   </div>
@@ -165,7 +165,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 {idx < WORKFLOW_STEPS.length - 1 && (
                   <div
                     className={`flex-1 h-[2px] mx-3 transition-colors ${
-                      idx < currentIndex ? 'bg-emerald-300' : 'bg-[#E5EAF0]'
+                      idx < currentIndex ? 'bg-emerald-300' : 'bg-[#DCE3EC]'
                     }`}
                   />
                 )}
@@ -186,30 +186,30 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 type="button"
                 onClick={() => onStepClick?.(step.id as WorkflowStepId)}
                 disabled={!onStepClick}
-                className={`w-full flex items-center space-x-3 p-2.5 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center space-x-3 p-2.5 rounded-md text-left transition-colors ${
                   isCurrent
-                    ? 'bg-[#E8F1FF] text-[#0652CC]'
-                    : 'hover:bg-[#F7F9FC] text-[#091E42]'
+                    ? 'bg-[#EEF1F6] text-[#244A70]'
+                    : 'hover:bg-[#F4F7FB] text-[#17263A]'
                 }`}
               >
                 <div className="shrink-0">
                   {isCompleted ? (
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-600 flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <div className="w-6 h-6 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-700 flex items-center justify-center">
+                      <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                     </div>
                   ) : isCurrent ? (
-                    <div className="w-6 h-6 rounded-full bg-[#0652CC] text-white flex items-center justify-center">
+                    <div className="w-6 h-6 rounded-md bg-[#244A70] text-white flex items-center justify-center">
                       <span className="w-2 h-2 bg-white rounded-full"></span>
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-white border border-[#D9E2EC] flex items-center justify-center">
-                      <span className="w-2 h-2 rounded-full border border-[#97A0AF]"></span>
+                    <div className="w-6 h-6 rounded-md bg-white border border-[#DCE3EC] flex items-center justify-center">
+                      <span className="w-2 h-2 rounded-full border border-[#8491A3]"></span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold">{step.label}</p>
-                  <p className="text-[11px] text-[#6B778C]">{step.sublabel}</p>
+                  <p className="text-[11px] text-[#8491A3]">{step.sublabel}</p>
                 </div>
               </button>
             );
@@ -218,19 +218,19 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
       </div>
 
       {/* Footer Stage Summary */}
-      <div className="bg-[#F7F9FC] border-t border-[#E5EAF0] px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div className="bg-[#F8FAFC] border-t border-[#DCE3EC] px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="space-y-0.5">
-          <p className="text-[#091E42] font-semibold">
-            Current stage: <span className="text-[#0652CC] font-bold">{currentStepInfo.label}</span>
+          <p className="text-[#17263A] font-semibold">
+            Current stage: <span className="text-[#244A70] font-bold">{currentStepInfo.label}</span>
           </p>
-          <p className="text-[#6B778C] text-[11px]">{currentStepInfo.description}</p>
+          <p className="text-[#8491A3] text-[11px]">{currentStepInfo.description}</p>
         </div>
 
         {(onActionClick || actionLabel) && (
           <button
             type="button"
             onClick={onActionClick}
-            className="inline-flex items-center space-x-1 font-semibold text-[#0652CC] hover:text-[#0655FF] hover:underline shrink-0 cursor-pointer"
+            className="inline-flex items-center space-x-1 font-semibold text-[#244A70] hover:text-[#1B3856] hover:underline shrink-0 cursor-pointer"
           >
             <span>{actionLabel ?? 'Open Project'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
