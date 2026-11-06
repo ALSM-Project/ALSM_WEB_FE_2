@@ -43,16 +43,16 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-[500px] flex items-center justify-center p-6">
-          <div className="max-w-md w-full bg-white border border-[#DFE3E8] rounded-2xl p-6 shadow-md text-center space-y-4">
+          <div className="max-w-md w-full bg-white border border-[#DCE3EC] rounded-2xl p-6 shadow-md text-center space-y-4">
             <div className="w-12 h-12 bg-rose-50 border border-rose-200 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
               <AlertTriangle className="w-6 h-6" />
             </div>
 
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-[#172B4D]">
+              <h2 className="text-lg font-bold text-[#17263A]">
                 Something went wrong
               </h2>
-              <p className="text-xs text-[#5E6C84]">
+              <p className="text-xs text-[#8491A3]">
                 An unexpected application error occurred while rendering this view. Your session and data remain secure.
               </p>
             </div>
@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => {
                   window.location.href = '/';
                 }}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white text-xs"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs"
               >
                 <Home className="w-3.5 h-3.5 mr-1.5" />
                 <span>Dashboard</span>
@@ -81,11 +81,11 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             {this.state.error && (
-              <div className="pt-2 border-t border-[#DFE3E8] text-left">
+              <div className="pt-2 border-t border-[#DCE3EC] text-left">
                 <button
                   type="button"
                   onClick={() => this.setState({ showDetails: !this.state.showDetails })}
-                  className="flex items-center text-[11px] font-semibold text-[#5E6C84] hover:text-[#172B4D] cursor-pointer"
+                  className="flex items-center text-[11px] font-semibold text-[#8491A3] hover:text-[#17263A] cursor-pointer"
                 >
                   <ChevronRight
                     className={`w-3.5 h-3.5 transition-transform ${
@@ -96,7 +96,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </button>
 
                 {this.state.showDetails && (
-                  <div className="mt-2 p-3 bg-[#F7F9FC] border border-[#DFE3E8] rounded-xl font-mono text-[10px] text-rose-700 overflow-x-auto max-h-40 whitespace-pre-wrap">
+                  <div className="mt-2 p-3 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl font-mono text-[10px] text-rose-700 overflow-x-auto max-h-40 whitespace-pre-wrap">
                     {this.state.error.toString()}
                     {this.state.errorInfo?.componentStack}
                   </div>
