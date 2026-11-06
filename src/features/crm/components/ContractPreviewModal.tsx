@@ -1,8 +1,9 @@
-import React from 'react';
-import { AlertTriangle, FileCheck2, Printer } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, FileCheck2, Printer, Send, XCircle } from 'lucide-react';
 import { Button, Modal } from '@/shared/ui';
 import { formatVnd } from '@/shared/utils/currency';
 import { LeadContract } from '../types/crm.types';
+import { crmApi } from '../api/crm.api';
 
 export interface ContractPreviewModalProps {
   isOpen: boolean;
@@ -19,13 +20,63 @@ export interface ContractPreviewModalProps {
 
 export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
   isOpen,
+  leadId,
   leadCompany,
   leadContact,
   leadEmail,
   contract,
   onClose,
+  onContractUpdated,
 }) => {
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
   if (!contract) return null;
+
+  const handleInitiateSigning = async () => {
+    if (!contract || actionLoading) return;
+    setActionLoading(true);
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      const res = await crmApi.initiateOnlineSigning(leadId, contract.id);
+      setActionSuccess(`Đã gửi envelope ký điện tử lên VNPT (mã: ${res.envelopeReference}).`);
+      if (onContractUpdated) {
+        onContractUpdated({
+          ...contract,
+          workflowStatus: 'SENT_TO_CUSTOMER',
+        });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể khởi tạo luồng ký online.';
+      setActionError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelSigning = async () => {
+    if (!contract || actionLoading) return;
+    setActionLoading(true);
+    setActionError(null);
+    setActionSuccess(null);
+    try {
+      await crmApi.cancelOnlineSigning(leadId, contract.id, 'Nhân viên hủy lượt ký từ CRM');
+      setActionSuccess('Đã hủy lượt ký hợp đồng thành công.');
+      if (onContractUpdated) {
+        onContractUpdated({
+          ...contract,
+          workflowStatus: 'CANCELLED',
+        });
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Không thể hủy lượt ký.';
+      setActionError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const legacySignatureState = contract.status === 'SIGNED'
     || contract.status === 'FULLY_SIGNED'
@@ -92,11 +143,49 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
           <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-900">This preview is not a canonical PDF or signature evidence. Signer authority, provider evidence, and the private final-document archive are not yet configured.</p>
         </section>
 
-        <div className="flex justify-end gap-2 border-t border-slate-200 pt-3">
-          <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
-            <Printer className="mr-1 h-3.5 w-3.5" /> Print draft preview
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={onClose}>Close</Button>
+        {actionError && (
+          <div role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+            {actionError}
+          </div>
+        )}
+        {actionSuccess && (
+          <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+            {actionSuccess}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-3">
+          <div className="flex items-center gap-2">
+            {contract.workflowStatus === 'APPROVED' && (
+              <Button
+                type="button"
+                variant="primary"
+                size="sm"
+                onClick={handleInitiateSigning}
+                disabled={actionLoading}
+              >
+                <Send className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Đang gửi...' : 'Gửi ký điện tử (VNPT)'}
+              </Button>
+            )}
+            {['SENT_TO_CUSTOMER', 'CUSTOMER_VIEWED', 'CUSTOMER_SIGNING_IN_PROGRESS', 'CUSTOMER_PARTIALLY_SIGNED'].includes(contract.workflowStatus || '') && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCancelSigning}
+                disabled={actionLoading}
+                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+              >
+                <XCircle className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Đang xử lý...' : 'Hủy lượt ký'}
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer className="mr-1 h-3.5 w-3.5" /> Print draft preview
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={onClose}>Close</Button>
+          </div>
         </div>
       </div>
     </Modal>

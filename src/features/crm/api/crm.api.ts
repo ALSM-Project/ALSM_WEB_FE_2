@@ -301,6 +301,22 @@ export const crmApi = {
       { action, ...(reason ? { reason } : {}) },
     ),
 
+  initiateOnlineSigning: async (leadId: string, contractId: string): Promise<{
+    envelopeReference: string;
+    contractId: string;
+    status: string;
+  }> =>
+    apiClient.post(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/signing/initiate`,
+      {},
+    ),
+
+  cancelOnlineSigning: async (leadId: string, contractId: string, reason: string): Promise<{ cancelled: boolean }> =>
+    apiClient.post(
+      `/sales/crm/leads/${encodeURIComponent(leadId)}/legal-contracts/${encodeURIComponent(contractId)}/signing/cancel`,
+      { reason },
+    ),
+
   listContractInvitations: async (leadId: string): Promise<ContractInvitationRecord[]> =>
     apiClient.get<ContractInvitationRecord[]>(`/sales/crm/leads/${encodeURIComponent(leadId)}/contract-invitations`),
 

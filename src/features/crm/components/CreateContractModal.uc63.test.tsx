@@ -4,7 +4,14 @@ import { CreateContractModal } from './CreateContractModal';
 import { crmApi } from '../api/crm.api';
 import type { LeadContract } from '../types/crm.types';
 
-vi.mock('../api/crm.api', () => ({ crmApi: { createContract: vi.fn() } }));
+vi.mock('../api/crm.api', () => ({
+  crmApi: {
+    createContract: vi.fn(),
+    listApprovedContractTemplates: vi.fn().mockResolvedValue([
+      { id: 'tpl-1', versionNumber: 1, title: 'Master Services Agreement', locale: 'vi', contentDigest: 'a'.repeat(64) },
+    ]),
+  },
+}));
 
 const contract: LeadContract = {
   id: 'contract-id',
@@ -35,7 +42,9 @@ describe('CreateContractModal (UC-63)', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: /Generate Contract Draft/ }));
+    const submit = await screen.findByRole('button', { name: /Create Draft|Generate Contract Draft/i });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
 
     await waitFor(() => expect(crmApi.createContract).toHaveBeenCalledTimes(1));
     expect(crmApi.createContract).toHaveBeenCalledWith(
@@ -63,7 +72,9 @@ describe('CreateContractModal (UC-63)', () => {
       />,
     );
     fireEvent.change(screen.getByLabelText(/Total Contract Value/), { target: { value: '0' } });
-    fireEvent.click(screen.getByRole('button', { name: /Generate Contract Draft/ }));
+    const submit = await screen.findByRole('button', { name: /Create Draft|Generate Contract Draft/i });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('positive whole VND amount');
     expect(crmApi.createContract).not.toHaveBeenCalled();
@@ -83,7 +94,9 @@ describe('CreateContractModal (UC-63)', () => {
         onSuccess={onSuccess}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /Generate Contract Draft/ }));
+    const submit = await screen.findByRole('button', { name: /Create Draft|Generate Contract Draft/i });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
 
     expect(await screen.findByRole('alert')).toHaveTextContent('do not have permission');
     expect(onSuccess).not.toHaveBeenCalled();
@@ -113,7 +126,8 @@ describe('CreateContractModal (UC-63)', () => {
       />,
     );
 
-    const submit = screen.getByRole('button', { name: /Generate Contract Draft/ });
+    const submit = await screen.findByRole('button', { name: /Create Draft|Generate Contract Draft/i });
+    await waitFor(() => expect(submit).toBeEnabled());
     fireEvent.click(submit);
     expect(await screen.findByRole('alert')).toHaveTextContent('contract was not saved');
     fireEvent.click(submit);
@@ -134,7 +148,7 @@ describe('CreateContractModal (UC-63)', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Generate Contract Draft/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Create Draft|Generate Contract Draft/i })).toBeDisabled();
     expect(screen.getByRole('alert')).toHaveTextContent('do not have permission');
     expect(crmApi.createContract).not.toHaveBeenCalled();
   });
