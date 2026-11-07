@@ -45,7 +45,7 @@ function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
     openInNewTab: node.openInNewTab ?? false,
     hideParentLabel: node.hideParentLabel ?? false,
     children: node.children
-      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new')
+      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new' && c.id !== 'web2_conversations' && c.route !== '/crm/conversations')
       ?.map(mapBackendNodeToMenuItem),
   };
 }
@@ -57,7 +57,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const sidebarNav = useMemo(() => {
     let mapped = backendNavNodes
-      .filter((n) => n.id !== 'web2_partner_create' && n.route !== '/partners/new')
+      .filter((n) => n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.id !== 'web2_conversations' && n.route !== '/crm/conversations')
       .map(mapBackendNodeToMenuItem);
 
     // If backend returned empty nodes (offline or dev fallback), supply default groups
