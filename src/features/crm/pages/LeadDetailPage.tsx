@@ -214,7 +214,10 @@ export const LeadDetailPage: React.FC = () => {
   };
 
   const saveContractReview = async () => {
-    if (!contractUnderReview || !reviewAction || reviewSaving || reviewReason.trim().length < 3) return;
+    if (!contractUnderReview || !reviewAction || reviewSaving) return;
+    const trimmedReason = reviewReason.trim();
+    if (reviewAction !== 'APPROVE' && trimmedReason.length < 3) return;
+    const finalReason = trimmedReason.length >= 3 ? trimmedReason : undefined;
     try {
       setReviewSaving(true);
       setErrorMsg(null);
@@ -222,7 +225,7 @@ export const LeadDetailPage: React.FC = () => {
         lead.id,
         contractUnderReview.contract.id,
         reviewAction,
-        reviewReason.trim() || undefined,
+        finalReason,
       );
       setContractUnderReview(null);
       setReviewAction(null);
