@@ -60,11 +60,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredSidebarNav = useMemo(() => {
     return sidebarNav
-      .filter((item) => item.id !== 'web2_partner_create' && item.path !== '/partners/new')
+      .filter((item) => item.id !== 'web2_partner_create' && item.path !== '/partners/new' && item.id !== 'web2_conversations' && item.path !== '/crm/conversations')
       .map((item) => ({
         ...item,
         children: item.children?.filter(
-          (c) => c.id !== 'web2_partner_create' && c.path !== '/partners/new'
+          (c) => c.id !== 'web2_partner_create' && c.path !== '/partners/new' && c.id !== 'web2_conversations' && c.path !== '/crm/conversations'
         ),
       }));
   }, [sidebarNav]);
