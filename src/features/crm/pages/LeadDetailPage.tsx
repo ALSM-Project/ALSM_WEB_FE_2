@@ -1055,6 +1055,11 @@ export const LeadDetailPage: React.FC = () => {
           onClose={() => { if (!reviewSaving) setContractUnderReview(null); }}
         >
           <section>
+            {errorMsg && (
+              <div role="alert" className="mt-2 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs">
+                {errorMsg}
+              </div>
+            )}
             <p className="mt-2 text-sm text-slate-600">
               {contractUnderReview.contract.contractNumber} · {contractUnderReview.version.title} · v{contractUnderReview.version.versionNumber}
             </p>
