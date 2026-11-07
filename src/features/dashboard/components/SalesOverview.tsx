@@ -12,7 +12,9 @@ import {
   Percent,
   Check,
   X,
-  } from 'lucide-react';
+  FileCheck2,
+  FileText,
+} from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { crmApi, LeadDto, PendingDiscountDto, SalesReportsDto } from '@/features/crm/api/crm.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -109,6 +111,39 @@ export const SalesOverview: React.FC = () => {
           </button>
         </div>
       )}
+
+      {/* ── Quick Navigation: Hợp đồng & Ký số ───────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-white border border-blue-200/90 rounded-xl p-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#0652CC] text-white flex items-center justify-center shrink-0 shadow-xs">
+            <FileCheck2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-[#091E42]">Quản lý Hợp đồng & Ký số trực tuyến (Contracts & E-Sign)</h4>
+            <p className="text-xs text-[#42526E] mt-0.5">Soạn thảo, thẩm định nội bộ, gửi ký điện tử VNPT và kích hoạt khách hàng doanh nghiệp</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate('/sales/contracts')}
+            className="text-xs font-semibold shadow-xs"
+          >
+            <FileText className="w-3.5 h-3.5 mr-1.5" />
+            Xem Tất cả Hợp đồng
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/sales/leads')}
+            className="text-xs font-semibold bg-white"
+          >
+            Danh sách Leads (CRM)
+            <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+          </Button>
+        </div>
+      </div>
 
       {/* ── KPI Row: Doanh thu & Hiệu suất bán hàng ────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
