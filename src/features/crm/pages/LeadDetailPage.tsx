@@ -358,11 +358,11 @@ export const LeadDetailPage: React.FC = () => {
 
           <button
             onClick={() => setShowActivationModal(true)}
-            disabled={!isWon}
-            title={isWon ? 'View provisioned tenant' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
+            disabled={!isWon && !providerVerifiedContract}
+            title={isWon ? 'View provisioned tenant' : providerVerifiedContract ? 'Launch Customer Activation' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
             className={`flex items-center gap-1.5 px-3.5 py-2 text-white rounded-xl text-xs font-semibold shadow-xs ${
-              isWon
-                ? 'bg-emerald-600 hover:bg-emerald-700'
+              isWon || providerVerifiedContract
+                ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
                 : 'bg-slate-400 cursor-not-allowed opacity-70'
             }`}
           >
@@ -848,9 +848,9 @@ export const LeadDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => setShowActivationModal(true)}
-              disabled={!isWon}
-              title={isWon ? 'View provisioned tenant' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
-              className={isWon ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
+              disabled={!isWon && !providerVerifiedContract}
+              title={isWon ? 'View provisioned tenant' : providerVerifiedContract ? 'Launch Customer Activation' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
+              className={(isWon || providerVerifiedContract) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
             >
               {isWon ? 'View Provisioned Tenant Details' : 'Launch Customer Activation'}
             </Button>
