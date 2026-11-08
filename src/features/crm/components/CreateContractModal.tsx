@@ -175,7 +175,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
       } else if (status === 404) {
         setErrorMsg(code === 'CONTRACT_QUOTE_NOT_FOUND' ? 'The selected quote is no longer available. Refresh the lead and try again.' : 'This lead could not be found. Refresh and try again.');
       } else if (status === 409) {
-        setErrorMsg('The request conflicted with another contract update. Refresh the lead and try again.');
+        setErrorMsg(Array.isArray(message) ? message.join(', ') : message || 'The request conflicted with another contract update. Refresh the lead and try again.');
       } else if (status === 503) {
         if (code === 'MONGO_TRANSACTIONS_REQUIRED') {
           setErrorMsg('The contract was not saved because the database is not ready for this operation. Contact an administrator before retrying.');
