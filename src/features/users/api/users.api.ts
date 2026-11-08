@@ -94,6 +94,16 @@ export const usersApi = {
   getAllUsers: async (): Promise<UserSummaryDto[]> => {
     return apiClient.get<UserSummaryDto[]>('/users');
   },
+  getUserById: async (userId: string): Promise<UserSummaryDto> => {
+    try {
+      return await apiClient.get<UserSummaryDto>(`/users/${userId}`);
+    } catch {
+      const all = await apiClient.get<UserSummaryDto[]>('/users');
+      const found = (all || []).find((u) => u.id === userId);
+      if (found) return found;
+      throw new Error(`User with ID "${userId}" not found`);
+    }
+  },
   getUserRoles: async (userId: string): Promise<string[]> => {
     return apiClient.get<string[]>(`/users/${userId}/roles`);
   },

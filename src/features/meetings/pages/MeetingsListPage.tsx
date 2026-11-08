@@ -147,9 +147,6 @@ export const MeetingsListPage: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">
             Online Meetings
           </h1>
-          <p className="text-xs text-[#8491A3] mt-1">
-            Internal project syncs, technical code reviews, and conversion sprint rooms for team members.
-          </p>
         </div>
         <div className="flex items-center gap-2.5">
           <Button

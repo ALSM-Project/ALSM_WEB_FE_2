@@ -84,6 +84,16 @@ export const rbacApi = {
   getAllUsers: async (): Promise<UserRbacDto[]> => {
     return apiClient.get<UserRbacDto[]>('/users');
   },
+  getUserById: async (userId: string): Promise<UserRbacDto> => {
+    try {
+      return await apiClient.get<UserRbacDto>(`/users/${userId}`);
+    } catch {
+      const all = await apiClient.get<UserRbacDto[]>('/users');
+      const found = (all || []).find((u) => u.id === userId);
+      if (found) return found;
+      throw new Error(`User with ID "${userId}" not found`);
+    }
+  },
 
   getUserRoles: async (userId: string): Promise<string[]> => {
     return apiClient.get<string[]>(`/users/${userId}/roles`);

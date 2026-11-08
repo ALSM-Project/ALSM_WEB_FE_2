@@ -391,9 +391,6 @@ export const MeetingRequestsPage: React.FC = () => {
           <PageHeader
             title="Meeting Requests"
           />
-          <p className="text-xs text-[#8491A3] mt-1 font-medium">
-            Manage customer meeting requests, scheduling, and follow-up activities.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

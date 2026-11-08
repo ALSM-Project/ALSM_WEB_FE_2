@@ -309,9 +309,6 @@ export const EnterpriseQuotesPage: React.FC = () => {
           <PageHeader
             title="Quotes & Contracts"
           />
-          <p className="text-sm text-slate-600 mt-1 font-normal">
-            Manage customer quotations, enterprise contracts, approvals, and legal e-signatures.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
