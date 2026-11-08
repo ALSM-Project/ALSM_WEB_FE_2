@@ -4,7 +4,6 @@ import { Bell, Search, ChevronDown, X, Menu } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useNavigation } from '@/hooks/useNavigation';
 import { authApi } from '@/features/auth/api/auth.api';
 import { notificationsApi, type UserNotification } from '@/features/notifications/api/notifications.api';
 
@@ -22,7 +21,6 @@ const getInitials = (name?: string) => {
 
 export const AppLayout: React.FC = () => {
   const { user } = useAuth();
-  const { pageTitle, sectionTitle } = useNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -33,6 +31,7 @@ export const AppLayout: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -77,10 +76,12 @@ export const AppLayout: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      setLogoutError(null);
       await authApi.logout();
       const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
       window.location.href = `${loginUrl}/login`;
     } catch {
+      setLogoutError('Sign out could not be confirmed. Please try Sign Out again.');
       window.alert('Sign out could not be confirmed. Please try Sign Out again.');
     }
   };
@@ -112,7 +113,6 @@ export const AppLayout: React.FC = () => {
   };
 
   const displayName = user?.fullName || 'System Admin';
-  const displayTitle = pageTitle || sectionTitle || 'Dashboard';
   const userRole = (user?.roles && user.roles[0]) ? String(user.roles[0]) : 'Specialist';
 
   return (
@@ -132,21 +132,25 @@ export const AppLayout: React.FC = () => {
           {/* Impersonation / Support View Warning Banner */}
           <ImpersonationBanner />
 
+          {logoutError && (
+            <div role="alert" className="bg-rose-50 border-b border-rose-200 px-4 py-2 text-xs text-rose-700 font-medium">
+              {logoutError}
+            </div>
+          )}
+
           {/* Global Header - Height 56px (h-14), Compact & Engineering-First */}
           <header className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] px-4 sm:px-6 h-14 flex items-center justify-between shadow-xs">
-            {/* Left: Mobile Menu Toggle & Dynamic Page Title */}
-            <div className="flex items-center space-x-2.5 min-w-0 shrink-0">
+            {/* Left: Mobile Menu Toggle & Dynamic Breadcrumb */}
+            <div className="flex items-center space-x-2 shrink-0 min-w-0">
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                className="md:hidden p-1.5 -ml-1 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors cursor-pointer"
+                className="md:hidden p-1.5 -ml-1 text-[#475569] hover:text-[#0652CC] hover:bg-[#F1F5F9] rounded-md transition-colors cursor-pointer shrink-0"
                 aria-label="Open Navigation Menu"
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-base font-bold text-[#0F172A] tracking-tight truncate max-w-[180px] sm:max-w-[280px] lg:max-w-[360px]">
-                {displayTitle}
-              </h1>
+              <Breadcrumb />
             </div>
 
             {/* Center: Global Search (Desktop & Tablet) */}
@@ -321,10 +325,6 @@ export const AppLayout: React.FC = () => {
             </div>
           )}
 
-          {/* Dedicated Breadcrumb Row Directly Below Header */}
-          <div className="sticky top-14 z-30 bg-[#FAFBFD] border-b border-[#E2E8F0] px-4 sm:px-6 py-1.5 flex items-center min-h-[32px]">
-            <Breadcrumb />
-          </div>
 
           {/* Content Area - Full Available Workspace Width */}
           <main className="flex-grow px-4 sm:px-6 lg:px-8 py-5 w-full">
