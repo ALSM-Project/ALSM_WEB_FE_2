@@ -130,8 +130,7 @@ export const LeadDetailPage: React.FC = () => {
   const providerVerifiedContract = legalContracts.find(({ contract }) =>
     contract.lifecycleStatus === 'COMPLETED'
     && contract.providerCompletionStatus === 'CONFIRMED'
-    && contract.archiveStatus === 'VERIFIED'
-    && contract.activationStatus === 'ELIGIBLE',
+    && contract.archiveStatus === 'VERIFIED',
   );
   const isWon = lead.stage === 'WON';
   const customerAccountReady = contractInvitations.some((invitation) => invitation.status === 'CONSUMED');
