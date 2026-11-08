@@ -10,8 +10,9 @@ export const AuthCallbackPage = () => {
   useEffect(() => {
     if (handled.current) return;
     handled.current = true;
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = searchParams.get('access_token') || hashParams.get('access_token');
+    const refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token');
 
     if (accessToken && refreshToken) {
       void tokenStore.acceptTokens({ accessToken, refreshToken })
@@ -46,7 +47,8 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
 
   if (!user) {
     const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
-    window.location.href = `${loginUrl}/login`;
+    const staffUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002';
+    window.location.href = `${loginUrl}/login?returnTo=${encodeURIComponent(`${staffUrl}/auth/callback`)}`;
     return null;
   }
 

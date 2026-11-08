@@ -50,7 +50,7 @@ function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
     openInNewTab: node.openInNewTab ?? false,
     hideParentLabel: node.hideParentLabel ?? false,
     children: node.children
-      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new' && c.id !== 'web2_conversations' && c.route !== '/crm/conversations')
+      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new')
       ?.map(mapBackendNodeToMenuItem),
   };
 }
@@ -96,7 +96,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
 
     let mapped = backendNavNodes
-      .filter((n) => !EXCLUDED_IDS.has(n.id) && n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.id !== 'web2_conversations' && n.route !== '/crm/conversations' && n.parentId !== 'web2_group_organization')
+      .filter((n) => !EXCLUDED_IDS.has(n.id) && n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.parentId !== 'web2_group_organization')
       .map(mapBackendNodeToMenuItem);
 
     // If backend returned empty nodes (offline or dev fallback), supply default groups
@@ -551,7 +551,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       value={{
         sidebarNav,
         navigation: navigationData,
-        loading: isLoading,
+        loading: isLoading && (!backendNavNodes || backendNavNodes.length === 0) && sidebarNav.length === 0,
         error: (error as Error) || null,
         refreshNavigation: handleRefresh,
         selectedItemId,
