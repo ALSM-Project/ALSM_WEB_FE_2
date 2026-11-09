@@ -8,7 +8,7 @@ import { teamPerformanceService, type ManagedTeam, type ReportingDays, type Team
 
 export interface ReportSelection { team: ManagedTeam; days: ReportingDays; userId: string }
 export default function TeamReportLayout({ kind, children }: { kind: TeamKind; children: (selection: ReportSelection) => ReactNode }) {
-  const { user, isLoading, error } = useAuth();
+  const { user, isLoading, error, hasPermission } = useAuth();
   const [params, setParams] = useSearchParams();
   const canReport = Boolean(user?.isActive && !error && !isLoading);
   const requestedDays = params.get('days') || '7';
@@ -27,6 +27,7 @@ export default function TeamReportLayout({ kind, children }: { kind: TeamKind; c
     <PageHeader title={kind === 'SALES' ? 'Team Performance' : 'Monitor Team Performance'} />
     <nav aria-label="Team performance views" className="flex gap-4 text-sm">
       <Link to="/team-performance" aria-current={kind === 'SALES' ? 'page' : undefined} className="text-blue-700 underline">Overview</Link>
+      {kind === 'SALES' && hasPermission?.('teams.manage') && <Link to="/organisations/teams/manage" className="text-blue-700 underline">Manage Sales Team</Link>}
       <Link to="/team-performance/monitor" aria-current={kind === 'CONVERSION' ? 'page' : undefined} className="text-blue-700 underline">Monitoring</Link>
       <Link to="/queue" className="text-blue-700 underline">View conversion queue</Link>
     </nav>

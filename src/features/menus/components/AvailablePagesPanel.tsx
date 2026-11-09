@@ -33,6 +33,7 @@ const AVAILABLE_PAGES_LIBRARY: AvailablePage[] = [
   { id: 'page-engagement-types', label: 'Engagement Types & Plans', module: 'Administration', icon: 'Layers', path: '/admin/engagement-types' },
   { id: 'page-menu-builder', label: 'Menu Builder', module: 'Administration', icon: 'ListTree', path: '/admin/menu-builder' },
   { id: 'page-roles', label: 'Roles & Permissions', module: 'Administration', icon: 'ShieldCheck', path: '/admin/roles' },
+  { id: 'page-contract-templates', label: 'Contract Template Governance', module: 'Administration', icon: 'FileCheck', path: '/admin/contract-templates' },
   { id: 'page-users', label: 'User Assignments', module: 'Administration', icon: 'Users', path: '/admin/users' },
   { id: 'page-bank-accounts', label: 'Bank Accounts', module: 'Administration', icon: 'Landmark', path: '/admin/bank-accounts' },
   { id: 'page-diagnostics', label: 'System Diagnostics', module: 'Operations', icon: 'Activity', path: '/diagnostics' },

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { AlertTriangle, Building2, CheckCircle2, LoaderCircle, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import { Button, Modal } from '@/shared/ui';
 import { crmApi } from '../api/crm.api';
@@ -7,6 +7,7 @@ import { LeadDto } from '../types/crm.types';
 export interface CustomerActivationModalProps {
   isOpen: boolean;
   lead: LeadDto;
+  providerVerifiedContract?: { contractNumber: string; title: string };
   canActivate: boolean;
   onClose: () => void;
   onSuccess: (updatedLead: LeadDto) => void;
@@ -19,7 +20,12 @@ const getActivationError = (error: any): string => {
   if (status === 401) return 'Your session expired. Sign in again and retry.';
   if (status === 403) return 'You do not have permission to convert this lead.';
   if (status === 404) return 'This lead could not be found. Refresh the page and try again.';
-  if (code === 'SIGNED_CONTRACT_REQUIRED') return 'A fully signed contract is required before conversion.';
+  if (code === 'SIGNED_CONTRACT_REQUIRED' || code === 'VERIFIED_CONTRACT_AND_EVIDENCE_REQUIRED') {
+    return 'Activation requires a provider-confirmed contract and verified archived signature evidence.';
+  }
+  if (code === 'DEMO_EVIDENCE_NOT_ACTIVATABLE') {
+    return 'Hợp đồng được ký trong chế độ DEMO không thể dùng để kích hoạt tổ chức khách hàng doanh nghiệp trong môi trường thật.';
+  }
   if (code === 'LEAD_NOT_CONVERTIBLE') return 'A lead marked Lost cannot be converted.';
   if (code === 'LEAD_ALREADY_CONVERTED' || code === 'LEAD_CONVERSION_CONFLICT') {
     return 'This lead was converted in another request. Refresh the lead to see its current state.';
@@ -37,22 +43,23 @@ const getActivationError = (error: any): string => {
 export const CustomerActivationModal: React.FC<CustomerActivationModalProps> = ({
   isOpen,
   lead,
+  providerVerifiedContract,
   canActivate,
   onClose,
   onSuccess,
 }) => {
   const [activating, setActivating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const signedContract = useMemo(
-    () => lead.contracts?.find((contract) => contract.status === 'SIGNED' || contract.status === 'FULLY_SIGNED'),
-    [lead.contracts],
-  );
   const isConverted = lead.stage === 'WON'
     && Boolean(lead.convertedOrganizationId || lead.provisioning?.organizationId);
   const isLost = lead.stage === 'LOST';
 
+  const contractToDisplay = providerVerifiedContract
+    || lead.contracts?.find((c) => c.status === 'SIGNED' || c.status === 'FULLY_SIGNED' || c.workflowStatus === 'COMPLETED');
+  const hasVerifiedContract = Boolean(contractToDisplay);
+
   const handleActivate = async () => {
-    if (activating || !canActivate || !signedContract || isLost || isConverted) return;
+    if (activating || !canActivate || !hasVerifiedContract || isLost || isConverted) return;
     setErrorMessage(null);
     setActivating(true);
     try {
@@ -125,14 +132,14 @@ export const CustomerActivationModal: React.FC<CustomerActivationModalProps> = (
               <div className="sm:col-span-2">
                 <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Signed contract</dt>
                 <dd className="mt-1 font-medium text-slate-900">
-                  {signedContract ? `${signedContract.contractNumber} · ${signedContract.title}` : 'No signed contract'}
+                  {contractToDisplay ? `${contractToDisplay.contractNumber} · ${contractToDisplay.title}` : 'No provider-confirmed contract with verified evidence'}
                 </dd>
               </div>
             </dl>
 
-            {!signedContract && !isLost && (
+            {!hasVerifiedContract && !isLost && (
               <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                Sign the contract before converting this lead.
+                Activation is blocked: customer must sign the contract and the backend confirms provider completion, stores and verifies the signed evidence, and marks a contract eligible. Legacy CRM signature labels do not meet this requirement.
               </p>
             )}
             {isLost && (
@@ -181,7 +188,7 @@ export const CustomerActivationModal: React.FC<CustomerActivationModalProps> = (
               variant="primary"
               size="sm"
               onClick={handleActivate}
-              disabled={activating || !canActivate || !signedContract || isLost}
+              disabled={activating || !canActivate || !hasVerifiedContract || isLost}
               aria-busy={activating}
             >
               {activating ? (

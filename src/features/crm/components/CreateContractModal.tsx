@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button, Input, Modal } from '@/shared/ui';
 import { FileCheck2, Info } from 'lucide-react';
 import { crmApi, LeadContract, LeadQuote } from '../api/crm.api';
+import type { ApprovedContractTemplateVersion } from '../types/crm.types';
 import { formatVnd } from '@/shared/utils/currency';
 
 const EMPTY_CONTRACT_QUOTES: LeadQuote[] = [];
@@ -12,6 +13,7 @@ export interface CreateContractModalProps {
   leadCompany: string;
   quotes?: LeadQuote[];
   initialQuoteId?: string;
+  editingContract?: LeadContract | null;
   canCreateContract: boolean;
   onClose: () => void;
   onSuccess: (contract: LeadContract) => void;
@@ -23,6 +25,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
   leadCompany,
   quotes = EMPTY_CONTRACT_QUOTES,
   initialQuoteId,
+  editingContract = null,
   canCreateContract,
   onClose,
   onSuccess,
@@ -35,6 +38,9 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
   const [plan, setPlan] = useState(selectedQuote?.plan || 'Enterprise Tier 1');
   const [annualValue, setAnnualValue] = useState(selectedQuote?.finalPrice || 85000);
   const [effectiveDate, setEffectiveDate] = useState(() => new Date().toLocaleDateString('en-CA'));
+  const [approvedTemplates, setApprovedTemplates] = useState<ApprovedContractTemplateVersion[]>([]);
+  const [approvedTemplateVersionId, setApprovedTemplateVersionId] = useState('');
+  const [templatesLoading, setTemplatesLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const submitLock = useRef(false);
@@ -44,15 +50,33 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
     if (!isOpen) return;
     const accepted = quotes.filter((quote) => quote.status === 'ACCEPTED');
     const initialQuote = accepted.find((quote) => quote.id === initialQuoteId) || accepted[0];
-    setTitle(`Enterprise Modernization Agreement - ${leadCompany}`);
-    setQuoteId(initialQuote?.id || '');
-    setPlan(initialQuote?.plan || 'Enterprise Tier 1');
-    setAnnualValue(initialQuote?.finalPrice || 85000);
-    setEffectiveDate(new Date().toLocaleDateString('en-CA'));
+    setTitle(editingContract?.title || `Enterprise Modernization Agreement - ${leadCompany}`);
+    setQuoteId(editingContract?.quoteId || initialQuote?.id || '');
+    setPlan(editingContract?.plan || initialQuote?.plan || 'Enterprise Tier 1');
+    setAnnualValue(editingContract?.annualValue || initialQuote?.finalPrice || 85000);
+    setEffectiveDate(editingContract?.effectiveDate || new Date().toLocaleDateString('en-CA'));
+    setApprovedTemplateVersionId(editingContract?.approvedTemplateVersionId || '');
     setErrorMsg(null);
     submitLock.current = false;
     requestKey.current = null;
-  }, [isOpen, leadId, leadCompany, initialQuoteId, quotes]);
+  }, [isOpen, leadId, leadCompany, initialQuoteId, quotes, editingContract]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    setTemplatesLoading(true);
+    void crmApi.listApprovedContractTemplates()
+      .then((templates) => {
+        if (cancelled) return;
+        setApprovedTemplates(templates);
+        setApprovedTemplateVersionId((current) => templates.some((template) => template.id === current) ? current : templates[0]?.id || '');
+      })
+      .catch(() => {
+        if (!cancelled) setErrorMsg('Approved legal templates could not be loaded. Refresh and try again.');
+      })
+      .finally(() => { if (!cancelled) setTemplatesLoading(false); });
+    return () => { cancelled = true; };
+  }, [isOpen]);
 
   const handleQuoteChange = (selectedId: string) => {
     setQuoteId(selectedId);
@@ -70,6 +94,10 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreateContract || submitLock.current) return;
+    if (!approvedTemplateVersionId || !approvedTemplates.some((template) => template.id === approvedTemplateVersionId)) {
+      setErrorMsg('An approved legal template is required before a contract draft can be created. Contact the authorized template administrator.');
+      return;
+    }
     const normalizedTitle = title.trim();
     const normalizedPlan = plan.trim();
     const value = Number(annualValue);
@@ -96,6 +124,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
       quoteId: quoteId || undefined,
       annualValue: value,
       effectiveDate,
+      approvedTemplateVersionId,
     };
     const signature = JSON.stringify(payload);
     if (!requestKey.current || requestKey.current.signature !== signature) {
@@ -106,9 +135,30 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
     try {
       setSubmitting(true);
       setErrorMsg(null);
-      const contract = await crmApi.createContract(leadId, requestKey.current.id, payload);
-
-      onSuccess(contract);
+      if (editingContract) {
+        const revised = await crmApi.reviseLegalContract(leadId, editingContract.id, requestKey.current.id, payload);
+        onSuccess({
+          id: revised.contract.id,
+          contractNumber: revised.contract.contractNumber,
+          title: revised.version.title,
+          plan: revised.version.plan,
+          quoteId: revised.version.quoteId,
+          annualValue: revised.version.annualValue,
+          status: 'DRAFT',
+          effectiveDate: revised.version.effectiveDate,
+          createdAt: revised.contract.createdAt,
+          workflowStatus: revised.contract.lifecycleStatus,
+          reviewStatus: revised.contract.reviewStatus,
+          versionId: revised.version.id,
+          documentAvailable: revised.documentAvailable,
+          signingAvailable: revised.signingAvailable,
+          signingBlockedReason: revised.signingBlockedReason,
+          approvedTemplateVersionId: revised.version.approvedTemplateVersionId,
+          approvedTemplateSnapshot: revised.version.approvedTemplateSnapshot,
+        });
+      } else {
+        onSuccess(await crmApi.createContract(leadId, requestKey.current.id, payload));
+      }
       onClose();
     } catch (err) {
       const error = err as { response?: { status?: number; data?: { code?: string; message?: string | string[]; details?: Array<{ retrySafe?: boolean; mutationCommitted?: boolean | 'unknown' }> } } };
@@ -149,7 +199,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={`Create Legal Contract for ${leadCompany}`}
+      title={`${editingContract ? 'Revise' : 'Create'} Contract Draft for ${leadCompany}`}
     >
       <form onSubmit={handleSubmit} noValidate aria-busy={submitting} className="space-y-4 text-xs">
         {errorMsg && (
@@ -166,28 +216,48 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
         <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg flex items-start gap-2.5">
           <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
           <div className="text-slate-700">
-            <span className="font-semibold text-blue-950">Contract Initiation Stage</span>
+            <span className="font-semibold text-blue-950">{editingContract ? 'New immutable version' : 'Contract initiation'}</span>
             <p className="text-[11px] text-slate-600 mt-0.5">
-              Draft a binding Enterprise Master Services Agreement (MSA). Once drafted, you can preview terms, simulate DocuSign envelope dispatch, and record legal signatures.
+              Create a metadata draft for internal review. This does not issue a legal agreement or send anything to the customer. Signing stays unavailable until the approved contract text and signing provider are configured.
             </p>
           </div>
         </div>
 
         <div>
-          <label htmlFor="contract-title" className="block font-semibold text-[#17263A] mb-1">Contract Title *</label>
+          <label htmlFor="contract-title" className="block font-semibold text-[#091E42] mb-1">Contract Title *</label>
           <Input
             id="contract-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Master Services Agreement & License Schedule"
-            disabled={submitting || !canCreateContract}
+            disabled={submitting || !canCreateContract || templatesLoading || approvedTemplates.length === 0 || !approvedTemplateVersionId}
             required
           />
         </div>
 
+        <div>
+          <label htmlFor="contract-approved-template" className="block font-semibold text-[#091E42] mb-1">Approved Legal Template *</label>
+          <select
+            id="contract-approved-template"
+            value={approvedTemplateVersionId}
+            onChange={(e) => setApprovedTemplateVersionId(e.target.value)}
+            disabled={submitting || templatesLoading || !canCreateContract || approvedTemplates.length === 0}
+            required
+            className="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">{templatesLoading ? 'Loading approved templates…' : approvedTemplates.length ? 'Select an approved version' : 'No approved legal templates available'}</option>
+            {approvedTemplates.map((template) => (
+              <option key={template.id} value={template.id}>{template.title} · v{template.versionNumber} · {template.locale.toUpperCase()}</option>
+            ))}
+          </select>
+          {approvedTemplates.length === 0 && !templatesLoading && (
+            <p className="mt-1 text-[11px] text-amber-800">An authorized Legal administrator must create and approve a template before Sales can create a contract.</p>
+          )}
+        </div>
+
         {quotes.length > 0 && (
           <div>
-            <label htmlFor="contract-quote" className="block font-semibold text-[#17263A] mb-1">Associate Accepted Quote</label>
+            <label htmlFor="contract-quote" className="block font-semibold text-[#091E42] mb-1">Associate Accepted Quote</label>
             <select
               id="contract-quote"
               value={quoteId}
@@ -207,7 +277,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="contract-plan" className="block font-semibold text-[#17263A] mb-1">Modernization Tier / Plan</label>
+            <label htmlFor="contract-plan" className="block font-semibold text-[#091E42] mb-1">Modernization Tier / Plan</label>
             <select
               id="contract-plan"
               value={plan}
@@ -226,7 +296,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
           </div>
 
           <div>
-            <label htmlFor="contract-value" className="block font-semibold text-[#17263A] mb-1">Total Contract Value (VND) *</label>
+            <label htmlFor="contract-value" className="block font-semibold text-[#091E42] mb-1">Total Contract Value (VND) *</label>
             <div className="relative">
               <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 font-mono">₫</span>
               <Input
@@ -245,7 +315,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="contract-effective-date" className="block font-semibold text-[#17263A] mb-1">Effective Date</label>
+            <label htmlFor="contract-effective-date" className="block font-semibold text-[#091E42] mb-1">Effective Date</label>
             <div className="relative">
               <Input
                 id="contract-effective-date"
@@ -257,9 +327,9 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
             </div>
           </div>
           <div>
-            <label className="block font-semibold text-[#17263A] mb-1">Initial Status</label>
+            <label className="block font-semibold text-[#091E42] mb-1">Draft status</label>
             <div className="px-3 py-1.5 bg-slate-100 rounded-lg text-slate-700 font-medium">
-              DRAFT (Awaiting E-Sign Dispatch)
+              {editingContract ? 'New draft version (not yet a legal document)' : 'Draft metadata (not yet a legal document)'}
             </div>
           </div>
         </div>
@@ -272,11 +342,11 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
             type="submit"
             variant="primary"
             size="sm"
-            disabled={submitting || !canCreateContract}
-            className="bg-[#244A70] hover:bg-[#1B3856] text-white"
+            disabled={submitting || !canCreateContract || templatesLoading || approvedTemplates.length === 0 || !approvedTemplateVersionId}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <FileCheck2 className="w-3.5 h-3.5 mr-1" />
-            {submitting ? 'Creating Draft...' : 'Generate Contract Draft'}
+            {submitting ? 'Saving Draft...' : editingContract ? 'Save New Version' : 'Create Draft'}
           </Button>
         </div>
       </form>

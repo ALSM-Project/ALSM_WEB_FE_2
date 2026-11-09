@@ -11,6 +11,7 @@ export interface ManageStageModalProps {
   onClose: () => void;
   onSuccess: (updatedLead: LeadDto) => void;
   onOpenActivation?: () => void;
+  hasProviderVerifiedContract?: boolean;
 }
 
 export const ManageStageModal: React.FC<ManageStageModalProps> = ({
@@ -19,6 +20,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
   onClose,
   onSuccess,
   onOpenActivation,
+  hasProviderVerifiedContract = false,
 }) => {
   const [selectedStage, setSelectedStage] = useState<LeadStage>(
     lead.stage === 'WON' ? 'WON' : lead.stage
@@ -34,8 +36,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
     { key: 'NEW', label: 'New Lead', desc: 'Inbound or captured prospect awaiting initial outreach' },
     { key: 'CONTACTED', label: 'Contacted', desc: 'Sales representative has initiated correspondence or call' },
     { key: 'QUALIFIED', label: 'Qualified', desc: 'Technical & budget qualification completed, demo presented' },
-    { key: 'PROPOSAL', label: 'Proposal', desc: 'Commercial quotation issued or contract out for review' },
-    { key: 'NEGOTIATION', label: 'Negotiation', desc: 'Commercial terms and discount pricing under formal negotiation' },
+    { key: 'PROPOSAL', label: 'Proposal / Contract', desc: 'Commercial quotation issued or contract out for review' },
     { key: 'LOST', label: 'Closed Lost', desc: 'Opportunity lost, disqualified, or postponed indefinitely' },
   ];
 
@@ -70,8 +71,6 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
     }
   };
 
-  const hasSignedContract = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
-
   return (
     <Modal
       isOpen={isOpen}
@@ -101,7 +100,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
 
         {/* Stage Selection list */}
         <div>
-          <label className="block font-semibold text-[#17263A] mb-2">Select Target Stage</label>
+          <label className="block font-semibold text-[#091E42] mb-2">Select Target Stage</label>
           <div className="space-y-2">
             {availableStages.map((st) => (
               <label
@@ -138,8 +137,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                   </span>
                 </div>
                 <p className="text-slate-600 mt-1 leading-relaxed">
-                  Sales representatives cannot manually select "Won". 
-                  Transition to Won requires an executed contract, payment confirmation, and automated customer tenant provisioning.
+                  Sales cannot manually select "Won". The backend allows activation only after a provider-confirmed contract and verified evidence meet the configured business policy.
                 </p>
                 {lead.stage === 'PROPOSAL' && onOpenActivation && (
                   <div className="mt-2">
@@ -152,7 +150,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                       className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold text-xs"
                     >
                       <ArrowRight className="w-3.5 h-3.5" />
-                      {hasSignedContract ? 'Execute Customer Activation Now' : 'Open Activation Checklist & Requirements'}
+                      {hasProviderVerifiedContract ? 'Execute Customer Activation' : 'Review Activation Requirements'}
                     </button>
                   </div>
                 )}
@@ -163,7 +161,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
 
         {/* Change Audit Notes */}
         <div>
-          <label className="block font-semibold text-[#17263A] mb-1">
+          <label className="block font-semibold text-[#091E42] mb-1">
             Reason / Stage Change Notes {selectedStage !== lead.stage && '*'}
           </label>
           <textarea
@@ -178,7 +176,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
 
         {/* Next Follow Up Date */}
         <div>
-          <label className="block font-semibold text-[#17263A] mb-1">Next Follow-up Date</label>
+          <label className="block font-semibold text-[#091E42] mb-1">Next Follow-up Date</label>
           <Input
             type="date"
             value={nextFollowUpAt}
@@ -195,7 +193,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
             variant="primary"
             size="sm"
             disabled={submitting}
-            className="bg-[#244A70] hover:bg-[#1B3856] text-white"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             {submitting ? 'Updating...' : 'Save Stage Update'}
           </Button>

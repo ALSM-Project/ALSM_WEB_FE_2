@@ -50,7 +50,7 @@ function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
     openInNewTab: node.openInNewTab ?? false,
     hideParentLabel: node.hideParentLabel ?? false,
     children: node.children
-      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new')
+      ?.filter((c) => c.id !== 'web2_partner_create' && c.route !== '/partners/new' && c.id !== 'web2_conversations' && c.route !== '/crm/conversations')
       ?.map(mapBackendNodeToMenuItem),
   };
 }
@@ -96,7 +96,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     ]);
 
     let mapped = backendNavNodes
-      .filter((n) => !EXCLUDED_IDS.has(n.id) && n.route !== '/partners/new' && n.parentId !== 'web2_group_organization')
+      .filter((n) => !EXCLUDED_IDS.has(n.id) && n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.id !== 'web2_conversations' && n.route !== '/crm/conversations' && n.parentId !== 'web2_group_organization')
       .map(mapBackendNodeToMenuItem);
 
     // If backend returned empty nodes (offline or dev fallback), supply default groups
@@ -249,7 +249,26 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const processed = mapped
       .filter((g) => g.id !== 'web2_group_conversions' && g.label?.toLowerCase() !== 'conversions')
       .map((group) => {
-      // 1. Ensure Partner Management has Partner Projects, Partner Directory, and Demo Projects
+        // Provide a direct shortcut from the dashboard to the Lead-scoped contract workflow.
+        if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
+          const children = [...(group.children || [])];
+          const hasContractShortcut = children.some((child) => child.id === 'web2_contracts_esign' || child.label === 'Contracts & E-Sign');
+          if (!hasContractShortcut) {
+            children.push({
+              id: 'web2_contracts_esign',
+              label: 'Contracts & E-Sign',
+              icon: 'FileText',
+              path: '/sales/contracts',
+              order: 2,
+              isVisible: true,
+              permissions: ['sales.leads.view'],
+              openInNewTab: false,
+            });
+          }
+          return { ...group, children };
+        }
+
+        // 1. Ensure Partner Management has Partner Directory, Partner Projects, and Demo Projects
       if (group.id === 'web2_group_partners' || group.label?.toLowerCase() === 'partner management') {
         const hasDirectory = group.children?.some((c) => c.path === '/partners');
         const hasProjects = group.children?.some((c) => c.path === '/partners/projects');

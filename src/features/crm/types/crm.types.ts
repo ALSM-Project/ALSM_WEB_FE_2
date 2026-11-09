@@ -80,6 +80,113 @@ export interface LeadContract {
   docusignEnvelopeId?: string;
   signedAt?: string;
   createdAt: string;
+  workflowStatus?: string;
+  reviewStatus?: string;
+  versionId?: string;
+  documentAvailable?: boolean;
+  signingAvailable?: boolean;
+  signingBlockedReason?: string;
+  signingReadiness?: {
+    status: 'READY' | 'BLOCKED' | 'NOT_READY';
+    canStart: boolean;
+    checks: Array<{ code: string; status: 'READY' | 'BLOCKED' | 'PENDING' }>;
+  };
+  approvedTemplateVersionId?: string;
+  approvedTemplateSnapshot?: {
+    templateVersionId: string;
+    templateVersionNumber: number;
+    title: string;
+    locale: 'vi' | 'en' | 'vi-en';
+    contentDigest: string;
+    sections: Array<{ heading: string; body: string }>;
+  };
+}
+
+export interface ApprovedContractTemplateVersion {
+  id: string;
+  templateId: string;
+  versionNumber: number;
+  title: string;
+  locale: 'vi' | 'en' | 'vi-en';
+  sections: Array<{ heading: string; body: string }>;
+  status: 'DRAFT' | 'APPROVED' | 'REJECTED';
+  contentDigest: string;
+  createdByUserId?: string;
+  approvedByUserId?: string;
+  approvedAt?: string;
+  rejectedByUserId?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+}
+
+export interface LegalContractRecord {
+  contract: {
+    id: string;
+    leadId: string;
+    organizationId: string;
+    contractNumber: string;
+    currentVersionId: string;
+    lifecycleStatus: string;
+    reviewStatus: string;
+    providerCompletionStatus: string;
+    archiveStatus: string;
+    activationStatus: string;
+    customerDecision?: 'NONE' | 'CHANGES_REQUESTED' | 'DECLINED';
+    customerDecisionReason?: string;
+    revision: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+  version: {
+    id: string;
+    versionNumber: number;
+    reviewStatus: string;
+    title: string;
+    plan: string;
+    quoteId?: string;
+    annualValue: number;
+    currency: 'VND';
+    effectiveDate: string;
+    customerName: string;
+    customerContactName: string;
+    customerEmail: string;
+    approvedTemplateVersionId?: string;
+    approvedTemplateSnapshot?: {
+      templateVersionId: string;
+      templateVersionNumber: number;
+      title: string;
+      locale: 'vi' | 'en' | 'vi-en';
+      contentDigest: string;
+      sections: Array<{ heading: string; body: string }>;
+    };
+    createdAt: string;
+  };
+  documentAvailable: boolean;
+  canonicalPdfAvailable: boolean;
+  reviewPdfAvailable: boolean;
+  signingAvailable: boolean;
+  signingBlockedReason?: string;
+  signingReadiness?: {
+    status: 'READY' | 'BLOCKED' | 'NOT_READY';
+    canStart: boolean;
+    checks: Array<{ code: string; status: 'READY' | 'BLOCKED' | 'PENDING' }>;
+  };
+  emailDelivery?: {
+    status: 'QUEUED' | 'SENT' | 'PARTIAL' | 'NOT_CONFIGURED' | 'FAILED' | 'UNCONFIRMED' | 'NO_VERIFIED_RECIPIENT';
+    recipientCount: number;
+  };
+}
+
+export interface ContractInvitationRecord {
+  id: string;
+  leadId: string;
+  recipientEmail: string;
+  status: 'ACTIVE' | 'REVOKED' | 'CONSUMED' | 'EXPIRED';
+  deliveryStatus: 'PENDING' | 'SENT' | 'NOT_CONFIGURED' | 'FAILED' | 'UNCONFIRMED';
+  expiresAt: string;
+  createdAt: string;
+  consumedAt?: string;
+  revokedAt?: string;
 }
 
 export interface LeadPayment {
