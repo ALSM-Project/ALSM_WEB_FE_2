@@ -3,57 +3,56 @@
 @tailwind utilities;
 
 :root {
-  /* Core Brand Colors */
-  --alsm-primary: #0652CC;
-  --alsm-primary-hover: #0544AB;
-  --alsm-electric: #2563EB;
-  --alsm-soft-blue: #EFF6FF;
+  /* Corporate Enterprise Color System (Meridian ERP Reference) */
+  --alsm-sidebar-bg: #14263F;
+  --alsm-sidebar-hover: #203954;
+  --alsm-sidebar-active: #29466A;
+  --alsm-workspace-bg: #EEF1F6;
+  --alsm-header-bg: #FFFFFF;
+  --alsm-card-bg: #FFFFFF;
+  --alsm-primary: #244A70;
+  --alsm-primary-hover: #1B3856;
+  --alsm-primary-active: #13283E;
+  --alsm-text-primary: #17263A;
+  --alsm-text-secondary: #8491A3;
+  --alsm-border: #DCE3EC;
+  --alsm-border-subtle: #E8EDF4;
 
-  /* Dark Navy Palette (for Sidebar and technical dark surfaces) */
-  --alsm-navy: #091E42;
-  --alsm-deep-navy: #0F172A;
+  /* Restrained Enterprise Status Colors */
+  --alsm-success: #15803D;
+  --alsm-success-bg: #F0FDF4;
+  --alsm-success-border: #BBF7D0;
 
-  /* Background & Surfaces */
-  --alsm-background: #F8FAFC;
-  --alsm-surface: #FFFFFF;
-
-  /* Typography Colors */
-  --alsm-text-primary: #0F172A;
-  --alsm-text-secondary: #334155;
-  --alsm-text-muted: #64748B;
-
-  /* Enterprise Borders */
-  --alsm-border: #E2E8F0;
-  --alsm-border-subtle: #F1F5F9;
-
-  /* Semantic Colors */
-  --alsm-success: #10B981;
-  --alsm-success-bg: #ECFDF5;
-  --alsm-warning: #F59E0B;
+  --alsm-warning: #B45309;
   --alsm-warning-bg: #FFFBEB;
-  --alsm-error: #EF4444;
-  --alsm-error-bg: #FEF2F2;
-  --alsm-info: #0652CC;
-  --alsm-info-bg: #EFF6FF;
+  --alsm-warning-border: #FDE68A;
 
-  /* Pragmatic Enterprise Border Radii (4-8px) */
+  --alsm-error: #B91C1C;
+  --alsm-error-bg: #FEF2F2;
+  --alsm-error-border: #FECACA;
+
+  --alsm-info: #1D4ED8;
+  --alsm-info-bg: #EFF6FF;
+  --alsm-info-border: #BFDBFE;
+
+  /* Consistent Enterprise Dimensions */
   --alsm-radius-card: 8px;
   --alsm-radius-input: 6px;
   --alsm-radius-button: 6px;
   --alsm-radius-badge: 4px;
 
-  /* Enterprise Shadows */
-  --alsm-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --alsm-shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --alsm-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  /* Subtle Professional Shadows */
+  --alsm-shadow-xs: 0 1px 2px 0 rgba(23, 38, 58, 0.05);
+  --alsm-shadow-sm: 0 1px 3px 0 rgba(23, 38, 58, 0.07), 0 1px 2px -1px rgba(23, 38, 58, 0.04);
+  --alsm-shadow-md: 0 4px 6px -1px rgba(23, 38, 58, 0.08), 0 2px 4px -2px rgba(23, 38, 58, 0.05);
 
   --sans: Inter, system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', Consolas, monospace;
 
   font-family: var(--sans);
   color-scheme: light;
-  color: var(--alsm-text-secondary);
-  background: var(--alsm-background);
+  color: var(--alsm-text-primary);
+  background-color: var(--alsm-workspace-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -62,8 +61,8 @@
 
 body {
   margin: 0;
-  background-color: var(--alsm-background);
-  color: var(--alsm-text-secondary);
+  background-color: var(--alsm-workspace-bg);
+  color: var(--alsm-text-primary);
   overflow-x: hidden;
 }
 
@@ -71,17 +70,17 @@ code, kbd, samp, pre {
   font-family: var(--mono);
 }
 
-/* Sleek, professional modern scrollbars */
+/* Subtle, restrained corporate scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
-  border-radius: 9999px;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
@@ -106,8 +105,8 @@ code, kbd, samp, pre {
 /* Enterprise Data Table Utilities */
 .alsm-table-container {
   overflow-x: auto;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
+  border: 1px solid var(--alsm-border);
+  border-radius: var(--alsm-radius-card);
   background-color: #FFFFFF;
 }
 
@@ -121,20 +120,20 @@ code, kbd, samp, pre {
 
 .alsm-table th {
   background-color: #F8FAFC;
-  color: #475569;
+  color: #17263A;
   font-weight: 600;
   font-size: 0.6875rem; /* 11px */
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--alsm-border);
   white-space: nowrap;
 }
 
 .alsm-table td {
   padding: 0.75rem 0.875rem;
-  border-bottom: 1px solid #F1F5F9;
-  color: #0F172A;
+  border-bottom: 1px solid var(--alsm-border-subtle);
+  color: var(--alsm-text-primary);
   vertical-align: middle;
 }
 
@@ -143,21 +142,19 @@ code, kbd, samp, pre {
 }
 
 .alsm-table tr:hover td {
-  background-color: #F8FAFC;
+  background-color: #F4F7FB;
 }
 
 /* Enterprise Metric Card Utility */
 .alsm-metric-card {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
+  border: 1px solid var(--alsm-border);
+  border-radius: var(--alsm-radius-card);
+  padding: 1.125rem 1.25rem;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .alsm-metric-card:hover {
-  border-color: #CBD5E1;
-  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06);
+  border-color: #B8C7D9;
+  box-shadow: 0 2px 4px 0 rgba(23, 38, 58, 0.06);
 }
-
-

@@ -21,25 +21,28 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className =
   return (
     <nav
       aria-label="Breadcrumb"
-      className={`flex items-center space-x-1.5 text-xs font-medium text-[#6B778C] overflow-x-auto py-1 ${className}`}
+      className={`flex items-center space-x-1.5 text-xs font-medium text-slate-600 overflow-x-auto py-0.5 whitespace-nowrap scrollbar-none ${className}`}
     >
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
         return (
           <React.Fragment key={`${item.label}-${index}`}>
-            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-[#D9E2EC] shrink-0" />}
+            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" aria-hidden="true" />}
             {item.path && !isLast ? (
               <Link
                 to={item.path}
-                className="hover:text-[#0652CC] text-[#42526E] transition-colors truncate max-w-[160px]"
+                title={item.label}
+                className="hover:text-[#244A70] text-slate-600 transition-colors truncate max-w-[140px] sm:max-w-[200px]"
               >
                 {item.label}
               </Link>
             ) : (
               <span
-                className={`truncate max-w-[200px] ${
-                  isLast ? 'text-[#091E42] font-semibold' : 'text-[#42526E]'
+                title={item.label}
+                aria-current={isLast ? 'page' : undefined}
+                className={`truncate max-w-[160px] sm:max-w-[260px] ${
+                  isLast ? 'text-[#17263A] font-semibold' : 'text-slate-600'
                 }`}
               >
                 {item.label}

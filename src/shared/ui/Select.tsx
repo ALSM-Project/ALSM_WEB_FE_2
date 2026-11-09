@@ -1,6 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { ChevronDown } from 'lucide-react';
 
 export interface SelectOption {
   value: string;
@@ -20,7 +21,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full flex flex-col space-y-1.5">
         {label && (
-          <label className="text-xs font-semibold text-[#091E42] tracking-wide">
+          <label className="text-xs font-semibold text-[#17263A] tracking-tight">
             {label}
           </label>
         )}
@@ -30,7 +31,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             disabled={disabled}
             className={twMerge(
               clsx(
-                'w-full px-3.5 py-2 text-sm bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:border-[#0652CC] disabled:bg-[#F7F9FC] disabled:cursor-not-allowed appearance-none pr-8',
+                'w-full px-3 py-2 text-xs sm:text-sm bg-white border border-[#DCE3EC] rounded-md text-[#17263A] shadow-2xs transition-all focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] disabled:bg-[#EEF1F6] disabled:text-[#8491A3] disabled:cursor-not-allowed appearance-none pr-8',
                 error && 'border-rose-500 focus:ring-rose-500 focus:border-rose-500',
                 className
               )
@@ -43,16 +44,14 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#6B778C]">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#8491A3]">
+            <ChevronDown className="w-4 h-4" />
           </div>
         </div>
         {error ? (
-          <span className="text-xs text-rose-600 font-medium">{error}</span>
+          <span className="text-xs text-rose-700 font-medium">{error}</span>
         ) : helperText ? (
-          <span className="text-xs text-[#6B778C]">{helperText}</span>
+          <span className="text-xs text-[#8491A3]">{helperText}</span>
         ) : null}
       </div>
     );

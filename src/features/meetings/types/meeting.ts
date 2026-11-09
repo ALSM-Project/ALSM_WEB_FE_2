@@ -8,7 +8,8 @@ export interface Meeting {
   meetingCode: string;
   hostUserId: string;
   hostEmail: string;
-  projectId: string;
+  projectId?: string;
+  projectName?: string;
   attendeeEmails: string[];
   scheduledStartTime: string; // ISO string
   scheduledEndTime: string;   // ISO string
@@ -25,6 +26,17 @@ export interface CreateMeetingRequest {
   attendeeEmails: string[];
   scheduledStartTime: string;
   scheduledEndTime: string;
+}
+
+export interface UpdateMeetingRequest {
+  title?: string;
+  description?: string;
+  customMeetingUrl?: string;
+  projectId?: string;
+  attendeeEmails?: string[];
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  status?: MeetingStatus;
 }
 
 export interface ListMeetingsResponse {

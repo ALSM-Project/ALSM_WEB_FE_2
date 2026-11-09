@@ -6,6 +6,7 @@ import {
 import { adminApi, AuditLogDto } from '../api/admin.api';
 import { Button } from '@/shared/ui';
 import { AuditDetailModal } from '../components/AuditDetailModal';
+import { formatIpAddress } from '@/shared/utils/network';
 
 const MOCK_AUDIT_LOGS: AuditLogDto[] = [
   {
@@ -198,6 +199,7 @@ export const AuditLogsPage: React.FC = () => {
           log.action.toLowerCase().includes(term) ||
           (log.resourceId && log.resourceId.toLowerCase().includes(term)) ||
           (log.ipAddress && log.ipAddress.toLowerCase().includes(term)) ||
+          formatIpAddress(log.ipAddress).toLowerCase().includes(term) ||
           JSON.stringify(log.metadata || {}).toLowerCase().includes(term);
 
         const matchesAction = !actionFilter || log.action === actionFilter;
@@ -243,7 +245,7 @@ export const AuditLogsPage: React.FC = () => {
             `"${log.action}"`,
             `"${log.resourceType}"`,
             `"${log.resourceId || ''}"`,
-            `"${log.ipAddress || ''}"`,
+            `"${formatIpAddress(log.ipAddress)}"`,
             `"${JSON.stringify(log.metadata || {}).replace(/"/g, '""')}"`,
           ].join(',')
         )
@@ -285,36 +287,27 @@ export const AuditLogsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E8F1FF] text-[#0652CC] uppercase tracking-wider">
-              Platform Administration
-            </span>
-            <span className="text-[11px] text-[#6B778C]">Simulated Security Audit Records</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight mt-1">
-            Activity & Security Audit Log
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Audit Logs
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Displaying simulated security events, administrative overrides, and system changes for governance testing.
-          </p>
         </div>
 
         {/* Action Controls: Refresh, Export CSV, Export PDF */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={fetchLogs}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#244A70] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
 
           <button
             disabled={exportingCsv}
             onClick={handleExportCsv}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#0652CC] text-[#0652CC] rounded-xl text-xs font-semibold hover:bg-[#E8F1FF] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#244A70] text-[#244A70] rounded-xl text-xs font-semibold hover:bg-[#EEF1F6] transition-colors shadow-xs cursor-pointer"
             title="Download filtered audit records in CSV format"
           >
             <Download className="w-3.5 h-3.5" />
@@ -323,7 +316,7 @@ export const AuditLogsPage: React.FC = () => {
 
           <button
             onClick={handleExportPdfPlaceholder}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
             title="Print or export compliance audit log"
           >
             <FileText className="w-3.5 h-3.5 text-slate-500" />
@@ -380,7 +373,7 @@ export const AuditLogsPage: React.FC = () => {
       )}
 
       {/* Filter / Search Bar (Requirement H) */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-4 shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
           {/* Search */}
           <div className="relative w-full lg:w-80">
@@ -392,22 +385,22 @@ export const AuditLogsPage: React.FC = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <FileSearch className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+            <FileSearch className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
             {/* Date Range Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Date:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Date:</span>
               <select
                 value={dateRangeFilter}
                 onChange={(e) => {
                   setDateRangeFilter(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="ALL">All Time</option>
                 <option value="TODAY">Today (24h)</option>
@@ -418,9 +411,9 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Action Type Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Action:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Action:</span>
               <select
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={actionFilter}
                 onChange={(e) => {
                   setActionFilter(e.target.value);
@@ -443,9 +436,9 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Target Resource Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Target:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Target:</span>
               <select
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={resourceFilter}
                 onChange={(e) => {
                   setResourceFilter(e.target.value);
@@ -464,11 +457,11 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Sort Order */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Sort:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
@@ -480,11 +473,11 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       {/* Audit Log Table (Requirement H) */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Timestamp</th>
                 <th className="py-3 px-4">Actor</th>
                 <th className="py-3 px-4">Action</th>
@@ -493,20 +486,20 @@ export const AuditLogsPage: React.FC = () => {
                 <th className="py-3 px-4">Audit Details & Context</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={6} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Reading simulated audit records...</span>
                     </div>
                   </td>
                 </tr>
               ) : paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#6B778C]">
-                    <FileSearch className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                  <td colSpan={6} className="py-12 text-center text-[#8491A3]">
+                    <FileSearch className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                     <div>No audit records match the selected parameters.</div>
                     <Button variant="outline" size="sm" onClick={resetFilters} className="mt-3 text-xs">
                       Reset Filters
@@ -518,45 +511,45 @@ export const AuditLogsPage: React.FC = () => {
                   <tr
                     key={log.id}
                     onClick={() => setSelectedLog(log)}
-                    className="hover:bg-[#F0F4FA] transition-colors cursor-pointer group"
+                    className="hover:bg-[#F8FAFC] transition-colors cursor-pointer group"
                   >
                     {/* Timestamp */}
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#6B778C] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#8491A3] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
 
                     {/* Actor */}
-                    <td className="py-3.5 px-4 font-semibold text-[#091E42]">
+                    <td className="py-3.5 px-4 font-semibold text-[#17263A]">
                       <div className="flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-[#0652CC] shrink-0" />
+                        <User className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
                         <span>{log.actor}</span>
                       </div>
                     </td>
 
                     {/* Action */}
                     <td className="py-3.5 px-4">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F0F4FA] border border-[#D9E2EC] text-[#091E42] group-hover:border-[#0652CC]/30 transition-colors">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F8FAFC] border border-[#DCE3EC] text-[#17263A] group-hover:border-[#244A70]/30 transition-colors">
                         {log.action}
                       </span>
                     </td>
 
                     {/* Target Resource */}
-                    <td className="py-3.5 px-4 text-[#091E42]">
+                    <td className="py-3.5 px-4 text-[#17263A]">
                       <div className="font-semibold text-xs">{log.resourceType}</div>
                       {log.resourceId && (
-                        <div className="font-mono text-[10px] text-[#6B778C] truncate max-w-[160px]">
+                        <div className="font-mono text-[10px] text-[#8491A3] truncate max-w-[160px]">
                           {log.resourceId}
                         </div>
                       )}
                     </td>
 
                     {/* IP Address (Requirement H) */}
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-slate-600 whitespace-nowrap">
-                      {log.ipAddress || '-'}
+                    <td className="py-3.5 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
+                      {formatIpAddress(log.ipAddress)}
                     </td>
 
                     {/* Context / Metadata */}
-                    <td className="py-3.5 px-4 text-[#6B778C] font-mono text-[11px]">
+                    <td className="py-3.5 px-4 text-[#8491A3] font-mono text-[11px]">
                       <div className="flex items-center justify-between gap-2 max-w-sm">
                         <span className="truncate text-slate-700">
                           {log.metadata && Object.keys(log.metadata).length > 0
@@ -570,7 +563,7 @@ export const AuditLogsPage: React.FC = () => {
                             e.stopPropagation();
                             setSelectedLog(log);
                           }}
-                          className="shrink-0 text-[#0652CC] hover:text-[#0540A0] hover:bg-blue-100/70 p-1 rounded-md transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
+                          className="shrink-0 text-[#244A70] hover:text-[#1B3856] hover:bg-blue-100/70 p-1 rounded-md transition-colors cursor-pointer opacity-70 group-hover:opacity-100"
                           title="View audit details"
                           aria-label="View audit details"
                         >
@@ -587,7 +580,7 @@ export const AuditLogsPage: React.FC = () => {
 
         {/* Pagination Bar (Requirement H) */}
         {!loading && filteredLogs.length > 0 && (
-          <div className="p-3.5 bg-[#F7F9FC] border-t border-[#E5EAF0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B778C]">
+          <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
             <div className="flex items-center gap-2">
               <span>
                 Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
@@ -603,7 +596,7 @@ export const AuditLogsPage: React.FC = () => {
                     setPageSize(parseInt(e.target.value) || 10);
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#D9E2EC] bg-white text-[#091E42] text-xs outline-none"
+                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] text-xs outline-none"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -616,18 +609,18 @@ export const AuditLogsPage: React.FC = () => {
               <button
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-[#D9E2EC] bg-white text-[#091E42] disabled:opacity-40 hover:bg-[#F7F9FC] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                 title="Previous Page"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="font-semibold text-[#091E42]">
+              <span className="font-semibold text-[#17263A]">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg border border-[#D9E2EC] bg-white text-[#091E42] disabled:opacity-40 hover:bg-[#F7F9FC] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 hover:bg-[#F8FAFC] transition-colors cursor-pointer"
                 title="Next Page"
               >
                 <ChevronRight className="w-4 h-4" />

@@ -320,9 +320,9 @@ export const RolesPage: React.FC = () => {
 
   if (isLoadingRoles || isLoadingPerms) {
     return (
-      <div className="flex h-96 w-full flex-col items-center justify-center space-y-3 text-xs text-[#6B778C]">
-        <RefreshCw className="w-6 h-6 animate-spin text-[#0652CC]" />
-        <span className="font-semibold text-[#091E42]">Loading Roles & Permissions Catalog...</span>
+      <div className="flex h-96 w-full flex-col items-center justify-center space-y-3 text-xs text-[#8491A3]">
+        <RefreshCw className="w-6 h-6 animate-spin text-[#244A70]" />
+        <span className="font-semibold text-[#17263A]">Loading Roles & Permissions Catalog...</span>
       </div>
     );
   }
@@ -330,28 +330,25 @@ export const RolesPage: React.FC = () => {
   return (
     <div className="space-y-6 w-full">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAF0] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DCE3EC] pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">
-            Roles & Permissions Management
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Roles & Permissions
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Configure RBAC roles and permissions. Changes are enforced on the backend.
-          </p>
         </div>
 
         {canManage && (
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsCreatePermModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#0652CC] text-[#0652CC] rounded-xl text-xs font-semibold hover:bg-[#E8F1FF] transition-colors shadow-xs cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#244A70] text-[#244A70] rounded-xl text-xs font-semibold hover:bg-[#EEF1F6] transition-colors shadow-xs cursor-pointer"
             >
               <KeyRound className="w-4 h-4" />
               Create New Permission
             </button>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] transition-colors shadow-xs cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Create New Role
@@ -398,12 +395,12 @@ export const RolesPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-6 items-start">
         {/* Left Column: Role List */}
         <div className="space-y-3 shrink-0">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] px-1">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] px-1">
             Platform Roles ({roles.length})
           </h2>
 
           {roles.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-xl border border-[#E5EAF0] text-xs text-[#6B778C]">
+            <div className="p-8 text-center bg-white rounded-xl border border-[#DCE3EC] text-xs text-[#8491A3]">
               No roles have been configured.
             </div>
           ) : (
@@ -416,21 +413,21 @@ export const RolesPage: React.FC = () => {
                     onClick={() => handleSelectRole(role.id)}
                     className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? 'border-[#0652CC] bg-[#E8F1FF]/60 shadow-xs'
-                        : 'border-[#E5EAF0] bg-white hover:border-[#B3D4FF]'
+                        ? 'border-[#244A70] bg-[#EEF1F6]/60 shadow-xs'
+                        : 'border-[#DCE3EC] bg-white hover:border-[#B8C7D9]'
                     }`}
                   >
                     <div className="space-y-1.5 min-w-0 pr-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-[#091E42] truncate">{role.name}</span>
+                        <span className="font-bold text-sm text-[#17263A] truncate">{role.name}</span>
                         {role.isSystem && (
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-[#091E42] text-white shrink-0">
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-[#17263A] text-white shrink-0">
                             SYSTEM
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-[#6B778C] line-clamp-1">{role.description}</p>
-                      <span className="inline-block text-[11px] font-semibold text-[#0652CC]">
+                      <p className="text-xs text-[#8491A3] line-clamp-1">{role.description}</p>
+                      <span className="inline-block text-[11px] font-semibold text-[#244A70]">
                         {role.permissionCount !== undefined ? role.permissionCount : '—'} Permissions
                       </span>
                     </div>
@@ -447,7 +444,7 @@ export const RolesPage: React.FC = () => {
                             setEditRoleDesc(role.description || '');
                             setIsEditModalOpen(true);
                           }}
-                          className="p-1.5 text-[#64748B] hover:text-[#0652CC] rounded-lg hover:bg-[#0652CC]/10 transition-colors cursor-pointer"
+                          className="p-1.5 text-[#64748B] hover:text-[#244A70] rounded-lg hover:bg-[#244A70]/10 transition-colors cursor-pointer"
                           title="Edit Role Details"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -476,27 +473,27 @@ export const RolesPage: React.FC = () => {
         </div>
 
         {/* Right Column: Permissions Matrix for Selected Role */}
-        <div className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs space-y-5 flex flex-col justify-between min-w-0">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-xs space-y-5 flex flex-col justify-between min-w-0">
           {selectedRole ? (
             <>
               <div>
                 {/* Selected Role Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5EAF0] pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#DCE3EC] pb-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-[#091E42]">{selectedRole.name}</h3>
-                      <span className="text-xs text-[#6B778C] font-mono">({selectedRole.id})</span>
+                      <h3 className="text-base font-bold text-[#17263A]">{selectedRole.name}</h3>
+                      <span className="text-xs text-[#8491A3] font-mono">({selectedRole.id})</span>
                       {selectedRole.isSystem && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-[#091E42] text-white">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-[#17263A] text-white">
                           System Role
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#6B778C] mt-0.5">{selectedRole.description}</p>
+                    <p className="text-xs text-[#8491A3] mt-0.5">{selectedRole.description}</p>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <span className="text-xs text-[#0652CC] font-semibold bg-[#E8F1FF] px-3 py-1.5 rounded-lg border border-[#B3D4FF]/40">
+                    <span className="text-xs text-[#244A70] font-semibold bg-[#EEF1F6] px-3 py-1.5 rounded-lg border border-[#B8C7D9]/40">
                       {unsavedPermissions.length} Active Permissions
                     </span>
 
@@ -509,7 +506,7 @@ export const RolesPage: React.FC = () => {
                           setEditRoleDesc(selectedRole.description || '');
                           setIsEditModalOpen(true);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#0652CC] bg-[#E8F1FF] hover:bg-[#D0E2FF] border border-[#B3D4FF] transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#244A70] bg-[#EEF1F6] hover:bg-[#BFDBFE] border border-[#B8C7D9] transition-colors cursor-pointer"
                         title="Edit Role Details"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -539,8 +536,8 @@ export const RolesPage: React.FC = () => {
                         disabled={!hasUnsavedChanges || updateRolePermissionsMutation.isPending}
                         className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-xs ${
                           hasUnsavedChanges
-                            ? 'bg-[#0652CC] text-white hover:bg-[#0543A8] cursor-pointer animate-pulse'
-                            : 'bg-[#E5EAF0] text-[#94A3B8] cursor-not-allowed'
+                            ? 'bg-[#244A70] text-white hover:bg-[#244A70] cursor-pointer animate-pulse'
+                            : 'bg-[#DCE3EC] text-[#94A3B8] cursor-not-allowed'
                         }`}
                       >
                         {updateRolePermissionsMutation.isPending ? (
@@ -568,8 +565,8 @@ export const RolesPage: React.FC = () => {
 
                 {/* Grouped Permissions List */}
                 {isLoadingRolePerms ? (
-                  <div className="p-12 text-center text-xs text-[#6B778C] flex items-center justify-center space-x-2">
-                    <RefreshCw className="w-4 h-4 animate-spin text-[#0652CC]" />
+                  <div className="p-12 text-center text-xs text-[#8491A3] flex items-center justify-center space-x-2">
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#244A70]" />
                     <span>Loading permissions for {selectedRole.name}...</span>
                   </div>
                 ) : (
@@ -577,12 +574,12 @@ export const RolesPage: React.FC = () => {
                     {Object.entries(groupedPermissions).map(([group, perms]) => {
                       const selectedCount = perms.filter((p) => unsavedPermissions.includes(p.key)).length;
                       return (
-                        <div key={group} className="border border-[#E5EAF0] rounded-xl p-4 bg-[#F7F9FC]">
-                          <div className="flex items-center justify-between mb-3 border-b border-[#E5EAF0] pb-2">
-                            <h4 className="text-xs font-bold text-[#091E42] uppercase tracking-wide">
+                        <div key={group} className="border border-[#DCE3EC] rounded-xl p-4 bg-[#F8FAFC]">
+                          <div className="flex items-center justify-between mb-3 border-b border-[#DCE3EC] pb-2">
+                            <h4 className="text-xs font-bold text-[#17263A] uppercase tracking-wide">
                               {group} Module
                             </h4>
-                            <span className="text-[11px] font-bold text-[#42526E]">
+                            <span className="text-[11px] font-bold text-[#8491A3]">
                               {selectedCount} / {perms.length} SELECTED
                             </span>
                           </div>
@@ -595,8 +592,8 @@ export const RolesPage: React.FC = () => {
                                   key={perm.key}
                                   className={`flex items-start justify-between gap-2 p-3 rounded-xl border text-xs transition-all ${
                                     isChecked
-                                      ? 'border-[#0652CC] bg-white shadow-2xs'
-                                      : 'border-[#E5EAF0] bg-white/60 hover:bg-white'
+                                      ? 'border-[#244A70] bg-white shadow-2xs'
+                                      : 'border-[#DCE3EC] bg-white/60 hover:bg-white'
                                   }`}
                                 >
                                   <label className={`flex items-start gap-3 min-w-0 cursor-pointer flex-1 ${!canManage ? 'opacity-80 cursor-not-allowed' : ''}`}>
@@ -605,14 +602,14 @@ export const RolesPage: React.FC = () => {
                                       checked={isChecked}
                                       disabled={!canManage}
                                       onChange={() => handleTogglePermission(perm.key)}
-                                      className="mt-0.5 rounded text-[#0652CC] focus:ring-[#0652CC] w-4 h-4 cursor-pointer shrink-0"
+                                      className="mt-0.5 rounded text-[#244A70] focus:ring-[#244A70] w-4 h-4 cursor-pointer shrink-0"
                                     />
                                     <div className="space-y-0.5 min-w-0">
-                                      <div className="font-bold text-[#091E42] truncate">
+                                      <div className="font-bold text-[#17263A] truncate">
                                         {perm.label || perm.name || perm.key}
                                       </div>
-                                      <div className="text-[10px] text-[#0652CC] font-mono">{perm.key}</div>
-                                      <div className="text-[11px] text-[#6B778C] mt-1">{perm.description}</div>
+                                      <div className="text-[10px] text-[#244A70] font-mono">{perm.key}</div>
+                                      <div className="text-[11px] text-[#8491A3] mt-1">{perm.description}</div>
                                     </div>
                                   </label>
 
@@ -628,7 +625,7 @@ export const RolesPage: React.FC = () => {
                                           setEditPermDesc(perm.description || '');
                                           setIsEditPermModalOpen(true);
                                         }}
-                                        className="p-1 text-[#64748B] hover:text-[#0652CC] rounded hover:bg-[#0652CC]/10 transition-colors"
+                                        className="p-1 text-[#64748B] hover:text-[#244A70] rounded hover:bg-[#244A70]/10 transition-colors"
                                         title="Edit Permission Details"
                                       >
                                         <Edit2 className="w-3.5 h-3.5" />
@@ -659,7 +656,7 @@ export const RolesPage: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="p-12 text-center text-xs text-[#6B778C]">
+            <div className="p-12 text-center text-xs text-[#8491A3]">
               Select a role from the left panel to configure permissions.
             </div>
           )}
@@ -668,64 +665,64 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Create Permission */}
       {isCreatePermModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Create New System Permission</h3>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Create New System Permission</h3>
             <form onSubmit={handleCreatePermissionSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Permission Key (e.g. reports.export)</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Permission Key (e.g. reports.export)</label>
                 <input
                   type="text"
                   placeholder="e.g. reports.export"
                   value={newPermKey}
                   onChange={(e) => setNewPermKey(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none font-mono"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none font-mono"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Display Label</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Display Label</label>
                 <input
                   type="text"
                   placeholder="e.g. Export System Reports"
                   value={newPermLabel}
                   onChange={(e) => setNewPermLabel(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Module / Group</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Module / Group</label>
                 <input
                   type="text"
                   placeholder="e.g. Reports or Analytics or Dashboard"
                   value={newPermGroup}
                   onChange={(e) => setNewPermGroup(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Description</label>
                 <textarea
                   placeholder="Describe what this permission allows..."
                   value={newPermDesc}
                   onChange={(e) => setNewPermDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none h-20"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none h-20"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsCreatePermModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createPermissionMutation.isPending}
-                  className="px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {createPermissionMutation.isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Create Permission</span>
@@ -738,59 +735,59 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Edit Permission */}
       {isEditPermModalOpen && editingPerm && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Edit Permission Details</h3>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Edit Permission Details</h3>
             <form onSubmit={handleEditPermissionSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Permission Key (Read-Only)</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Permission Key (Read-Only)</label>
                 <input
                   type="text"
                   value={editingPerm.key}
                   disabled
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] bg-[#F4F5F7] text-[#6B778C] rounded-xl text-xs font-mono cursor-not-allowed"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] bg-[#F4F7FB] text-[#8491A3] rounded-xl text-xs font-mono cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Display Label</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Display Label</label>
                 <input
                   type="text"
                   value={editPermLabel}
                   onChange={(e) => setEditPermLabel(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Module / Group</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Module / Group</label>
                 <input
                   type="text"
                   value={editPermGroup}
                   onChange={(e) => setEditPermGroup(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Description</label>
                 <textarea
                   value={editPermDesc}
                   onChange={(e) => setEditPermDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none h-20"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none h-20"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsEditPermModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updatePermissionMutation.isPending}
-                  className="px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {updatePermissionMutation.isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Changes</span>
@@ -803,17 +800,17 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Delete Permission Confirmation */}
       {isDeletePermModalOpen && deletingPerm && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Delete Permission?</h3>
-            <p className="text-xs text-[#6B778C]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Delete Permission?</h3>
+            <p className="text-xs text-[#8491A3]">
               Are you sure you want to delete permission <strong>{deletingPerm.label || deletingPerm.key}</strong> (<code className="font-mono">{deletingPerm.key}</code>)? This will automatically remove it from all assigned roles.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsDeletePermModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
               >
                 Cancel
               </button>
@@ -833,53 +830,53 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Create Role */}
       {isCreateModalOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Create New Custom Role</h3>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Create New Custom Role</h3>
             <form onSubmit={handleCreateRoleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Key (Stable Identifier)</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Role Key (Stable Identifier)</label>
                 <input
                   type="text"
                   placeholder="e.g. PROJECT_MANAGER"
                   value={newRoleKey}
                   onChange={(e) => setNewRoleKey(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none uppercase font-mono"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none uppercase font-mono"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Display Name</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Role Display Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Project Manager"
                   value={newRoleName}
                   onChange={(e) => setNewRoleName(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Description</label>
                 <textarea
                   placeholder="Describe operational responsibilities..."
                   value={newRoleDesc}
                   onChange={(e) => setNewRoleDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none h-20"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none h-20"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createRoleMutation.isPending}
-                  className="px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {createRoleMutation.isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Create Role</span>
@@ -892,49 +889,49 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Edit Role */}
       {isEditModalOpen && editingRole && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Edit Role: {editingRole.name}</h3>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Edit Role: {editingRole.name}</h3>
             <form onSubmit={handleEditRoleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Key (Identifier)</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Role Key (Identifier)</label>
                 <input
                   type="text"
                   value={editingRole.id}
                   disabled
-                  className="w-full px-3.5 py-2 border border-[#E5EAF0] bg-[#F7F9FC] rounded-xl text-xs text-[#6B778C] font-mono cursor-not-allowed select-all"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] bg-[#F8FAFC] rounded-xl text-xs text-[#8491A3] font-mono cursor-not-allowed select-all"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Role Display Name</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Role Display Name</label>
                 <input
                   type="text"
                   value={editRoleName}
                   onChange={(e) => setEditRoleName(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Description</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Description</label>
                 <textarea
                   value={editRoleDesc}
                   onChange={(e) => setEditRoleDesc(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none h-20"
+                  className="w-full px-3.5 py-2 border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none h-20"
                 />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={updateRoleMutation.isPending}
-                  className="px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] disabled:opacity-50 flex items-center gap-1.5"
+                  className="px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] disabled:opacity-50 flex items-center gap-1.5"
                 >
                   {updateRoleMutation.isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
                   <span>Save Changes</span>
@@ -947,17 +944,17 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Delete Role Confirmation */}
       {isDeleteModalOpen && deletingRole && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Delete Role?</h3>
-            <p className="text-xs text-[#6B778C]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Delete Role?</h3>
+            <p className="text-xs text-[#8491A3]">
               Are you sure you want to delete role <strong>{deletingRole.name}</strong> ({deletingRole.id})? This will unassign it from all users and remove its permissions. This action cannot be undone.
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
               >
                 Cancel
               </button>
@@ -977,17 +974,17 @@ export const RolesPage: React.FC = () => {
 
       {/* Modal: Unsaved Changes Confirmation */}
       {isUnsavedConfirmOpen && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#091E42]/70 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#E5EAF0] space-y-4">
-            <h3 className="text-base font-bold text-[#091E42]">Unsaved Permission Changes</h3>
-            <p className="text-xs text-[#6B778C]">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#17263A]/70 backdrop-blur-xs p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl border border-[#DCE3EC] space-y-4">
+            <h3 className="text-base font-bold text-[#17263A]">Unsaved Permission Changes</h3>
+            <p className="text-xs text-[#8491A3]">
               You have unsaved permission changes for the current role. Discard changes and switch roles?
             </p>
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setIsUnsavedConfirmOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#6B778C] hover:bg-[#F7F9FC]"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8491A3] hover:bg-[#F8FAFC]"
               >
                 Keep Editing
               </button>

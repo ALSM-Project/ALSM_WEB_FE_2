@@ -131,7 +131,7 @@ describe('UC-95 Request Temporary Role Frontend Workflow', () => {
     fireEvent.click(screen.getByText('Request Elevation'));
 
     // Modal shows conflict alert
-    expect(screen.getByText(/Active Elevation Conflict \(UC-95 Policy\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Active (Role|Elevation) Conflict/i)).toBeInTheDocument();
     const submitBtn = screen.getByRole('button', { name: /Submit Elevation Request/i });
     expect(submitBtn).toBeDisabled();
   });

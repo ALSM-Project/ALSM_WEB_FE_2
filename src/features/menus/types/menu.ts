@@ -28,6 +28,10 @@ export interface MenuItem {
   target?: '_blank' | '_self';
   openInNewTab?: boolean;
   hideParentLabel?: boolean;
+
+  contractTypeVisibility?: 'ALL' | 'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID';
+  featureKey?: string;
+  requiredRoles?: string[];
 }
 
 export interface NavigationData {

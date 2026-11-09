@@ -20,16 +20,18 @@ export function fileExtension(fileName: string): string {
 }
 
 /** `accept` attribute value for the file picker of a project. */
-export function acceptAttribute(conversionType: ConversionType): string {
-  return ACCEPTED_EXTENSIONS[conversionType].map((ext) => `.${ext}`).join(',');
+export function acceptAttribute(conversionType?: ConversionType): string {
+  const safeType: ConversionType = conversionType === 'COBOL_TO_JAVA' ? 'COBOL_TO_JAVA' : 'BMS_DSPF_TO_FRONTEND';
+  return (ACCEPTED_EXTENSIONS[safeType] || []).map((ext) => `.${ext}`).join(',');
 }
 
-export function acceptedLabel(conversionType: ConversionType): string {
-  return ACCEPTED_EXTENSIONS[conversionType].map((ext) => `.${ext}`).join(', ');
+export function acceptedLabel(conversionType?: ConversionType): string {
+  const safeType: ConversionType = conversionType === 'COBOL_TO_JAVA' ? 'COBOL_TO_JAVA' : 'BMS_DSPF_TO_FRONTEND';
+  return (ACCEPTED_EXTENSIONS[safeType] || []).map((ext) => `.${ext}`).join(', ');
 }
 
 /** Screens for BMS/DSPF, programs for COBOL (copybooks and archives follow the project). */
-export function classifyFile(fileName: string, conversionType: ConversionType): QueuedFileKind {
+export function classifyFile(fileName: string, conversionType?: ConversionType): QueuedFileKind {
   const ext = fileExtension(fileName);
   if (SCREEN_EXTENSIONS.includes(ext)) return 'SCREEN';
   if (PROGRAM_EXTENSIONS.includes(ext)) return 'PROGRAM';
@@ -55,14 +57,15 @@ export type FileRejection =
  */
 export function validateIncomingFile(
   file: { name: string; size: number },
-  conversionType: ConversionType,
+  conversionType: ConversionType | undefined,
   queuedNames: string[],
 ): FileRejection | null {
   const ext = fileExtension(file.name);
-  if (!ACCEPTED_EXTENSIONS[conversionType].includes(ext)) {
+  const safeType: ConversionType = conversionType === 'COBOL_TO_JAVA' ? 'COBOL_TO_JAVA' : 'BMS_DSPF_TO_FRONTEND';
+  if (!(ACCEPTED_EXTENSIONS[safeType] || []).includes(ext)) {
     return {
       code: 'UNSUPPORTED_TYPE',
-      message: `${file.name}: not allowed for this project. Accepted: ${acceptedLabel(conversionType)}`,
+      message: `${file.name}: not allowed for this project. Accepted: ${acceptedLabel(safeType)}`,
     };
   }
   if (file.size === 0) {

@@ -120,7 +120,7 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({ lead, onCl
         role="dialog"
         aria-modal="true"
         aria-labelledby="schedule-demo-title"
-        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#E8ECF1] bg-white shadow-2xl"
+        className="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[#DCE3EC] bg-white shadow-2xl"
         onKeyDown={(event) => {
           event.stopPropagation();
           if (event.key === 'Escape' && !isSubmitting) onClose();
@@ -140,17 +140,17 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({ lead, onCl
           }
         }}
       >
-        <header className="flex items-center justify-between border-b border-[#E8ECF1] bg-[#F7F9FC] px-5 py-4">
+        <header className="flex items-center justify-between border-b border-[#DCE3EC] bg-[#F8FAFC] px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-700">
               <CalendarClock aria-hidden="true" className="h-5 w-5" />
             </span>
             <div>
-              <h2 id="schedule-demo-title" className="font-bold text-[#091E42]">Schedule Demo</h2>
-              <p className="text-xs text-[#6B778C]">{lead.companyName} - {lead.contactName}</p>
+              <h2 id="schedule-demo-title" className="font-bold text-[#17263A]">Schedule Demo</h2>
+              <p className="text-xs text-[#8491A3]">{lead.companyName} - {lead.contactName}</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Close schedule demo" className="rounded p-1 text-[#6B778C] hover:bg-gray-200 disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={isSubmitting} aria-label="Close schedule demo" className="rounded p-1 text-[#8491A3] hover:bg-gray-200 disabled:opacity-50">
             <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </header>
@@ -172,19 +172,19 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({ lead, onCl
             Current lead status: <strong>{LEAD_STATUS_LABELS[lead.status]}</strong>. Scheduling moves New or Contacted leads to Qualified; other open statuses remain unchanged.
           </p>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
             Demo title <span className="text-rose-600" aria-hidden="true">*</span>
-            <input autoFocus required minLength={3} maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm" />
+            <input autoFocus required minLength={3} maxLength={200} value={title} onChange={(event) => setTitle(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm" />
           </label>
 
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-medium text-[#253858]">
+            <label className="block text-sm font-medium text-[#17263A]">
               Date and time <span className="text-rose-600" aria-hidden="true">*</span>
-              <input required type="datetime-local" min={localDateTime(new Date(Date.now() + 60_000))} value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm" />
+              <input required type="datetime-local" min={localDateTime(new Date(Date.now() + 60_000))} value={scheduledAt} onChange={(event) => setScheduledAt(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm" />
             </label>
-            <label className="block text-sm font-medium text-[#253858]">
+            <label className="block text-sm font-medium text-[#17263A]">
               Duration <span className="text-rose-600" aria-hidden="true">*</span>
-              <select required value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#D9E2EC] bg-white px-3 py-2.5 text-sm">
+              <select required value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} className="mt-1.5 block w-full rounded-lg border border-[#DCE3EC] bg-white px-3 py-2.5 text-sm">
                 <option value="30">30 minutes</option>
                 <option value="45">45 minutes</option>
                 <option value="60">60 minutes</option>
@@ -194,31 +194,31 @@ export const ScheduleDemoModal: React.FC<ScheduleDemoModalProps> = ({ lead, onCl
             </label>
           </div>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
             Attendee emails <span className="text-rose-600" aria-hidden="true">*</span>
-            <textarea required rows={2} value={attendees} onChange={(event) => setAttendees(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-attendees-help" placeholder="contact@example.com, teammate@example.com" className="mt-1.5 block w-full resize-y rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm" />
-            <span id="demo-attendees-help" className="mt-1 block text-xs font-normal text-[#6B778C]">Separate email addresses with commas or new lines. The lead contact is filled in automatically.</span>
+            <textarea required rows={2} value={attendees} onChange={(event) => setAttendees(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-attendees-help" placeholder="contact@example.com, teammate@example.com" className="mt-1.5 block w-full resize-y rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm" />
+            <span id="demo-attendees-help" className="mt-1 block text-xs font-normal text-[#8491A3]">Separate email addresses with commas or new lines. The lead contact is filled in automatically.</span>
           </label>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
-            Agenda <span className="text-xs font-normal text-[#6B778C]">(optional)</span>
-            <textarea rows={3} maxLength={2000} value={agenda} onChange={(event) => setAgenda(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-agenda-count" className="mt-1.5 block w-full resize-y rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm" />
-            <span id="demo-agenda-count" className="mt-1 block text-right text-xs text-[#6B778C]">{agenda.length}/2,000</span>
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
+            Agenda <span className="text-xs font-normal text-[#8491A3]">(optional)</span>
+            <textarea rows={3} maxLength={2000} value={agenda} onChange={(event) => setAgenda(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-agenda-count" className="mt-1.5 block w-full resize-y rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm" />
+            <span id="demo-agenda-count" className="mt-1 block text-right text-xs text-[#8491A3]">{agenda.length}/2,000</span>
           </label>
 
-          <label className="mb-4 block text-sm font-medium text-[#253858]">
-            Internal preparation notes <span className="text-xs font-normal text-[#6B778C]">(optional)</span>
-            <textarea rows={3} maxLength={2000} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-notes-count" placeholder="Preparation context for the sales team" className="mt-1.5 block w-full resize-y rounded-lg border border-[#D9E2EC] px-3 py-2.5 text-sm" />
-            <span id="demo-notes-count" className="mt-1 block text-right text-xs text-[#6B778C]">{internalNotes.length}/2,000</span>
+          <label className="mb-4 block text-sm font-medium text-[#17263A]">
+            Internal preparation notes <span className="text-xs font-normal text-[#8491A3]">(optional)</span>
+            <textarea rows={3} maxLength={2000} value={internalNotes} onChange={(event) => setInternalNotes(event.target.value)} disabled={!canManage || isClosedLead || isSubmitting} aria-describedby="demo-notes-count" placeholder="Preparation context for the sales team" className="mt-1.5 block w-full resize-y rounded-lg border border-[#DCE3EC] px-3 py-2.5 text-sm" />
+            <span id="demo-notes-count" className="mt-1 block text-right text-xs text-[#8491A3]">{internalNotes.length}/2,000</span>
           </label>
 
           <p className="mb-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-900">
             Attendees receive an email notification after the demo is saved. This flow does not create calendar invitations or meeting links.
           </p>
 
-          <footer className="flex flex-col-reverse gap-2 border-t border-[#E8ECF1] pt-4 sm:flex-row sm:justify-end">
-            <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-[#D9E2EC] bg-white px-4 py-2.5 text-sm font-semibold text-[#253858] disabled:opacity-50">Cancel</button>
-            <button type="submit" disabled={!canManage || isClosedLead || isSubmitting} aria-busy={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-[#0652CC] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0747b8] disabled:cursor-not-allowed disabled:opacity-50">
+          <footer className="flex flex-col-reverse gap-2 border-t border-[#DCE3EC] pt-4 sm:flex-row sm:justify-end">
+            <button type="button" onClick={onClose} disabled={isSubmitting} className="rounded-lg border border-[#DCE3EC] bg-white px-4 py-2.5 text-sm font-semibold text-[#17263A] disabled:opacity-50">Cancel</button>
+            <button type="submit" disabled={!canManage || isClosedLead || isSubmitting} aria-busy={isSubmitting} className="flex items-center justify-center gap-2 rounded-lg bg-[#244A70] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#244A70] disabled:cursor-not-allowed disabled:opacity-50">
               {isSubmitting && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />}
               {isSubmitting ? 'Scheduling…' : 'Schedule Demo'}
             </button>

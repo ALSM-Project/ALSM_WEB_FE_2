@@ -87,24 +87,24 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
     >
       <div
         id="update-lead-status-modal"
-        className="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-[#E8ECF1] overflow-hidden"
+        className="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-[#DCE3EC] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8ECF1] bg-[#F7F9FC]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DCE3EC] bg-[#F8FAFC]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0652CC] to-[#4C9AFF] flex items-center justify-center text-white shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-[#EEF1F6] border border-[#DCE3EC] flex items-center justify-center text-[#244A70] shadow-xs">
               <TrendingUp className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#091E42]">Update Lead Status</h2>
-              <p className="text-[11px] text-[#6B778C] truncate max-w-[260px]">{lead.companyName}</p>
+              <h2 className="text-sm font-bold text-[#17263A]">Update Lead Status</h2>
+              <p className="text-[11px] text-[#8491A3] truncate max-w-[260px]">{lead.companyName}</p>
             </div>
           </div>
           <button
             id="close-update-status-modal-btn"
             onClick={handleClose}
-            className="p-1.5 rounded-lg text-[#6B778C] hover:bg-gray-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8491A3] hover:bg-gray-200 transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
@@ -115,7 +115,7 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
         <div className="p-6 space-y-5">
           {/* Current Status */}
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#6B778C] font-medium">Current status:</span>
+            <span className="text-[#8491A3] font-medium">Current status:</span>
             <span
               className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${currentColors.bg} ${currentColors.text} ${currentColors.border}`}
             >
@@ -154,11 +154,11 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4" id="update-lead-status-form">
             {/* Status Selection */}
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-2 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-[#17263A] mb-2 uppercase tracking-wider">
                 Select New Status
               </label>
               {allowedNext.length === 0 ? (
-                <p className="text-xs text-[#6B778C] italic">No further transitions are available from this status.</p>
+                <p className="text-xs text-[#8491A3] italic">No further transitions are available from this status.</p>
               ) : (
                 <div className="grid grid-cols-1 gap-2">
                   {allowedNext.map((status) => {
@@ -174,7 +174,7 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
                         className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-lg border-2 text-left transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed
                           ${isSelected
                             ? `${c.bg} ${c.border} ${c.text} shadow-sm ring-2 ring-offset-1 ring-current/20`
-                            : 'bg-white border-[#E8ECF1] text-[#42526E] hover:border-[#0652CC]/40 hover:bg-[#F7F9FC]'
+                            : 'bg-white border-[#DCE3EC] text-[#8491A3] hover:border-[#244A70]/40 hover:bg-[#F8FAFC]'
                           }`}
                       >
                         <div className="flex items-center gap-2.5">
@@ -191,8 +191,8 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
 
             {/* Notes */}
             <div>
-              <label htmlFor="status-update-notes" className="block text-xs font-semibold text-[#091E42] mb-1.5 uppercase tracking-wider">
-                Notes <span className="text-[#6B778C] font-normal normal-case">(optional)</span>
+              <label htmlFor="status-update-notes" className="block text-xs font-semibold text-[#17263A] mb-1.5 uppercase tracking-wider">
+                Notes <span className="text-[#8491A3] font-normal normal-case">(optional)</span>
               </label>
               <textarea
                 id="status-update-notes"
@@ -202,9 +202,9 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
                 rows={3}
                 maxLength={2000}
                 placeholder="Add context, reason, or next steps for this status change…"
-                className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9E2EC] text-[#091E42] placeholder-[#8993A4] resize-none focus:outline-none focus:ring-2 focus:ring-[#0652CC]/40 focus:border-[#0652CC] transition-colors disabled:bg-[#F7F9FC] disabled:opacity-60"
+                className="w-full px-3 py-2 text-xs rounded-lg border border-[#DCE3EC] text-[#17263A] placeholder-[#8491A3] resize-none focus:outline-none focus:ring-2 focus:ring-[#244A70]/40 focus:border-[#244A70] transition-colors disabled:bg-[#F8FAFC] disabled:opacity-60"
               />
-              <p className="text-[10px] text-[#8993A4] mt-1">{notes.length}/2000 characters</p>
+              <p className="text-[10px] text-[#8491A3] mt-1">{notes.length}/2000 characters</p>
             </div>
 
             {/* Actions */}
@@ -213,7 +213,7 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
                 id="cancel-update-status-btn"
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-50 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 {isSuccess ? 'Close' : 'Cancel'}
               </button>
@@ -222,7 +222,7 @@ export const UpdateLeadStatusModal: React.FC<UpdateLeadStatusModalProps> = ({
                   id="submit-update-status-btn"
                   type="submit"
                   disabled={!selectedStatus || isSubmitting}
-                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#244A70] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>

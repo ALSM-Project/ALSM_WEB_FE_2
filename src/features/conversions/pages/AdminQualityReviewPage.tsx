@@ -19,6 +19,7 @@ import {
   type HumanQualityReviewTargetStatus,
   type SubmitQualityReviewPayload,
 } from '../types/quality-review';
+import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
 
 // ─── Query key factory ────────────────────────────────────────────────────────
 const adminQualityReviewKeys = {
@@ -62,6 +63,8 @@ export const AdminQualityReviewPage: React.FC = () => {
     retry: false,
     refetchInterval: 10000,
   });
+
+  useBreadcrumbEntity(data?.review?.screenId, conversionJobId);
 
   const resultQuery = useQuery({
     queryKey: ['conversion-result', projectId, conversionJobId, organizationId],
@@ -193,7 +196,7 @@ export const AdminQualityReviewPage: React.FC = () => {
             <span>Back to conversions</span>
           </button>
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-bold text-slate-900">Admin Quality Review Oversight</h1>
+            <h1 className="text-xl font-bold text-slate-900">Quality Review Oversight</h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
               <ShieldCheck className="w-3.5 h-3.5" />
               Enterprise Admin
@@ -451,7 +454,7 @@ export const AdminQualityReviewPage: React.FC = () => {
             type="button"
             onClick={handleAdminSubmit}
             disabled={submitMutation.isPending || !data?.review || !resultQuery.isSuccess || resultQuery.data.files.length === 0}
-            className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors disabled:opacity-60 flex items-center space-x-2"
+            className="px-5 py-2.5 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold transition-colors disabled:opacity-60 flex items-center space-x-2"
           >
             {submitMutation.isPending ? (
               <>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MenuItem, NavigationData } from '@/features/menus/types/menu';
 import { resolveNavigationContext, BreadcrumbNode } from '@/shared/navigation/breadcrumbUtils';
@@ -28,6 +28,11 @@ export interface NavigationContextType {
   pageTitle: string;
   breadcrumbs: BreadcrumbNode[];
   currentItem: MenuItem | null;
+  dynamicLabels: Record<string, string>;
+  setDynamicLabel: (key: string, label: string) => void;
+  removeDynamicLabel: (key: string) => void;
+  customBreadcrumbs: BreadcrumbNode[] | null;
+  setCustomBreadcrumbs: (crumbs: BreadcrumbNode[] | null) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -54,10 +59,44 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { data: backendNavNodes = [], isLoading, error, refetch } = useNavigationQuery('WEB_2');
   const { user, hasPermission } = useAuth();
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [dynamicLabels, setDynamicLabels] = useState<Record<string, string>>({});
+  const [customBreadcrumbs, setCustomBreadcrumbsState] = useState<BreadcrumbNode[] | null>(null);
+
+  const setDynamicLabel = useCallback((key: string, label: string) => {
+    if (!key || !label) return;
+    setDynamicLabels((prev) => {
+      if (prev[key] === label) return prev;
+      return { ...prev, [key]: label };
+    });
+  }, []);
+
+  const removeDynamicLabel = useCallback((key: string) => {
+    if (!key) return;
+    setDynamicLabels((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
+  const setCustomBreadcrumbs = useCallback((crumbs: BreadcrumbNode[] | null) => {
+    setCustomBreadcrumbsState(crumbs);
+  }, []);
 
   const sidebarNav = useMemo(() => {
+    const EXCLUDED_IDS = new Set([
+      'web2_partner_create',
+      'web2_group_organization',
+      'web2_conv_temporary_roles',
+      'web2_tl_temporary_roles',
+      'web2_ops_temporary_roles',
+      'web2_tl_members',
+      'web2_online_meetings',
+    ]);
+
     let mapped = backendNavNodes
-      .filter((n) => n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.id !== 'web2_conversations' && n.route !== '/crm/conversations')
+      .filter((n) => !EXCLUDED_IDS.has(n.id) && n.id !== 'web2_partner_create' && n.route !== '/partners/new' && n.id !== 'web2_conversations' && n.route !== '/crm/conversations' && n.parentId !== 'web2_group_organization')
       .map(mapBackendNodeToMenuItem);
 
     // If backend returned empty nodes (offline or dev fallback), supply default groups
@@ -115,35 +154,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           children: [],
         },
         {
-          id: 'web2_group_conversions',
-          label: 'Conversions',
-          icon: 'Cpu',
-          order: 6,
-          isVisible: true,
-          children: [
-            {
-              id: 'web2_my_assigned_work',
-              label: 'My Assigned Work',
-              icon: 'Briefcase',
-              path: '/my-work',
-              order: 1,
-              isVisible: true,
-              permissions: ['conversions.view'],
-              openInNewTab: false,
-            },
-            {
-              id: 'web2_quality_review',
-              label: 'Quality Review',
-              icon: 'ShieldCheck',
-              path: '/review',
-              order: 2,
-              isVisible: true,
-              permissions: ['quality-review.manage'],
-              openInNewTab: false,
-            },
-          ],
-        },
-        {
           id: 'web2_group_administration',
           label: 'Administration',
           icon: 'Settings2',
@@ -183,22 +193,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         },
       ];
     }
-    const hasOpsTempRoles = opsGroup.children?.some((c) => c.path === '/admin/temporary-roles');
-    if (!hasOpsTempRoles) {
-      opsGroup.children = [
-        ...(opsGroup.children || []),
-        {
-          id: 'web2_ops_temporary_roles',
-          label: 'Temporary Roles',
-          icon: 'KeyRound',
-          path: '/admin/temporary-roles',
-          order: 3,
-          isVisible: true,
-          permissions: ['roles.temporary.request', 'roles.temporary.view'],
-          openInNewTab: false,
-        },
-      ];
-    }
 
     // Ensure Customer Support group exists with Organisation Access and Conversion Support
     let supportGroup = mapped.find((g) => g.id === 'web2_group_support' || g.label?.toLowerCase() === 'customer support');
@@ -215,7 +209,9 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
     // The Support directory is independent from the Platform Admin Organisation directory.
     supportGroup.children = supportGroup.children?.map((child) =>
-      child.path === '/admin/organizations' ? { ...child, path: '/support', permissions: ['organizations.impersonate'] } : child
+      child.path === '/admin/organizations'
+        ? { ...child, path: '/support', permissions: ['organizations.impersonate'] }
+        : child
     );
     const hasOrgAccess = supportGroup.children?.some((c) => c.path === '/support');
     if (!hasOrgAccess) {
@@ -250,39 +246,41 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       ];
     }
 
-    const processed = mapped.map((group) => {
-      // Provide a direct shortcut from the dashboard to the Lead-scoped contract workflow.
-      if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
-        const children = [...(group.children || [])];
-        const hasContractShortcut = children.some((child) => child.id === 'web2_contracts_esign' || child.label === 'Contracts & E-Sign');
-        if (!hasContractShortcut) {
-          children.push({
-            id: 'web2_contracts_esign',
-            label: 'Contracts & E-Sign',
-            icon: 'FileText',
-            path: '/sales/contracts',
-            order: 2,
-            isVisible: true,
-            permissions: ['sales.leads.view'],
-            openInNewTab: false,
-          });
+    const processed = mapped
+      .filter((g) => g.id !== 'web2_group_conversions' && g.label?.toLowerCase() !== 'conversions')
+      .map((group) => {
+        // Provide a direct shortcut from the dashboard to the Lead-scoped contract workflow.
+        if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
+          const children = [...(group.children || [])];
+          const hasContractShortcut = children.some((child) => child.id === 'web2_contracts_esign' || child.label === 'Contracts & E-Sign');
+          if (!hasContractShortcut) {
+            children.push({
+              id: 'web2_contracts_esign',
+              label: 'Contracts & E-Sign',
+              icon: 'FileText',
+              path: '/sales/contracts',
+              order: 2,
+              isVisible: true,
+              permissions: ['sales.leads.view'],
+              openInNewTab: false,
+            });
+          }
+          return { ...group, children };
         }
-        return { ...group, children };
-      }
 
-      // 1. Ensure Partner Management has Partner Directory, Partner Projects, and Demo Projects
+        // 1. Ensure Partner Management has Partner Directory, Partner Projects, and Demo Projects
       if (group.id === 'web2_group_partners' || group.label?.toLowerCase() === 'partner management') {
         const hasDirectory = group.children?.some((c) => c.path === '/partners');
         const hasProjects = group.children?.some((c) => c.path === '/partners/projects');
         const hasDemoProjects = group.children?.some((c) => c.path === '/partners/projects?scope=demo');
         let children = [...(group.children || [])];
 
-        if (!hasDirectory) {
+        if (!hasProjects) {
           children.unshift({
-            id: 'web2_partner_list',
-            label: 'Partner Directory',
-            icon: 'Building2',
-            path: '/partners',
+            id: 'web2_partner_projects',
+            label: 'Partner Projects',
+            icon: 'FolderKanban',
+            path: '/partners/projects',
             order: 1,
             isVisible: true,
             permissions: ['partner.view'],
@@ -290,12 +288,12 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           });
         }
 
-        if (!hasProjects) {
+        if (!hasDirectory) {
           children.push({
-            id: 'web2_partner_projects',
-            label: 'Partner Projects',
-            icon: 'FolderKanban',
-            path: '/partners/projects',
+            id: 'web2_partner_list',
+            label: 'Partner Directory',
+            icon: 'Building2',
+            path: '/partners',
             order: 2,
             isVisible: true,
             permissions: ['partner.view'],
@@ -336,9 +334,31 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             openInNewTab: false,
           });
         } else {
-          children = children.map((c) =>
-            c.path === '/team-lead/projects' ? { ...c, label: 'Employee Allocation' } : c
-          );
+          children = children
+            .filter(
+              (c) =>
+                c.id !== 'web2_tl_members' &&
+                c.id !== 'web2_tl_temporary_roles' &&
+                c.path !== '/admin/users' &&
+                c.path !== '/admin/temporary-roles'
+            )
+            .map((c) =>
+              c.path === '/team-lead/projects' ? { ...c, label: 'Employee Allocation' } : c
+            );
+
+        const hasMeetings = children.some((c) => c.path === '/enterprise/meetings');
+        if (!hasMeetings) {
+          children.push({
+            id: 'web2_tl_meetings',
+            label: 'Online Meetings',
+            icon: 'Video',
+            path: '/enterprise/meetings',
+            order: 3,
+            isVisible: true,
+            permissions: ['meetings.view', 'meetings.create', 'teams.manage'],
+            openInNewTab: false,
+          });
+        }
 
         const hasTransferApprovals = children.some((c) => c.path === '/team-lead/resource-transfers');
         if (!hasTransferApprovals) {
@@ -372,43 +392,99 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         return { ...group, children };
       }
 
-      // 3. Ensure Administration displays Team Lead Assignment for project allocation
+      // 3. Ensure Administration displays Team Lead Assignment for project allocation and Bank Accounts
       if (group.id === 'web2_group_administration' || group.label?.toLowerCase() === 'administration') {
-        const children = group.children?.map((c) =>
+        let children = group.children?.map((c) =>
           c.path === '/admin/projects' ? { ...c, label: 'Team Lead Assignment' } : c
+        ) || [];
+
+        // Flatten any nested subgroups (such as Finance & Payments) to expose their pages directly
+        const flattenedChildren: MenuItem[] = [];
+        for (const child of children) {
+          if (child.children && child.children.length > 0 && !child.path) {
+            flattenedChildren.push(...child.children);
+          } else if (child.path) {
+            flattenedChildren.push(child);
+          }
+        }
+        children = flattenedChildren.filter(
+          (c) =>
+            c.path !== '/admin/bank-accounts' &&
+            c.path !== '/administration/finance/bank-accounts' &&
+            c.path !== '/admin/finance/bank-accounts'
         );
+
         return { ...group, children };
       }
 
-      // 4. Ensure Conversions has My Assigned Work and Temporary Roles for employees
-      if (group.id === 'web2_group_conversions' || group.label?.toLowerCase() === 'conversions') {
+      // 4. Ensure CRM & Sales has Meeting Requests, Quotes & Contracts, and Service Usage & Quotas
+      if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
         let children = [...(group.children || [])];
-        const hasMyWork = children.some((c) => c.path === '/my-work');
-        if (!hasMyWork) {
-          children.unshift({
-            id: 'web2_my_assigned_work',
-            label: 'My Assigned Work',
-            icon: 'Briefcase',
-            path: '/my-work',
-            order: 1,
-            isVisible: true,
-            permissions: ['conversions.view'],
-            openInNewTab: false,
-          });
-        }
-        const hasTempRoles = children.some((c) => c.path === '/admin/temporary-roles');
-        if (!hasTempRoles) {
+
+        // Ensure Meeting Requests item
+        const meetingIdx = children.findIndex(
+          (c) =>
+            c.id === 'web2_customer_meetings' ||
+            c.id === 'web2_meeting_requests' ||
+            c.path === '/sales/meeting-requests' ||
+            c.path === '/admin/billing/quotes'
+        );
+        if (meetingIdx !== -1) {
+          children[meetingIdx] = {
+            ...children[meetingIdx],
+            id: 'web2_meeting_requests',
+            label: 'Meeting Requests',
+            path: '/sales/meeting-requests',
+            icon: 'Calendar',
+            order: 6,
+          };
+        } else {
           children.push({
-            id: 'web2_conv_temporary_roles',
-            label: 'Temporary Roles',
-            icon: 'KeyRound',
-            path: '/admin/temporary-roles',
-            order: 5,
+            id: 'web2_meeting_requests',
+            label: 'Meeting Requests',
+            icon: 'Calendar',
+            path: '/sales/meeting-requests',
+            order: 6,
             isVisible: true,
-            permissions: ['roles.temporary.request', 'roles.temporary.view'],
+            permissions: ['billing.quotes.manage', 'sales.leads.view'],
             openInNewTab: false,
           });
         }
+
+        // Ensure Service Usage & Quotas item
+        const usageIdx = children.findIndex(
+          (c) =>
+            c.id === 'web2_service_usage' ||
+            c.path === '/admin/billing/usage' ||
+            c.path === '/billing/usage'
+        );
+        if (usageIdx !== -1) {
+          children[usageIdx] = {
+            ...children[usageIdx],
+            label: 'Service Usage & Quotas',
+            path: '/admin/billing/usage',
+            icon: 'CreditCard',
+            order: 7,
+          };
+        }
+
+        // Ensure Quotes & Contracts item
+        const hasQuotesAndContracts = children.some(
+          (c) => c.id === 'web2_enterprise_quotes' && c.path === '/sales/enterprise-quotes'
+        );
+        if (!hasQuotesAndContracts) {
+          children.push({
+            id: 'web2_enterprise_quotes',
+            label: 'Quotes & Contracts',
+            icon: 'FileText',
+            path: '/sales/enterprise-quotes',
+            order: 8,
+            isVisible: true,
+            permissions: ['billing.quotes.manage', 'sales.leads.manage'],
+            openInNewTab: false,
+          });
+        }
+
         return { ...group, children };
       }
 
@@ -430,6 +506,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .map((item) => {
           if (item.children && item.children.length > 0) {
             const filteredChildren = filterTree(item.children);
+            filteredChildren.sort((a, b) => (a.order || 0) - (b.order || 0));
             return { ...item, children: filteredChildren };
           }
           return item;
@@ -492,6 +569,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         pageTitle: 'Dashboard',
         breadcrumbs: [{ label: 'Dashboard' }],
         currentItem: null,
+        dynamicLabels,
+        setDynamicLabel,
+        removeDynamicLabel,
+        customBreadcrumbs,
+        setCustomBreadcrumbs,
       }}
     >
       {children}
@@ -527,26 +609,43 @@ const defaultContextValue: NavigationContextType = {
   pageTitle: 'Dashboard',
   breadcrumbs: [{ label: 'Dashboard' }],
   currentItem: null,
+  dynamicLabels: {},
+  setDynamicLabel: () => {},
+  removeDynamicLabel: () => {},
+  customBreadcrumbs: null,
+  setCustomBreadcrumbs: () => {},
 };
 
-function useSafePathname(): string {
+function useSafeLocation(): { pathname: string; search: string } {
   try {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const location = useLocation();
-    return location.pathname;
+    return { pathname: location.pathname, search: location.search };
   } catch {
-    return typeof window !== 'undefined' ? window.location.pathname : '/';
+    if (typeof window !== 'undefined') {
+      return { pathname: window.location.pathname, search: window.location.search };
+    }
+    return { pathname: '/', search: '' };
   }
 }
 
 export const useNavigationContext = (): NavigationContextType => {
   const context = useContext(NavigationContext);
-  const pathname = useSafePathname();
+  const { pathname, search } = useSafeLocation();
   const base = context || defaultContextValue;
 
   const { sectionTitle, pageTitle, breadcrumbs, currentItem } = useMemo(() => {
-    return resolveNavigationContext(base.sidebarNav, pathname);
-  }, [base.sidebarNav, pathname]);
+    if (base.customBreadcrumbs) {
+      const last = base.customBreadcrumbs[base.customBreadcrumbs.length - 1];
+      return {
+        sectionTitle: base.customBreadcrumbs[0]?.label || 'Dashboard',
+        pageTitle: last?.label || 'Dashboard',
+        breadcrumbs: base.customBreadcrumbs,
+        currentItem: null,
+      };
+    }
+    return resolveNavigationContext(base.sidebarNav, pathname, search, base.dynamicLabels);
+  }, [base.sidebarNav, pathname, search, base.dynamicLabels, base.customBreadcrumbs]);
 
   return {
     ...base,
@@ -556,3 +655,5 @@ export const useNavigationContext = (): NavigationContextType => {
     currentItem,
   };
 };
+
+export const useNavigation = useNavigationContext;

@@ -178,28 +178,28 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
     >
       <div
         id="send-quote-modal"
-        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden flex flex-col border border-[#E8ECF1]"
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-hidden flex flex-col border border-[#DCE3EC]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8ECF1] bg-[#F7F9FC]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DCE3EC] bg-[#F8FAFC]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0652CC] to-[#00A3BF] flex items-center justify-center text-white font-bold text-base shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-[#EEF1F6] border border-[#DCE3EC] flex items-center justify-center text-[#244A70] font-bold text-base shadow-xs">
               <Send className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#091E42]">
-                Send Modernization Quote (UC-62)
+              <h2 className="text-base font-bold text-[#17263A]">
+                Send Modernization Quote
               </h2>
-              <p className="text-xs text-[#6B778C]">
-                Lead: <span className="font-semibold text-[#091E42]">{lead.companyName}</span> ({lead.contactName}) · Current stage: <span className="font-semibold text-[#091E42]">{lead.status}</span>
+              <p className="text-xs text-[#8491A3]">
+                Lead: <span className="font-semibold text-[#17263A]">{lead.companyName}</span> ({lead.contactName}) · Current stage: <span className="font-semibold text-[#17263A]">{lead.status}</span>
               </p>
             </div>
           </div>
           <button
             id="close-send-quote-modal-btn"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#6B778C] hover:bg-gray-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8491A3] hover:bg-gray-200 transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -213,14 +213,14 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[#091E42]">Permission Required</h3>
-              <p className="text-xs text-[#6B778C] mt-1 max-w-md mx-auto">
+              <h3 className="text-base font-semibold text-[#17263A]">Permission Required</h3>
+              <p className="text-xs text-[#8491A3] mt-1 max-w-md mx-auto">
                 You do not have the required <code className="text-amber-700 bg-amber-50 px-1 py-0.5 rounded">sales.leads.manage</code> permission to send quotes to leads. Please contact your administrator.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-[#091E42] hover:bg-gray-200 cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-[#17263A] hover:bg-gray-200 cursor-pointer"
             >
               Close
             </button>
@@ -231,16 +231,16 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-[#091E42]">
+              <h3 className="text-base font-semibold text-[#17263A]">
                 Cannot Send Quote to {lead.status} Lead
               </h3>
-              <p className="text-xs text-[#6B778C] mt-1 max-w-md mx-auto">
+              <p className="text-xs text-[#8491A3] mt-1 max-w-md mx-auto">
                 This lead is currently in <span className="font-semibold">{lead.status}</span> status. Quotes can only be issued to active prospects in NEW, CONTACTED, QUALIFIED, PROPOSAL, or NEGOTIATION stages.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-[#091E42] hover:bg-gray-200 cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-gray-100 text-[#17263A] hover:bg-gray-200 cursor-pointer"
             >
               Close
             </button>
@@ -252,33 +252,33 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-200">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <h3 className="text-lg font-bold text-[#091E42]">Quote Successfully Processed!</h3>
-              <p className="text-xs text-[#42526E] max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-[#17263A]">Quote Successfully Processed!</h3>
+              <p className="text-xs text-[#8491A3] max-w-md mx-auto">
                 {successResult.message}
               </p>
             </div>
 
-            <div className="bg-[#F7F9FC] rounded-xl p-5 border border-[#E8ECF1] space-y-3">
-              <div className="flex justify-between items-center pb-3 border-b border-[#E8ECF1]">
-                <span className="text-xs font-medium text-[#6B778C]">Quote Reference:</span>
-                <span className="text-sm font-bold text-[#0652CC]">{successResult.quote.quoteNumber}</span>
+            <div className="bg-[#F8FAFC] rounded-xl p-5 border border-[#DCE3EC] space-y-3">
+              <div className="flex justify-between items-center pb-3 border-b border-[#DCE3EC]">
+                <span className="text-xs font-medium text-[#8491A3]">Quote Reference:</span>
+                <span className="text-sm font-bold text-[#244A70]">{successResult.quote.quoteNumber}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#6B778C]">Plan Tier:</span>
-                <span className="font-semibold text-[#091E42]">{successResult.quote.planName}</span>
+                <span className="text-[#8491A3]">Plan Tier:</span>
+                <span className="font-semibold text-[#17263A]">{successResult.quote.planName}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#6B778C]">Recipient Email:</span>
-                <span className="font-semibold text-[#091E42]">{successResult.quote.recipientEmail}</span>
+                <span className="text-[#8491A3]">Recipient Email:</span>
+                <span className="font-semibold text-[#17263A]">{successResult.quote.recipientEmail}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#6B778C]">Quoted Amount:</span>
+                <span className="text-[#8491A3]">Quoted Amount:</span>
                 <span className="font-bold text-emerald-600 text-sm">
                   {formatVnd(successResult.quote.amount)}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#6B778C]">Quote Status:</span>
+                <span className="text-[#8491A3]">Quote Status:</span>
                 <span
                   className={`px-2 py-0.5 rounded-full font-bold text-[11px] ${
                     successResult.quote.status === 'SENT'
@@ -290,8 +290,8 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
-                <span className="text-[#6B778C]">Lead Stage:</span>
-                <span className="font-semibold text-[#091E42]">
+                <span className="text-[#8491A3]">Lead Stage:</span>
+                <span className="font-semibold text-[#17263A]">
                   {successResult.lead.status}
                 </span>
               </div>
@@ -303,7 +303,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                   href={successResult.quote.pdfUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-50 transition-colors shadow-2xs"
+                  className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-50 transition-colors shadow-2xs"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Download PDF
@@ -312,7 +312,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
               <button
                 id="done-quote-modal-btn"
                 onClick={onClose}
-                className="px-5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
+                className="px-5 py-2 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#244A70] transition-colors cursor-pointer shadow-sm"
               >
                 Done
               </button>
@@ -337,7 +337,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
 
               {/* Package Presets */}
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#8491A3] mb-2">
                   Select Quick Package Preset
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -348,12 +348,12 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       onClick={() => handleSelectPreset(preset)}
                       className={`text-left p-3 rounded-lg border text-xs transition-all cursor-pointer ${
                         planName === preset.name
-                          ? 'border-[#0652CC] bg-[#0652CC]/5 ring-1 ring-[#0652CC]'
-                          : 'border-[#E8ECF1] bg-white hover:border-[#4C9AFF]'
+                          ? 'border-[#244A70] bg-[#244A70]/5 ring-1 ring-[#244A70]'
+                          : 'border-[#DCE3EC] bg-white hover:border-[#4D6B8C]'
                       }`}
                     >
-                      <div className="font-semibold text-[#091E42] line-clamp-1">{preset.name}</div>
-                      <div className="font-bold text-[#0652CC] mt-1">
+                      <div className="font-semibold text-[#17263A] line-clamp-1">{preset.name}</div>
+                      <div className="font-bold text-[#244A70] mt-1">
                         {formatVnd(preset.amount)}
                       </div>
                     </button>
@@ -366,7 +366,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 <div>
                   <label
                     htmlFor="quote-plan-name"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Modernization Plan Name *
                   </label>
@@ -377,14 +377,14 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     value={planName}
                     onChange={(e) => setPlanName(e.target.value)}
                     placeholder="e.g. Enterprise Full-Stack Cloud Transformation"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="quote-project-scope"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Project Scope / Deliverables
                   </label>
@@ -394,7 +394,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     value={projectScope}
                     onChange={(e) => setProjectScope(e.target.value)}
                     placeholder="Key deliverables and milestones..."
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                    className="w-full px-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                   />
                 </div>
               </div>
@@ -404,12 +404,12 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 <div>
                   <label
                     htmlFor="quote-base-amount"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Base Quote Amount (VND) *
                   </label>
                   <div className="relative">
-                    <DollarSign className="w-4 h-4 text-[#8993A4] absolute left-3 top-2.5" />
+                    <DollarSign className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
                     <input
                       id="quote-base-amount"
                       type="number"
@@ -418,7 +418,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       step={100}
                       value={amount || ''}
                       onChange={(e) => setAmount(Number(e.target.value))}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                     />
                   </div>
                 </div>
@@ -426,12 +426,12 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 <div>
                   <label
                     htmlFor="quote-discount-percent"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Discount Percentage (%)
                   </label>
                   <div className="relative">
-                    <Percent className="w-4 h-4 text-[#8993A4] absolute left-3 top-2.5" />
+                    <Percent className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
                     <input
                       id="quote-discount-percent"
                       type="number"
@@ -440,7 +440,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       step={1}
                       value={discountPercent}
                       onChange={(e) => setDiscountPercent(Number(e.target.value))}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                     />
                   </div>
                 </div>
@@ -473,7 +473,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       value={discountReason}
                       onChange={(e) => setDiscountReason(e.target.value)}
                       placeholder="e.g. Strategic multi-year contract commitment / executive approved"
-                      className="w-full px-3 py-1.5 text-xs rounded border border-amber-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-amber-500 text-[#091E42]"
+                      className="w-full px-3 py-1.5 text-xs rounded border border-amber-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-amber-500 text-[#17263A]"
                     />
                   </div>
                 </div>
@@ -484,12 +484,12 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 <div>
                   <label
                     htmlFor="quote-recipient-email"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Recipient Email *
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#8993A4] absolute left-3 top-2.5" />
+                    <Mail className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
                     <input
                       id="quote-recipient-email"
                       type="email"
@@ -497,7 +497,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       value={recipientEmail}
                       onChange={(e) => setRecipientEmail(e.target.value)}
                       placeholder="contact@company.com"
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                     />
                   </div>
                 </div>
@@ -505,12 +505,12 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 <div>
                   <label
                     htmlFor="quote-validity-days"
-                    className="block text-xs font-semibold text-[#091E42] mb-1"
+                    className="block text-xs font-semibold text-[#17263A] mb-1"
                   >
                     Validity Period (Days)
                   </label>
                   <div className="relative">
-                    <Calendar className="w-4 h-4 text-[#8993A4] absolute left-3 top-2.5" />
+                    <Calendar className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
                     <input
                       id="quote-validity-days"
                       type="number"
@@ -518,15 +518,15 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                       max={365}
                       value={validityDays}
                       onChange={(e) => setValidityDays(Number(e.target.value))}
-                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#D9E2EC] focus:border-[#0652CC] focus:ring-1 focus:ring-[#0652CC] outline-hidden text-[#091E42]"
+                      className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-[#DCE3EC] focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] outline-hidden text-[#17263A]"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Live Calculation Summary Card */}
-              <div className="bg-[#F7F9FC] rounded-xl p-4 border border-[#E8ECF1] space-y-2">
-                <div className="flex justify-between items-center text-xs text-[#6B778C]">
+              <div className="bg-[#F8FAFC] rounded-xl p-4 border border-[#DCE3EC] space-y-2">
+                <div className="flex justify-between items-center text-xs text-[#8491A3]">
                   <span>Base Price:</span>
                   <span>{formatVnd(amount)}</span>
                 </div>
@@ -536,25 +536,25 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     <span>{formatVnd(-calculatedDiscountAmount)}</span>
                   </div>
                 )}
-                <div className="pt-2 border-t border-[#E8ECF1] flex justify-between items-center">
-                  <span className="text-xs font-bold text-[#091E42]">Final Quoted Amount:</span>
-                  <span className="text-base font-extrabold text-[#0652CC]">
+                <div className="pt-2 border-t border-[#DCE3EC] flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#17263A]">Final Quoted Amount:</span>
+                  <span className="text-base font-extrabold text-[#244A70]">
                     {formatVnd(finalAmount)}
                   </span>
                 </div>
-                <div className="text-[11px] text-[#8993A4] pt-1">
+                <div className="text-[11px] text-[#8491A3] pt-1">
                   Status on submit: {requiresApproval ? 'PENDING APPROVAL' : 'IMMEDIATELY SENT'}
                 </div>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex justify-end gap-2 items-center">
+            <div className="px-6 py-3.5 border-t border-[#DCE3EC] bg-[#F8FAFC] flex justify-end gap-2 items-center">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={sendQuoteMutation.isPending || !canSendQuote}
-                className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -562,7 +562,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                 id="submit-send-quote-btn"
                 type="submit"
                 disabled={sendQuoteMutation.isPending || !canSendQuote}
-                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#244A70] transition-colors cursor-pointer shadow-sm disabled:opacity-50"
               >
                 {sendQuoteMutation.isPending ? (
                   <>

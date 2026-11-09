@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Sparkles, Monitor, Cpu, Trash2, CheckCircle2, 
+  Monitor, Cpu, Trash2, CheckCircle2, 
   ArrowRight, FileCode, Check 
 } from 'lucide-react';
 import { Modal, Button, Input } from '@/shared/ui';
@@ -174,24 +174,24 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
             </p>
           </div>
 
-          <div className="rounded-xl border border-[#E5EAF0] p-4 bg-[#FAFBFD] space-y-2 text-xs">
+          <div className="rounded-xl border border-[#DCE3EC] p-4 bg-[#F8FAFC] space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-[#6B778C]">Project Identifier:</span>
-              <span className="font-mono font-semibold text-[#091E42]">{createdProject.id}</span>
+              <span className="text-[#8491A3]">Project Identifier:</span>
+              <span className="font-mono font-semibold text-[#17263A]">{createdProject.id}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#6B778C]">Framework Stack:</span>
-              <span className="font-semibold text-[#091E42]">{createdProject.targetFramework}</span>
+              <span className="text-[#8491A3]">Framework Stack:</span>
+              <span className="font-semibold text-[#17263A]">{createdProject.targetFramework}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[#6B778C]">Sample Scope:</span>
-              <span className="font-semibold text-[#091E42]">
+              <span className="text-[#8491A3]">Sample Scope:</span>
+              <span className="font-semibold text-[#17263A]">
                 {createdProject.screensTotal} Screens · {createdProject.programsTotal} Programs
               </span>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E5EAF0]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#DCE3EC]">
             <Button
               variant="outline"
               size="sm"
@@ -206,7 +206,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                 handleClose();
                 navigate(`/partners/projects/${createdProject.id}/workspace`);
               }}
-              className="bg-[#0652CC] text-white hover:bg-[#0543A8]"
+              className="bg-[#244A70] text-white hover:bg-[#244A70]"
             >
               Open Conversion Workspace
               <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
@@ -216,36 +216,36 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
       ) : (
         <div className="space-y-5">
           {/* Step Indicator */}
-          <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3 text-xs">
+          <div className="flex items-center justify-between border-b border-[#DCE3EC] pb-3 text-xs">
             <div className="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => setStep(1)}
                 className={`font-semibold pb-1 flex items-center gap-1.5 ${
-                  step === 1 ? 'text-[#0652CC] border-b-2 border-[#0652CC]' : 'text-[#6B778C]'
+                  step === 1 ? 'text-[#244A70] border-b-2 border-[#244A70]' : 'text-[#8491A3]'
                 }`}
               >
-                <span className="w-5 h-5 rounded-full bg-[#E5EAF0] text-[#091E42] text-[11px] flex items-center justify-center font-bold">1</span>
+                <span className="w-5 h-5 rounded-full bg-[#DCE3EC] text-[#17263A] text-[11px] flex items-center justify-center font-bold">1</span>
                 Project Information
               </button>
               <button
                 type="button"
                 onClick={() => setStep(2)}
                 className={`font-semibold pb-1 flex items-center gap-1.5 ${
-                  step === 2 ? 'text-[#0652CC] border-b-2 border-[#0652CC]' : 'text-[#6B778C]'
+                  step === 2 ? 'text-[#244A70] border-b-2 border-[#244A70]' : 'text-[#8491A3]'
                 }`}
               >
-                <span className="w-5 h-5 rounded-full bg-[#E5EAF0] text-[#091E42] text-[11px] flex items-center justify-center font-bold">2</span>
+                <span className="w-5 h-5 rounded-full bg-[#DCE3EC] text-[#17263A] text-[11px] flex items-center justify-center font-bold">2</span>
                 Sample Files
               </button>
               <button
                 type="button"
                 onClick={() => setStep(3)}
                 className={`font-semibold pb-1 flex items-center gap-1.5 ${
-                  step === 3 ? 'text-[#0652CC] border-b-2 border-[#0652CC]' : 'text-[#6B778C]'
+                  step === 3 ? 'text-[#244A70] border-b-2 border-[#244A70]' : 'text-[#8491A3]'
                 }`}
               >
-                <span className="w-5 h-5 rounded-full bg-[#E5EAF0] text-[#091E42] text-[11px] flex items-center justify-center font-bold">3</span>
+                <span className="w-5 h-5 rounded-full bg-[#DCE3EC] text-[#17263A] text-[11px] flex items-center justify-center font-bold">3</span>
                 Review & Confirm
               </button>
             </div>
@@ -258,7 +258,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <label htmlFor="demo-project-name" className="block text-xs font-semibold text-[#091E42] mb-1">
+                <label htmlFor="demo-project-name" className="block text-xs font-semibold text-[#17263A] mb-1">
                   Demo Project Name *
                 </label>
                 <Input
@@ -271,26 +271,26 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">
                   Description / Showcase Scope
                 </label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D9E2EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+                  className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
                   placeholder="Explain the purpose of this demonstration..."
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">
                   Target Framework Stack
                 </label>
                 <select
                   value={targetFramework}
                   onChange={(e) => setTargetFramework(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D9E2EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+                  className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
                 >
                   <option value="React 19 + Java 21 / Spring Boot">Full Stack (React 19 Frontend + Spring Boot 3.3 Backend)</option>
                   <option value="React 19 + Tailwind CSS">Frontend Only (BMS/DSPF to Modern React)</option>
@@ -298,7 +298,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                 </select>
               </div>
 
-              <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-[#0652CC] text-xs">
+              <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 text-[#244A70] text-xs">
                 Demo projects are isolated sandboxes for internal staff demonstrations and proof-of-concept previews.
               </div>
 
@@ -321,10 +321,10 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
           {step === 2 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-[#6B778C]">
+                <p className="text-xs text-[#8491A3]">
                   Choose legacy sample files to seed into this demo project workspace:
                 </p>
-                <span className="text-xs font-bold text-[#091E42]">
+                <span className="text-xs font-bold text-[#17263A]">
                   {selectedFiles.length} files selected
                 </span>
               </div>
@@ -336,30 +336,30 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                     onClick={() => toggleFile(file.id)}
                     className={`p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer transition-colors ${
                       file.selected
-                        ? 'border-[#0652CC] bg-blue-50/40'
-                        : 'border-[#E5EAF0] bg-white hover:bg-[#F7F9FC]'
+                        ? 'border-[#244A70] bg-blue-50/40'
+                        : 'border-[#DCE3EC] bg-white hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
                           file.selected
-                            ? 'bg-[#0652CC] border-[#0652CC] text-white'
-                            : 'border-[#D9E2EC] bg-white'
+                            ? 'bg-[#244A70] border-[#244A70] text-white'
+                            : 'border-[#DCE3EC] bg-white'
                         }`}
                       >
                         {file.selected && <Check className="w-3 h-3 stroke-[3]" />}
                       </div>
-                      <div className="w-7 h-7 rounded-lg bg-gray-100 text-[#091E42] flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-lg bg-gray-100 text-[#17263A] flex items-center justify-center shrink-0">
                         {file.type === 'SCREEN' ? <Monitor className="w-3.5 h-3.5" /> : <Cpu className="w-3.5 h-3.5" />}
                       </div>
                       <div>
-                        <div className="font-mono font-bold text-[#091E42]">{file.name}</div>
-                        <div className="text-[11px] text-[#6B778C]">{file.description}</div>
+                        <div className="font-mono font-bold text-[#17263A]">{file.name}</div>
+                        <div className="text-[11px] text-[#8491A3]">{file.description}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="font-mono text-[#6B778C] text-[11px]">{file.sizeKb} KB</span>
+                      <span className="font-mono text-[#8491A3] text-[11px]">{file.sizeKb} KB</span>
                     </div>
                   </div>
                 ))}
@@ -391,39 +391,39 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
           {/* Step 3: Review */}
           {step === 3 && (
             <div className="space-y-4">
-              <div className="rounded-xl border border-[#E5EAF0] p-4 bg-[#FAFBFD] space-y-3 text-xs">
-                <h4 className="font-bold text-[#091E42] uppercase tracking-wider text-[11px]">
+              <div className="rounded-xl border border-[#DCE3EC] p-4 bg-[#F8FAFC] space-y-3 text-xs">
+                <h4 className="font-bold text-[#17263A] uppercase tracking-wider text-[11px]">
                   Project Summary
                 </h4>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[#6B778C]">Project Name:</span>{' '}
-                    <strong className="text-[#091E42]">{projectName}</strong>
+                    <span className="text-[#8491A3]">Project Name:</span>{' '}
+                    <strong className="text-[#17263A]">{projectName}</strong>
                   </div>
                   <div>
-                    <span className="text-[#6B778C]">Architecture:</span>{' '}
-                    <strong className="text-[#091E42]">{targetFramework}</strong>
+                    <span className="text-[#8491A3]">Architecture:</span>{' '}
+                    <strong className="text-[#17263A]">{targetFramework}</strong>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-[#6B778C]">Description:</span>{' '}
-                    <span className="text-[#091E42]">{description}</span>
+                    <span className="text-[#8491A3]">Description:</span>{' '}
+                    <span className="text-[#17263A]">{description}</span>
                   </div>
                 </div>
               </div>
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-bold text-[#091E42] text-xs">
+                  <h4 className="font-bold text-[#17263A] text-xs">
                     Included Source Files ({selectedFiles.length})
                   </h4>
-                  <span className="text-[11px] text-[#6B778C]">
+                  <span className="text-[11px] text-[#8491A3]">
                     {screenFiles.length} screens · {programFiles.length} programs
                   </span>
                 </div>
 
-                <div className="border border-[#E5EAF0] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+                <div className="border border-[#DCE3EC] rounded-xl overflow-hidden max-h-48 overflow-y-auto">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase">
+                    <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase">
                       <tr>
                         <th className="py-2 px-3">File Name</th>
                         <th className="py-2 px-3">Type</th>
@@ -431,12 +431,12 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                         <th className="py-2 px-3 text-right">Remove</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E5EAF0]">
+                    <tbody className="divide-y divide-[#DCE3EC]">
                       {selectedFiles.map((file) => (
-                        <tr key={file.id} className="hover:bg-[#FAFBFD]">
-                          <td className="py-2 px-3 font-mono font-medium text-[#091E42]">
+                        <tr key={file.id} className="hover:bg-[#F8FAFC]">
+                          <td className="py-2 px-3 font-mono font-medium text-[#17263A]">
                             <div className="flex items-center gap-1.5">
-                              <FileCode className="w-3.5 h-3.5 text-[#0652CC]" />
+                              <FileCode className="w-3.5 h-3.5 text-[#244A70]" />
                               {file.name}
                             </div>
                           </td>
@@ -445,7 +445,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                               {file.type}
                             </span>
                           </td>
-                          <td className="py-2 px-3 font-mono text-[#6B778C]">
+                          <td className="py-2 px-3 font-mono text-[#8491A3]">
                             {file.sizeKb} KB
                           </td>
                           <td className="py-2 px-3 text-right">
@@ -465,7 +465,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-[#E5EAF0]">
+              <div className="flex items-center justify-between pt-2 border-t border-[#DCE3EC]">
                 <Button
                   type="button"
                   variant="outline"
@@ -482,7 +482,6 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                   disabled={selectedFiles.length === 0}
                   className="bg-purple-700 hover:bg-purple-800 text-white"
                 >
-                  <Sparkles className="w-3.5 h-3.5 mr-1.5" />
                   Confirm & Create Demo Project
                 </Button>
               </div>

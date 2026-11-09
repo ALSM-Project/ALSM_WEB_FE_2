@@ -1,3 +1,5 @@
+import { GrantTemporaryRoleView } from '../components/GrantTemporaryRoleView';
+import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Clock, UserPlus, XCircle, Download, 
@@ -15,7 +17,23 @@ import { Button, Modal, Input } from '@/shared/ui';
 
 const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
 
-export const TemporaryRolesPage: React.FC = () => {
+export interface TemporaryRolesPageProps {
+  initialView?: 'list' | 'grant';
+}
+
+export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialView }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isGrantPath = location.pathname.endsWith('/grant') || initialView === 'grant';
+  const [viewMode, setViewMode] = useState<'list' | 'grant'>(isGrantPath ? 'grant' : 'list');
+
+  useEffect(() => {
+    if (location.pathname.endsWith('/grant') || initialView === 'grant') {
+      setViewMode('grant');
+    } else {
+      setViewMode('list');
+    }
+  }, [location.pathname, initialView]);
   const { user, hasPermission } = useAuth();
   const canGrant = hasPermission('roles.temporary.grant') || !!user?.isPlatformAdmin;
   const canRequest = hasPermission('roles.temporary.request') || !!user?.isPlatformAdmin;
@@ -51,15 +69,14 @@ export const TemporaryRolesPage: React.FC = () => {
   const [historyPage, setHistoryPage] = useState(1);
 
   // Grant Modal
-  const [showGrantModal, setShowGrantModal] = useState<boolean>(false);
-  const [targetUserId, setTargetUserId] = useState('');
-  const [grantRole, setGrantRole] = useState('conversion_staff');
-  const [durationHours, setDurationHours] = useState(8);
-  const [grantReason, setGrantReason] = useState('Coverage for urgent batch conversion queue');
-  const [grantTargetProject, setGrantTargetProject] = useState('');
+    
+  // grant state handled by wizard modal
+  
+  
+  
   const [projectOptions, setProjectOptions] = useState<Array<{ id: string; name: string }>>([]);
-  const [grantConfirmed, setGrantConfirmed] = useState(false);
-  const [granting, setGranting] = useState<boolean>(false);
+  
+  
 
   // Request Modal
   const [showRequestModal, setShowRequestModal] = useState<boolean>(false);
@@ -135,11 +152,7 @@ export const TemporaryRolesPage: React.FC = () => {
     };
   };
 
-  // Check 1 active temporary role per user constraint
-  const existingActiveElevation = useMemo(() => {
-    if (!targetUserId) return null;
-    return activeRoles.find((a) => a.userId === targetUserId && a.status === 'ACTIVE');
-  }, [targetUserId, activeRoles]);
+  
 
   // Current logged in user's active elevation & pending requests (UC-95)
   const myActiveRole = useMemo(() => {
@@ -156,62 +169,7 @@ export const TemporaryRolesPage: React.FC = () => {
     );
   }, [pendingRequests, user]);
 
-  // Handle Grant Submit
-  const handleGrantSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetUserId) {
-      setErrorMsg('Please select a target user.');
-      return;
-    }
-    if (PLATFORM_ADMIN_ROLE_IDS.has(grantRole.toLowerCase())) {
-      setErrorMsg('The Platform Admin role can never be granted as a temporary elevation.');
-      return;
-    }
-    if (grantReason.trim().length < 10) {
-      setErrorMsg('A detailed justification of at least 10 characters is required.');
-      return;
-    }
-    if (durationHours < 1 || durationHours > 24) {
-      setErrorMsg('Elevation duration must be between 1 and 24 hours strictly.');
-      return;
-    }
-    if (existingActiveElevation) {
-      setErrorMsg(
-        `User ${existingActiveElevation.userFullName || existingActiveElevation.userEmail} already has an active elevation (${existingActiveElevation.role}). Only 1 active temporary elevation is permitted per user.`
-      );
-      return;
-    }
-    if (!grantConfirmed) {
-      setErrorMsg('Please check the confirmation box before granting temporary elevation.');
-      return;
-    }
-
-    try {
-      setGranting(true);
-      setErrorMsg(null);
-      const granted = await temporaryRolesApi.grantRole({
-        targetUserId,
-        role: grantRole,
-        durationHours,
-        reason: grantReason.trim(),
-        projectId: grantTargetProject || undefined,
-      });
-      await fetchData();
-      setShowGrantModal(false);
-      setGrantConfirmed(false);
-      setGrantReason('');
-      setGrantTargetProject('');
-      setTargetUserId('');
-      const who = users.find((u) => u.id === targetUserId)?.fullName || 'the user';
-      setSuccessMsg(`Temporary elevation (${granted.role}) granted to ${who} until ${new Date(granted.expiresAt).toLocaleString()}.`);
-      setTimeout(() => setSuccessMsg(null), 5000);
-    } catch (err: any) {
-      // The server refuses what breaks a rule (duration, justification, Platform Admin, one at a time...).
-      setErrorMsg(err.response?.data?.message || err.message || 'Failed to grant temporary role');
-    } finally {
-      setGranting(false);
-    }
-  };
+  
 
   // Handle Request Submit (Self-service)
   const handleRequestSubmit = async (e: React.FormEvent) => {
@@ -395,10 +353,10 @@ export const TemporaryRolesPage: React.FC = () => {
         <head>
           <title>ALSM Temporary Roles Audit Log</title>
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #091E42; }
-            h1 { font-size: 20px; border-bottom: 2px solid #0652CC; padding-bottom: 8px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #17263A; }
+            h1 { font-size: 20px; border-bottom: 2px solid #244A70; padding-bottom: 8px; }
             table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 12px; }
-            th { background-color: #F7F9FC; text-align: left; padding: 8px; border: 1px solid #ddd; }
+            th { background-color: #F8FAFC; text-align: left; padding: 8px; border: 1px solid #ddd; }
           </style>
         </head>
         <body>
@@ -493,23 +451,43 @@ export const TemporaryRolesPage: React.FC = () => {
 
   const totalHistoryPages = Math.max(1, Math.ceil(filteredHistoryRoles.length / itemsPerPage));
 
+  if (viewMode === 'grant') {
+    return (
+      <GrantTemporaryRoleView
+          onBack={() => {
+            setViewMode('list');
+            if (location.pathname.endsWith('/grant')) {
+              navigate('/admin/temporary-roles');
+            }
+          }}
+          onSuccess={(msg) => {
+            setSuccessMsg(msg || 'Temporary elevation granted successfully.');
+            setViewMode('list');
+            if (location.pathname.endsWith('/grant')) {
+              navigate('/admin/temporary-roles');
+            }
+            fetchData();
+          }}
+          projectOptions={projectOptions}
+          existingUsers={users}
+          currentAdminEmail={user?.email || 'admin@alsm.io'}
+          activeElevations={activeRoles.map((r) => ({
+            userId: r.userId,
+            role: r.role,
+            expiresAt: r.expiresAt,
+          }))}
+        />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EBF2FC] text-[#0652CC] uppercase tracking-wider">
-              Privileged Access Management
-            </span>
-            <span className="text-[11px] text-[#6B778C]">Section 3.15 Temporary Role Elevations</span>
-          </div>
-          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight mt-1">
-            Temporary Role Delegations & Approvals
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Temporary Roles
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Time-bound privilege delegation (strictly max 24h) with automated expiry, peer request review, and immutable audit logging.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           {canRequest && (
@@ -519,7 +497,7 @@ export const TemporaryRolesPage: React.FC = () => {
                 setRequestProject('');
                 setShowRequestModal(true);
               }}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-2xs cursor-pointer"
             >
               <KeyRound className="w-4 h-4 text-indigo-600" />
               Request Elevation
@@ -528,10 +506,10 @@ export const TemporaryRolesPage: React.FC = () => {
           {canGrant && (
             <button
               onClick={() => {
-                setGrantConfirmed(false);
-                setShowGrantModal(true);
+                setViewMode('grant');
+                navigate('/admin/temporary-roles/grant');
               }}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] transition-colors shadow-2xs cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               Grant Temporary Role
@@ -542,22 +520,22 @@ export const TemporaryRolesPage: React.FC = () => {
 
       {/* Active User Elevation Notice (UC-95) */}
       {myActiveRole && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-50/80 via-blue-50/70 to-sky-50/80 border border-indigo-200 text-indigo-950 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+        <div className="p-4 rounded-lg bg-[#EEF1F6] border border-[#DCE3EC] text-[#17263A] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+            <div className="w-9 h-9 rounded-md bg-[#244A70] text-white flex items-center justify-center font-bold shadow-xs shrink-0">
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-sm text-indigo-950 flex flex-wrap items-center gap-2">
+              <div className="font-bold text-sm text-[#17263A] flex flex-wrap items-center gap-2">
                 <span>Active Temporary Elevation:</span>
-                <span className="font-mono text-indigo-700 bg-white px-2 py-0.5 rounded-md border border-indigo-200 text-xs font-bold">
+                <span className="font-mono text-[#244A70] bg-white px-2 py-0.5 rounded-md border border-[#DCE3EC] text-xs font-bold">
                   {myActiveRole.role}
                 </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#244A70] border border-blue-200">
                   {computeTimeRemaining(myActiveRole.expiresAt).label}
                 </span>
               </div>
-              <p className="text-xs text-indigo-800/90 mt-0.5">
+              <p className="text-xs text-[#8491A3] mt-0.5">
                 Elevated privileges expire at {new Date(myActiveRole.expiresAt).toLocaleTimeString()} ({new Date(myActiveRole.expiresAt).toLocaleDateString()}). Reason: {myActiveRole.reason}
               </p>
             </div>
@@ -586,25 +564,25 @@ export const TemporaryRolesPage: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="border-b border-[#E5EAF0] flex items-center justify-between">
+      <div className="border-b border-[#DCE3EC] flex items-center justify-between">
         <div className="flex gap-4">
           <button
             onClick={() => setActiveTab('active')}
             className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'active'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <Clock className="w-4 h-4" />
-            Active Elevations ({activeRoles.length})
+            Active Roles ({activeRoles.length})
           </button>
           <button
             onClick={() => setActiveTab('requests')}
             className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'requests'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <KeyRound className="w-4 h-4" />
@@ -619,12 +597,12 @@ export const TemporaryRolesPage: React.FC = () => {
             onClick={() => setActiveTab('history')}
             className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
               activeTab === 'history'
-                ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+                ? 'border-[#244A70] text-[#244A70]'
+                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
             }`}
           >
             <History className="w-4 h-4" />
-            Elevation History ({historyRoles.length})
+            History ({historyRoles.length})
           </button>
         </div>
 
@@ -635,7 +613,7 @@ export const TemporaryRolesPage: React.FC = () => {
                 variant="outline"
                 size="sm"
                 disabled={exporting}
-                className="text-xs border-[#E5EAF0] text-[#0652CC]"
+                className="text-xs border-[#DCE3EC] text-[#244A70]"
                 onClick={handleExportCsv}
               >
                 <Download className="w-3.5 h-3.5 mr-1" />
@@ -645,7 +623,7 @@ export const TemporaryRolesPage: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              className="text-xs border-[#E5EAF0] text-[#091E42]"
+              className="text-xs border-[#DCE3EC] text-[#17263A]"
               onClick={handleExportPdf}
             >
               <FileDown className="w-3.5 h-3.5 mr-1" />
@@ -659,9 +637,9 @@ export const TemporaryRolesPage: React.FC = () => {
       {activeTab === 'active' && (
         <div className="space-y-4">
           {/* Search, Filter & Sort Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#E5EAF0]">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#DCE3EC]">
             <div className="relative flex-1 min-w-64 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#6B778C]" />
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
               <Input
                 placeholder="Search active elevations by staff name or email..."
                 value={activeSearch}
@@ -674,8 +652,8 @@ export const TemporaryRolesPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-semibold text-[#6B778C]">Status:</span>
-              <div className="flex items-center gap-1 bg-[#F4F6F8] p-1 rounded-xl">
+              <span className="text-[11px] font-semibold text-[#8491A3]">Status:</span>
+              <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl">
                 {(['ALL', 'ACTIVE', 'EXPIRING_SOON', 'EXPIRED'] as const).map((st) => (
                   <button
                     key={st}
@@ -685,8 +663,8 @@ export const TemporaryRolesPage: React.FC = () => {
                     }}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
                       activeStatusFilter === st
-                        ? 'bg-white text-[#091E42] shadow-2xs'
-                        : 'text-[#6B778C] hover:text-[#091E42]'
+                        ? 'bg-white text-[#17263A] shadow-2xs'
+                        : 'text-[#8491A3] hover:text-[#17263A]'
                     }`}
                   >
                     {st === 'ALL' ? 'All' : st === 'EXPIRING_SOON' ? 'Expiring Soon (<1h)' : st.charAt(0) + st.slice(1).toLowerCase()}
@@ -694,11 +672,11 @@ export const TemporaryRolesPage: React.FC = () => {
                 ))}
               </div>
 
-              <div className="h-5 w-[1px] bg-[#E5EAF0] mx-1" />
+              <div className="h-5 w-[1px] bg-[#DCE3EC] mx-1" />
 
               <button
                 onClick={() => setActiveSortOrder(activeSortOrder === 'asc' ? 'desc' : 'asc')}
-                className="px-2.5 py-1.5 rounded-lg border border-[#E5EAF0] text-xs font-semibold text-[#091E42] bg-white hover:bg-slate-50 flex items-center gap-1"
+                className="px-2.5 py-1.5 rounded-lg border border-[#DCE3EC] text-xs font-semibold text-[#17263A] bg-white hover:bg-slate-50 flex items-center gap-1"
                 title="Sort by expiration countdown"
               >
                 <span>Expiry: {activeSortOrder === 'asc' ? 'Soonest First' : 'Latest First'}</span>
@@ -707,11 +685,11 @@ export const TemporaryRolesPage: React.FC = () => {
           </div>
 
           {/* Active Elevations Table */}
-          <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-2xs">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                     <th className="py-3 px-4">Elevated Staff User</th>
                     <th className="py-3 px-4">Temporary Role</th>
                     <th className="py-3 px-4">Granted By</th>
@@ -721,20 +699,20 @@ export const TemporaryRolesPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5EAF0]">
+                <tbody className="divide-y divide-[#DCE3EC]">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                      <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                         <div className="flex flex-col items-center justify-center space-y-2">
-                          <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                          <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                           <span>Loading active elevations...</span>
                         </div>
                       </td>
                     </tr>
                   ) : paginatedActiveRoles.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-[#6B778C]">
-                        <Clock className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                      <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                        <Clock className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                         No active temporary elevations matching criteria.
                       </td>
                     </tr>
@@ -744,30 +722,30 @@ export const TemporaryRolesPage: React.FC = () => {
                       return (
                         <tr key={item.id} className="hover:bg-blue-50/30 transition-colors">
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-[#091E42]">{item.userFullName || item.userEmail}</div>
-                            <div className="text-[11px] text-[#6B778C]">{item.userEmail}</div>
+                            <div className="font-semibold text-[#17263A]">{item.userFullName || item.userEmail}</div>
+                            <div className="text-[11px] text-[#8491A3]">{item.userEmail}</div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20 inline-block font-mono">
+                            <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-[#EEF1F6] text-[#244A70] border border-[#244A70]/20 inline-block font-mono">
                               {item.role}
                             </span>
                             {item.targetProject && (
-                              <div className="text-[10px] text-[#6B778C] mt-0.5 truncate max-w-xs">
+                              <div className="text-[10px] text-[#8491A3] mt-0.5 truncate max-w-xs">
                                 Project: {item.targetProject}
                               </div>
                             )}
                           </td>
-                          <td className="py-3.5 px-4 text-[#6B778C] text-[11px]">
+                          <td className="py-3.5 px-4 text-[#8491A3] text-[11px]">
                             {item.grantedBy}
                           </td>
-                          <td className="py-3.5 px-4 text-[#6B778C]">
+                          <td className="py-3.5 px-4 text-[#8491A3]">
                             {new Date(item.createdAt).toLocaleDateString()}{' '}
                             <span className="text-[10px]">
                               {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="font-semibold text-[#091E42]">
+                            <div className="font-semibold text-[#17263A]">
                               {new Date(item.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                             <div className="mt-0.5">
@@ -786,14 +764,14 @@ export const TemporaryRolesPage: React.FC = () => {
                               )}
                             </div>
                           </td>
-                          <td className="py-3.5 px-4 text-[#6B778C] max-w-xs truncate" title={item.reason}>
+                          <td className="py-3.5 px-4 text-[#8491A3] max-w-xs truncate" title={item.reason}>
                             {item.reason}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => setViewDetailsTarget(item)}
-                                className="p-1.5 rounded-lg border border-[#E5EAF0] text-[#6B778C] hover:text-[#0652CC] hover:bg-slate-50 transition-colors"
+                                className="p-1.5 rounded-lg border border-[#DCE3EC] text-[#8491A3] hover:text-[#244A70] hover:bg-slate-50 transition-colors"
                                 title="View Details & Audit Trail"
                               >
                                 <Eye className="w-3.5 h-3.5" />
@@ -825,7 +803,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
             {/* Pagination Controls */}
             {totalActivePages > 1 && (
-              <div className="p-3 border-t border-[#E5EAF0] flex items-center justify-between text-xs text-[#6B778C]">
+              <div className="p-3 border-t border-[#DCE3EC] flex items-center justify-between text-xs text-[#8491A3]">
                 <div>
                   Showing {Math.min(filteredActiveRoles.length, (activePage - 1) * itemsPerPage + 1)} to{' '}
                   {Math.min(filteredActiveRoles.length, activePage * itemsPerPage)} of {filteredActiveRoles.length} active elevations
@@ -834,17 +812,17 @@ export const TemporaryRolesPage: React.FC = () => {
                   <button
                     disabled={activePage === 1}
                     onClick={() => setActivePage(activePage - 1)}
-                    className="px-2.5 py-1 rounded border border-[#E5EAF0] bg-white disabled:opacity-40"
+                    className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white disabled:opacity-40"
                   >
                     Prev
                   </button>
-                  <span className="px-2 font-medium text-[#091E42]">
+                  <span className="px-2 font-medium text-[#17263A]">
                     Page {activePage} of {totalActivePages}
                   </span>
                   <button
                     disabled={activePage === totalActivePages}
                     onClick={() => setActivePage(activePage + 1)}
-                    className="px-2.5 py-1 rounded border border-[#E5EAF0] bg-white disabled:opacity-40"
+                    className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -867,11 +845,11 @@ export const TemporaryRolesPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-2xs">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                     <th className="py-3 px-4">Requester Staff</th>
                     <th className="py-3 px-4">Requested Role</th>
                     <th className="py-3 px-4">Duration</th>
@@ -881,10 +859,10 @@ export const TemporaryRolesPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Approver Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5EAF0]">
+                <tbody className="divide-y divide-[#DCE3EC]">
                   {pendingRequests.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                      <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                         <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500 mb-2" />
                         No pending temporary elevation requests awaiting review.
                       </td>
@@ -893,24 +871,24 @@ export const TemporaryRolesPage: React.FC = () => {
                     pendingRequests.map((req) => (
                       <tr key={req.id} className="hover:bg-amber-50/20 transition-colors">
                         <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[#091E42]">{req.userFullName}</div>
-                          <div className="text-[11px] text-[#6B778C]">{req.userEmail}</div>
+                          <div className="font-semibold text-[#17263A]">{req.userFullName}</div>
+                          <div className="text-[11px] text-[#8491A3]">{req.userEmail}</div>
                         </td>
                         <td className="py-3.5 px-4">
                           <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 inline-block font-mono">
                             {req.role}
                           </span>
                         </td>
-                        <td className="py-3.5 px-4 font-semibold text-[#091E42]">
+                        <td className="py-3.5 px-4 font-semibold text-[#17263A]">
                           {req.durationHours} hours
                         </td>
-                        <td className="py-3.5 px-4 text-[#091E42] font-medium">
+                        <td className="py-3.5 px-4 text-[#17263A] font-medium">
                           {req.targetProject || 'Workspace Operations'}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C] max-w-xs truncate" title={req.reason}>
+                        <td className="py-3.5 px-4 text-[#8491A3] max-w-xs truncate" title={req.reason}>
                           {req.reason}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C]">
+                        <td className="py-3.5 px-4 text-[#8491A3]">
                           {new Date(req.createdAt).toLocaleString()}
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -961,7 +939,7 @@ export const TemporaryRolesPage: React.FC = () => {
                             }
 
                             return (
-                              <span className="text-[11px] text-[#6B778C]">
+                              <span className="text-[11px] text-[#8491A3]">
                                 Awaiting Team Lead Review
                               </span>
                             );
@@ -981,10 +959,10 @@ export const TemporaryRolesPage: React.FC = () => {
       {activeTab === 'history' && (
         <div className="space-y-4">
           {/* History Filters */}
-          <div className="bg-white p-3.5 rounded-xl border border-[#E5EAF0] space-y-3 shadow-2xs">
+          <div className="bg-white p-3.5 rounded-xl border border-[#DCE3EC] space-y-3 shadow-2xs">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="relative flex-1 min-w-64 max-w-md">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#6B778C]" />
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
                 <Input
                   placeholder="Search history by staff name, email, or role..."
                   value={historySearch}
@@ -997,7 +975,7 @@ export const TemporaryRolesPage: React.FC = () => {
               </div>
 
               {/* Status Segment */}
-              <div className="flex items-center gap-1 bg-[#F4F6F8] p-1 rounded-xl">
+              <div className="flex items-center gap-1 bg-[#F8FAFC] p-1 rounded-xl">
                 {(['ALL', 'EXPIRED', 'REVOKED', 'REJECTED'] as const).map((st) => (
                   <button
                     key={st}
@@ -1007,8 +985,8 @@ export const TemporaryRolesPage: React.FC = () => {
                     }}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
                       historyTypeFilter === st
-                        ? 'bg-white text-[#091E42] shadow-2xs'
-                        : 'text-[#6B778C] hover:text-[#091E42]'
+                        ? 'bg-white text-[#17263A] shadow-2xs'
+                        : 'text-[#8491A3] hover:text-[#17263A]'
                     }`}
                   >
                     {st === 'ALL' ? 'All History' : st.charAt(0) + st.slice(1).toLowerCase()}
@@ -1017,16 +995,16 @@ export const TemporaryRolesPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#E5EAF0] text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-[#DCE3EC] text-xs">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-[#6B778C]">Role Filter:</span>
+                <span className="font-semibold text-[#8491A3]">Role Filter:</span>
                 <select
                   value={historyRoleFilter}
                   onChange={(e) => {
                     setHistoryRoleFilter(e.target.value);
                     setHistoryPage(1);
                   }}
-                  className="px-2.5 py-1 rounded-lg border border-[#D9E2EC] bg-white text-xs text-[#091E42]"
+                  className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-xs text-[#17263A]"
                 >
                   <option value="ALL">All Roles</option>
                   <option value="CONVERSION_STAFF">Conversion Staff</option>
@@ -1036,8 +1014,8 @@ export const TemporaryRolesPage: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-2">
-                <Calendar className="w-3.5 h-3.5 text-[#6B778C]" />
-                <span className="font-semibold text-[#6B778C]">Date Range:</span>
+                <Calendar className="w-3.5 h-3.5 text-[#8491A3]" />
+                <span className="font-semibold text-[#8491A3]">Date Range:</span>
                 <input
                   type="date"
                   value={historyStartDate}
@@ -1045,9 +1023,9 @@ export const TemporaryRolesPage: React.FC = () => {
                     setHistoryStartDate(e.target.value);
                     setHistoryPage(1);
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#D9E2EC] bg-white text-xs text-[#091E42]"
+                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-xs text-[#17263A]"
                 />
-                <span className="text-[#6B778C]">to</span>
+                <span className="text-[#8491A3]">to</span>
                 <input
                   type="date"
                   value={historyEndDate}
@@ -1055,18 +1033,18 @@ export const TemporaryRolesPage: React.FC = () => {
                     setHistoryEndDate(e.target.value);
                     setHistoryPage(1);
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#D9E2EC] bg-white text-xs text-[#091E42]"
+                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-xs text-[#17263A]"
                 />
               </div>
             </div>
           </div>
 
           {/* History Table */}
-          <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-2xs">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                     <th className="py-3 px-4">Staff User</th>
                     <th className="py-3 px-4">Role Elevated</th>
                     <th className="py-3 px-4">Granted By</th>
@@ -1077,27 +1055,27 @@ export const TemporaryRolesPage: React.FC = () => {
                     <th className="py-3 px-4 text-right">Audit</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E5EAF0]">
+                <tbody className="divide-y divide-[#DCE3EC]">
                   {paginatedHistoryRoles.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-[#6B778C]">
+                      <td colSpan={8} className="py-12 text-center text-[#8491A3]">
                         No historical elevations recorded matching criteria.
                       </td>
                     </tr>
                   ) : (
                     paginatedHistoryRoles.map((h) => (
-                      <tr key={h.id} className="hover:bg-[#F9FBFF] transition-colors">
+                      <tr key={h.id} className="hover:bg-[#F8FAFC] transition-colors">
                         <td className="py-3.5 px-4">
-                          <div className="font-semibold text-[#091E42]">{h.userFullName || h.userEmail}</div>
-                          <div className="text-[11px] text-[#6B778C]">{h.userEmail}</div>
+                          <div className="font-semibold text-[#17263A]">{h.userFullName || h.userEmail}</div>
+                          <div className="text-[11px] text-[#8491A3]">{h.userEmail}</div>
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-semibold text-[#0652CC]">
+                        <td className="py-3.5 px-4 font-mono font-semibold text-[#244A70]">
                           {h.role}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C] text-[11px]">
+                        <td className="py-3.5 px-4 text-[#8491A3] text-[11px]">
                           {h.grantedBy}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C]">
+                        <td className="py-3.5 px-4 text-[#8491A3]">
                           {new Date(h.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-3.5 px-4">
@@ -1119,14 +1097,14 @@ export const TemporaryRolesPage: React.FC = () => {
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C]">
+                        <td className="py-3.5 px-4 text-[#8491A3]">
                           {h.revokedAt
                             ? new Date(h.revokedAt).toLocaleString()
                             : h.expiresAt
                             ? new Date(h.expiresAt).toLocaleString()
                             : 'N/A'}
                         </td>
-                        <td className="py-3.5 px-4 text-[#6B778C] max-w-xs">
+                        <td className="py-3.5 px-4 text-[#8491A3] max-w-xs">
                           <div className="truncate">Reason: {h.reason}</div>
                           {h.revokeReason && (
                             <div className="text-[11px] text-rose-600 truncate mt-0.5">
@@ -1137,7 +1115,7 @@ export const TemporaryRolesPage: React.FC = () => {
                         <td className="py-3.5 px-4 text-right">
                           <button
                             onClick={() => setViewDetailsTarget(h)}
-                            className="p-1.5 rounded-lg border border-[#E5EAF0] text-[#6B778C] hover:text-[#0652CC] hover:bg-slate-50 transition-colors"
+                            className="p-1.5 rounded-lg border border-[#DCE3EC] text-[#8491A3] hover:text-[#244A70] hover:bg-slate-50 transition-colors"
                             title="View Full Audit Dossier"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -1152,7 +1130,7 @@ export const TemporaryRolesPage: React.FC = () => {
 
             {/* Pagination Controls */}
             {totalHistoryPages > 1 && (
-              <div className="p-3 border-t border-[#E5EAF0] flex items-center justify-between text-xs text-[#6B778C]">
+              <div className="p-3 border-t border-[#DCE3EC] flex items-center justify-between text-xs text-[#8491A3]">
                 <div>
                   Showing {Math.min(filteredHistoryRoles.length, (historyPage - 1) * itemsPerPage + 1)} to{' '}
                   {Math.min(filteredHistoryRoles.length, historyPage * itemsPerPage)} of {filteredHistoryRoles.length} audit records
@@ -1161,17 +1139,17 @@ export const TemporaryRolesPage: React.FC = () => {
                   <button
                     disabled={historyPage === 1}
                     onClick={() => setHistoryPage(historyPage - 1)}
-                    className="px-2.5 py-1 rounded border border-[#E5EAF0] bg-white disabled:opacity-40"
+                    className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white disabled:opacity-40"
                   >
                     Prev
                   </button>
-                  <span className="px-2 font-medium text-[#091E42]">
+                  <span className="px-2 font-medium text-[#17263A]">
                     Page {historyPage} of {totalHistoryPages}
                   </span>
                   <button
                     disabled={historyPage === totalHistoryPages}
                     onClick={() => setHistoryPage(historyPage + 1)}
-                    className="px-2.5 py-1 rounded border border-[#E5EAF0] bg-white disabled:opacity-40"
+                    className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white disabled:opacity-40"
                   >
                     Next
                   </button>
@@ -1182,220 +1160,12 @@ export const TemporaryRolesPage: React.FC = () => {
         </div>
       )}
 
-      {/* 3.B Grant Temporary Role Modal */}
-      <Modal 
-        isOpen={showGrantModal} 
-        onClose={() => setShowGrantModal(false)} 
-        title="Grant Temporary Role Elevation (Section 3.B)"
-        size="lg"
-      >
-        <form onSubmit={handleGrantSubmit} className="space-y-4 text-xs">
-          <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-              Target Internal Staff User *
-            </label>
-            <select
-              required
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-              value={targetUserId}
-              onChange={(e) => setTargetUserId(e.target.value)}
-            >
-              <option value="">Select an eligible staff member...</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName} ({u.email}) — Baseline Roles: {u.roles.join(', ') || 'Staff'}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* 1-Active-Role-Per-User Constraint Warning */}
-          {existingActiveElevation && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangleIcon className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <strong>Active Elevation Conflict:</strong> This user currently possesses active temporary elevation{' '}
-                  <span className="font-mono font-bold bg-amber-100 px-1 py-0.2 rounded text-amber-900">
-                    {existingActiveElevation.role}
-                  </span>{' '}
-                  expiring in {computeTimeRemaining(existingActiveElevation.expiresAt).label}.
-                  <p className="text-[11px] text-amber-800 mt-1">
-                    System policy mandates strictly <strong>one active temporary elevation per user</strong>. You must revoke the current elevation before granting another.
-                  </p>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="text-xs shrink-0 text-amber-900 border-amber-400 bg-white hover:bg-amber-100"
-                onClick={() => {
-                  setShowGrantModal(false);
-                  setRevokeTarget(existingActiveElevation);
-                }}
-              >
-                Revoke Existing
-              </Button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-                Elevation Role *
-              </label>
-              <select
-                className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-                value={grantRole}
-                onChange={(e) => setGrantRole(e.target.value)}
-              >
-                {roles.length > 0 ? (
-                  roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name} ({r.id})
-                    </option>
-                  ))
-                ) : (
-                  <>
-                    <option value="conversion_staff">Conversion Staff (AST & Mapping Access)</option>
-                    <option value="team_lead">Team Lead (Supervisory & Sign-off)</option>
-                    <option value="internal_support">Internal Support (Customer Diagnostics)</option>
-                  </>
-                )}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-                Duration (Max 24h) *
-              </label>
-              <div className="flex items-center gap-1.5">
-                {PREDEFINED_DURATIONS.map((hrs) => (
-                  <button
-                    key={hrs}
-                    type="button"
-                    onClick={() => setDurationHours(hrs)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                      durationHours === hrs
-                        ? 'bg-[#0652CC] text-white'
-                        : 'bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-slate-50'
-                    }`}
-                  >
-                    {hrs}h
-                  </button>
-                ))}
-              </div>
-              <p data-testid="grant-expiry-preview" className="mt-1.5 text-[11px] text-[#6B778C]">
-                Will be revoked automatically at{' '}
-                {new Date(Date.now() + durationHours * 3600 * 1000).toLocaleString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  day: '2-digit',
-                  month: '2-digit',
-                })}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-              Target Project or Context (Optional)
-            </label>
-            <select
-              aria-label="Target project"
-              value={grantTargetProject}
-              onChange={(e) => setGrantTargetProject(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-            >
-              <option value="">Not tied to a project</option>
-              {projectOptions.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
-              Business Justification (Minimum 10 characters) *
-            </label>
-            <textarea
-              required
-              rows={2}
-              value={grantReason}
-              onChange={(e) => setGrantReason(e.target.value)}
-              placeholder="Explain the operational rationale for granting temporary elevation..."
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
-            />
-          </div>
-
-          {/* Pre-Grant Review Summary Card */}
-          <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-            <span className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider block">
-              Pre-Grant Elevation Preview
-            </span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="text-[#6B778C]">Designated Staff:</span>
-                <div className="font-semibold text-[#091E42]">
-                  {users.find((u) => u.id === targetUserId)?.fullName || 'Select user above...'}
-                </div>
-              </div>
-              <div>
-                <span className="text-[#6B778C]">Temporary Privilege:</span>
-                <div className="font-semibold text-[#0652CC] font-mono">{grantRole}</div>
-              </div>
-              <div>
-                <span className="text-[#6B778C]">Duration Granted:</span>
-                <div className="font-semibold text-[#091E42]">{durationHours} hours (enforced ceiling)</div>
-              </div>
-              <div>
-                <span className="text-[#6B778C]">Calculated Expiration:</span>
-                <div className="font-semibold text-[#091E42]">
-                  {new Date(Date.now() + durationHours * 3600 * 1000).toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Explicit Confirmation Checkbox */}
-          <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl">
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={grantConfirmed}
-                onChange={(e) => setGrantConfirmed(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-[#0652CC] focus:ring-[#0652CC]"
-              />
-              <span className="text-xs text-[#091E42] font-semibold leading-relaxed">
-                I confirm granting this temporary role elevation with immediate privilege delegation. The action is logged to the immutable audit trail.
-              </span>
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowGrantModal(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="sm"
-              disabled={granting || !!existingActiveElevation || !targetUserId || !grantConfirmed}
-              className="bg-[#0652CC] hover:bg-[#0546AE]"
-            >
-              {granting ? 'Granting Elevation...' : 'Confirm and Grant Elevation'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+      {/* 3.B Grant Temporary Role Page View is rendered when viewMode === 'grant' */}
 
       {/* 3.E Request Temporary Role Modal (Self-Service - UC-95) */}
       <Modal isOpen={showRequestModal} onClose={() => setShowRequestModal(false)} title="Request Temporary Role Elevation">
         <form onSubmit={handleRequestSubmit} className="space-y-4 text-xs">
-          <p className="text-xs text-[#6B778C]">
+          <p className="text-xs text-[#8491A3]">
             Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are strictly capped at 24 hours.
           </p>
 
@@ -1403,7 +1173,7 @@ export const TemporaryRolesPage: React.FC = () => {
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 space-y-1">
               <div className="font-semibold text-amber-900 flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                Active Elevation Conflict (UC-95 Policy)
+                Active Role Conflict
               </div>
               <p className="text-[11px] leading-relaxed">
                 You already hold an active temporary role (<strong className="font-mono">{myActiveRole.role}</strong>). Under platform security policy, only 1 active temporary role is permitted per user.
@@ -1425,11 +1195,11 @@ export const TemporaryRolesPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
                 Requested Role *
               </label>
               <select
-                className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+                className="w-full px-3 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
                 value={requestRole}
                 onChange={(e) => setRequestRole(e.target.value)}
                 disabled={!!myActiveRole || userHasPendingRequest}
@@ -1452,11 +1222,11 @@ export const TemporaryRolesPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
                 Requested Duration (Max 24h) *
               </label>
               <select
-                className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+                className="w-full px-3 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
                 value={requestDuration}
                 onChange={(e) => setRequestDuration(parseInt(e.target.value))}
                 disabled={!!myActiveRole || userHasPendingRequest}
@@ -1469,7 +1239,7 @@ export const TemporaryRolesPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Target Project or Workflow *
             </label>
             <input
@@ -1478,18 +1248,18 @@ export const TemporaryRolesPage: React.FC = () => {
               onChange={(e) => setRequestProject(e.target.value)}
               disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="e.g. Core Banking Modernization AST Inspection"
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
                 Business Need & Justification (Min 10 chars) *
               </label>
               <span
                 className={`text-[10px] font-medium ${
-                  requestReason.trim().length >= 10 ? 'text-emerald-600' : 'text-[#6B778C]'
+                  requestReason.trim().length >= 10 ? 'text-emerald-600' : 'text-[#8491A3]'
                 }`}
               >
                 {requestReason.trim().length >= 10
@@ -1504,11 +1274,11 @@ export const TemporaryRolesPage: React.FC = () => {
               onChange={(e) => setRequestReason(e.target.value)}
               disabled={!!myActiveRole || userHasPendingRequest}
               placeholder="Explain why temporary elevated permissions are necessary for this task..."
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
             <Button type="button" variant="outline" size="sm" onClick={() => setShowRequestModal(false)}>
               Cancel
             </Button>
@@ -1522,7 +1292,7 @@ export const TemporaryRolesPage: React.FC = () => {
                 userHasPendingRequest ||
                 requestReason.trim().length < 10
               }
-              className="bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#244A70] hover:bg-[#1B3856] text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {requesting ? 'Submitting...' : 'Submit Elevation Request'}
             </Button>
@@ -1534,7 +1304,7 @@ export const TemporaryRolesPage: React.FC = () => {
       <Modal 
         isOpen={!!revokeTarget} 
         onClose={() => setRevokeTarget(null)} 
-        title="Revoke Temporary Elevation Immediately (Section 3.C)"
+        title="Revoke Temporary Role"
       >
         <form onSubmit={handleRevokeSubmit} className="space-y-4 text-xs">
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-1">
@@ -1547,41 +1317,41 @@ export const TemporaryRolesPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-[#E5EAF0] space-y-1.5">
+          <div className="p-3 bg-slate-50 rounded-xl border border-[#DCE3EC] space-y-1.5">
             <div className="flex justify-between">
-              <span className="text-[#6B778C]">User:</span>
-              <strong className="text-[#091E42]">{revokeTarget?.userFullName} ({revokeTarget?.userEmail})</strong>
+              <span className="text-[#8491A3]">User:</span>
+              <strong className="text-[#17263A]">{revokeTarget?.userFullName} ({revokeTarget?.userEmail})</strong>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B778C]">Active Temporary Role:</span>
-              <span className="font-mono font-bold text-[#0652CC]">{revokeTarget?.role}</span>
+              <span className="text-[#8491A3]">Active Temporary Role:</span>
+              <span className="font-mono font-bold text-[#244A70]">{revokeTarget?.role}</span>
             </div>
             {revokeTarget?.createdAt && (
               <div className="flex justify-between">
-                <span className="text-[#6B778C]">Granted At:</span>
-                <span className="font-semibold text-[#091E42]">
+                <span className="text-[#8491A3]">Granted At:</span>
+                <span className="font-semibold text-[#17263A]">
                   {new Date(revokeTarget.createdAt).toLocaleString()}
                 </span>
               </div>
             )}
             {revokeTarget?.expiresAt && (
               <div className="flex justify-between">
-                <span className="text-[#6B778C]">Scheduled Expiration:</span>
-                <span className="font-semibold text-[#091E42]">
+                <span className="text-[#8491A3]">Scheduled Expiration:</span>
+                <span className="font-semibold text-[#17263A]">
                   {new Date(revokeTarget.expiresAt).toLocaleString()}
                 </span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-[#6B778C]">Remaining Time:</span>
-              <span className="font-semibold text-[#091E42]">
+              <span className="text-[#8491A3]">Remaining Time:</span>
+              <span className="font-semibold text-[#17263A]">
                 {revokeTarget ? computeTimeRemaining(revokeTarget.expiresAt).label : ''}
               </span>
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Revocation Reason (Mandatory) *
             </label>
             <textarea
@@ -1590,7 +1360,7 @@ export const TemporaryRolesPage: React.FC = () => {
               value={revokeReason}
               onChange={(e) => setRevokeReason(e.target.value)}
               placeholder="e.g. Work completed early, Security incident, Reassignment"
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[#0652CC]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] text-xs resize-none focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             />
           </div>
 
@@ -1608,7 +1378,7 @@ export const TemporaryRolesPage: React.FC = () => {
             </label>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
             <Button
               type="button"
               variant="outline"
@@ -1641,29 +1411,29 @@ export const TemporaryRolesPage: React.FC = () => {
         title="Approve Temporary Elevation Request"
       >
         <form onSubmit={handleApproveRequest} className="space-y-4 text-xs">
-          <p className="text-xs text-[#6B778C]">
-            Granting elevated permissions to <strong className="text-[#091E42]">{approveTarget?.userFullName}</strong>.
+          <p className="text-xs text-[#8491A3]">
+            Granting elevated permissions to <strong className="text-[#17263A]">{approveTarget?.userFullName}</strong>.
           </p>
-          <div className="p-3 bg-slate-50 rounded-xl border border-[#E5EAF0] space-y-1">
-            <div><strong>Role:</strong> <span className="font-mono text-[#0652CC]">{approveTarget?.role}</span></div>
+          <div className="p-3 bg-slate-50 rounded-xl border border-[#DCE3EC] space-y-1">
+            <div><strong>Role:</strong> <span className="font-mono text-[#244A70]">{approveTarget?.role}</span></div>
             <div><strong>Project:</strong> {approveTarget?.targetProject || 'Workspace'}</div>
             <div><strong>Justification:</strong> {approveTarget?.reason}</div>
           </div>
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Approve Duration (Hours, Max 24h) *
             </label>
             <select
               value={approveDuration}
               onChange={(e) => setApproveDuration(parseInt(e.target.value))}
-              className="w-full px-3 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+              className="w-full px-3 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
             >
               {PREDEFINED_DURATIONS.map((h) => (
                 <option key={h} value={h}>{h} hours</option>
               ))}
             </select>
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
             <Button type="button" variant="outline" size="sm" onClick={() => setApproveTarget(null)}>
               Cancel
             </Button>
@@ -1681,11 +1451,11 @@ export const TemporaryRolesPage: React.FC = () => {
         title="Reject Temporary Elevation Request"
       >
         <form onSubmit={handleRejectRequest} className="space-y-4 text-xs">
-          <p className="text-xs text-[#6B778C]">
-            Rejecting elevation request for <strong className="text-[#091E42]">{rejectTarget?.userFullName}</strong>.
+          <p className="text-xs text-[#8491A3]">
+            Rejecting elevation request for <strong className="text-[#17263A]">{rejectTarget?.userFullName}</strong>.
           </p>
           <div>
-            <label className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider block mb-1">
+            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
               Mandatory Rejection Justification *
             </label>
             <textarea
@@ -1694,10 +1464,10 @@ export const TemporaryRolesPage: React.FC = () => {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Provide reason for denial (e.g. Insufficient project context, Policy violation)..."
-              className="w-full px-3.5 py-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42]"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A]"
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
             <Button type="button" variant="outline" size="sm" onClick={() => setRejectTarget(null)}>
               Cancel
             </Button>
@@ -1717,10 +1487,10 @@ export const TemporaryRolesPage: React.FC = () => {
       >
         {viewDetailsTarget && (
           <div className="space-y-3.5 text-xs">
-            <div className="p-3 bg-[#F7F9FC] border border-[#E5EAF0] rounded-xl flex items-center justify-between">
+            <div className="p-3 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl flex items-center justify-between">
               <div>
-                <div className="font-bold text-[#091E42] text-sm">{viewDetailsTarget.userFullName}</div>
-                <div className="text-[11px] text-[#6B778C]">{viewDetailsTarget.userEmail}</div>
+                <div className="font-bold text-[#17263A] text-sm">{viewDetailsTarget.userFullName}</div>
+                <div className="text-[11px] text-[#8491A3]">{viewDetailsTarget.userEmail}</div>
               </div>
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                 viewDetailsTarget.status === 'ACTIVE'
@@ -1735,44 +1505,44 @@ export const TemporaryRolesPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 p-3 bg-white border border-[#E5EAF0] rounded-xl">
+            <div className="grid grid-cols-2 gap-2 p-3 bg-white border border-[#DCE3EC] rounded-xl">
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Record ID</span>
-                <span className="font-mono text-[#091E42]">{viewDetailsTarget.id}</span>
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Record ID</span>
+                <span className="font-mono text-[#17263A]">{viewDetailsTarget.id}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Elevated Role</span>
-                <span className="font-mono font-bold text-[#0652CC]">{viewDetailsTarget.role}</span>
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Elevated Role</span>
+                <span className="font-mono font-bold text-[#244A70]">{viewDetailsTarget.role}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Duration</span>
-                <span className="text-[#091E42] font-semibold">{viewDetailsTarget.durationHours} hours</span>
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Duration</span>
+                <span className="text-[#17263A] font-semibold">{viewDetailsTarget.durationHours} hours</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Granted By</span>
-                <span className="text-[#091E42]">{viewDetailsTarget.grantedBy}</span>
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Granted By</span>
+                <span className="text-[#17263A]">{viewDetailsTarget.grantedBy}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Granted Timestamp</span>
-                <span className="text-[#091E42]">{new Date(viewDetailsTarget.createdAt).toLocaleString()}</span>
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Granted Timestamp</span>
+                <span className="text-[#17263A]">{new Date(viewDetailsTarget.createdAt).toLocaleString()}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Expiration Timestamp</span>
-                <span className="text-[#091E42]">
+                <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Expiration Timestamp</span>
+                <span className="text-[#17263A]">
                   {viewDetailsTarget.expiresAt ? new Date(viewDetailsTarget.expiresAt).toLocaleString() : 'N/A'}
                 </span>
               </div>
               {viewDetailsTarget.targetProject && (
                 <div className="col-span-2">
-                  <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Target Project</span>
-                  <span className="text-[#091E42] font-medium">{viewDetailsTarget.targetProject}</span>
+                  <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Target Project</span>
+                  <span className="text-[#17263A] font-medium">{viewDetailsTarget.targetProject}</span>
                 </div>
               )}
             </div>
 
-            <div className="p-3 bg-white border border-[#E5EAF0] rounded-xl space-y-1">
-              <span className="text-[10px] text-[#6B778C] uppercase font-bold block">Operational Justification</span>
-              <p className="text-xs text-[#091E42]">{viewDetailsTarget.reason}</p>
+            <div className="p-3 bg-white border border-[#DCE3EC] rounded-xl space-y-1">
+              <span className="text-[10px] text-[#8491A3] uppercase font-bold block">Operational Justification</span>
+              <p className="text-xs text-[#17263A]">{viewDetailsTarget.reason}</p>
             </div>
 
             {viewDetailsTarget.revokeReason && (
@@ -1785,7 +1555,7 @@ export const TemporaryRolesPage: React.FC = () => {
               </div>
             )}
 
-            <div className="flex justify-end pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-end pt-2 border-t border-[#DCE3EC]">
               <Button variant="outline" size="sm" onClick={() => setViewDetailsTarget(null)}>
                 Close Dossier
               </Button>
@@ -1798,22 +1568,6 @@ export const TemporaryRolesPage: React.FC = () => {
 };
 
 // Simple internal icon helper for the alert
-function AlertTriangleIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-      <line x1="12" y1="9" x2="12" y2="13" />
-      <line x1="12" y1="17" x2="12.01" y2="17" />
-    </svg>
-  );
-}
+
 
 export default TemporaryRolesPage;

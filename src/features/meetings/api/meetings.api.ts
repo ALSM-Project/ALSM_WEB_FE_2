@@ -1,5 +1,11 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { CreateMeetingRequest, ListMeetingsResponse, Meeting } from '../types/meeting';
+import type {
+  CreateMeetingRequest,
+  ListMeetingsResponse,
+  Meeting,
+  MeetingStatus,
+  UpdateMeetingRequest,
+} from '../types/meeting';
 
 export const meetingsApi = {
   create: (dto: CreateMeetingRequest): Promise<Meeting> =>
@@ -17,4 +23,16 @@ export const meetingsApi = {
     const query = qs.toString();
     return apiClient.get<ListMeetingsResponse>(`/meetings${query ? `?${query}` : ''}`);
   },
+
+  getById: (id: string): Promise<Meeting> =>
+    apiClient.get<Meeting>(`/meetings/${encodeURIComponent(id)}`),
+
+  update: (id: string, dto: UpdateMeetingRequest): Promise<Meeting> =>
+    apiClient.patch<Meeting>(`/meetings/${encodeURIComponent(id)}`, dto),
+
+  updateStatus: (id: string, status: MeetingStatus): Promise<Meeting> =>
+    apiClient.patch<Meeting>(`/meetings/${encodeURIComponent(id)}/status`, { status }),
+
+  delete: (id: string): Promise<{ success: boolean; message: string }> =>
+    apiClient.delete<{ success: boolean; message: string }>(`/meetings/${encodeURIComponent(id)}`),
 };

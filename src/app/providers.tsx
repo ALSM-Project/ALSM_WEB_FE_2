@@ -1,6 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NavigationProvider } from '@/context/NavigationContext';
+import { Web3Provider } from '@/features/web3';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,7 +16,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <QueryClientProvider client={queryClient}>
       <NavigationProvider>
-        {children}
+        <Web3Provider>
+          {children}
+        </Web3Provider>
       </NavigationProvider>
     </QueryClientProvider>
   );

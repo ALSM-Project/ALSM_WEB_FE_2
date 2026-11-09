@@ -93,12 +93,10 @@ describe('PartnerProjectOverviewPage', () => {
     expect(screen.getAllByText('Fintech Nexus International')[0]).toBeInTheDocument();
     expect(screen.getByText('BMS/DSPF -> React')).toBeInTheDocument();
 
-    // Lifecycle stages in workflow stepper
-    expect(screen.getByText('Scope Initialized')).toBeInTheDocument();
-    expect(screen.getByText('Team Allocation')).toBeInTheDocument();
-    expect(screen.getByText('Sources Uploaded')).toBeInTheDocument();
-    expect(screen.getByText('AST Conversion')).toBeInTheDocument();
-    expect(screen.getByText('Partner Export')).toBeInTheDocument();
+    // Quick metric cards
+    expect(screen.getByText('Total Assets')).toBeInTheDocument();
+    expect(screen.getByText('Converted')).toBeInTheDocument();
+    expect(screen.getByText('Review Required')).toBeInTheDocument();
 
     // Progress and Conversion Items summary
     expect(screen.getByText(/Conversion Progress/i)).toBeInTheDocument();
@@ -129,6 +127,7 @@ describe('PartnerProjectOverviewPage', () => {
   });
 
   it('shows the project as unassigned when nobody was assigned', async () => {
+    mockServer({ projects: [{ ...serverProject, assignedStaffId: undefined, assignedStaffName: undefined }] });
     render(
       <Routes>
         <Route path="/partners/projects/:projectId" element={<PartnerProjectOverviewPage />} />

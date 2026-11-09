@@ -255,9 +255,9 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
       );
 
       // Verify Tabs
-      expect(screen.getAllByText(/Active Elevations/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/Active (Roles|Elevations)/i).length).toBeGreaterThan(0);
       expect(screen.getAllByText(/Pending Requests/i).length).toBeGreaterThan(0);
-      expect(screen.getAllByText(/Elevation History/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/(Elevation History|History)/i).length).toBeGreaterThan(0);
 
       // Verify Active list shows mock items with time remaining countdown
       await waitFor(() => {

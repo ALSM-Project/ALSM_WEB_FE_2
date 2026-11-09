@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { Button, ModernizationWorkflow } from '@/shared/ui';
+import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
 import { partnersApi, type SourceUploadResult } from '../../api/partners.api';
 import { PartnerProject } from '../../types/partner.types';
 import {
@@ -62,6 +63,7 @@ export const UploadSourceFilesPage: React.FC = () => {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<PartnerProject | null>(null);
+  useBreadcrumbEntity(project?.name, projectId);
   const [loading, setLoading] = useState(true);
   const [files, setFiles] = useState<QueuedFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -75,10 +77,15 @@ export const UploadSourceFilesPage: React.FC = () => {
 
   useEffect(() => {
     if (!projectId) return;
-    partnersApi.getProjectById(projectId).then((p) => {
-      setProject(p);
-      setLoading(false);
-    });
+    partnersApi
+      .getProjectById(projectId)
+      .then((p) => {
+        setProject(p);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
   }, [projectId]);
 
   useEffect(() => () => clearTimeout(redirectTimer.current), []);
@@ -193,16 +200,16 @@ export const UploadSourceFilesPage: React.FC = () => {
   if (loading) {
     return (
       <div className="py-24 text-center">
-        <RefreshCw className="w-6 h-6 animate-spin text-[#0652CC] mx-auto mb-2" />
-        <p className="text-xs text-[#6B778C]">Loading project details...</p>
+        <RefreshCw className="w-6 h-6 animate-spin text-[#244A70] mx-auto mb-2" />
+        <p className="text-xs text-[#8491A3]">Loading project details...</p>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="p-8 text-center bg-white rounded-xl border border-[#E5EAF0]">
-        <h3 className="text-sm font-bold text-[#091E42]">Project Not Found</h3>
+      <div className="p-8 text-center bg-white rounded-xl border border-[#DCE3EC]">
+        <h3 className="text-sm font-bold text-[#17263A]">Project Not Found</h3>
         <Button variant="outline" size="sm" onClick={() => navigate('/partners')} className="mt-4">
           Return to Partners
         </Button>
@@ -218,10 +225,8 @@ export const UploadSourceFilesPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-[#091E42] tracking-tight">Upload Legacy Source Files</h1>
-          <p className="text-xs text-[#6B778C] mt-0.5">
-            Upload legacy source on behalf of {project.partnerName} for {project.name}.
-          </p>
+          <h1 className="text-xl font-bold text-[#17263A] tracking-tight">Upload Source Files</h1>
+          
         </div>
         <Button
           variant="outline"
@@ -236,35 +241,35 @@ export const UploadSourceFilesPage: React.FC = () => {
       {/* Project context */}
       <dl
         aria-label="Project details"
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-[#E5EAF0] bg-white p-4 shadow-2xs text-xs"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3 rounded-xl border border-[#DCE3EC] bg-white p-4 shadow-2xs text-xs"
       >
         <div>
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C]">Project</dt>
-          <dd className="mt-0.5 font-semibold text-[#091E42]">{project.name}</dd>
+          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#8491A3]">Project</dt>
+          <dd className="mt-0.5 font-semibold text-[#17263A]">{project.name}</dd>
         </div>
         <div>
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C]">Partner</dt>
-          <dd className="mt-0.5 font-semibold text-[#091E42]">
+          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#8491A3]">Partner</dt>
+          <dd className="mt-0.5 font-semibold text-[#17263A]">
             {project.partnerName}
-            <span className="ml-1.5 font-mono text-[10px] font-normal text-[#6B778C]">
+            <span className="ml-1.5 font-mono text-[10px] font-normal text-[#8491A3]">
               ({project.partnerId})
             </span>
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C]">
+          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#8491A3]">
             Conversion type
           </dt>
-          <dd className="mt-0.5 font-semibold text-[#091E42]">
-            {CONVERSION_TYPE_LABEL[project.conversionType]}
-            <span className="ml-1.5 font-mono text-[10px] font-normal text-[#6B778C]">
-              {project.conversionType}
+          <dd className="mt-0.5 font-semibold text-[#17263A]">
+            {CONVERSION_TYPE_LABEL[project.conversionType] || 'BMS / DSPF → React'}
+            <span className="ml-1.5 font-mono text-[10px] font-normal text-[#8491A3]">
+              {project.conversionType || 'BMS_DSPF_TO_FRONTEND'}
             </span>
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#6B778C]">Accepted files</dt>
-          <dd className="mt-0.5 font-mono font-semibold text-[#091E42]">
+          <dt className="text-[10px] font-bold uppercase tracking-wider text-[#8491A3]">Accepted files</dt>
+          <dd className="mt-0.5 font-mono font-semibold text-[#17263A]">
             {acceptedLabel(project.conversionType)}
           </dd>
         </div>
@@ -290,15 +295,15 @@ export const UploadSourceFilesPage: React.FC = () => {
         onDrop={handleDrop}
         className={`p-8 rounded-xl border-2 border-dashed transition-all text-center ${
           isDragging
-            ? 'border-[#0652CC] bg-blue-50/70'
-            : 'border-[#D9E2EC] bg-white hover:border-[#0652CC]/50'
+            ? 'border-[#244A70] bg-blue-50/70'
+            : 'border-[#DCE3EC] bg-white hover:border-[#244A70]/50'
         } ${locked ? 'opacity-60' : ''}`}
       >
-        <UploadCloud className="w-12 h-12 text-[#0652CC] mx-auto mb-3" />
-        <h3 className="text-sm font-bold text-[#091E42]">
+        <UploadCloud className="w-12 h-12 text-[#244A70] mx-auto mb-3" />
+        <h3 className="text-sm font-bold text-[#17263A]">
           Drag and drop {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL programs and copybooks' : 'BMS / DSPF screen files'} here
         </h3>
-        <p className="text-xs text-[#6B778C] max-w-md mx-auto mt-1 mb-4">
+        <p className="text-xs text-[#8491A3] max-w-md mx-auto mt-1 mb-4">
           Accepted: {acceptedLabel(project.conversionType)}. Up to 50 MB per file; empty files are
           rejected.
         </p>
@@ -317,7 +322,7 @@ export const UploadSourceFilesPage: React.FC = () => {
             }}
             className="hidden"
           />
-          <span className="px-4 py-2 bg-[#0652CC] hover:bg-[#0543A8] text-white rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors">
+          <span className="px-4 py-2 bg-[#244A70] hover:bg-[#244A70] text-white rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors">
             Browse Files from Disk
           </span>
         </label>
@@ -340,11 +345,11 @@ export const UploadSourceFilesPage: React.FC = () => {
 
       {/* Queued Files Table */}
       {files.length > 0 && (
-        <div className="rounded-xl border border-[#E5EAF0] bg-white shadow-2xs overflow-hidden">
-          <div className="p-4 bg-[#F7F9FC] border-b border-[#E5EAF0] flex items-center justify-between">
+        <div className="rounded-xl border border-[#DCE3EC] bg-white shadow-2xs overflow-hidden">
+          <div className="p-4 bg-[#F8FAFC] border-b border-[#DCE3EC] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileCode className="w-4 h-4 text-[#0652CC]" />
-              <span className="text-xs font-bold text-[#091E42]">
+              <FileCode className="w-4 h-4 text-[#244A70]" />
+              <span className="text-xs font-bold text-[#17263A]">
                 Selected Source Files ({files.length})
               </span>
             </div>
@@ -352,7 +357,7 @@ export const UploadSourceFilesPage: React.FC = () => {
               type="button"
               onClick={handleClearAll}
               disabled={locked}
-              className="text-xs text-[#6B778C] hover:text-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="text-xs text-[#8491A3] hover:text-rose-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Clear All
             </button>
@@ -360,7 +365,7 @@ export const UploadSourceFilesPage: React.FC = () => {
 
           {(uploading || result) && (
             <div className="px-4 pt-3">
-              <div className="flex justify-between text-[11px] font-semibold text-[#42526E] mb-1">
+              <div className="flex justify-between text-[11px] font-semibold text-[#8491A3] mb-1">
                 <span>Overall progress</span>
                 <span>{overallProgress}%</span>
               </div>
@@ -370,10 +375,10 @@ export const UploadSourceFilesPage: React.FC = () => {
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={overallProgress}
-                className="h-2 rounded-full bg-[#E5EAF0] overflow-hidden"
+                className="h-2 rounded-full bg-[#DCE3EC] overflow-hidden"
               >
                 <div
-                  className="h-full bg-[#0652CC] transition-all"
+                  className="h-full bg-[#244A70] transition-all"
                   style={{ width: `${overallProgress}%` }}
                 />
               </div>
@@ -382,7 +387,7 @@ export const UploadSourceFilesPage: React.FC = () => {
 
           <table className="w-full text-xs">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider text-[#6B778C]">
+              <tr className="text-left text-[10px] uppercase tracking-wider text-[#8491A3]">
                 <th className="px-4 py-2 font-bold">File</th>
                 <th className="px-2 py-2 font-bold">Size</th>
                 <th className="px-2 py-2 font-bold">Type</th>
@@ -392,11 +397,11 @@ export const UploadSourceFilesPage: React.FC = () => {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#DCE3EC]">
               {files.map((item) => (
                 <tr key={item.id} data-testid={`queued-${item.name}`} className="align-top">
                   <td className="px-4 py-2.5">
-                    <p className="font-semibold text-[#091E42]">{item.name}</p>
+                    <p className="font-semibold text-[#17263A]">{item.name}</p>
                     {item.status === 'UPLOADING' && (
                       <div
                         role="progressbar"
@@ -404,10 +409,10 @@ export const UploadSourceFilesPage: React.FC = () => {
                         aria-valuemin={0}
                         aria-valuemax={100}
                         aria-valuenow={item.progress}
-                        className="mt-1.5 h-1.5 w-40 rounded-full bg-[#E5EAF0] overflow-hidden"
+                        className="mt-1.5 h-1.5 w-40 rounded-full bg-[#DCE3EC] overflow-hidden"
                       >
                         <div
-                          className="h-full bg-[#0652CC] transition-all"
+                          className="h-full bg-[#244A70] transition-all"
                           style={{ width: `${item.progress}%` }}
                         />
                       </div>
@@ -418,9 +423,9 @@ export const UploadSourceFilesPage: React.FC = () => {
                       </p>
                     )}
                   </td>
-                  <td className="px-2 py-2.5 text-[#42526E] whitespace-nowrap">{formatFileSize(item.size)}</td>
+                  <td className="px-2 py-2.5 text-[#8491A3] whitespace-nowrap">{formatFileSize(item.size)}</td>
                   <td className="px-2 py-2.5">
-                    <span className="rounded bg-[#F4F5F7] px-1.5 py-0.5 font-mono text-[10px] text-[#42526E]">
+                    <span className="rounded bg-[#F4F7FB] px-1.5 py-0.5 font-mono text-[10px] text-[#8491A3]">
                       {item.type}
                     </span>
                   </td>
@@ -431,7 +436,7 @@ export const UploadSourceFilesPage: React.FC = () => {
                       </span>
                     )}
                     {item.status === 'UPLOADING' && (
-                      <span className="flex items-center gap-1 text-[#0652CC] font-medium">
+                      <span className="flex items-center gap-1 text-[#244A70] font-medium">
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" /> {STATUS_LABEL.UPLOADING}
                       </span>
                     )}
@@ -441,7 +446,7 @@ export const UploadSourceFilesPage: React.FC = () => {
                       </span>
                     )}
                     {item.status === 'READY' && (
-                      <span className="text-[#42526E] font-medium">{STATUS_LABEL.READY}</span>
+                      <span className="text-[#8491A3] font-medium">{STATUS_LABEL.READY}</span>
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right">
@@ -487,8 +492,8 @@ export const UploadSourceFilesPage: React.FC = () => {
             </div>
           )}
 
-          <div className="p-4 bg-[#F7F9FC] border-t border-[#E5EAF0] flex items-center justify-between">
-            <span className="text-xs text-[#6B778C]">
+          <div className="p-4 bg-[#F8FAFC] border-t border-[#DCE3EC] flex items-center justify-between">
+            <span className="text-xs text-[#8491A3]">
               {queuedCount} file{queuedCount === 1 ? '' : 's'} ready to parse into the project workspace
             </span>
             <div className="flex gap-2">
@@ -506,7 +511,7 @@ export const UploadSourceFilesPage: React.FC = () => {
                 onClick={handleUploadAndProceed}
                 isLoading={uploading}
                 disabled={locked || !hasUploadable}
-                className="flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8]"
+                className="flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70]"
               >
                 <span>{submitError ? 'Retry Upload' : 'Upload & Open Workspace'}</span>
                 <ArrowRight className="w-4 h-4" />

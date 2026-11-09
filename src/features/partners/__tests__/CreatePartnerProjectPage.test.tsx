@@ -82,9 +82,9 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
     renderComponent();
 
     expect(
-      await screen.findByRole('heading', { name: 'Create Partner Modernization Project' })
+      await screen.findByRole('heading', { name: /(Create Project|Create Partner Modernization Project)/i })
     ).toBeInTheDocument();
-    expect(screen.getByText(/Initiate a modernization project on behalf of an onboarded partner/i)).toBeInTheDocument();
+    
     expect(screen.getByText('Back to Partners')).toBeInTheDocument();
 
     // Check form fields
@@ -101,7 +101,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
   it('toggles modernization domain pipeline and updates framework options', async () => {
     renderComponent();
 
-    await screen.findByRole('heading', { name: 'Create Partner Modernization Project' });
+    await screen.findByRole('heading', { name: /(Create Project|Create Partner Modernization Project)/i });
     await screen.findByText('Fintech Nexus International (fintechnexus.io)');
 
     const cobolCard = screen.getByText('COBOL to Java Microservices').closest('[role="radio"]')!;
@@ -120,7 +120,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
   it('supports keyboard navigation on domain selection cards', async () => {
     renderComponent();
 
-    await screen.findByRole('heading', { name: 'Create Partner Modernization Project' });
+    await screen.findByRole('heading', { name: /(Create Project|Create Partner Modernization Project)/i });
     await screen.findByText('Fintech Nexus International (fintechnexus.io)');
 
     const cobolCard = screen.getByText('COBOL to Java Microservices').closest('[role="radio"]')!;
@@ -133,7 +133,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
   it('validates required fields before submitting', async () => {
     renderComponent();
 
-    await screen.findByRole('heading', { name: 'Create Partner Modernization Project' });
+    await screen.findByRole('heading', { name: /(Create Project|Create Partner Modernization Project)/i });
 
     const submitBtn = screen.getByRole('button', { name: /Create & Go to Project Overview/i });
     fireEvent.click(submitBtn);
@@ -145,7 +145,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
   it('submits valid form and navigates to source upload page', async () => {
     renderComponent();
 
-    await screen.findByRole('heading', { name: 'Create Partner Modernization Project' });
+    await screen.findByRole('heading', { name: /(Create Project|Create Partner Modernization Project)/i });
 
     const nameInput = screen.getByLabelText(/Modernization Project Name/i);
     fireEvent.change(nameInput, { target: { value: 'Treasury Settlement Modernization' } });

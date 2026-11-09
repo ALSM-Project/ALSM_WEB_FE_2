@@ -32,7 +32,7 @@ const samplePipeline = makePipeline([
     score: 72,
     dealValue: 250000,
     currency: 'VND',
-    assignedToName: 'Lê Văn Sales',
+    assignedToName: 'Le Van Sales',
   },
   {
     id: '6ad586fe9f2215c9ebcac859',

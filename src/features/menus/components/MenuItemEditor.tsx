@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Shield, Info, AlertCircle, Save, Check, RefreshCw } from 'lucide-react';
+import { Trash2, Shield, Info, Save, Check, RefreshCw, Workflow } from 'lucide-react';
 import { MenuItem } from '../types/menu';
 import {
   findMenuItemInTree,
@@ -74,6 +74,9 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         permissions: initialPermissions,
         openInNewTab: selectedItem.openInNewTab ?? false,
         hideParentLabel: selectedItem.hideParentLabel ?? false,
+        contractTypeVisibility: selectedItem.contractTypeVisibility || 'ALL',
+        featureKey: selectedItem.featureKey || '',
+        description: selectedItem.description || '',
       });
       setErrorMsg(null);
       setSuccessMsg(null);
@@ -82,12 +85,22 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
 
   if (!selectedItem) {
     return (
-      <Card variant="flat" padding="lg" className="h-[640px] flex flex-col items-center justify-center text-center">
-        <AlertCircle className="w-10 h-10 text-[#6B778C] mb-3" />
-        <h3 className="text-base font-semibold text-[#091E42]">No Menu Item Selected</h3>
-        <p className="text-xs text-[#42526E] max-w-xs mt-1">
-          Select a menu item from the tree on the left to edit its properties.
+      <Card
+        variant="flat"
+        padding="lg"
+        className="h-[700px] flex flex-col items-center justify-center text-center p-8 bg-white border border-[#DCE3EC] rounded-2xl shadow-xs"
+      >
+        <div className="w-16 h-16 rounded-2xl bg-[#F4F7FB] text-[#244A70] flex items-center justify-center mb-4 shadow-2xs">
+          <Workflow className="w-8 h-8 opacity-80" />
+        </div>
+        <h3 className="text-base font-bold text-[#17263A]">No Menu Item Selected</h3>
+        <p className="text-xs text-[#8491A3] max-w-sm mt-1.5 leading-relaxed">
+          Select a menu item from the tree on the left to edit its properties, route, permissions, and visibility rules.
         </p>
+        <div className="mt-5 flex items-center gap-2 text-[11px] text-[#8491A3] bg-[#F8FAFC] px-3.5 py-2 rounded-xl border border-[#DCE3EC]">
+          <Info className="w-4 h-4 text-[#244A70] shrink-0" />
+          <span>Tip: You can drag and drop items in the tree to reorder or re-parent them.</span>
+        </div>
       </Card>
     );
   }
@@ -164,12 +177,12 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
   }, {} as Record<string, PermissionDto[]>);
 
   return (
-    <Card variant="default" padding="md" className="h-[640px] flex flex-col justify-between overflow-hidden">
+    <Card variant="default" padding="md" className="h-[700px] flex flex-col justify-between overflow-hidden shadow-xs">
       {/* Fixed Card Header */}
-      <div className="pb-3 mb-3 border-b border-[#E5EAF0] flex items-center justify-between shrink-0">
+      <div className="pb-3 mb-3 border-b border-[#DCE3EC] flex items-center justify-between shrink-0">
         <div>
-          <h2 className="text-base font-bold text-[#091E42]">Menu Item Properties</h2>
-          <p className="text-xs text-[#6B778C] mt-0.5">Configure item properties and required permissions.</p>
+          <h2 className="text-base font-bold text-[#17263A]">Menu Item Properties</h2>
+          <p className="text-xs text-[#8491A3] mt-0.5">Configure item properties and required permissions.</p>
         </div>
 
         <Tooltip content={hasChildren ? 'Cannot delete a menu item with children.' : ''}>
@@ -187,8 +200,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
       </div>
 
       {/* Scrollable Form Fields Body */}
-      <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-xs">
-        {/* Label * */}
+      <div className="flex-1 overflow-y-auto pr-2 space-y-4 text-xs">
         <Input
           label="Label *"
           value={formState.label || ''}
@@ -196,7 +208,6 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           placeholder="Menu Title"
         />
 
-        {/* Icon * */}
         <Select
           label="Icon *"
           value={formState.icon || 'FolderKanban'}
@@ -204,7 +215,6 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           options={COMMON_ICONS}
         />
 
-        {/* Route * */}
         <Input
           label="Route *"
           value={formState.path || ''}
@@ -212,7 +222,6 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           placeholder="/admin/projects"
         />
 
-        {/* Parent */}
         <Select
           label="Parent"
           value={formState.parentId || ''}
@@ -220,7 +229,6 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           options={parentOptions}
         />
 
-        {/* Order */}
         <Input
           label="Order"
           type="number"
@@ -228,11 +236,37 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           onChange={(e) => handleChange('order', parseInt(e.target.value, 10) || 1)}
         />
 
+        <Select
+          label="Contract Type Visibility"
+          value={formState.contractTypeVisibility || 'ALL'}
+          onChange={(e) => handleChange('contractTypeVisibility', e.target.value)}
+          options={[
+            { value: 'ALL', label: 'All Contracts (Shared)' },
+            { value: 'SELF_SERVICE', label: 'Platform-Based Modernization Only' },
+            { value: 'WE_CONVERT_FOR_YOU', label: 'Managed Modernization Services' },
+            { value: 'HYBRID', label: 'Hybrid Contracts Only' },
+          ]}
+        />
+
+        <Input
+          label="Feature Key"
+          value={formState.featureKey || ''}
+          onChange={(e) => handleChange('featureKey', e.target.value)}
+          placeholder="e.g. FEATURE_CONVERSION_PIPELINE"
+        />
+
+        <Input
+          label="Description"
+          value={formState.description || ''}
+          onChange={(e) => handleChange('description', e.target.value)}
+          placeholder="Brief description of the menu functionality"
+        />
+
         {/* Visible Switch */}
-        <div className="pt-2 border-t border-[#E5EAF0] flex items-center justify-between">
+        <div className="pt-2 border-t border-[#DCE3EC] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#091E42]">Visible</span>
-            <p className="text-[11px] text-[#6B778C]">Menu item will be visible in the navigation tree.</p>
+            <span className="text-xs font-semibold text-[#17263A]">Visible</span>
+            <p className="text-[11px] text-[#8491A3]">Menu item will be visible in the navigation tree.</p>
           </div>
           <Toggle
             checked={formState.isVisible !== false}
@@ -242,10 +276,10 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         </div>
 
         {/* Open in new tab Switch */}
-        <div className="pt-2 border-t border-[#E5EAF0] flex items-center justify-between">
+        <div className="pt-2 border-t border-[#DCE3EC] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#091E42]">Open in new tab</span>
-            <p className="text-[11px] text-[#6B778C]">Open link in a new browser tab</p>
+            <span className="text-xs font-semibold text-[#17263A]">Open in new tab</span>
+            <p className="text-[11px] text-[#8491A3]">Open link in a new browser tab</p>
           </div>
           <Toggle
             checked={Boolean(formState.openInNewTab)}
@@ -255,10 +289,10 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         </div>
 
         {/* Hide Parent Label Switch */}
-        <div className="pt-2 border-t border-[#E5EAF0] flex items-center justify-between">
+        <div className="pt-2 border-t border-[#DCE3EC] flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-[#091E42]">Hide Parent Label</span>
-            <p className="text-[11px] text-[#6B778C]">Render child items directly without showing the parent group label</p>
+            <span className="text-xs font-semibold text-[#17263A]">Hide Parent Label</span>
+            <p className="text-[11px] text-[#8491A3]">Render child items directly without showing the parent group label</p>
           </div>
           <Toggle
             checked={Boolean(formState.hideParentLabel)}
@@ -268,9 +302,9 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         </div>
 
         {/* Required Permissions Multi-Select Box (Sections 3.13.15 & 3.13.16) */}
-        <div className="pt-3 border-t border-[#E5EAF0] space-y-2">
+        <div className="pt-3 border-t border-[#DCE3EC] space-y-2">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-[#091E42]">Required Permissions</label>
+            <label className="text-xs font-bold text-[#17263A]">Required Permissions</label>
             <div className="flex items-center gap-2">
               {(formState.permissions || []).length > 0 && (
                 <button
@@ -281,19 +315,19 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                   Revoke Permission (Clear)
                 </button>
               )}
-              <span className="text-[11px] font-semibold text-[#0652CC] bg-[#E8F1FF] px-2 py-0.5 rounded">
+              <span className="text-[11px] font-semibold text-[#244A70] bg-[#EEF1F6] px-2 py-0.5 rounded">
                 {(formState.permissions || []).length} Selected
               </span>
             </div>
           </div>
-          <p className="text-[11px] text-[#6B778C]">
-            Users holding any of the assigned permissions can view this menu item. Clearing all permissions makes it visible to all authorized role users (UC-3.13.16).
+          <p className="text-[11px] text-[#8491A3]">
+            Users holding any of the assigned permissions can view this menu item. Clearing all permissions makes it visible to all authorized role users.
           </p>
 
-          <div className="space-y-3 max-h-48 overflow-y-auto pr-1 border border-[#E5EAF0] rounded-xl p-3 bg-[#F7F9FC]">
+          <div className="space-y-3 max-h-56 overflow-y-auto pr-1 border border-[#DCE3EC] rounded-xl p-3 bg-[#F8FAFC]">
             {Object.entries(groupedPermissions).map(([grp, perms]) => (
               <div key={grp} className="space-y-1.5">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#6B778C]">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#8491A3]">
                   {grp}
                 </span>
                 <div className="grid grid-cols-1 gap-1">
@@ -304,18 +338,18 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                         key={p.key}
                         className={`flex items-center gap-2 p-1.5 rounded-lg border text-[11px] cursor-pointer transition-colors ${
                           isChecked
-                            ? 'border-[#0652CC] bg-white text-[#091E42] font-bold shadow-2xs'
-                            : 'border-[#E5EAF0] bg-white/60 text-[#6B778C] hover:bg-white'
+                            ? 'border-[#244A70] bg-white text-[#17263A] font-bold shadow-2xs'
+                            : 'border-[#DCE3EC] bg-white/60 text-[#8491A3] hover:bg-white'
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleTogglePermission(p.key)}
-                          className="rounded text-[#0652CC] focus:ring-[#0652CC] w-3.5 h-3.5 cursor-pointer"
+                          className="rounded text-[#244A70] focus:ring-[#244A70] w-3.5 h-3.5 cursor-pointer"
                         />
                         <span className="truncate">{p.label || p.key}</span>
-                        <span className="text-[9px] font-mono text-[#0652CC] shrink-0 ml-auto">({p.key})</span>
+                        <span className="text-[9px] font-mono text-[#244A70] shrink-0 ml-auto">({p.key})</span>
                       </label>
                     );
                   })}
@@ -327,7 +361,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
 
         {/* Info Alert Box */}
         {selectedItem.parentId && (
-          <div className="p-3 rounded-xl bg-[#E8F1FF]/60 border border-[#0652CC]/25 flex items-start space-x-2 text-[11px] text-[#0652CC]">
+          <div className="p-3 rounded-xl bg-[#EEF1F6]/60 border border-[#244A70]/25 flex items-start space-x-2 text-[11px] text-[#244A70]">
             <Info className="w-4 h-4 shrink-0 mt-0.5" />
             <span>
               This is a child menu item. It will appear under{' '}
@@ -338,7 +372,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
       </div>
 
       {/* Sticky Bottom Footer: Alert Notifications & Action Buttons */}
-      <div className="pt-3 mt-2 border-t border-[#E5EAF0] shrink-0 space-y-2.5">
+      <div className="pt-3 mt-2 border-t border-[#DCE3EC] shrink-0 space-y-2.5 bg-white">
         {errorMsg && (
           <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center space-x-2 font-semibold shadow-xs">
             <Shield className="w-4 h-4 shrink-0 text-rose-600" />
@@ -372,7 +406,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
                 });
               }
             }}
-            className="text-[#42526E]"
+            className="text-[#8491A3]"
           >
             Cancel
           </Button>

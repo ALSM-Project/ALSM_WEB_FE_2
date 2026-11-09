@@ -8,6 +8,10 @@ export interface OrganizationDto {
   type?: 'SELF_SERVICE' | 'ENTERPRISE' | 'INTERNAL' | 'STANDARD' | 'PARTNER';
   status: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
   engagementType?: string;
+  serviceMode?: 'ALSM_MANAGED' | 'CUSTOMER_SELF_SERVICE' | 'WE_CONVERT_FOR_YOU';
+  tier?: string;
+  activeContractNumber?: string;
+  contractId?: string;
   memberCount?: number;
   trialExpiresAt?: string;
   limits?: {
@@ -86,11 +90,26 @@ export type UpdateEngagementTypeRequest = Partial<Pick<EngagementTypeDto,
   'features' | 'includesCobolConversion' | 'supportTier' | 'slaHours' | 'isActive'
 >>;
 
+export interface RevenueTransactionDto {
+  id: string;
+  client: string;
+  organizationId?: string;
+  engagementType: string;
+  contractValue: number;
+  paymentMethod: 'BANK_TRANSFER' | 'CORPORATE_WIRE' | 'PURCHASE_ORDER' | 'DIRECT_DEBIT' | string;
+  settlementDate: string;
+  status: 'CONFIRMED' | 'SETTLED';
+  bankReference?: string;
+}
+
 export interface RevenueSummaryDto {
   totalRevenue: number;
   annualRecurringRevenue: number;
   activeContractsCount: number;
   revenueByEngagementType: Record<string, number>;
+  breakdownByPaymentMethod?: Record<string, number>;
+  bankTransferVolume?: number;
+  bankTransferCount?: number;
   topClients: Array<{
     organizationId: string;
     organizationName: string;
@@ -172,8 +191,12 @@ export const adminApi = {
     return apiClient.patch<EngagementTypeDto>(`/admin/engagement-types/${id}`, data);
   },
 
-  getRevenueSummary: async (): Promise<RevenueSummaryDto> => {
-    return apiClient.get<RevenueSummaryDto>('/admin/revenue/summary');
+  getRevenueTransactions: async (params?: { dateRange?: string }): Promise<RevenueTransactionDto[]> => {
+    return apiClient.get<RevenueTransactionDto[]>('/admin/revenue/transactions', { params });
+  },
+
+  getRevenueSummary: async (params?: { dateRange?: string }): Promise<RevenueSummaryDto> => {
+    return apiClient.get<RevenueSummaryDto>('/admin/revenue/summary', { params });
   },
 
   lockUserAccount: async (userId: string, reason: string): Promise<{ ok: boolean; message: string }> => {
@@ -204,6 +227,7 @@ export const adminApi = {
     actor?: string;
     action?: string;
     resourceType?: string;
+    resourceId?: string;
     limit?: number;
   }): Promise<AuditLogDto[]> => {
     const res = await apiClient.get<any>('/admin/audit-logs', { params });
@@ -242,10 +266,65 @@ export const adminApi = {
     });
   },
 
-  assignTeamLead: async (projectId: string, teamLeadUserId: string): Promise<{ success: boolean }> => {
+  assignTeamLead: async (projectId: string, teamLeadUserId: string, note?: string): Promise<{ success: boolean }> => {
     return apiClient.post<{ success: boolean }>(`/projects/${projectId}/assign-team-lead`, {
       teamLeadId: teamLeadUserId,
-      teamLeadUserId,
+      note,
     });
   },
+
+  reviewProject: async (
+    projectId: string,
+    data: { action: 'APPROVE' | 'REQUEST_INFO' | 'REJECT'; notes?: string },
+  ): Promise<any> => {
+    return apiClient.post<any>(`/projects/${projectId}/admin-review`, data);
+  },
+
+  updateProjectStage: async (
+    projectId: string,
+    data: { stage: string; note?: string },
+  ): Promise<any> => {
+    return apiClient.patch<any>(`/projects/${projectId}/stage`, data);
+  },
+
+  getAssignableTeamLeads: async (): Promise<any[]> => {
+    return apiClient.get<any[]>('/projects/assignable-team-leads');
+  },
 };
+
+/**
+ * Checks whether an organization qualifies as a Web 3 Managed Modernization Services organization.
+ * Strictly excludes Personal Workspaces, self-service orgs, and uncontracted accounts.
+ */
+export function isManagedModernizationOrg(org?: OrganizationDto | null): boolean {
+  if (!org) return false;
+  const name = org.name || '';
+  if (name === 'Personal Workspace' || name.toLowerCase().includes('personal')) return false;
+  if (org.type === 'SELF_SERVICE') return false;
+  if (org.serviceMode === 'CUSTOMER_SELF_SERVICE') return false;
+  if (org.serviceMode === 'WE_CONVERT_FOR_YOU' || org.serviceMode === 'ALSM_MANAGED') return true;
+  if (org.engagementType && (org.engagementType.toLowerCase().includes('modernization') || org.engagementType.toLowerCase().includes('managed'))) return true;
+  if (org.tier === 'ENTERPRISE') return true;
+  if ((org.type === 'ENTERPRISE' || org.type === 'PARTNER') && org.engagementType !== 'Trial') return true;
+  return false;
+}
+
+/**
+ * Checks whether a project belongs to a Web 3 organization with Managed Modernization Services.
+ */
+export function isManagedModernizationProject(
+  project: { serviceType?: string; serviceMode?: string; contractNumber?: string; partnerName?: string },
+  org?: OrganizationDto | null,
+  hasLoadedOrgs = true,
+): boolean {
+  if (hasLoadedOrgs) {
+    if (!org) return false;
+    if (!isManagedModernizationOrg(org)) return false;
+  } else {
+    if (project.partnerName === 'Personal Workspace' || project.partnerName?.toLowerCase().includes('personal')) return false;
+    if (project.partnerName === 'Not linked to a partner') return false;
+  }
+  if (project.serviceType === 'SELF_SERVICE') return false;
+  if (project.serviceMode === 'CUSTOMER_SELF_SERVICE' || project.serviceMode === 'SELF_SERVICE_CONVERSION') return false;
+  return true;
+}

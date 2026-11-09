@@ -5,7 +5,7 @@ import {
   Users,
   Briefcase,
   TrendingUp,
-  } from 'lucide-react';
+} from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { PlatformAdminOverview } from '../components/PlatformAdminOverview';
 import { TeamLeadOverview } from '../components/TeamLeadOverview';
@@ -56,47 +56,43 @@ export const StaffDashboardPage: React.FC = () => {
     switch (activeTab) {
       case 'ADMIN':
         return {
-          title: 'Platform Admin — System Overview',
-          subtitle: 'Giám sát toàn hệ thống: Tổ chức, dự án, tiến độ chuyển đổi, nhật ký audit và trạng thái vận hành.',
-        };
+          title: 'Platform Overview',
+                  };
       case 'TEAM_LEAD':
         return {
-          title: 'Team Lead — Team Overview',
-          subtitle: 'Quản lý trong phạm vi team: Phân bổ công việc, tiến độ nhân viên, và xử lý các dự án cần hỗ trợ.',
-        };
+          title: 'Team Overview',
+                  };
       case 'STAFF':
         return {
-          title: 'Conversion Staff — My Workspace',
-          subtitle: 'Không gian cá nhân: Danh sách dự án được giao, tiến độ conversion, và truy cập nhanh vào Web 1 Workspace.',
-        };
+          title: 'My Workspace',
+                  };
       case 'SALES':
         return {
-          title: 'Sales / Sales Manager — Sales Overview',
-          subtitle: 'CRM & Bán hàng: Phễu bán hàng, báo cáo doanh thu, duyệt chiết khấu hợp đồng và lịch chăm sóc khách hàng.',
-        };
+          title: 'Sales Overview',
+                  };
     }
   }, [activeTab]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in">
       {/* ── Top Header & Role Switcher for Admin ───────────────────────── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <PageHeader title={headerInfo.title} subtitle={headerInfo.subtitle} />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
+        <PageHeader title={headerInfo.title} />
 
         {/* View Switcher: Only Admins can switch between all 4 role perspectives */}
         {isUserAdmin && (
-          <div className="inline-flex items-center p-1 rounded-md bg-[#F1F5F9] border border-[#CBD5E1] self-start lg:self-center shrink-0">
-            <span className="text-[11px] font-semibold text-[#64748B] uppercase tracking-wider px-2 hidden sm:inline">
-              Xem theo vai trò:
+          <div className="inline-flex items-center p-1 rounded-md bg-white border border-[#DCE3EC] shadow-xs self-start lg:self-center shrink-0">
+            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider px-2.5 hidden sm:inline">
+              View As:
             </span>
 
             <button
               type="button"
               onClick={() => setActiveTab('ADMIN')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'ADMIN'
-                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
-                  : 'text-[#64748B] hover:text-[#0F172A]'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-[#17263A] hover:bg-[#EEF1F6]'
               }`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
@@ -106,10 +102,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('TEAM_LEAD')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'TEAM_LEAD'
-                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
-                  : 'text-[#64748B] hover:text-[#0F172A]'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-[#17263A] hover:bg-[#EEF1F6]'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -119,10 +115,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('STAFF')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'STAFF'
-                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
-                  : 'text-[#64748B] hover:text-[#0F172A]'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-[#17263A] hover:bg-[#EEF1F6]'
               }`}
             >
               <Briefcase className="w-3.5 h-3.5" />
@@ -132,10 +128,10 @@ export const StaffDashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab('SALES')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'SALES'
-                  ? 'bg-white text-[#0652CC] shadow-xs font-bold'
-                  : 'text-[#64748B] hover:text-[#0F172A]'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-[#17263A] hover:bg-[#EEF1F6]'
               }`}
             >
               <TrendingUp className="w-3.5 h-3.5" />
@@ -146,7 +142,7 @@ export const StaffDashboardPage: React.FC = () => {
       </div>
 
       {/* ── Active Role View Component ───────────────────────────────── */}
-      <div className="pt-1">
+      <div className="pt-0">
         {activeTab === 'ADMIN' && <PlatformAdminOverview />}
         {activeTab === 'TEAM_LEAD' && <TeamLeadOverview />}
         {activeTab === 'STAFF' && <ConversionStaffOverview />}

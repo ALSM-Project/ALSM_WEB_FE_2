@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, XCircle, RefreshCw, ShieldCheck, 
-  AlertTriangle, Eye, Info, Send
+  AlertTriangle, Eye, Info, Send, Plus
 } from 'lucide-react';
-import { crmApi, PendingDiscountDto } from '../api/crm.api';
+import { crmApi, PendingDiscountDto, LeadDto } from '../api/crm.api';
 import { Button, Modal } from '@/shared/ui';
 import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -44,7 +44,106 @@ export const DiscountApprovalPage: React.FC = () => {
   const [rejectItem, setRejectItem] = useState<PendingDiscountDto | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
+  // Create Discount Request Modal State
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [availableLeads, setAvailableLeads] = useState<LeadDto[]>([]);
+  const [selectedLeadId, setSelectedLeadId] = useState<string>('');
+  const [newCompanyName, setNewCompanyName] = useState<string>('');
+  const [newContactEmail, setNewContactEmail] = useState<string>('');
+  const [createPlan, setCreatePlan] = useState<string>('Enterprise Tier 1');
+  const [createScope, setCreateScope] = useState<string>('120 COBOL CICS screens & 45 Batch jobs');
+  const [createBasePrice, setCreateBasePrice] = useState<number>(85000000);
+  const [createDiscountPercent, setCreateDiscountPercent] = useState<number>(20);
+  const [createDiscountReason, setCreateDiscountReason] = useState<string>('');
+  const [createLoading, setCreateLoading] = useState<boolean>(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
   const MANAGER_LIMIT = 20; // 20% Sales Manager approval threshold
+
+  const loadAvailableLeads = async () => {
+    try {
+      const leads = await crmApi.getLeads();
+      setAvailableLeads(leads || []);
+      if (leads?.length > 0 && !selectedLeadId) {
+        setSelectedLeadId(leads[0].id);
+      } else if (!leads?.length) {
+        setSelectedLeadId('NEW');
+      }
+    } catch {
+      setSelectedLeadId('NEW');
+    }
+  };
+
+  const handlePlanSelection = (planName: string) => {
+    setCreatePlan(planName);
+    if (planName === 'Enterprise Tier 1') {
+      setCreateBasePrice(85000000);
+      setCreateScope('120 COBOL CICS screens & 45 Batch jobs');
+    } else if (planName === 'Enterprise Tier 2') {
+      setCreateBasePrice(150000000);
+      setCreateScope('350 COBOL screens, 120 Batch programs, 99.9% uptime SLA');
+    } else if (planName === 'Professional') {
+      setCreateBasePrice(45000000);
+      setCreateScope('50 BMS screens & core database validation');
+    } else if (planName === 'Starter Pilot') {
+      setCreateBasePrice(25000000);
+      setCreateScope('Pilot project (20 BMS screens)');
+    }
+  };
+
+  const handleCreateDiscountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!createDiscountReason.trim() && createDiscountPercent >= 15) {
+      setCreateError('A justification rationale is required for discounts of 15% or higher.');
+      return;
+    }
+
+    try {
+      setCreateLoading(true);
+      setCreateError(null);
+
+      let targetLeadId = selectedLeadId;
+      if (targetLeadId === 'NEW' || !targetLeadId) {
+        if (!newCompanyName.trim()) {
+          setCreateError('Please enter a company name for the new client.');
+          setCreateLoading(false);
+          return;
+        }
+        const createdLead = await crmApi.createLead({
+          company: newCompanyName.trim(),
+          contactName: `${newCompanyName.trim()} Representative`,
+          email: newContactEmail.trim() || `contact@${newCompanyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          stage: 'PROPOSAL',
+        } as any);
+        targetLeadId = createdLead.id;
+      }
+
+      await crmApi.createQuote(targetLeadId, {
+        plan: createPlan,
+        projectScope: createScope.trim() || 'Modernization AST Conversion Scope',
+        basePrice: Number(createBasePrice) || 85000000,
+        discountPercent: Number(createDiscountPercent) || 15,
+        discountReason: createDiscountReason.trim() || 'Commercial enterprise modernization discount',
+      });
+
+      setSuccessMsg('Discount request created successfully and placed in the review queue.');
+      setShowCreateModal(false);
+      setCreateDiscountReason('');
+      await fetchDiscounts();
+
+      if (createDiscountPercent > MANAGER_LIMIT) {
+        setStatusFilter('REQUIRES_HIGHER_APPROVAL');
+      } else {
+        setStatusFilter('PENDING');
+      }
+
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      setCreateError(err?.response?.data?.message || err?.message || 'Failed to create discount request.');
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const fetchDiscounts = async () => {
     try {
@@ -154,18 +253,28 @@ export const DiscountApprovalPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-[#DCE3EC]">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">Discount Approval Requests</h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Section 3.12: Commercial manager oversight queue. Standard approval authority limit is 20%. Discounts exceeding 20% require VP escalation.
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">
+            Discount Approvals
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={() => {
+              loadAvailableLeads();
+              setShowCreateModal(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#244A70] hover:bg-[#244A70] text-white px-4 py-2 text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Request Discount</span>
+          </button>
+          <button
             onClick={fetchDiscounts}
             disabled={loading || actionLoading}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E5EAF0] bg-white px-4 py-2 text-xs font-semibold text-[#091E42] shadow-xs hover:bg-[#F4F6F8] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#DCE3EC] bg-white px-4 py-2 text-xs font-semibold text-[#17263A] shadow-xs hover:bg-[#F8FAFC] transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5 mr-1" />
             {loading ? 'Refreshing...' : 'Refresh Queue'}
@@ -176,7 +285,7 @@ export const DiscountApprovalPage: React.FC = () => {
       {/* Authority Policy Card */}
       <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-blue-100 text-[#0652CC] shrink-0 mt-0.5">
+          <div className="p-2 rounded-xl bg-blue-100 text-[#244A70] shrink-0 mt-0.5">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
@@ -190,7 +299,7 @@ export const DiscountApprovalPage: React.FC = () => {
         <div className="flex items-center gap-3 shrink-0">
           <div className="bg-white border border-blue-200 px-3 py-1.5 rounded-xl text-center">
             <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Limit</span>
-            <span className="text-sm font-bold text-[#0652CC]">20% Max</span>
+            <span className="text-sm font-bold text-[#244A70]">20% Max</span>
           </div>
           <div className="bg-white border border-blue-200 px-3 py-1.5 rounded-xl text-center">
             <span className="text-[10px] uppercase font-bold text-slate-400 block">VP Level</span>
@@ -213,8 +322,8 @@ export const DiscountApprovalPage: React.FC = () => {
             onClick={() => setStatusFilter(tab.key as any)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === tab.key
-                ? 'bg-[#0652CC] text-white shadow-xs'
-                : 'bg-white border border-[#E5EAF0] text-[#091E42] hover:bg-[#F7F9FC]'
+                ? 'bg-[#244A70] text-white shadow-xs'
+                : 'bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]'
             }`}
           >
             {tab.label}
@@ -250,11 +359,11 @@ export const DiscountApprovalPage: React.FC = () => {
       )}
 
       {/* Discount Approvals Table */}
-      <div className="rounded-2xl border border-[#E5EAF0] bg-white shadow-xs overflow-hidden">
+      <div className="rounded-2xl border border-[#DCE3EC] bg-white shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Request # & Account</th>
                 <th className="py-3 px-4">Sales Rep</th>
                 <th className="py-3 px-4">Quote Scope</th>
@@ -265,12 +374,12 @@ export const DiscountApprovalPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]">
+            <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Checking approval queue...</span>
                     </div>
                   </td>
@@ -279,7 +388,7 @@ export const DiscountApprovalPage: React.FC = () => {
                 <tr><td colSpan={8} className="py-12 text-center text-rose-700">Discount requests are unavailable.</td></tr>
               ) : filteredDiscounts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
                     <ShieldCheck className="w-8 h-8 mx-auto text-emerald-500/60 mb-2" />
                     No discount requests matching current filter.
                   </td>
@@ -293,21 +402,21 @@ export const DiscountApprovalPage: React.FC = () => {
                   const isRejected = item.status === 'REJECTED';
 
                   return (
-                    <tr key={item.quote.id} className="hover:bg-[#F9FBFF] transition-colors">
+                    <tr key={item.quote.id} className="hover:bg-[#F8FAFC] transition-colors">
                       <td className="py-3.5 px-4">
                         <div className="font-mono text-[10px] font-bold text-blue-600">{item.requestId}</div>
-                        <div className="font-semibold text-[#091E42] mt-0.5">{item.leadCompany}</div>
-                        <div className="text-[11px] text-[#6B778C]">{item.leadContact}</div>
+                        <div className="font-semibold text-[#17263A] mt-0.5">{item.leadCompany}</div>
+                        <div className="text-[11px] text-[#8491A3]">{item.leadContact}</div>
                       </td>
-                      <td className="py-3.5 px-4 text-[#091E42]">
+                      <td className="py-3.5 px-4 text-[#17263A]">
                         <div className="font-medium">{item.assignedToName}</div>
                         <div className="text-[10px] text-slate-400">Enterprise Rep</div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <div className="text-[#091E42] font-semibold">{item.quote.plan}</div>
-                        <div className="text-[11px] font-mono text-[#6B778C]">{item.quote.quoteNumber}</div>
+                        <div className="text-[#17263A] font-semibold">{item.quote.plan}</div>
+                        <div className="text-[11px] font-mono text-[#8491A3]">{item.quote.quoteNumber}</div>
                       </td>
-                      <td className="py-3.5 px-4 text-[#6B778C]">
+                      <td className="py-3.5 px-4 text-[#8491A3]">
                         {formatVnd(item.originalPrice)}
                       </td>
                       <td className="py-3.5 px-4">
@@ -348,7 +457,7 @@ export const DiscountApprovalPage: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => setDetailItem(item)}
-                            className="text-xs border-[#E5EAF0] text-[#091E42] hover:bg-[#F7F9FC] py-1"
+                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1"
                             title="View full quote rationale and details"
                           >
                             <Eye className="w-3.5 h-3.5 mr-1 text-slate-500" />
@@ -377,7 +486,7 @@ export const DiscountApprovalPage: React.FC = () => {
                                     size="sm"
                                     disabled={actionLoading}
                                     onClick={() => setApproveItem(item)}
-                                    className="text-xs bg-emerald-600 hover:bg-emerald-700 py-1"
+                                    className="text-xs py-1"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                                     Approve
@@ -388,7 +497,7 @@ export const DiscountApprovalPage: React.FC = () => {
                                     size="sm"
                                     disabled={actionLoading}
                                     onClick={() => handleEscalateToVP(item)}
-                                    className="text-xs bg-indigo-600 hover:bg-indigo-700 py-1 text-white"
+                                    className="text-xs bg-[#244A70] hover:bg-[#1B3856] py-1 text-white"
                                     title="Escalate to VP of Sales for >20% authorization"
                                   >
                                     <Send className="w-3.5 h-3.5 mr-1" />
@@ -527,7 +636,7 @@ export const DiscountApprovalPage: React.FC = () => {
                         type="button"
                         variant="primary"
                         size="sm"
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        className="shadow-xs"
                         onClick={() => setApproveItem(detailItem)}
                       >
                         Approve Discount
@@ -537,7 +646,7 @@ export const DiscountApprovalPage: React.FC = () => {
                         type="button"
                         variant="primary"
                         size="sm"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                        className="bg-[#244A70] hover:bg-[#1B3856] text-white"
                         onClick={() => handleEscalateToVP(detailItem)}
                       >
                         Escalate to VP
@@ -595,7 +704,7 @@ export const DiscountApprovalPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button type="button" variant="outline" size="sm" onClick={() => setApproveItem(null)} disabled={actionLoading}>
                 Cancel
               </Button>
@@ -605,7 +714,7 @@ export const DiscountApprovalPage: React.FC = () => {
                 size="sm"
                 disabled={actionLoading}
                 onClick={handleApproveConfirm}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="shadow-xs"
               >
                 {actionLoading ? 'Approving...' : 'Confirm Approval'}
               </Button>
@@ -622,13 +731,13 @@ export const DiscountApprovalPage: React.FC = () => {
           title="Reject Discount Request"
         >
           <form onSubmit={handleRejectSubmit} className="space-y-4 text-xs">
-            <p className="text-[#6B778C]">
+            <p className="text-[#8491A3]">
               Specify why the requested discount of{' '}
-              <strong className="text-[#091E42]">{rejectItem.discountPercent}%</strong> for{' '}
-              <strong className="text-[#091E42]">{rejectItem.leadCompany}</strong> cannot be approved.
+              <strong className="text-[#17263A]">{rejectItem.discountPercent}%</strong> for{' '}
+              <strong className="text-[#17263A]">{rejectItem.leadCompany}</strong> cannot be approved.
             </p>
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
                 Rejection Reason *
               </label>
               <textarea
@@ -640,10 +749,10 @@ export const DiscountApprovalPage: React.FC = () => {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="e.g. Exceeds allowable gross margin for Tier 2 scope; recommend maximum 12% discount or multi-year commitment."
-                className="w-full text-xs p-2.5 rounded-xl border border-[#D9E2EC] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+                className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button type="button" variant="outline" size="sm" onClick={() => setRejectItem(null)} disabled={actionLoading}>
                 Cancel
               </Button>
@@ -655,6 +764,207 @@ export const DiscountApprovalPage: React.FC = () => {
                 className="bg-rose-600 hover:bg-rose-700 text-white"
               >
                 {actionLoading ? 'Rejecting...' : 'Confirm Rejection'}
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
+      {/* Create Discount Request Modal */}
+      {showCreateModal && (
+        <Modal
+          isOpen={showCreateModal}
+          onClose={createLoading ? () => undefined : () => setShowCreateModal(false)}
+          title="Create New Commercial Discount Request"
+        >
+          <form onSubmit={handleCreateDiscountSubmit} className="space-y-4 text-xs">
+            {createError && (
+              <div role="alert" className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-between">
+                <span>{createError}</span>
+                <button type="button" onClick={() => setCreateError(null)} className="font-bold text-rose-500">&times;</button>
+              </div>
+            )}
+
+            {/* Target Client / Lead */}
+            <div>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
+                Account / Client Lead *
+              </label>
+              <select
+                value={selectedLeadId}
+                onChange={(e) => setSelectedLeadId(e.target.value)}
+                className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-[#F8FAFC] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+              >
+                {availableLeads.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.company || (l as any).companyName || (l as any).title} ({l.contactName || l.email || 'Lead'})
+                  </option>
+                ))}
+                <option value="NEW">+ Register New Client Account on the fly</option>
+              </select>
+            </div>
+
+            {selectedLeadId === 'NEW' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#17263A] mb-1">Company Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={newCompanyName}
+                    onChange={(e) => setNewCompanyName(e.target.value)}
+                    placeholder="e.g. VietinBank Core Banking"
+                    className="w-full text-xs p-2 bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#17263A] mb-1">Contact Email</label>
+                  <input
+                    type="email"
+                    value={newContactEmail}
+                    onChange={(e) => setNewContactEmail(e.target.value)}
+                    placeholder="architect@vietinbank.vn"
+                    className="w-full text-xs p-2 bg-white rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Plan and Project Scope */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Modernization Tier</label>
+                <select
+                  value={createPlan}
+                  onChange={(e) => handlePlanSelection(e.target.value)}
+                  className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-[#F8FAFC] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+                >
+                  <option value="Enterprise Tier 1">Enterprise Tier 1 (120 COBOL/BMS)</option>
+                  <option value="Enterprise Tier 2">Enterprise Tier 2 (350 COBOL/Batch)</option>
+                  <option value="Professional">Professional (50 Screens)</option>
+                  <option value="Starter Pilot">Starter Pilot (20 Screens)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Base Price (VND) *</label>
+                <input
+                  type="number"
+                  min={1000000}
+                  step={500000}
+                  required
+                  value={createBasePrice}
+                  onChange={(e) => setCreateBasePrice(Number(e.target.value) || 0)}
+                  className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] font-mono focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+                />
+              </div>
+            </div>
+
+            {/* Project Scope Description */}
+            <div>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">Project Modernization Scope</label>
+              <input
+                type="text"
+                value={createScope}
+                onChange={(e) => setCreateScope(e.target.value)}
+                placeholder="Scope details (screen counts, batch programs, target language)..."
+                className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+              />
+            </div>
+
+            {/* Discount Percentage Pills & Input */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-[#17263A]">Requested Discount (%) *</label>
+                <span className="font-mono font-bold text-xs text-[#244A70]">{createDiscountPercent}%</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                {[10, 15, 20, 25, 30].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setCreateDiscountPercent(pct)}
+                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                      createDiscountPercent === pct
+                        ? 'bg-[#244A70] text-white border-[#244A70]'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min={1}
+                max={99}
+                value={createDiscountPercent}
+                onChange={(e) => setCreateDiscountPercent(Math.min(99, Math.max(1, Number(e.target.value) || 0)))}
+                className="w-full text-xs p-2 rounded-xl border border-[#DCE3EC] font-mono focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+              />
+            </div>
+
+            {/* Price Preview Card */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 font-mono text-xs">
+              <div className="flex justify-between text-slate-600">
+                <span>Baseline Price:</span>
+                <span>{formatVnd(createBasePrice)}</span>
+              </div>
+              <div className="flex justify-between text-amber-700 font-semibold">
+                <span>Discount ({createDiscountPercent}%):</span>
+                <span>-{formatVnd(Math.round(createBasePrice * (createDiscountPercent / 100)))}</span>
+              </div>
+              <div className="flex justify-between text-[#17263A] font-bold border-t border-slate-200 pt-1">
+                <span>Proposed Client Fee:</span>
+                <span className="text-emerald-700 font-extrabold">{formatVnd(Math.round(createBasePrice * (1 - createDiscountPercent / 100)))}</span>
+              </div>
+            </div>
+
+            {/* Threshold Notice Banner */}
+            <div className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
+              createDiscountPercent > MANAGER_LIMIT
+                ? 'bg-purple-50 border-purple-200 text-purple-900'
+                : createDiscountPercent >= 15
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : 'bg-blue-50 border-blue-200 text-blue-900'
+            }`}>
+              {createDiscountPercent > MANAGER_LIMIT ? (
+                <span><strong>Requires Executive VP Approval:</strong> Discounts above {MANAGER_LIMIT}% exceed Sales Manager authority and will route into the VP Review Queue.</span>
+              ) : createDiscountPercent >= 15 ? (
+                <span><strong>Requires Sales Manager Review:</strong> Discounts from 15% to {MANAGER_LIMIT}% will be routed directly to the Manager Approval queue.</span>
+              ) : (
+                <span><strong>Standard Representative Authority:</strong> Discounts under 15% will be automatically authorized upon submission.</span>
+              )}
+            </div>
+
+            {/* Justification Rationale */}
+            <div>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
+                Commercial Justification / Rationale {createDiscountPercent >= 15 ? '*' : '(Optional)'}
+              </label>
+              <textarea
+                rows={2}
+                required={createDiscountPercent >= 15}
+                value={createDiscountReason}
+                onChange={(e) => setCreateDiscountReason(e.target.value)}
+                placeholder="e.g. Upfront 3-year multi-phase core banking modernization agreement with 100+ program commitment."
+                className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
+              <Button type="button" variant="outline" size="sm" onClick={() => setShowCreateModal(false)} disabled={createLoading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={createLoading}
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
+              >
+                {createLoading ? 'Submitting Request...' : 'Submit Discount Request'}
               </Button>
             </div>
           </form>

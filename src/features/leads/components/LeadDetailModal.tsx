@@ -19,6 +19,7 @@ import {
   LoaderCircle,
   PhoneCall,
   CalendarClock,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
@@ -184,7 +185,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-[#E8ECF1]"
+        className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-[#DCE3EC]"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleDialogKeyDown}
         role="dialog"
@@ -193,20 +194,20 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         tabIndex={-1}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E8ECF1] bg-[#F7F9FC]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DCE3EC] bg-[#F8FAFC]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#0652CC] to-[#4C9AFF] flex items-center justify-center text-white font-bold text-base shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-[#EEF1F6] border border-[#DCE3EC] flex items-center justify-center text-[#244A70] font-bold text-base shadow-xs">
               {lead.companyName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h2 id="lead-details-title" className="text-base font-bold text-[#091E42]">{lead.companyName}</h2>
-              <p className="text-xs text-[#6B778C]">Lead ID: {lead.id}</p>
+              <h2 id="lead-details-title" className="text-base font-bold text-[#17263A]">{lead.companyName}</h2>
+              <p className="text-xs text-[#8491A3]">Lead ID: {lead.id}</p>
             </div>
           </div>
           <button
             autoFocus
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#6B778C] hover:bg-gray-200 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-[#8491A3] hover:bg-gray-200 transition-colors cursor-pointer"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -216,13 +217,13 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6">
           {detailsQuery.isLoading && (
-            <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-[#42526E]">
-              <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin text-[#0652CC]" />
+            <p role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-[#8491A3]">
+              <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin text-[#244A70]" />
               Loading lead details…
             </p>
           )}
           {detailsQuery.isFetching && !detailsQuery.isLoading && (
-            <p role="status" aria-live="polite" className="text-xs text-[#6B778C]">
+            <p role="status" aria-live="polite" className="text-xs text-[#8491A3]">
               Refreshing lead details…
             </p>
           )}
@@ -261,29 +262,29 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
           {/* Grid Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Contact Information */}
-            <div className="p-4 rounded-lg bg-[#F7F9FC] border border-[#E8ECF1] space-y-2.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
-                <User className="w-3.5 h-3.5 text-[#0652CC]" /> Contact Person
+            <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] space-y-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-[#244A70]" /> Contact Person
               </h3>
-              <div className="space-y-1.5 text-xs text-[#091E42]">
+              <div className="space-y-1.5 text-xs text-[#17263A]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-20">Full Name:</span>
+                  <span className="text-[#8491A3] w-20">Full Name:</span>
                   <span className="font-semibold">{lead.contactName}</span>
                 </div>
                 {lead.jobTitle && (
                   <div className="flex items-center gap-2">
-                    <span className="text-[#6B778C] w-20">Job Title:</span>
+                    <span className="text-[#8491A3] w-20">Job Title:</span>
                     <span className="flex items-center gap-1">
-                      <Briefcase className="w-3 h-3 text-[#8993A4]" />
+                      <Briefcase className="w-3 h-3 text-[#8491A3]" />
                       {lead.jobTitle}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-20">Email:</span>
+                  <span className="text-[#8491A3] w-20">Email:</span>
                   <a
                     href={`mailto:${lead.contactEmail}`}
-                    className="text-[#0652CC] hover:underline flex items-center gap-1"
+                    className="text-[#244A70] hover:underline flex items-center gap-1"
                   >
                     <Mail className="w-3 h-3" />
                     {lead.contactEmail}
@@ -291,10 +292,10 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 </div>
                 {lead.contactPhone && (
                   <div className="flex items-center gap-2">
-                    <span className="text-[#6B778C] w-20">Phone:</span>
+                    <span className="text-[#8491A3] w-20">Phone:</span>
                     <a
                       href={`tel:${lead.contactPhone}`}
-                      className="text-[#0652CC] hover:underline flex items-center gap-1"
+                      className="text-[#244A70] hover:underline flex items-center gap-1"
                     >
                       <Phone className="w-3 h-3" />
                       {lead.contactPhone}
@@ -305,32 +306,32 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             </div>
 
             {/* Assignment & Management */}
-            <div className="p-4 rounded-lg bg-[#F7F9FC] border border-[#E8ECF1] space-y-2.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
-                <UserCheck className="w-3.5 h-3.5 text-[#0652CC]" /> Assignment & Ownership
+            <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] space-y-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] flex items-center gap-1.5">
+                <UserCheck className="w-3.5 h-3.5 text-[#244A70]" /> Assignment & Ownership
               </h3>
-              <div className="space-y-1.5 text-xs text-[#091E42]">
+              <div className="space-y-1.5 text-xs text-[#17263A]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-24">Assigned Staff:</span>
+                  <span className="text-[#8491A3] w-24">Assigned Staff:</span>
                   <span className="font-medium">
                     {lead.assignedToEmail || <span className="italic text-gray-400">Unassigned</span>}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-24">Created By:</span>
+                  <span className="text-[#8491A3] w-24">Created By:</span>
                   <span>{lead.createdByEmail || lead.createdByUserId}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-24">Created Date:</span>
-                  <span className="flex items-center gap-1 text-[#42526E]">
-                    <Calendar className="w-3 h-3 text-[#8993A4]" />
+                  <span className="text-[#8491A3] w-24">Created Date:</span>
+                  <span className="flex items-center gap-1 text-[#8491A3]">
+                    <Calendar className="w-3 h-3 text-[#8491A3]" />
                     {formatDate(lead.createdAt)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#6B778C] w-24">Last Updated:</span>
-                  <span className="flex items-center gap-1 text-[#42526E]">
-                    <Clock className="w-3 h-3 text-[#8993A4]" />
+                  <span className="text-[#8491A3] w-24">Last Updated:</span>
+                  <span className="flex items-center gap-1 text-[#8491A3]">
+                    <Clock className="w-3 h-3 text-[#8491A3]" />
                     {formatDate(lead.updatedAt)}
                   </span>
                 </div>
@@ -358,74 +359,74 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
 
           {/* Phone call history (UC-60) */}
           <section aria-labelledby="lead-phone-calls-title" className="space-y-2">
-            <h3 id="lead-phone-calls-title" className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
-              <PhoneCall aria-hidden="true" className="w-3.5 h-3.5 text-[#0652CC]" />
+            <h3 id="lead-phone-calls-title" className="text-xs font-bold uppercase tracking-wider text-[#8491A3] flex items-center gap-1.5">
+              <PhoneCall aria-hidden="true" className="w-3.5 h-3.5 text-[#244A70]" />
               Call history ({lead.phoneCalls?.length ?? 0})
             </h3>
             {lead.phoneCalls?.length ? (
               <ol className="space-y-2">
                 {[...lead.phoneCalls].reverse().map((call) => (
-                  <li key={call.id} className="rounded-lg border border-[#E8ECF1] bg-[#F7F9FC] p-3">
+                  <li key={call.id} className="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-3">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="text-xs font-semibold text-[#091E42]">
+                      <span className="text-xs font-semibold text-[#17263A]">
                         {LEAD_PHONE_CALL_OUTCOME_LABELS[call.outcome]} | {call.durationMinutes} min
                       </span>
-                      <time dateTime={call.createdAt} className="text-xs text-[#6B778C]">{formatDate(call.createdAt)}</time>
+                      <time dateTime={call.createdAt} className="text-xs text-[#8491A3]">{formatDate(call.createdAt)}</time>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-sm text-[#253858]">{call.summary}</p>
-                    {call.notes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#6B778C]">{call.notes}</p>}
-                    <p className="mt-1 text-xs text-[#6B778C]">Logged by {call.performedByEmail || call.performedByUserId}</p>
+                    <p className="mt-1 whitespace-pre-wrap text-sm text-[#17263A]">{call.summary}</p>
+                    {call.notes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#8491A3]">{call.notes}</p>}
+                    <p className="mt-1 text-xs text-[#8491A3]">Logged by {call.performedByEmail || call.performedByUserId}</p>
                     {call.followUpAt && <p className="mt-1 text-xs font-medium text-blue-800">Follow-up: {formatDate(call.followUpAt)}</p>}
                   </li>
                 ))}
               </ol>
             ) : detailsQuery.data ? (
-              <p className="rounded-lg border border-dashed border-[#D9E2EC] p-3 text-sm text-[#6B778C]">No phone calls have been logged for this lead.</p>
+              <p className="rounded-lg border border-dashed border-[#DCE3EC] p-3 text-sm text-[#8491A3]">No phone calls have been logged for this lead.</p>
             ) : null}
           </section>
 
           {/* Scheduled demos (UC-61) */}
           <section aria-labelledby="lead-demos-title" className="space-y-2">
-            <h3 id="lead-demos-title" className="text-xs font-bold uppercase tracking-wider text-[#6B778C] flex items-center gap-1.5">
-              <CalendarClock aria-hidden="true" className="w-3.5 h-3.5 text-[#0652CC]" />
+            <h3 id="lead-demos-title" className="text-xs font-bold uppercase tracking-wider text-[#8491A3] flex items-center gap-1.5">
+              <CalendarClock aria-hidden="true" className="w-3.5 h-3.5 text-[#244A70]" />
               Scheduled demos ({lead.demos?.length ?? 0})
             </h3>
             {lead.demos?.length ? (
               <ol className="space-y-2">
                 {[...lead.demos].sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()).map((demo) => (
-                  <li key={demo.id} className="rounded-lg border border-[#E8ECF1] bg-[#F7F9FC] p-3">
+                  <li key={demo.id} className="rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] p-3">
                     <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="text-sm font-semibold text-[#091E42]">{demo.title}</span>
+                      <span className="text-sm font-semibold text-[#17263A]">{demo.title}</span>
                       <span className={`w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold ${demo.status === 'SCHEDULED' ? 'border-blue-200 bg-blue-50 text-blue-700' : demo.status === 'COMPLETED' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-gray-200 bg-gray-50 text-gray-600'}`}>
                         {demo.status}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-[#42526E]">
+                    <p className="mt-1 text-xs text-[#8491A3]">
                       {formatDate(demo.scheduledAt)} · {demo.durationMinutes} minutes
                     </p>
-                    <p className="mt-1 break-words text-xs text-[#6B778C]">Attendees: {demo.attendeeEmails.join(', ')}</p>
-                    {demo.agenda && <p className="mt-2 whitespace-pre-wrap text-xs text-[#42526E]">Agenda: {demo.agenda}</p>}
-                    {demo.internalNotes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#6B778C]">Internal notes: {demo.internalNotes}</p>}
-                    <p className="mt-1 text-xs text-[#6B778C]">Scheduled by {demo.scheduledByEmail || demo.scheduledByUserId}</p>
+                    <p className="mt-1 break-words text-xs text-[#8491A3]">Attendees: {demo.attendeeEmails.join(', ')}</p>
+                    {demo.agenda && <p className="mt-2 whitespace-pre-wrap text-xs text-[#8491A3]">Agenda: {demo.agenda}</p>}
+                    {demo.internalNotes && <p className="mt-1 whitespace-pre-wrap text-xs text-[#8491A3]">Internal notes: {demo.internalNotes}</p>}
+                    <p className="mt-1 text-xs text-[#8491A3]">Scheduled by {demo.scheduledByEmail || demo.scheduledByUserId}</p>
                   </li>
                 ))}
               </ol>
             ) : detailsQuery.data ? (
-              <p className="rounded-lg border border-dashed border-[#D9E2EC] p-3 text-sm text-[#6B778C]">No demos have been scheduled for this lead.</p>
+              <p className="rounded-lg border border-dashed border-[#DCE3EC] p-3 text-sm text-[#8491A3]">No demos have been scheduled for this lead.</p>
             ) : null}
           </section>
 
           {/* Tags */}
           {lead.tags && lead.tags.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-2 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-[#0652CC]" /> Tags
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] mb-2 flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-[#244A70]" /> Tags
               </h3>
               <div className="flex flex-wrap gap-1.5">
                 {lead.tags.map((t, idx) => (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md text-xs bg-gray-100 text-[#42526E] border border-gray-200"
+                    className="px-2 py-0.5 rounded-md text-xs bg-gray-100 text-[#8491A3] border border-gray-200"
                   >
                     #{t}
                   </span>
@@ -437,10 +438,10 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
           {/* Notes */}
           {lead.notes && (
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-2 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-[#0652CC]" /> Internal Notes
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] mb-2 flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#244A70]" /> Internal Notes
               </h3>
-              <div className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E8ECF1] text-xs text-[#091E42] whitespace-pre-wrap leading-relaxed">
+              <div className="p-3 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] text-xs text-[#17263A] whitespace-pre-wrap leading-relaxed">
                 {lead.notes}
               </div>
             </div>
@@ -449,18 +450,18 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
           {/* Quotes History (UC-62) */}
           {lead.quotes && lead.quotes.length > 0 && (
             <div id="lead-quotes-history-section">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B778C] mb-2 flex items-center gap-1.5">
-                <FileCheck className="w-3.5 h-3.5 text-[#0652CC]" /> Modernization Quotes ({lead.quotes.length})
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] mb-2 flex items-center gap-1.5">
+                <FileCheck className="w-3.5 h-3.5 text-[#244A70]" /> Modernization Quotes ({lead.quotes.length})
               </h3>
               <div className="space-y-2">
                 {lead.quotes.map((q) => (
                   <div
                     key={q.id}
-                    className="p-3 rounded-lg bg-[#F7F9FC] border border-[#E8ECF1] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                    className="p-3 rounded-lg bg-[#F8FAFC] border border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-[#0652CC]">{q.quoteNumber}</span>
+                        <span className="font-bold text-xs text-[#244A70]">{q.quoteNumber}</span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             q.status === 'SENT'
@@ -471,11 +472,11 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                           {q.status}
                         </span>
                       </div>
-                      <p className="text-xs font-medium text-[#091E42] mt-0.5">{q.planName}</p>
-                      <p className="text-[11px] text-[#6B778C]">Sent to: {q.recipientEmail}</p>
+                      <p className="text-xs font-medium text-[#17263A] mt-0.5">{q.planName}</p>
+                      <p className="text-[11px] text-[#8491A3]">Sent to: {q.recipientEmail}</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-extrabold text-[#091E42]">
+                      <div className="text-sm font-extrabold text-[#17263A]">
                         {formatVnd(q.amount)}
                       </div>
                       {q.discountPercent ? (
@@ -492,7 +493,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 border-t border-[#E8ECF1] bg-[#F7F9FC] flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
+        <div className="px-6 py-3.5 border-t border-[#DCE3EC] bg-[#F8FAFC] flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
           <div className="flex flex-col gap-2">
             {notificationMessage && (
               <p
@@ -513,12 +514,26 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 onClick={sendContactNotification}
                   disabled={!detailsQuery.data || isNotifying || emailStatus === 'SENT' || emailStatus === 'SENDING'}
                 aria-busy={isNotifying}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isNotifying
                   ? <LoaderCircle aria-hidden="true" className="w-3.5 h-3.5 animate-spin" />
-                  : <Mail className="w-3.5 h-3.5 text-[#0652CC]" />}
+                  : <Mail className="w-3.5 h-3.5 text-[#244A70]" />}
                 {emailButtonLabel}
+              </button>
+            )}
+            {lead && (
+              <button
+                id="open-lead-conversations-btn"
+                type="button"
+                onClick={() => {
+                  onClose();
+                  window.location.assign('/crm/conversations?leadId=' + lead.id);
+                }}
+                className="flex items-center gap-1.5 rounded-lg border border-[#DCE3EC] bg-white px-3 py-2 text-xs font-semibold text-[#17263A] shadow-2xs transition-colors hover:bg-gray-100 cursor-pointer"
+              >
+                <MessageSquare aria-hidden="true" className="h-3.5 w-3.5 text-[#244A70]" />
+                <span>Conversations</span>
               </button>
             )}
             {canManage && (
@@ -527,9 +542,9 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 type="button"
                 onClick={() => { setCallMessage(null); setIsCallModalOpen(true); }}
                 disabled={!detailsQuery.data}
-                className="flex items-center gap-1.5 rounded-lg border border-[#D9E2EC] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-[#DCE3EC] bg-white px-3 py-2 text-xs font-semibold text-[#17263A] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <PhoneCall aria-hidden="true" className="h-3.5 w-3.5 text-[#0652CC]" />
+                <PhoneCall aria-hidden="true" className="h-3.5 w-3.5 text-[#244A70]" />
                 Log Phone Call
               </button>
             )}
@@ -539,9 +554,9 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 type="button"
                 onClick={() => { setDemoMessage(null); setIsDemoModalOpen(true); }}
                 disabled={!detailsQuery.data}
-                className="flex items-center gap-1.5 rounded-lg border border-[#D9E2EC] bg-white px-3 py-2 text-xs font-semibold text-[#091E42] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-lg border border-[#DCE3EC] bg-white px-3 py-2 text-xs font-semibold text-[#17263A] shadow-2xs transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <CalendarClock aria-hidden="true" className="h-3.5 w-3.5 text-[#0652CC]" />
+                <CalendarClock aria-hidden="true" className="h-3.5 w-3.5 text-[#244A70]" />
                 Schedule Demo
               </button>
             )}
@@ -550,9 +565,9 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 id="open-update-status-btn"
                 onClick={() => onUpdateStatus(lead)}
                   disabled={!detailsQuery.data}
-                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs"
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-100 transition-colors cursor-pointer shadow-2xs"
               >
-                <TrendingUp className="w-3.5 h-3.5 text-[#0652CC]" />
+                <TrendingUp className="w-3.5 h-3.5 text-[#244A70]" />
                 Update Status
               </button>
             )}
@@ -561,7 +576,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                 id="open-send-quote-btn"
                 onClick={() => onSendQuote(lead)}
                   disabled={!detailsQuery.data}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#0652CC] text-white hover:bg-[#0747b8] transition-colors cursor-pointer shadow-sm"
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#244A70] transition-colors cursor-pointer shadow-sm"
               >
                 <Send className="w-3.5 h-3.5" />
                 Send Quote
@@ -571,7 +586,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-gray-100 transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs font-semibold rounded-lg bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-gray-100 transition-colors cursor-pointer"
           >
             Close
           </button>

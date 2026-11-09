@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Modal, Button } from '@/shared/ui';
 import { AuditLogDto } from '../api/admin.api';
+import { formatIpAddress } from '@/shared/utils/network';
 
 interface AuditDetailModalProps {
   isOpen: boolean;
@@ -74,7 +75,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
               onClick={() => setActiveTab('details')}
               className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 activeTab === 'details'
-                  ? 'bg-white text-[#0652CC] shadow-xs border border-slate-200'
+                  ? 'bg-white text-[#244A70] shadow-xs border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -84,7 +85,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
               onClick={() => setActiveTab('json')}
               className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
                 activeTab === 'json'
-                  ? 'bg-white text-[#0652CC] shadow-xs border border-slate-200'
+                  ? 'bg-white text-[#244A70] shadow-xs border border-slate-200'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -100,7 +101,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
               {/* Timestamp */}
               <div className="p-3.5 bg-white border border-slate-200 rounded-lg flex items-start gap-3">
-                <div className="p-2 bg-blue-50 text-[#0652CC] rounded-md shrink-0">
+                <div className="p-2 bg-blue-50 text-[#244A70] rounded-md shrink-0">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
@@ -121,7 +122,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
                 </div>
                 <div>
                   <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Actor</div>
-                  <div className="text-[#091E42] font-semibold mt-0.5">{log.actor}</div>
+                  <div className="text-[#17263A] font-semibold mt-0.5">{log.actor}</div>
                 </div>
               </div>
 
@@ -153,7 +154,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
                 <div>
                   <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Origin IP Address</div>
                   <div className="text-slate-900 font-mono text-[12px] font-semibold mt-0.5">
-                    {log.ipAddress || 'Not recorded'}
+                    {formatIpAddress(log.ipAddress) === '-' ? 'Not recorded (Internal System)' : formatIpAddress(log.ipAddress)}
                   </div>
                   <div className="text-[10px] text-slate-400 mt-0.5">Captured via request pipeline</div>
                 </div>

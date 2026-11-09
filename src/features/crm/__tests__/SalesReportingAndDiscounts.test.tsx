@@ -89,7 +89,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       );
 
       // Verify page titles and tab buttons
-      expect(screen.getByText('Commercial Sales & Performance')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { level: 1, name: /(Sales Reports|Commercial Sales & Performance)/i })).toBeInTheDocument();
       expect(screen.getByText('Sales & Revenue Overview')).toBeInTheDocument();
       expect(screen.getByText('Team Representative Performance')).toBeInTheDocument();
 
@@ -277,7 +277,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
 
       // Wait for table to load
       await waitFor(() => {
-        expect(screen.getByText('Discount Approval Requests')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: /(Discount Approvals|Discount Approval Requests)/i })).toBeInTheDocument();
       });
 
       // Wait for list items to render after async fetch
@@ -326,7 +326,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
 
       // Wait for table to load
       await waitFor(() => {
-        expect(screen.getByText('Discount Approval Requests')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: /(Discount Approvals|Discount Approval Requests)/i })).toBeInTheDocument();
       });
 
       await waitFor(() => {
@@ -352,7 +352,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Discount Approval Requests')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: /(Discount Approvals|Discount Approval Requests)/i })).toBeInTheDocument();
       });
 
       await waitFor(() => {
@@ -376,7 +376,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       );
 
       await waitFor(() => {
-        expect(screen.getByText('Discount Approval Requests')).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: /(Discount Approvals|Discount Approval Requests)/i })).toBeInTheDocument();
       });
 
       await waitFor(() => {
@@ -389,6 +389,54 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       // Approve and Escalate buttons should NOT be visible
       expect(screen.queryByRole('button', { name: /^approve\b/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /escalate to vp/i })).not.toBeInTheDocument();
+    });
+
+    it('opens the Request Discount modal and creates a discount request successfully', async () => {
+      vi.spyOn(crmApi, 'getLeads').mockResolvedValue(crmStore.getLeads());
+      const createQuoteSpy = vi.spyOn(crmApi, 'createQuote').mockResolvedValue({
+        id: 'quote-test-123',
+        quoteNumber: 'Q-2026-TEST',
+        plan: 'Enterprise Tier 2',
+        basePrice: 100000000,
+        discountPercent: 18,
+        finalPrice: 82000000,
+        requiresApproval: true,
+        approvalStatus: 'PENDING',
+        status: 'DRAFT',
+        createdAt: new Date().toISOString(),
+      });
+
+      render(
+        <MemoryRouter>
+          <DiscountApprovalPage />
+        </MemoryRouter>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1, name: /(Discount Approvals|Discount Approval Requests)/i })).toBeInTheDocument();
+      });
+
+      // Find and click the "Request Discount" button
+      const requestDiscountBtn = screen.getByRole('button', { name: /request discount/i });
+      expect(requestDiscountBtn).toBeInTheDocument();
+      fireEvent.click(requestDiscountBtn);
+
+      // Modal should be visible
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 3, name: /commercial discount request/i })).toBeInTheDocument();
+      });
+
+      // Fill in discount reason
+      const reasonInput = screen.getByPlaceholderText(/core banking modernization agreement/i);
+      fireEvent.change(reasonInput, { target: { value: 'Strategic pilot agreement with rapid expansion potential' } });
+
+      // Click submit
+      const submitBtn = screen.getByRole('button', { name: /submit discount request/i });
+      fireEvent.click(submitBtn);
+
+      await waitFor(() => {
+        expect(createQuoteSpy).toHaveBeenCalled();
+      });
     });
   });
 });

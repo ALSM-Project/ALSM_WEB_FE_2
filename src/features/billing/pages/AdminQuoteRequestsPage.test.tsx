@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { toast } from '@/shared/ui';
 import { quoteApi } from '../api/quote.api';
 import { AdminQuoteRequestsPage } from './AdminQuoteRequestsPage';
 
@@ -12,6 +13,20 @@ vi.mock('../api/quote.api', () => ({
     resolveAppeal: vi.fn(),
   },
 }));
+
+vi.mock('@/shared/ui', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    toast: {
+      ...actual.toast,
+      error: vi.fn(),
+      success: vi.fn(),
+      warning: vi.fn(),
+      info: vi.fn(),
+    },
+  };
+});
 
 const pendingQuote = {
   id: 'quote-32-1',
@@ -86,7 +101,7 @@ describe('AdminQuoteRequestsPage (UC-32 Enterprise Admin portal)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Approve & Activate Enterprise' }));
 
     await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('Error: Billing service unavailable');
+      expect(toast.error).toHaveBeenCalledWith('Error: Billing service unavailable', expect.anything());
     });
     expect(screen.queryByText(/Successfully updated request/)).not.toBeInTheDocument();
   });

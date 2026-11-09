@@ -97,14 +97,12 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1 border-b border-slate-200/80">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Partner Organizations</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Partner Directory</h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
               {partners.length} Total
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Manage enterprise partners, conversion accounts, assigned leads, and modernization pipelines.
-          </p>
+          
         </div>
 
         <div className="flex items-center gap-2">
@@ -122,7 +120,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
               variant="primary"
               size="sm"
               onClick={() => setIsRegisterModalOpen(true)}
-              className="flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8] text-white text-xs font-medium h-8 shadow-xs"
+              className="flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70] text-white text-xs font-medium h-8 shadow-xs"
             >
               <Plus className="w-4 h-4" /> Add Partner
             </Button>
@@ -162,19 +160,19 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
           }}
           className={`p-4 rounded-lg bg-white border shadow-xs space-y-1.5 cursor-pointer transition-all hover:border-slate-300 group ${
             specialFilter === 'ALL' && statusFilter === 'ALL'
-              ? 'border-[#0652CC] ring-1 ring-[#0652CC] bg-blue-50/20'
+              ? 'border-[#244A70] ring-1 ring-[#244A70] bg-blue-50/20'
               : 'border-slate-200'
           }`}
           title="Click to view all partner accounts"
         >
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-slate-600 group-hover:text-[#0652CC] transition-colors">Total Partners</span>
-            <Building2 className="w-4 h-4 text-slate-400 group-hover:text-[#0652CC] transition-colors" />
+            <span className="font-semibold text-slate-600 group-hover:text-[#244A70] transition-colors">Total Partners</span>
+            <Building2 className="w-4 h-4 text-slate-400 group-hover:text-[#244A70] transition-colors" />
           </div>
           <div className="text-2xl font-bold text-slate-900 tracking-tight">{totalPartners}</div>
           <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
             <span>Registered enterprise accounts</span>
-            <span className="text-[#0652CC] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
+            <span className="text-[#244A70] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
           </div>
         </div>
 
@@ -266,7 +264,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, domain, email..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#0652CC] rounded-md text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-[#0652CC] transition-colors"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-[#244A70] transition-colors"
           />
         </div>
 
@@ -277,7 +275,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#0652CC] rounded-md px-2.5 py-1.5 text-slate-700 outline-none focus:ring-1 focus:ring-[#0652CC] font-medium transition-colors"
+            className="text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md px-2.5 py-1.5 text-slate-700 outline-none focus:ring-1 focus:ring-[#244A70] font-medium transition-colors"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -305,7 +303,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
               <tr>
                 <td colSpan={6} className="py-12 text-center text-slate-500">
                   <div className="flex items-center justify-center gap-2">
-                    <RefreshCw className="w-4 h-4 animate-spin text-[#0652CC]" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-[#244A70]" />
                     <span className="text-xs">Loading partner accounts...</span>
                   </div>
                 </td>
@@ -329,7 +327,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                     <div>
                       <button
                         onClick={() => navigate(`/partners/${partner.id}`)}
-                        className="font-semibold text-sm text-slate-900 group-hover:text-[#0652CC] hover:underline text-left block transition-colors"
+                        className="font-semibold text-sm text-slate-900 group-hover:text-[#244A70] hover:underline text-left block transition-colors"
                       >
                         {partner.name}
                       </button>
@@ -367,7 +365,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                           e.stopPropagation();
                           navigate(`/partners/${partner.id}`);
                         }}
-                        className="text-xs text-[#0652CC] hover:bg-blue-50/60 transition-colors font-medium h-7"
+                        className="text-xs text-[#244A70] hover:bg-blue-50/60 transition-colors font-medium h-7"
                       >
                         View Details
                       </Button>
@@ -380,7 +378,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                             setSelectedProjectPartner(partner);
                             setIsCreateProjectModalOpen(true);
                           }}
-                          className="text-xs flex items-center gap-1 border-slate-200 text-[#0652CC] hover:bg-blue-50/60 font-medium h-7"
+                          className="text-xs flex items-center gap-1 border-slate-200 text-[#244A70] hover:bg-blue-50/60 font-medium h-7"
                         >
                           <Plus className="w-3 h-3" /> New Project
                         </Button>

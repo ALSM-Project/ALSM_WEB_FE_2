@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Plus, Filter, Phone, Mail, Building, 
-  ArrowRight, TrendingUp, Users, ArrowUpDown, UserCheck
+  ArrowRight, TrendingUp, Users, ArrowUpDown, UserCheck,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { crmApi, LeadDto } from '../api/crm.api';
 import { Button } from '@/shared/ui';
@@ -16,6 +17,8 @@ export const LeadListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [stageFilter, setStageFilter] = useState('ALL');
   const [sortByScoreDesc, setSortByScoreDesc] = useState(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   // Modal State
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -41,15 +44,32 @@ export const LeadListPage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setCurrentPage(1);
     fetchLeads();
   };
 
-  const sortedLeads = [...leads].sort((a, b) => {
-    if (sortByScoreDesc) {
-      return (b.score || 0) - (a.score || 0);
-    }
-    return (a.score || 0) - (b.score || 0);
-  });
+  const sortedLeads = useMemo(() => {
+    return [...leads].sort((a, b) => {
+      if (sortByScoreDesc) {
+        return (b.score || 0) - (a.score || 0);
+      }
+      return (a.score || 0) - (b.score || 0);
+    });
+  }, [leads, sortByScoreDesc]);
+
+  // Reset to first page when filtering or searching
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, stageFilter, sortByScoreDesc]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedLeads.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, sortedLeads.length);
+
+  const paginatedLeads = useMemo(() => {
+    return sortedLeads.slice(startIndex, endIndex);
+  }, [sortedLeads, startIndex, endIndex]);
 
   const getStageBadge = (stage: LeadDto['stage']) => {
     switch (stage) {
@@ -83,26 +103,23 @@ export const LeadListPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">
-            CRM & Lead Management
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Leads
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Section 3.11: Track prospective modernization enterprise clients, log interactions, and advance conversion deals.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/sales/pipeline')}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
           >
-            <TrendingUp className="w-4 h-4 text-[#0652CC]" />
+            <TrendingUp className="w-4 h-4 text-[#244A70]" />
             Pipeline Kanban
           </button>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] transition-colors shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Add New Lead
@@ -111,7 +128,7 @@ export const LeadListPage: React.FC = () => {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] p-3 shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-3 shadow-xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
             <input
@@ -119,23 +136,23 @@ export const LeadListPage: React.FC = () => {
               placeholder="Search by company, contact, or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
           </form>
 
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <span className="text-xs font-semibold text-[#6B778C] flex items-center">
+            <span className="text-xs font-semibold text-[#8491A3] flex items-center">
               <Filter className="w-3.5 h-3.5 mr-1" /> Stage:
             </span>
-            {['ALL', 'NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'WON', 'LOST'].map((st) => (
+            {['ALL', 'NEW', 'CONTACTED', 'QUALIFIED', 'PROPOSAL', 'NEGOTIATION', 'WON', 'LOST'].map((st) => (
               <button
                 key={st}
-                onClick={() => setStageFilter(st)}
+                onClick={() => { setStageFilter(st); setCurrentPage(1); }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   stageFilter === st
-                    ? 'bg-[#0652CC] text-white shadow-xs'
-                    : 'bg-[#F7F9FC] text-[#091E42] hover:bg-[#E5EAF0]'
+                    ? 'bg-[#244A70] text-white shadow-xs'
+                    : 'bg-[#F8FAFC] text-[#17263A] hover:bg-[#DCE3EC]'
                 }`}
               >
                 {st.charAt(0) + st.slice(1).toLowerCase()}
@@ -155,11 +172,11 @@ export const LeadListPage: React.FC = () => {
       </div>
 
       {/* Leads Table */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Contact & Company</th>
                 <th className="py-3 px-4">Contact Info</th>
                 <th className="py-3 px-3 text-center">Score</th>
@@ -170,25 +187,25 @@ export const LeadListPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0] text-xs">
+            <tbody className="divide-y divide-[#DCE3EC] text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
-                      <span>Loading leads from MongoDB / Local CRM store...</span>
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
+                      <span>Loading ...</span>
                     </div>
                   </td>
                 </tr>
               ) : sortedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#6B778C]">
-                    <Users className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
+                    <Users className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                     No leads found matching your criteria.
                   </td>
                 </tr>
               ) : (
-                sortedLeads.map((lead) => (
+                paginatedLeads.map((lead) => (
                   <tr
                     key={lead.id}
                     onClick={() => navigate(`/sales/leads/${lead.id}`)}
@@ -196,22 +213,22 @@ export const LeadListPage: React.FC = () => {
                     title="Click to view lead details"
                   >
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-[#091E42] group-hover:text-[#0652CC] transition-colors">
+                      <div className="font-semibold text-[#17263A] group-hover:text-[#244A70] transition-colors">
                         {lead.contactName}
                       </div>
-                      <div className="text-[11px] text-[#6B778C] flex items-center gap-1 mt-0.5">
-                        <Building className="w-3 h-3 text-[#6B778C]" />
+                      <div className="text-[11px] text-[#8491A3] flex items-center gap-1 mt-0.5">
+                        <Building className="w-3 h-3 text-[#8491A3]" />
                         {lead.company}
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <div className="text-[#091E42] flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-[#6B778C]" />
+                      <div className="text-[#17263A] flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5 text-[#8491A3]" />
                         {lead.email}
                       </div>
                       {lead.phone && (
-                        <div className="text-[11px] text-[#6B778C] flex items-center gap-1 mt-0.5">
-                          <Phone className="w-3.5 h-3.5 text-[#6B778C]" />
+                        <div className="text-[11px] text-[#8491A3] flex items-center gap-1 mt-0.5">
+                          <Phone className="w-3.5 h-3.5 text-[#8491A3]" />
                           {lead.phone}
                         </div>
                       )}
@@ -231,7 +248,7 @@ export const LeadListPage: React.FC = () => {
                         <span>{lead.assignedToName || 'Unassigned'}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-[#6B778C]">
+                    <td className="py-3.5 px-4 text-[#8491A3]">
                       {lead.lastContactAt
                         ? new Date(lead.lastContactAt).toLocaleDateString()
                         : 'No activity'}
@@ -241,7 +258,7 @@ export const LeadListPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-xs border-[#E5EAF0] text-[#0652CC] hover:bg-[#F7F9FC]"
+                          className="text-xs border-[#DCE3EC] text-[#244A70] hover:bg-[#F8FAFC]"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/sales/leads/${lead.id}`);
@@ -258,6 +275,62 @@ export const LeadListPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {sortedLeads.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#F8FAFC] border-t border-[#DCE3EC] text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <span>Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#DCE3EC] rounded px-2 py-1 text-xs font-semibold text-[#17263A] focus:outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-slate-300">|</span>
+              <span>
+                Showing <strong className="font-semibold text-[#17263A]">{sortedLeads.length === 0 ? 0 : startIndex + 1}</strong> to{' '}
+                <strong className="font-semibold text-[#17263A]">{endIndex}</strong> of{' '}
+                <strong className="font-semibold text-[#17263A]">{sortedLeads.length}</strong> leads
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={safeCurrentPage <= 1}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Previous</span>
+              </button>
+
+              <div className="flex items-center gap-1 px-2 text-xs">
+                <span className="font-semibold text-[#17263A]">{safeCurrentPage}</span>
+                <span className="text-slate-400">/</span>
+                <span>{totalPages}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={safeCurrentPage >= totalPages}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Lead Modal */}

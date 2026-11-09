@@ -16,6 +16,7 @@ suite(
     const lostEnterCase = process.env.ALSM_UC66_HTTP_SCENARIO === 'lost-enter' ? it : it.skip;
     const api = createHttpSupportAdapter();
     beforeAll(async () => {
+      if (process.env.ALSM_UC66_HTTP_TEST !== 'owned-local-only') return;
       // Verify the test-owned server marker before sending even the synthetic login.
       const probe = await fetch('http://127.0.0.1:3016/api/v1/__uc66_test_identity');
       expect(probe.headers.get('x-uc66-owned-test')).toMatch(/^alsm_uc66_05a_[a-f0-9]{32}$/);

@@ -156,17 +156,17 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
   if (isInvalid) {
     borderStyle = 'border-2 border-rose-500 bg-rose-50/70 shadow-xs cursor-not-allowed';
   } else if (dropPlacement === 'before') {
-    borderStyle = 'border-t-4 border-t-[#0652CC] bg-[#E8F1FF]/60 shadow-xs';
+    borderStyle = 'border-t-4 border-t-[#244A70] bg-[#EEF1F6]/60 shadow-xs';
   } else if (dropPlacement === 'after') {
-    borderStyle = 'border-b-4 border-b-[#0652CC] bg-[#E8F1FF]/60 shadow-xs';
+    borderStyle = 'border-b-4 border-b-[#244A70] bg-[#EEF1F6]/60 shadow-xs';
   } else if (dropPlacement === 'inside') {
-    borderStyle = 'border-2 border-[#0652CC] bg-[#E8F1FF] ring-2 ring-[#0652CC]/30 font-bold';
+    borderStyle = 'border-2 border-[#244A70] bg-[#EEF1F6] ring-2 ring-[#244A70]/30 font-bold';
   } else if (isDraggingMe) {
-    borderStyle = 'opacity-40 border-dashed border-2 border-[#0652CC] bg-[#F7F9FC]';
+    borderStyle = 'opacity-40 border-dashed border-2 border-[#244A70] bg-[#F8FAFC]';
   } else if (isSelected) {
-    borderStyle = 'bg-[#E8F1FF] border-[#0652CC] text-[#0652CC] font-bold shadow-2xs';
+    borderStyle = 'bg-[#EEF1F6] border-[#244A70] text-[#244A70] font-bold shadow-2xs';
   } else {
-    borderStyle = 'bg-white border-[#E5EAF0] text-[#091E42] hover:border-[#D9E2EC] hover:bg-[#F7F9FC]';
+    borderStyle = 'bg-white border-[#DCE3EC] text-[#17263A] hover:border-[#DCE3EC] hover:bg-[#F8FAFC]';
   }
 
   return (
@@ -179,7 +179,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
         className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer border ${borderStyle}`}
         style={{ marginLeft: `${depth * 20}px` }}
       >
-        <div className="flex items-center space-x-2.5 truncate">
+        <div className="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">
           <div
             draggable
             onDragStart={(e) => {
@@ -192,7 +192,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
               e.stopPropagation();
               if (onDragEndItem) onDragEndItem();
             }}
-            className="p-1 cursor-grab active:cursor-grabbing text-[#94A3B8] hover:text-[#0652CC] rounded hover:bg-black/5 transition-colors shrink-0"
+            className="p-1 cursor-grab active:cursor-grabbing text-[#94A3B8] hover:text-[#244A70] rounded hover:bg-black/5 transition-colors shrink-0"
             title="Drag to move/re-parent item"
           >
             <GripVertical className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100" />
@@ -200,10 +200,20 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
 
           <DynamicIcon
             name={item.icon}
-            className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#0652CC]' : 'text-[#42526E]'}`}
+            className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#244A70]' : 'text-[#8491A3]'}`}
           />
 
-          <span className="truncate max-w-[150px] font-semibold">{item.label}</span>
+          <span className="truncate font-semibold text-xs flex-1 min-w-0" title={item.label}>{item.label}</span>
+          {item.contractTypeVisibility === 'SELF_SERVICE' && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+              Platform-Based
+            </span>
+          )}
+          {item.contractTypeVisibility === 'WE_CONVERT_FOR_YOU' && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+              Managed Services
+            </span>
+          )}
 
           {isInvalid && (
             <span className="ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
@@ -221,7 +231,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                 if (onClearExpandAll) onClearExpandAll();
                 setIsOpen(!effectiveExpanded);
               }}
-              className="p-1 text-[#6B778C] hover:text-[#091E42] rounded-md hover:bg-black/5"
+              className="p-1 text-[#8491A3] hover:text-[#17263A] rounded-md hover:bg-black/5"
             >
               {effectiveExpanded ? (
                 <ChevronDown className="w-3.5 h-3.5" />
@@ -239,7 +249,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                 e.stopPropagation();
                 onToggleDropdown(showDropdownActions ? null : item.id);
               }}
-              className="p-1 text-[#6B778C] hover:text-[#091E42] rounded-md hover:bg-black/5"
+              className="p-1 text-[#8491A3] hover:text-[#17263A] rounded-md hover:bg-black/5"
               title="More Actions"
             >
               <MoreVertical className="w-3.5 h-3.5" />
@@ -257,7 +267,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                 />
 
                 <div
-                  className={`absolute right-0 z-50 w-36 bg-white border border-[#D9E2EC] rounded-lg shadow-xl py-1 text-xs text-[#091E42] ${
+                  className={`absolute right-0 z-50 w-36 bg-white border border-[#DCE3EC] rounded-lg shadow-xl py-1 text-xs text-[#17263A] ${
                     isBottomHalf ? 'bottom-6 origin-bottom-right' : 'top-6 origin-top-right'
                   }`}
                   onClick={(e) => e.stopPropagation()}
@@ -268,7 +278,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                       onToggleDropdown(null);
                       onAddChild(item.id);
                     }}
-                    className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2 text-[#0652CC]"
+                    className="w-full text-left px-3 py-1.5 hover:bg-[#F8FAFC] flex items-center space-x-2 text-[#244A70]"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add Child</span>
@@ -279,9 +289,9 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                       onToggleDropdown(null);
                       onDuplicate(item.id);
                     }}
-                    className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
+                    className="w-full text-left px-3 py-1.5 hover:bg-[#F8FAFC] flex items-center space-x-2"
                   >
-                    <Copy className="w-3.5 h-3.5 text-[#6B778C]" />
+                    <Copy className="w-3.5 h-3.5 text-[#8491A3]" />
                     <span>Duplicate</span>
                   </button>
                   <button
@@ -290,9 +300,9 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                       onToggleDropdown(null);
                       onReorder(item.id, 'up');
                     }}
-                    className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
+                    className="w-full text-left px-3 py-1.5 hover:bg-[#F8FAFC] flex items-center space-x-2"
                   >
-                    <ArrowUp className="w-3.5 h-3.5 text-[#6B778C]" />
+                    <ArrowUp className="w-3.5 h-3.5 text-[#8491A3]" />
                     <span>Move Up</span>
                   </button>
                   <button
@@ -301,13 +311,13 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                       onToggleDropdown(null);
                       onReorder(item.id, 'down');
                     }}
-                    className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
+                    className="w-full text-left px-3 py-1.5 hover:bg-[#F8FAFC] flex items-center space-x-2"
                   >
-                    <ArrowDown className="w-3.5 h-3.5 text-[#6B778C]" />
+                    <ArrowDown className="w-3.5 h-3.5 text-[#8491A3]" />
                     <span>Move Down</span>
                   </button>
 
-                  <div className="border-t border-[#E5EAF0] my-1" />
+                  <div className="border-t border-[#DCE3EC] my-1" />
 
                   <button
                     type="button"
@@ -318,7 +328,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                     }}
                     className={`w-full text-left px-3 py-1.5 flex items-center space-x-2 ${
                       isParentWithChildren
-                        ? 'text-[#D9E2EC] cursor-not-allowed'
+                        ? 'text-[#DCE3EC] cursor-not-allowed'
                         : 'hover:bg-rose-50 text-rose-600'
                     }`}
                     title={
@@ -337,7 +347,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
 
       {/* Children tree with visual hierarchy connector lines */}
       {effectiveExpanded && item.children && item.children.length > 0 && (
-        <div className="relative border-l-2 border-[#D9E2EC] ml-6 pl-2 space-y-1 mt-1">
+        <div className="relative border-l-2 border-[#DCE3EC] ml-6 pl-2 space-y-1 mt-1">
           {item.children.map((child, childIdx) => (
             <MenuTreeItem
               key={child.id}

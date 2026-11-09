@@ -14,6 +14,10 @@ export interface CreateMenuItemInput {
   status?: 'ACTIVE' | 'INACTIVE';
   openInNewTab?: boolean;
   hideParentLabel?: boolean;
+  contractTypeVisibility?: 'ALL' | 'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID';
+  featureKey?: string | null;
+  description?: string | null;
+  requiredRoles?: string[];
   permissions?: string[];
 }
 
@@ -29,6 +33,10 @@ export interface UpdateMenuItemInput {
   status?: 'ACTIVE' | 'INACTIVE';
   openInNewTab?: boolean;
   hideParentLabel?: boolean;
+  contractTypeVisibility?: 'ALL' | 'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID';
+  featureKey?: string | null;
+  description?: string | null;
+  requiredRoles?: string[];
   permissions?: string[];
 }
 

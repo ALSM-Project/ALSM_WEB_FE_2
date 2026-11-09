@@ -1,6 +1,14 @@
 export * from './types/usage';
 export * from './types/quote';
+export * from './types/invoice';
+export * from './types/organization-usage';
 export * from './api/usage.api';
 export * from './api/quote.api';
+export * from './api/invoices.api';
+export * from './api/organization-usage.api';
 export { UsageDashboardPage } from './pages/UsageDashboardPage';
+export { OrganizationUsagePage } from './pages/OrganizationUsagePage';
+export { OrganizationUsageDetailPage } from './pages/OrganizationUsageDetailPage';
+export { AmendQuotaPage } from './pages/AmendQuotaPage';
 export { AdminQuoteRequestsPage } from './pages/AdminQuoteRequestsPage';
+export { InvoicesPage } from './pages/InvoicesPage';

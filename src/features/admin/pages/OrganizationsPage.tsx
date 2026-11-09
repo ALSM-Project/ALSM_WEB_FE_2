@@ -194,29 +194,29 @@ export const OrganizationsPage: React.FC = () => {
     if (normalized === 'STANDARD') {
       return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">STANDARD</span>;
     }
+    if (normalized === 'SELF_SERVICE' || normalized === 'PLATFORM_BASED') {
+      return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">PLATFORM-BASED</span>;
+    }
     return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">ENTERPRISE</span>;
   };
 
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div>
-          <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">
-            Customer Support & Organisation Access
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Enterprise Organisations
           </h1>
-          <p className="text-xs text-[#6B778C] mt-1">
-            Search customer tenant organisations, provision enterprise engagements, and enter read-only support view.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={fetchData}
             disabled={loading}
             aria-busy={loading}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] transition-colors shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
           >
-            <RefreshCw className={`w-4 h-4 text-[#0652CC] ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 text-[#244A70] ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           {canManageOrganizations && (
@@ -227,16 +227,16 @@ export const OrganizationsPage: React.FC = () => {
                 setRequestId(window.crypto.randomUUID());
                 setShowCreateModal(true);
               }}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#0652CC] text-white rounded-xl text-xs font-semibold hover:bg-[#0543A8] transition-colors shadow-xs cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] transition-colors shadow-xs cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              New Enterprise Org
+              Add Organisation
             </button>
           )}
         </div>
       </div>
 
-      <p id="support-view-unavailable" role="status" className="text-xs text-[#6B778C]">
+      <p id="support-view-unavailable" role="status" className="sr-only">
         {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
       </p>
       {loadError && <p role="alert" className="text-xs text-rose-700">{loadError}</p>}
@@ -253,7 +253,7 @@ export const OrganizationsPage: React.FC = () => {
       )}
 
       {/* Filter / Search Bar */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-4 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative w-full md:w-96">
             <input
@@ -263,22 +263,23 @@ export const OrganizationsPage: React.FC = () => {
               maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E2EC] rounded-xl text-xs focus:ring-2 focus:ring-[#0652CC] outline-none"
+              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
             {/* Filter by Type */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Type:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Type:</span>
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="ALL">All Types</option>
                 <option value="ENTERPRISE">Enterprise</option>
+                <option value="SELF_SERVICE">Platform-Based Modernization</option>
                 <option value="STANDARD">Standard</option>
                 <option value="PARTNER">Partner</option>
               </select>
@@ -286,11 +287,11 @@ export const OrganizationsPage: React.FC = () => {
 
             {/* Sort Order */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#6B778C]">Sort:</span>
+              <span className="text-xs font-semibold text-[#8491A3]">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#D9E2EC] text-xs bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
@@ -307,8 +308,8 @@ export const OrganizationsPage: React.FC = () => {
                   onClick={() => setStatusFilter(st)}
                   className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition-all ${
                     statusFilter === st
-                      ? 'bg-[#0652CC] text-white shadow-xs'
-                      : 'bg-[#F7F9FC] text-[#091E42] hover:bg-[#E5EAF0]'
+                      ? 'bg-[#244A70] text-white shadow-xs'
+                      : 'bg-[#F8FAFC] text-[#17263A] hover:bg-[#DCE3EC]'
                   }`}
                 >
                   {st.charAt(0) + st.slice(1).toLowerCase()}
@@ -320,11 +321,11 @@ export const OrganizationsPage: React.FC = () => {
       </div>
 
       {/* Organisations Table */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
                 <th className="py-3 px-4">Organisation Name</th>
                 <th className="py-3 px-4">Type</th>
                 <th className="py-3 px-4">Members</th>
@@ -334,26 +335,26 @@ export const OrganizationsPage: React.FC = () => {
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#E5EAF0]" aria-live="polite" aria-busy={loading}>
+            <tbody className="divide-y divide-[#DCE3EC]" aria-live="polite" aria-busy={loading}>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Loading tenant organisations...</span>
                     </div>
                   </td>
                 </tr>
               ) : loadError ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
                     The organisation directory could not be loaded. Use Refresh to try again.
                   </td>
                 </tr>
               ) : filteredOrgs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#6B778C]">
-                    <Building className="w-8 h-8 mx-auto text-[#6B778C]/40 mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                    <Building className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
                     {organizations.length === 0
                       ? 'No organisations are available yet.'
                       : 'No organisations match your search criteria.'}
@@ -369,20 +370,20 @@ export const OrganizationsPage: React.FC = () => {
                       onClick={() => navigate(`/admin/organizations/${org.id}`)}
                       className="hover:bg-blue-50/40 transition-colors group cursor-pointer"
                     >
-                      <td className="py-3.5 px-4 font-semibold text-[#091E42]">
+                      <td className="py-3.5 px-4 font-semibold text-[#17263A]">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#0652CC] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 text-[#244A70] flex items-center justify-center font-bold text-xs shrink-0">
                             {org.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <div className="group-hover:text-[#0652CC] transition-colors font-medium text-[#091E42]">
+                            <div className="group-hover:text-[#244A70] transition-colors font-medium text-[#17263A]">
                               {org.name}
                             </div>
-                            <div className="text-[10px] text-[#6B778C] flex flex-wrap items-center gap-2 mt-0.5">
+                            <div className="text-[10px] text-[#8491A3] flex flex-wrap items-center gap-2 mt-0.5">
                               <span className="font-mono text-slate-500">{org.id}</span>
                               {org.contactEmail && (
                                 <span className="flex items-center gap-1">
-                                  <Mail className="w-2.5 h-2.5 text-[#6B778C]" />
+                                  <Mail className="w-2.5 h-2.5 text-[#8491A3]" />
                                   <span>{org.contactEmail}</span>
                                 </span>
                               )}
@@ -393,22 +394,22 @@ export const OrganizationsPage: React.FC = () => {
                       <td className="py-3.5 px-4">
                         {getTypeBadge(org.type)}
                       </td>
-                      <td className="py-3.5 px-4 text-[#091E42] font-medium">
+                      <td className="py-3.5 px-4 text-[#17263A] font-medium">
                         <div className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-[#6B778C]" />
+                          <Users className="w-3.5 h-3.5 text-[#8491A3]" />
                           <span>{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="inline-flex items-center gap-1 font-semibold text-[#091E42]">
-                          <FolderKanban className="w-3.5 h-3.5 text-[#0652CC]" />
+                        <span className="inline-flex items-center gap-1 font-semibold text-[#17263A]">
+                          <FolderKanban className="w-3.5 h-3.5 text-[#244A70]" />
                           {projectCount} {projectCount === 1 ? 'project' : 'projects'}
                         </span>
                       </td>
                       <td className="py-3.5 px-4">
                         {getStatusBadge(org.status)}
                       </td>
-                      <td className="py-3.5 px-4 text-[#6B778C]">
+                      <td className="py-3.5 px-4 text-[#8491A3]">
                         {new Date(org.createdAt).toLocaleDateString()}
                       </td>
                       <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
@@ -417,7 +418,7 @@ export const OrganizationsPage: React.FC = () => {
                             <Button
                               variant="primary"
                               size="sm"
-                              className="text-xs bg-[#0652CC] text-white hover:bg-[#0543A8] py-1 px-2.5"
+                              className="text-xs bg-[#244A70] text-white hover:bg-[#244A70] py-1 px-2.5"
                               disabled
                               aria-describedby="support-view-unavailable"
                               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
@@ -429,7 +430,7 @@ export const OrganizationsPage: React.FC = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs border-[#E5EAF0] text-[#091E42] hover:bg-[#F7F9FC] py-1"
+                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1"
                             onClick={() => navigate(`/admin/organizations/${org.id}`)}
                           >
                             Details
@@ -457,7 +458,7 @@ export const OrganizationsPage: React.FC = () => {
       >
         {createStep === 1 ? (
           <form onSubmit={handleProceedToReview} noValidate className="space-y-4">
-            <p className="text-xs text-[#6B778C]">
+            <p className="text-xs text-[#8491A3]">
               Configure customer tenant parameters, contact details, and initial engagement level.
             </p>
 
@@ -470,7 +471,7 @@ export const OrganizationsPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Company / Org Name *</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Company / Org Name *</label>
                 <Input
                   required
                   placeholder="Global FinTech Solutions Inc."
@@ -479,7 +480,7 @@ export const OrganizationsPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Primary Domain</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Primary Domain</label>
                 <Input
                   placeholder="fintechsolutions.com"
                   value={newOrg.domain}
@@ -489,7 +490,7 @@ export const OrganizationsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Organisation Admin Email *</label>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">Organisation Admin Email *</label>
               <Input
                 required
                 type="email"
@@ -497,18 +498,18 @@ export const OrganizationsPage: React.FC = () => {
                 value={newOrg.adminEmail}
                 onChange={(e) => setNewOrg({ ...newOrg, adminEmail: e.target.value })}
               />
-              <span className="text-[11px] text-[#6B778C] mt-0.5 block">
+              <span className="text-[11px] text-[#8491A3] mt-0.5 block">
                 Standard format required (e.g. user@company.com). Will receive administrative ownership.
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Engagement Type *</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Engagement Type *</label>
                 <select
                   value={newOrg.engagementType}
                   onChange={(e) => setNewOrg({ ...newOrg, engagementType: e.target.value })}
-                  className="w-full px-3 py-2 border border-[#D9E2EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+                  className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
                 >
                   {(engagementTypes.filter((type) => type.isActive).length
                     ? engagementTypes.filter((type) => type.isActive).map((type) => type.name)
@@ -517,7 +518,7 @@ export const OrganizationsPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#091E42] mb-1">Trial Period (Days)</label>
+                <label className="block text-xs font-semibold text-[#17263A] mb-1">Trial Period (Days)</label>
                 <Input
                   type="number"
                   value={newOrg.trialDays}
@@ -526,7 +527,7 @@ export const OrganizationsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#DCE3EC]">
               <Button
                 type="button"
                 variant="outline"
@@ -540,7 +541,7 @@ export const OrganizationsPage: React.FC = () => {
                 type="submit"
                 variant="primary"
                 size="sm"
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 <span>Continue to Review</span>
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -549,26 +550,26 @@ export const OrganizationsPage: React.FC = () => {
           </form>
         ) : (
           <div className="space-y-4 text-xs">
-            <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200 text-[#091E42] space-y-2">
-              <span className="font-bold text-xs uppercase tracking-wide text-[#0652CC] block">
+            <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200 text-[#17263A] space-y-2">
+              <span className="font-bold text-xs uppercase tracking-wide text-[#244A70] block">
                 Provisioning Summary Verification
               </span>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-[#6B778C]">Company Name:</span>
-                  <div className="font-semibold text-[#091E42]">{newOrg.name}</div>
+                  <span className="text-[#8491A3]">Company Name:</span>
+                  <div className="font-semibold text-[#17263A]">{newOrg.name}</div>
                 </div>
                 <div>
-                  <span className="text-[#6B778C]">Admin Email:</span>
-                  <div className="font-semibold text-[#091E42]">{newOrg.adminEmail}</div>
+                  <span className="text-[#8491A3]">Admin Email:</span>
+                  <div className="font-semibold text-[#17263A]">{newOrg.adminEmail}</div>
                 </div>
                 <div>
-                  <span className="text-[#6B778C]">Engagement Plan:</span>
+                  <span className="text-[#8491A3]">Engagement Plan:</span>
                   <div className="font-semibold text-emerald-700">{newOrg.engagementType}</div>
                 </div>
                 <div>
-                  <span className="text-[#6B778C]">Primary Domain:</span>
-                  <div className="font-semibold text-[#091E42]">{newOrg.domain || 'Auto-generated'}</div>
+                  <span className="text-[#8491A3]">Primary Domain:</span>
+                  <div className="font-semibold text-[#17263A]">{newOrg.domain || 'Auto-generated'}</div>
                 </div>
               </div>
             </div>
@@ -583,7 +584,7 @@ export const OrganizationsPage: React.FC = () => {
               </div>
             )}
 
-            <div className="flex justify-between gap-2 pt-3 border-t border-[#E5EAF0]">
+            <div className="flex justify-between gap-2 pt-3 border-t border-[#DCE3EC]">
               <Button
                 type="button"
                 variant="outline"

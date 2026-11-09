@@ -2,8 +2,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuItemsApi, UpdateMenuItemInput } from '../api/menu-items.api';
 import { BackendNavItem } from '../../navigation/api/navigation.api';
 
-export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
+export const useMenuBuilder = (application: 'WEB_1' | 'WEB_2' | 'WEB_3' = 'WEB_2') => {
   const queryClient = useQueryClient();
+
+  const broadcastNavUpdate = () => {
+    try {
+      localStorage.setItem('alsm_nav_updated_at', `${application}:${Date.now()}`);
+    } catch {}
+    try {
+      const channel = new BroadcastChannel('alsm_navigation_channel');
+      channel.postMessage({ app: application, timestamp: Date.now() });
+      channel.close();
+    } catch {}
+  };
 
   const menuTreeQuery = useQuery<BackendNavItem[]>({
     queryKey: ['adminMenuTree', application],
@@ -13,6 +24,7 @@ export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
   const createMutation = useMutation({
     mutationFn: menuItemsApi.createMenuItem,
     onSuccess: async () => {
+      broadcastNavUpdate();
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['adminMenuTree'] }),
         queryClient.refetchQueries({ queryKey: ['adminMenuTree', application] }),
@@ -26,6 +38,7 @@ export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
     mutationFn: ({ id, data }: { id: string; data: UpdateMenuItemInput }) =>
       menuItemsApi.updateMenuItem(id, data),
     onSuccess: async () => {
+      broadcastNavUpdate();
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['adminMenuTree'] }),
         queryClient.refetchQueries({ queryKey: ['adminMenuTree', application] }),
@@ -38,6 +51,7 @@ export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
   const deleteMutation = useMutation({
     mutationFn: menuItemsApi.deleteMenuItem,
     onSuccess: async () => {
+      broadcastNavUpdate();
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['adminMenuTree'] }),
         queryClient.refetchQueries({ queryKey: ['adminMenuTree', application] }),
@@ -62,6 +76,7 @@ export const useMenuBuilder = (application: 'WEB_2' | 'WEB_3' = 'WEB_2') => {
       placement?: 'before' | 'after' | 'inside';
     }) => menuItemsApi.moveMenuItem(id, parentId, targetOrder, targetId, placement),
     onSuccess: async () => {
+      broadcastNavUpdate();
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['adminMenuTree'] }),
         queryClient.refetchQueries({ queryKey: ['adminMenuTree', application] }),

@@ -15,7 +15,7 @@ export function SupportDiagnosticDetail({
   return (
     <Card className="border-blue-200" role="region" aria-label="Diagnostic detail">
       <div className="flex items-center justify-between gap-3 mb-4">
-        <h3 className="font-semibold text-[#091E42]">
+        <h3 className="font-semibold text-[#17263A]">
           {RESOURCE_LABELS[kind]} · Diagnostic detail
         </h3>
         <Button variant="ghost" onClick={close}>

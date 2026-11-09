@@ -83,7 +83,7 @@ class ApiClient {
 
   public refreshSession(): Promise<AuthTokens | null> {
     return tokenStore.refresh(async (refreshToken) => {
-      const response = await axios.post<AuthTokens>(`${getApiBaseUrl()}/auth/refresh`, { refreshToken }, { timeout: 30000 });
+      const response = await axios.post<AuthTokens>(`${getApiBaseUrl()}/auth/refresh`, { refreshToken }, { timeout: 5000 });
       return response.data;
     });
   }

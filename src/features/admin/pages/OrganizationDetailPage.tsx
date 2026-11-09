@@ -8,6 +8,7 @@ import { Button, Input, Modal } from '@/shared/ui';
 import { SUPPORT_VIEW_UNAVAILABLE_MESSAGE } from '../context/SupportViewContext';
 import { formatVnd } from '@/shared/utils/currency';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
 
 export const OrganizationDetailPage: React.FC = () => {
   const { orgId } = useParams<{ orgId: string }>();
@@ -18,6 +19,7 @@ export const OrganizationDetailPage: React.FC = () => {
   const canCreateDemoProjects = Boolean(user) && hasPermission('projects.demo.create');
 
   const [org, setOrg] = useState<OrganizationDto | null>(null);
+  useBreadcrumbEntity(org?.name, orgId);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -172,8 +174,8 @@ export const OrganizationDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="py-20 text-center text-[#6B778C]">
-        <div className="w-8 h-8 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+      <div className="py-20 text-center text-[#8491A3]">
+        <div className="w-8 h-8 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         Loading organisation details...
       </div>
     );
@@ -181,12 +183,12 @@ export const OrganizationDetailPage: React.FC = () => {
 
   if (!org) {
     return (
-      <div className="p-8 text-center bg-white rounded-2xl border border-[#E5EAF0] max-w-md mx-auto mt-12 shadow-xs">
+      <div className="p-8 text-center bg-white rounded-2xl border border-[#DCE3EC] max-w-md mx-auto mt-12 shadow-xs">
         <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h2 className="text-base font-bold text-[#091E42]">Organisation Unavailable</h2>
-        <p role="alert" className="text-xs text-[#6B778C] mt-1">{errorMsg || 'The requested organisation is unavailable.'}</p>
+        <h2 className="text-base font-bold text-[#17263A]">Organisation Unavailable</h2>
+        <p role="alert" className="text-xs text-[#8491A3] mt-1">{errorMsg || 'The requested organisation is unavailable.'}</p>
         <div className="flex items-center justify-center gap-3 mt-5">
           <Button variant="outline" size="sm" onClick={() => fetchOrg()} className="cursor-pointer">
             <RefreshCw className="w-3.5 h-3.5 mr-1" />
@@ -212,22 +214,22 @@ export const OrganizationDetailPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <p id="support-view-unavailable" role="status" className="text-xs text-[#6B778C]">
+      <p id="support-view-unavailable" role="status" className="text-xs text-[#8491A3]">
         {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
       </p>
       {/* Top Header & Breadcrumb */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/admin/organizations')}
-            className="p-2 rounded-xl border border-[#E5EAF0] hover:bg-[#F7F9FC] text-[#6B778C] transition-colors cursor-pointer"
+            className="p-2 rounded-xl border border-[#DCE3EC] hover:bg-[#F8FAFC] text-[#8491A3] transition-colors cursor-pointer"
             title="Back to Directory"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">{org.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">{org.name}</h1>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                   org.status === 'ACTIVE'
@@ -243,7 +245,7 @@ export const OrganizationDetailPage: React.FC = () => {
                 {org.type || 'ENTERPRISE'}
               </span>
             </div>
-            <p className="text-xs text-[#6B778C] mt-1 font-mono">Tenant ID: {org.id}</p>
+            <p className="text-xs text-[#8491A3] mt-1 font-mono">Tenant ID: {org.id}</p>
           </div>
         </div>
 
@@ -256,9 +258,9 @@ export const OrganizationDetailPage: React.FC = () => {
               disabled
               aria-describedby="support-view-unavailable"
               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
-              className="text-xs border-[#D9E2EC] text-[#091E42]"
+              className="text-xs border-[#DCE3EC] text-[#17263A]"
             >
-              <Eye className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
+              <Eye className="w-3.5 h-3.5 mr-1 text-[#244A70]" />
               Support View
             </Button>
           )}
@@ -268,9 +270,9 @@ export const OrganizationDetailPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setShowDemoModal(true)}
-              className="text-xs border-[#D9E2EC] text-[#091E42] hover:bg-[#F7F9FC]"
+              className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]"
             >
-              <Cpu className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
+              <Cpu className="w-3.5 h-3.5 mr-1 text-[#244A70]" />
               Create Demo Project
             </Button>
           )}
@@ -280,7 +282,7 @@ export const OrganizationDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={openEngagementEditor}
-              className="text-xs bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="text-xs bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               <Edit3 className="w-3.5 h-3.5 mr-1" />
               Edit Engagement
@@ -309,41 +311,41 @@ export const OrganizationDetailPage: React.FC = () => {
       {/* Top Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Profile & Domain */}
-        <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs">
-          <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">
+        <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
+          <span className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider">
             Organisation Profile
           </span>
           <div className="mt-3.5 space-y-2.5 text-xs">
-            <div className="flex items-center gap-2 text-[#091E42]">
-              <Globe className="w-4 h-4 text-[#0652CC]" />
+            <div className="flex items-center gap-2 text-[#17263A]">
+              <Globe className="w-4 h-4 text-[#244A70]" />
               <span className="font-semibold">{org.domain || 'No custom domain'}</span>
             </div>
-            <div className="flex items-center gap-2 text-[#6B778C]">
-              <Mail className="w-4 h-4 text-[#6B778C]" />
+            <div className="flex items-center gap-2 text-[#8491A3]">
+              <Mail className="w-4 h-4 text-[#8491A3]" />
               <span>{org.contactEmail || 'No contact email'}</span>
             </div>
-            <div className="flex items-center gap-2 text-[#091E42]">
-              <Users className="w-4 h-4 text-[#6B778C]" />
+            <div className="flex items-center gap-2 text-[#17263A]">
+              <Users className="w-4 h-4 text-[#8491A3]" />
               <span>{org.memberCount || members.length} registered members</span>
             </div>
-            <div className="text-[11px] text-[#6B778C] pt-2 border-t border-[#E5EAF0]">
+            <div className="text-[11px] text-[#8491A3] pt-2 border-t border-[#DCE3EC]">
               Provisioned: {new Date(org.createdAt).toLocaleDateString()}
             </div>
           </div>
         </div>
 
         {/* Contract & SLA */}
-        <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs">
-          <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">
+        <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
+          <span className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider">
             Engagement & Commercial Plan
           </span>
           <div className="mt-3.5 space-y-2.5 text-xs">
             <div className="flex justify-between">
-              <span className="text-[#6B778C]">Current Plan:</span>
-              <span className="font-semibold text-[#091E42]">{org.engagementType || 'STANDARD'}</span>
+              <span className="text-[#8491A3]">Current Plan:</span>
+              <span className="font-semibold text-[#17263A]">{org.engagementType || 'STANDARD'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B778C]">Tenant Classification:</span>
+              <span className="text-[#8491A3]">Tenant Classification:</span>
               <span className="font-semibold text-indigo-700">{org.type || 'ENTERPRISE'}</span>
             </div>
             {org.trialExpiresAt && (
@@ -352,8 +354,8 @@ export const OrganizationDetailPage: React.FC = () => {
                 <span>{new Date(org.trialExpiresAt).toLocaleDateString()}</span>
               </div>
             )}
-            <div className="flex justify-between pt-2 border-t border-[#E5EAF0]">
-              <span className="text-[#6B778C]">AI Engine Modernizer:</span>
+            <div className="flex justify-between pt-2 border-t border-[#DCE3EC]">
+              <span className="text-[#8491A3]">AI Engine Modernizer:</span>
               <span className="font-semibold text-emerald-700">
                 {org.limits?.aiValidationEnabled ? 'Active (Cobol & Forms)' : 'Disabled'}
               </span>
@@ -362,8 +364,8 @@ export const OrganizationDetailPage: React.FC = () => {
         </div>
 
         {/* Configured Limits Summary */}
-        <div className="rounded-2xl border border-[#E5EAF0] bg-white p-5 shadow-xs">
-          <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">
+        <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
+          <span className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider">
             Configured Limits Summary
           </span>
           <div className="mt-3.5 space-y-2 text-xs">
@@ -374,8 +376,8 @@ export const OrganizationDetailPage: React.FC = () => {
               </div>
             </div>
             <div className="p-2 rounded-lg bg-blue-50/60 border border-blue-200">
-              <span className="text-[10px] uppercase font-bold text-[#0652CC] block">Post-Upgrade Production Quotas</span>
-              <div className="text-[11px] text-[#091E42] mt-0.5 font-medium">
+              <span className="text-[10px] uppercase font-bold text-[#244A70] block">Post-Upgrade Production Quotas</span>
+              <div className="text-[11px] text-[#17263A] mt-0.5 font-medium">
                 {org.limits?.maxProjects ?? 10} projects · {org.limits?.maxConversionsPerMonth ?? 100} conv/mo · {org.limits?.maxStorageGb ?? 50} GB
               </div>
             </div>
@@ -384,41 +386,41 @@ export const OrganizationDetailPage: React.FC = () => {
       </div>
 
       {/* Usage Statistics Section (Requirement A) */}
-      <div className="bg-white rounded-2xl border border-[#E5EAF0] p-5 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#E5EAF0]">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#DCE3EC]">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-[#0652CC]" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+            <BarChart3 className="w-4 h-4 text-[#244A70]" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
               Resource & Platform Usage Statistics
             </h3>
           </div>
-          <span className="text-[11px] text-[#6B778C]">Simulated Live Monitoring</span>
+          <span className="text-[11px] text-[#8491A3]">Simulated Live Monitoring</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
-            <span className="text-[10px] uppercase font-bold text-[#6B778C]">Total Screens Converted</span>
-            <div className="text-2xl font-bold text-[#091E42] mt-1">{usageStats.totalScreensConverted}</div>
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC]">
+            <span className="text-[10px] uppercase font-bold text-[#8491A3]">Total Screens Converted</span>
+            <div className="text-2xl font-bold text-[#17263A] mt-1">{usageStats.totalScreensConverted}</div>
             <p className="text-[11px] text-emerald-700 mt-1">Across all modernizations</p>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
-            <span className="text-[10px] uppercase font-bold text-[#6B778C]">Active Projects</span>
-            <div className="text-2xl font-bold text-[#091E42] mt-1">
-              {usageStats.activeProjects} <span className="text-xs font-normal text-[#6B778C]">/ {org.limits?.maxProjects ?? 10}</span>
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC]">
+            <span className="text-[10px] uppercase font-bold text-[#8491A3]">Active Projects</span>
+            <div className="text-2xl font-bold text-[#17263A] mt-1">
+              {usageStats.activeProjects} <span className="text-xs font-normal text-[#8491A3]">/ {org.limits?.maxProjects ?? 10}</span>
             </div>
             <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
-                className="bg-[#0652CC] h-full rounded-full"
+                className="bg-[#244A70] h-full rounded-full"
                 style={{ width: `${Math.min(100, (usageStats.activeProjects / (org.limits?.maxProjects || 10)) * 100)}%` }}
               />
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
-            <span className="text-[10px] uppercase font-bold text-[#6B778C]">Conversions This Month</span>
-            <div className="text-2xl font-bold text-[#091E42] mt-1">
-              {usageStats.conversionsThisMonth} <span className="text-xs font-normal text-[#6B778C]">/ {org.limits?.maxConversionsPerMonth ?? 100}</span>
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC]">
+            <span className="text-[10px] uppercase font-bold text-[#8491A3]">Conversions This Month</span>
+            <div className="text-2xl font-bold text-[#17263A] mt-1">
+              {usageStats.conversionsThisMonth} <span className="text-xs font-normal text-[#8491A3]">/ {org.limits?.maxConversionsPerMonth ?? 100}</span>
             </div>
             <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
@@ -428,10 +430,10 @@ export const OrganizationDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
-            <span className="text-[10px] uppercase font-bold text-[#6B778C]">Storage Consumed</span>
-            <div className="text-2xl font-bold text-[#091E42] mt-1">
-              {usageStats.storageUsedGb} GB <span className="text-xs font-normal text-[#6B778C]">/ {org.limits?.maxStorageGb ?? 50} GB</span>
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC]">
+            <span className="text-[10px] uppercase font-bold text-[#8491A3]">Storage Consumed</span>
+            <div className="text-2xl font-bold text-[#17263A] mt-1">
+              {usageStats.storageUsedGb} GB <span className="text-xs font-normal text-[#8491A3]">/ {org.limits?.maxStorageGb ?? 50} GB</span>
             </div>
             <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
@@ -446,19 +448,19 @@ export const OrganizationDetailPage: React.FC = () => {
       {/* Grid: Billing History & Members (Requirement A) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Billing History */}
-        <div className="bg-white rounded-2xl border border-[#E5EAF0] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#DCE3EC] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-[#0652CC]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+              <Receipt className="w-4 h-4 text-[#244A70]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
                 Commercial Billing & Invoices
               </h3>
             </div>
-            <span className="text-[11px] text-[#6B778C] font-mono">{billingHistory.length} recorded</span>
+            <span className="text-[11px] text-[#8491A3] font-mono">{billingHistory.length} recorded</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase">
+              <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase">
                 <tr>
                   <th className="py-2.5 px-3">Invoice</th>
                   <th className="py-2.5 px-3">Plan / Item</th>
@@ -467,25 +469,25 @@ export const OrganizationDetailPage: React.FC = () => {
                   <th className="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF0]">
+              <tbody className="divide-y divide-[#DCE3EC]">
                 {billingHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-[#6B778C]">
+                    <td colSpan={5} className="py-6 text-center text-[#8491A3]">
                       No billing records recorded for this organisation.
                     </td>
                   </tr>
                 ) : (
                   billingHistory.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-[#F9FBFF]">
-                      <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">
+                    <tr key={inv.id} className="hover:bg-[#F8FAFC]">
+                      <td className="py-3 px-3 font-mono font-semibold text-[#17263A]">
                         {inv.invoiceNumber}
-                        <div className="text-[10px] text-[#6B778C] font-normal">{inv.date}</div>
+                        <div className="text-[10px] text-[#8491A3] font-normal">{inv.date}</div>
                       </td>
-                      <td className="py-3 px-3 text-[#091E42]">{inv.plan}</td>
+                      <td className="py-3 px-3 text-[#17263A]">{inv.plan}</td>
                       <td className="py-3 px-3 font-bold text-emerald-700">
                         {formatVnd(inv.amount)}
                       </td>
-                      <td className="py-3 px-3 text-[#6B778C]">{inv.paymentMethod}</td>
+                      <td className="py-3 px-3 text-[#8491A3]">{inv.paymentMethod}</td>
                       <td className="py-3 px-3 text-right">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                           {inv.status}
@@ -500,19 +502,19 @@ export const OrganizationDetailPage: React.FC = () => {
         </div>
 
         {/* Organisation Members */}
-        <div className="bg-white rounded-2xl border border-[#E5EAF0] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#DCE3EC] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-[#0652CC]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+              <Users className="w-4 h-4 text-[#244A70]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
                 Organisation Members
               </h3>
             </div>
-            <span className="text-[11px] text-[#6B778C] font-mono">{members.length} members</span>
+            <span className="text-[11px] text-[#8491A3] font-mono">{members.length} members</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase">
+              <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase">
                 <tr>
                   <th className="py-2.5 px-3">Member</th>
                   <th className="py-2.5 px-3">Role</th>
@@ -520,26 +522,26 @@ export const OrganizationDetailPage: React.FC = () => {
                   <th className="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF0]">
+              <tbody className="divide-y divide-[#DCE3EC]">
                 {members.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-[#6B778C]">
+                    <td colSpan={4} className="py-6 text-center text-[#8491A3]">
                       No active members found.
                     </td>
                   </tr>
                 ) : (
                   members.map((m) => (
-                    <tr key={m.userId} className="hover:bg-[#F9FBFF]">
+                    <tr key={m.userId} className="hover:bg-[#F8FAFC]">
                       <td className="py-3 px-3">
-                        <div className="font-semibold text-[#091E42]">{m.fullName || m.email.split('@')[0]}</div>
-                        <div className="text-[10px] text-[#6B778C]">{m.email}</div>
+                        <div className="font-semibold text-[#17263A]">{m.fullName || m.email.split('@')[0]}</div>
+                        <div className="text-[10px] text-[#8491A3]">{m.email}</div>
                       </td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#0652CC]">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#244A70]">
                           {m.role}
                         </span>
                       </td>
-                      <td className="py-3 px-3 text-[#6B778C]">
+                      <td className="py-3 px-3 text-[#8491A3]">
                         {m.joinedDate || '2026-08-01'}
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -562,19 +564,19 @@ export const OrganizationDetailPage: React.FC = () => {
 
       {/* Modernization Projects (Associated Projects) */}
       {org.projects && org.projects.length > 0 && (
-        <div className="bg-white rounded-2xl border border-[#E5EAF0] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#E5EAF0] flex items-center justify-between">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#DCE3EC] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FolderGit2 className="w-4 h-4 text-[#0652CC]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#091E42]">
+              <FolderGit2 className="w-4 h-4 text-[#244A70]" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
                 Modernization Projects
               </h3>
             </div>
-            <span className="text-[11px] text-[#6B778C] font-mono">{org.projects.length} projects</span>
+            <span className="text-[11px] text-[#8491A3] font-mono">{org.projects.length} projects</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[10px] font-bold text-[#6B778C] uppercase">
+              <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase">
                 <tr>
                   <th className="py-2.5 px-3">Project Name</th>
                   <th className="py-2.5 px-3">Conversion Type</th>
@@ -583,13 +585,13 @@ export const OrganizationDetailPage: React.FC = () => {
                   <th className="py-2.5 px-3 text-right">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#E5EAF0]">
+              <tbody className="divide-y divide-[#DCE3EC]">
                 {org.projects.map((proj) => (
-                  <tr key={proj.id} className="hover:bg-[#F9FBFF]">
-                    <td className="py-3 px-3 font-semibold text-[#091E42]">
+                  <tr key={proj.id} className="hover:bg-[#F8FAFC]">
+                    <td className="py-3 px-3 font-semibold text-[#17263A]">
                       {proj.name}
                     </td>
-                    <td className="py-3 px-3 text-[#6B778C]">
+                    <td className="py-3 px-3 text-[#8491A3]">
                       {proj.conversionType}
                     </td>
                     <td className="py-3 px-3">
@@ -598,12 +600,12 @@ export const OrganizationDetailPage: React.FC = () => {
                           Demo
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#0652CC] border border-blue-200">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
                           Production
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-[#6B778C]">
+                    <td className="py-3 px-3 text-[#8491A3]">
                       {new Date(proj.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-3 text-right">
@@ -623,20 +625,20 @@ export const OrganizationDetailPage: React.FC = () => {
       <Modal
         isOpen={showEditModal}
         onClose={() => { if (!submitting) setShowEditModal(false); }}
-        title="Edit Organisation Engagement & Limits (Section 3.13.4)"
+        title="Edit Organisation Engagement & Limits"
       >
         <form onSubmit={handleUpdateEngagement} className="space-y-4 text-xs">
           {engagementError && <p role="alert" className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-rose-700">{engagementError}</p>}
-          <p className="text-xs text-[#6B778C]">
+          <p className="text-xs text-[#8491A3]">
             Configure commercial engagement tier, Trial sandbox constraints, and post-upgrade production usage limits.
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label htmlFor="engagement-status" className="block text-xs font-semibold text-[#091E42] mb-1">Status</label>
+              <label htmlFor="engagement-status" className="block text-xs font-semibold text-[#17263A] mb-1">Status</label>
               <select
                 id="engagement-status"
-                className="w-full text-xs p-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="w-full text-xs p-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={editStatus}
                 disabled={submitting}
                 onChange={(e) => setEditStatus(e.target.value as 'ACTIVE' | 'TRIAL' | 'SUSPENDED')}
@@ -647,10 +649,10 @@ export const OrganizationDetailPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label htmlFor="engagement-type" className="block text-xs font-semibold text-[#091E42] mb-1">Engagement Type</label>
+              <label htmlFor="engagement-type" className="block text-xs font-semibold text-[#17263A] mb-1">Engagement Type</label>
               <select
                 id="engagement-type"
-                className="w-full text-xs p-2 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="w-full text-xs p-2 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={editEngagement}
                 onChange={(e) => setEditEngagement(e.target.value)}
                 disabled={submitting}
@@ -658,7 +660,7 @@ export const OrganizationDetailPage: React.FC = () => {
                 <option value="ENTERPRISE_T1">ENTERPRISE_T1 (Tier 1 Premium)</option>
                 <option value="ENTERPRISE_T2">ENTERPRISE_T2 (Tier 2 Standard)</option>
                 <option value="MANAGED_PARTNER">MANAGED_PARTNER</option>
-                <option value="STANDARD">STANDARD (Self-Service)</option>
+                <option value="STANDARD">STANDARD (Platform-Based Modernization)</option>
                 <option value="Trial">Trial</option>
                 <option value="Enterprise Pilot">Enterprise Pilot</option>
                 <option value="Enterprise Production">Enterprise Production</option>
@@ -667,7 +669,7 @@ export const OrganizationDetailPage: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="engagement-trial-expiry" className="block text-xs font-semibold text-[#091E42] mb-1">Trial Expiry Date</label>
+            <label htmlFor="engagement-trial-expiry" className="block text-xs font-semibold text-[#17263A] mb-1">Trial Expiry Date</label>
             <Input
               id="engagement-trial-expiry"
               type="date"
@@ -733,14 +735,14 @@ export const OrganizationDetailPage: React.FC = () => {
           {/* Section 2: Post-Upgrade Usage Limits Group (Clearly Distinguished) */}
           <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2.5">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#0652CC]" />
-              <h4 className="text-[11px] font-bold text-[#0652CC] uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-[#244A70]" />
+              <h4 className="text-[11px] font-bold text-[#244A70] uppercase tracking-wider">
                 2. Post-Upgrade Production Usage Limits
               </h4>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <label htmlFor="projects-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Max Projects</label>
+                <label htmlFor="projects-limit" className="block text-[11px] font-medium text-[#17263A] mb-1">Max Projects</label>
                 <Input
                   id="projects-limit"
                   type="number"
@@ -753,7 +755,7 @@ export const OrganizationDetailPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="conversions-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Max Conv/Month</label>
+                <label htmlFor="conversions-limit" className="block text-[11px] font-medium text-[#17263A] mb-1">Max Conv/Month</label>
                 <Input
                   id="conversions-limit"
                   type="number"
@@ -766,7 +768,7 @@ export const OrganizationDetailPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label htmlFor="storage-quota-limit" className="block text-[11px] font-medium text-[#091E42] mb-1">Storage Quota (GB)</label>
+                <label htmlFor="storage-quota-limit" className="block text-[11px] font-medium text-[#17263A] mb-1">Storage Quota (GB)</label>
                 <Input
                   id="storage-quota-limit"
                   type="number"
@@ -788,15 +790,15 @@ export const OrganizationDetailPage: React.FC = () => {
                 checked={aiEnabled}
                 onChange={(e) => setAiEnabled(e.target.checked)}
                 disabled={submitting}
-                className="rounded text-[#0652CC] focus:ring-[#0652CC]"
+                className="rounded text-[#244A70] focus:ring-[#244A70]"
               />
-              <label htmlFor="aiCheck" className="text-xs font-semibold text-[#091E42] cursor-pointer">
+              <label htmlFor="aiCheck" className="text-xs font-semibold text-[#17263A] cursor-pointer">
                 Enable AI Validation Engine (COBOL & Forms Modernization AST)
               </label>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#DCE3EC]">
             <Button
               type="button"
               variant="outline"
@@ -811,7 +813,7 @@ export const OrganizationDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
               {submitting ? 'Saving...' : 'Save Engagement Changes'}
@@ -823,11 +825,11 @@ export const OrganizationDetailPage: React.FC = () => {
       {/* Create Demo Project Modal */}
       <Modal isOpen={showDemoModal} onClose={() => setShowDemoModal(false)} title="Create Pre-Configured Demo Project">
         <form onSubmit={handleCreateDemo} className="space-y-4 text-xs">
-          <p className="text-xs text-[#6B778C]">
+          <p className="text-xs text-[#8491A3]">
             Initializes an enterprise demonstration project populated with standard BMS Oracle Forms screens and ready-to-test conversions.
           </p>
           <div>
-            <label className="block text-xs font-semibold text-[#091E42] mb-1">Project Name *</label>
+            <label className="block text-xs font-semibold text-[#17263A] mb-1">Project Name *</label>
             <Input
               required
               value={demoProjectName}
@@ -837,7 +839,7 @@ export const OrganizationDetailPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Source Platform</label>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">Source Platform</label>
               <Input
                 value={sourcePlatform}
                 onChange={(e) => setSourcePlatform(e.target.value)}
@@ -845,7 +847,7 @@ export const OrganizationDetailPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">Target Platform</label>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">Target Platform</label>
               <Input
                 value={targetPlatform}
                 onChange={(e) => setTargetPlatform(e.target.value)}
@@ -853,7 +855,7 @@ export const OrganizationDetailPage: React.FC = () => {
               />
             </div>
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
             <Button type="button" variant="outline" size="sm" onClick={() => setShowDemoModal(false)}>
               Cancel
             </Button>
@@ -862,7 +864,7 @@ export const OrganizationDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               disabled={submitting}
-              className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+              className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
               {submitting ? 'Creating...' : 'Create Demo Project'}
             </Button>

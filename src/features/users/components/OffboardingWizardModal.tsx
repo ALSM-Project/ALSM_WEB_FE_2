@@ -171,7 +171,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
     >
       <div className="space-y-4 text-xs">
         {/* Step Indicator Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#E5EAF0]">
+        <div className="flex items-center justify-between pb-3 border-b border-[#DCE3EC]">
           {[
             { num: 1, label: '1. Review User' },
             { num: 2, label: '2. Select Transfers' },
@@ -182,7 +182,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               key={s.num}
               className={`flex items-center gap-1.5 font-semibold ${
                 currentStep === s.num
-                  ? 'text-[#0652CC]'
+                  ? 'text-[#244A70]'
                   : currentStep > s.num
                   ? 'text-emerald-700'
                   : 'text-slate-400'
@@ -191,7 +191,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               <span
                 className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                   currentStep === s.num
-                    ? 'bg-[#0652CC] text-white'
+                    ? 'bg-[#244A70] text-white'
                     : currentStep > s.num
                     ? 'bg-emerald-100 text-emerald-800'
                     : 'bg-slate-100 text-slate-500'
@@ -212,7 +212,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
         )}
 
         {isLoadingSummary && (
-          <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-200 text-[#0652CC] flex items-center gap-2 text-xs">
+          <div className="p-2.5 rounded-lg bg-blue-50/60 border border-blue-200 text-[#244A70] flex items-center gap-2 text-xs">
             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             <span>Retrieving live security posture and assigned work resources...</span>
           </div>
@@ -226,7 +226,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-slate-500">Full Name:</span>
-                  <div className="font-bold text-[#091E42]">{userToOffboard.fullName}</div>
+                  <div className="font-bold text-[#17263A]">{userToOffboard.fullName}</div>
                 </div>
                 <div>
                   <span className="text-slate-500">Corporate Email:</span>
@@ -234,7 +234,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 </div>
                 <div>
                   <span className="text-slate-500">Assigned Roles:</span>
-                  <div className="font-semibold text-[#0652CC]">
+                  <div className="font-semibold text-[#244A70]">
                     {userToOffboard.roles.join(', ') || 'Internal Staff'}
                   </div>
                 </div>
@@ -247,18 +247,18 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
 
             {/* Differentiating Transferable vs Revocable Resources */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-[#091E42] uppercase tracking-wider block">
+              <span className="text-[11px] font-bold text-[#17263A] uppercase tracking-wider block">
                 Associated Assets & Operations
               </span>
 
               {/* Transferable Assets */}
               <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200 space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-semibold text-[#0652CC]">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#244A70]">
                   <span className="flex items-center gap-1.5">
                     <FolderKanban className="w-3.5 h-3.5" />
                     Transferable Work Resources ({departingProjects.length} Projects, {departingJobs.length} Batch Jobs)
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#0652CC]">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-[#244A70]">
                     WILL BE REASSIGNED
                   </span>
                 </div>
@@ -299,7 +299,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button type="button" variant="outline" size="sm" onClick={handleModalClose}>
                 Cancel
               </Button>
@@ -308,7 +308,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleStep1Next}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 Next: Select Successor
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -325,12 +325,12 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
                 Designated Successor Staff Member *
               </label>
               <select
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-[#D9E2EC] bg-white text-[#091E42] focus:ring-2 focus:ring-[#0652CC] outline-none"
+                className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={transferToUserId}
                 onChange={(e) => setTransferToUserId(e.target.value)}
               >
@@ -359,7 +359,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-[#091E42] mb-1">
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
                 Offboarding Justification Reason *
               </label>
               <Input
@@ -371,7 +371,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               />
             </div>
 
-            <div className="flex justify-between gap-2 pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-between gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button type="button" variant="outline" size="sm" onClick={() => setCurrentStep(1)}>
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
                 Back
@@ -381,7 +381,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleStep2Next}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 Next: Transfer Preview
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -398,7 +398,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200">
                   <span className="text-[10px] text-slate-400 uppercase font-bold">Departing User</span>
-                  <div className="font-bold text-[#091E42] mt-0.5">{userToOffboard.fullName}</div>
+                  <div className="font-bold text-[#17263A] mt-0.5">{userToOffboard.fullName}</div>
                   <div className="text-[11px] text-slate-500">{userToOffboard.email}</div>
                   <span className="inline-block mt-1 text-[10px] font-bold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded">
                     Account Will Be Deactivated
@@ -407,7 +407,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
 
                 <div className="p-2.5 rounded-lg bg-white border border-slate-200">
                   <span className="text-[10px] text-slate-400 uppercase font-bold">Assigned Successor</span>
-                  <div className="font-bold text-[#091E42] mt-0.5">{selectedSuccessor?.fullName || 'None (No active work)'}</div>
+                  <div className="font-bold text-[#17263A] mt-0.5">{selectedSuccessor?.fullName || 'None (No active work)'}</div>
                   <div className="text-[11px] text-slate-500">{selectedSuccessor?.email || 'N/A'}</div>
                   <span className="inline-block mt-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                     Inherits All Active Work
@@ -417,17 +417,17 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
             </div>
 
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
-              <span className="font-bold text-[#091E42] block">Summary of Automatic State Adjustments:</span>
+              <span className="font-bold text-[#17263A] block">Summary of Automatic State Adjustments:</span>
               <ul className="space-y-1 text-slate-700">
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0652CC]" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#244A70]" />
                   <span>
                     Transfer {departingProjects.length} modernization project(s) to{' '}
                     {selectedSuccessor?.fullName || 'successor'}
                   </span>
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0652CC]" />
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#244A70]" />
                   <span>Transfer {departingJobs.length} queue conversion batch job(s)</span>
                 </li>
                 <li className="flex items-center gap-1.5">
@@ -445,7 +445,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
               </ul>
             </div>
 
-            <div className="flex justify-between gap-2 pt-2 border-t border-[#E5EAF0]">
+            <div className="flex justify-between gap-2 pt-2 border-t border-[#DCE3EC]">
               <Button type="button" variant="outline" size="sm" onClick={() => setCurrentStep(2)}>
                 <ArrowLeft className="w-3.5 h-3.5 mr-1" />
                 Back
@@ -455,7 +455,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={handleStep3Next}
-                className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
                 Proceed to Confirmation
                 <ArrowRight className="w-3.5 h-3.5 ml-1" />
@@ -482,7 +482,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                 </div>
 
                 <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#091E42]">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#17263A]">
                     <input
                       type="checkbox"
                       checked={confirmExecute}
@@ -493,7 +493,7 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   </label>
                 </div>
 
-                <div className="flex justify-between gap-2 pt-2 border-t border-[#E5EAF0]">
+                <div className="flex justify-between gap-2 pt-2 border-t border-[#DCE3EC]">
                   <Button type="button" variant="outline" size="sm" onClick={() => setCurrentStep(3)} disabled={submitting}>
                     <ArrowLeft className="w-3.5 h-3.5 mr-1" />
                     Back
@@ -554,13 +554,13 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2 border-t border-[#E5EAF0]">
+                <div className="flex justify-end pt-2 border-t border-[#DCE3EC]">
                   <Button
                     type="button"
                     variant="primary"
                     size="sm"
                     onClick={handleModalClose}
-                    className="bg-[#0652CC] hover:bg-[#0543A8] text-white"
+                    className="bg-[#244A70] hover:bg-[#244A70] text-white"
                   >
                     Close Offboarding Wizard
                   </Button>

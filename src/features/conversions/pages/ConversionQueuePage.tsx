@@ -124,8 +124,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
     <div className="space-y-6 w-full">
       {/* Top Header */}
       <PageHeader 
-        title={reviewOnly ? 'Conversion Quality Reviews' : 'Conversion Queue'} 
-        subtitle="Persisted conversion jobs for authorized projects. Conversion Staff see explicitly assigned projects only. Refreshes every 10 seconds."
+        title={reviewOnly ? 'Conversion Quality Reviews' : 'Conversion Queue'}
       />
 
       {/* Top Tab Bar: Queue Monitor vs Troubleshooting */}
@@ -135,7 +134,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
           onClick={() => setActivePageTab('queue')}
           className={`px-4 py-2.5 font-medium transition-all border-b-2 cursor-pointer ${
             activePageTab === 'queue'
-              ? 'border-[#0652CC] text-[#0652CC] font-semibold'
+              ? 'border-[#244A70] text-[#244A70] font-semibold'
               : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
           }`}
         >
@@ -147,7 +146,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
             onClick={() => setActivePageTab('troubleshoot')}
             className={`px-4 py-2.5 font-medium transition-all border-b-2 cursor-pointer flex items-center gap-1.5 ${
               activePageTab === 'troubleshoot'
-                ? 'border-[#0652CC] text-[#0652CC] font-semibold'
+                ? 'border-[#244A70] text-[#244A70] font-semibold'
                 : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
             }`}
           >
@@ -180,7 +179,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                 placeholder="Filter failed items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC] shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] shadow-xs"
               />
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
             </div>
@@ -265,7 +264,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   <select 
                     aria-label="Project" 
                     value={projectId} 
-                    className="block mt-1 border border-slate-200 rounded-md p-1.5 min-w-56 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 min-w-56 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70]" 
                     onChange={(event) => {
                       setSearchParams(event.target.value ? { projectId: event.target.value } : {});
                       setSelectedJobId('');
@@ -283,7 +282,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   <select 
                     aria-label="Status" 
                     value={status} 
-                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70]" 
                     onChange={(event) => setStatus(event.target.value as JobStatus | '')}
                   >
                     {!reviewOnly && <option value="">All statuses</option>}
@@ -298,7 +297,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   <select 
                     aria-label="Job Type" 
                     value={typeFilter} 
-                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC]" 
+                    className="block mt-1 border border-slate-200 rounded-md p-1.5 text-xs text-slate-900 bg-white shadow-xs focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70]" 
                     onChange={(event) => setTypeFilter(event.target.value)}
                   >
                     <option value="ALL">All Types</option>
@@ -334,7 +333,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   placeholder="Search by job ID, screen name, or program name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-[#0652CC] focus:border-[#0652CC] outline-none shadow-xs"
+                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] outline-none shadow-xs"
                 />
                 <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2 pointer-events-none" />
               </div>
@@ -369,7 +368,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   <h2 className="text-xs font-semibold text-slate-900 uppercase tracking-wider">
                     Project: {projects.data?.find((project) => project.id === projectId)?.name || projectId}
                   </h2>
-                  <p className="text-[11px] text-[#6B778C]">
+                  <p className="text-[11px] text-[#8491A3]">
                     Persisted statuses across all {rawDataset.length} jobs in this scope. The status filter only changes the list below.
                   </p>
                   
@@ -377,29 +376,29 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   <dl className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
                     {/* Waiting Jobs */}
                     <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                      <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Waiting (QUEUED)</dt>
-                      <dd aria-label="Waiting jobs" className="text-2xl font-bold text-[#091E42] mt-0.5">
+                      <dt className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">Waiting (QUEUED)</dt>
+                      <dd aria-label="Waiting jobs" className="text-2xl font-bold text-[#17263A] mt-0.5">
                         {jobCount(['QUEUED'])}
                       </dd>
-                      <span className="text-[10px] text-[#6B778C]">({screenWaitingCount} Screens, {cobolWaitingCount} COBOL)</span>
+                      <span className="text-[10px] text-[#8491A3]">({screenWaitingCount} Screens, {cobolWaitingCount} COBOL)</span>
                     </div>
 
                     {/* Processing Jobs */}
                     <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                      <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Processing (recorded)</dt>
+                      <dt className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">Processing (recorded)</dt>
                       <dd aria-label="Processing jobs" className="text-2xl font-bold text-amber-600 mt-0.5">
                         {jobCount(['PROCESSING'])}
                       </dd>
-                      <span className="text-[10px] text-[#6B778C]">Last recorded processing state</span>
+                      <span className="text-[10px] text-[#8491A3]">Last recorded processing state</span>
                     </div>
 
                     {/* Failed or Dead Jobs */}
                     <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                      <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Failed / dead (FAILED + DEAD)</dt>
+                      <dt className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">Failed / dead (FAILED + DEAD)</dt>
                       <dd aria-label="Failed or dead jobs" className="text-2xl font-bold text-rose-600 mt-0.5">
                         {jobCount(['FAILED', 'DEAD'])}
                       </dd>
-                      <span className="text-[10px] text-[#6B778C]">Error states</span>
+                      <span className="text-[10px] text-[#8491A3]">Error states</span>
                     </div>
 
                     {/* Dead Letter Queue */}
@@ -416,22 +415,22 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
 
                     {/* Completed Jobs */}
                     <div className="bg-white p-3 rounded-md border border-slate-200 shadow-xs">
-                      <dt className="text-[10px] font-bold text-[#6B778C] uppercase tracking-wider">Completed</dt>
+                      <dt className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">Completed</dt>
                       <dd className="text-2xl font-bold text-emerald-600 mt-0.5">
                         {jobCount(['COMPLETED'])}
                       </dd>
-                      <span className="text-[10px] text-[#6B778C]">Recorded COMPLETED status</span>
+                      <span className="text-[10px] text-[#8491A3]">Recorded COMPLETED status</span>
                     </div>
                   </dl>
                 </section>
 
-                <p className="text-xs text-[#6B778C]">
+                <p className="text-xs text-[#8491A3]">
                   {visibleJobs.length} matching jobs · Last updated {new Date(jobs.dataUpdatedAt).toLocaleTimeString()}. QUEUED jobs await a worker; PROCESSING is the last recorded worker state.
                 </p>
 
 
                 {activePageTab === 'queue' && (visibleJobs.length === 0 ? (
-                  <p className="py-4 text-xs text-[#6B778C]">No conversion jobs match this selection.</p>
+                  <p className="py-4 text-xs text-[#8491A3]">No conversion jobs match this selection.</p>
                 ) : (
                   <div className="alsm-table-container rounded-lg border border-slate-200 bg-white shadow-xs overflow-hidden mt-3">
                     <div className="overflow-x-auto">
@@ -447,14 +446,14 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                             <th className="py-3 px-4 text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E5EAF0]">
+                        <tbody className="divide-y divide-[#DCE3EC]">
                           {visibleJobs.map((job) => {
                             const isDead = job.status === 'DEAD';
                             return (
                               <tr key={job.id} className="hover:bg-slate-50/80 transition-colors align-top">
                                 <td className="py-3.5 px-4 font-mono">
-                                  <span className="font-semibold text-[#091E42]">{job.id}</span>
-                                  <div className="text-[10px] text-[#6B778C]">
+                                  <span className="font-semibold text-[#17263A]">{job.id}</span>
+                                  <div className="text-[10px] text-[#8491A3]">
                                     {job.screenId || 'Not available'}
                                   </div>
                                 </td>
@@ -473,25 +472,25 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                                     </span>
                                   )}
                                 </td>
-                                <td className="py-3.5 px-4 text-[#091E42]">
+                                <td className="py-3.5 px-4 text-[#17263A]">
                                   <div>{job.conversionType}</div>
-                                  <div className="text-[10px] text-[#6B778C]">{job.priority}</div>
+                                  <div className="text-[10px] text-[#8491A3]">{job.priority}</div>
                                 </td>
-                                <td className="py-3.5 px-4 font-mono text-[#6B778C]">
+                                <td className="py-3.5 px-4 font-mono text-[#8491A3]">
                                   <span className={isDead ? 'text-rose-700 font-bold' : ''}>
                                     {job.attemptCount} / {job.maxAttempts}
                                   </span>
                                 </td>
-                                <td className="py-3.5 px-4 font-mono text-[#6B778C] text-[11px]">
+                                <td className="py-3.5 px-4 font-mono text-[#8491A3] text-[11px]">
                                   {job.createdBy}
                                 </td>
-                                <td className="py-3.5 px-4 text-[#6B778C]">
+                                <td className="py-3.5 px-4 text-[#8491A3]">
                                   {new Date(job.createdAt).toLocaleString()}<br />{new Date(job.updatedAt).toLocaleString()}
                                 </td>
                                 <td className="py-3.5 px-4 text-right">
                                   <div className="flex flex-col items-end gap-1.5">
                                     <button 
-                                      className="text-xs text-[#0652CC] font-semibold hover:underline cursor-pointer" 
+                                      className="text-xs text-[#244A70] font-semibold hover:underline cursor-pointer" 
                                       onClick={() => setSelectedJobId(job.id)}
                                     >
                                       View job {job.id}
@@ -522,7 +521,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
 
                                     {job.status === 'COMPLETED' && hasPermission('quality-review.manage') && (
                                       <Link 
-                                        className="text-xs text-[#0652CC] font-semibold hover:underline" 
+                                        className="text-xs text-[#244A70] font-semibold hover:underline" 
                                         to={`/admin/projects/${encodeURIComponent(job.projectId)}/conversions/${encodeURIComponent(job.id)}/quality-review?organizationId=${encodeURIComponent(job.organizationId)}`}
                                       >
                                         Review quality
@@ -545,10 +544,10 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
           {/* Job Details Drawer / Panel */}
           {selectedJob && !troubleshootTargetJobId && (
             <Card className="space-y-4 border-2 border-blue-100">
-              <div className="flex items-center justify-between pb-3 border-b border-[#E5EAF0]">
+              <div className="flex items-center justify-between pb-3 border-b border-[#DCE3EC]">
                 <div>
-                  <h2 className="text-base font-bold text-[#091E42]">Job Details: {selectedJobId}</h2>
-                  <p className="text-xs text-[#6B778C]">Persisted job metadata</p>
+                  <h2 className="text-base font-bold text-[#17263A]">Job Details: {selectedJobId}</h2>
+                  <p className="text-xs text-[#8491A3]">Persisted job metadata</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {detailJob && (detailJob.status === 'FAILED' || detailJob.status === 'DEAD') && (
@@ -560,7 +559,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                           onClick={() => handleOpenTroubleshooting(detailJob!)}
                           className="text-xs"
                         >
-                          <Wrench className="w-3.5 h-3.5 mr-1 text-[#0652CC]" />
+                          <Wrench className="w-3.5 h-3.5 mr-1 text-[#244A70]" />
                           Troubleshoot in Workspace
                         </Button>
                       )}
@@ -579,7 +578,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   )}
                   <button
                     onClick={() => setSelectedJobId('')}
-                    className="p-1 rounded-lg text-[#6B778C] hover:bg-gray-100 cursor-pointer"
+                    className="p-1 rounded-lg text-[#8491A3] hover:bg-gray-100 cursor-pointer"
                     title="Close details"
                   >
                     <X className="w-4 h-4" />
@@ -587,37 +586,37 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                 </div>
               </div>
 
-              {details.isPending && <p role="status" className="text-xs text-[#6B778C]">Loading job details...</p>}
+              {details.isPending && <p role="status" className="text-xs text-[#8491A3]">Loading job details...</p>}
               {details.isError && <p role="alert" className="text-xs text-rose-600">Unable to load job: {conversionError(details.error)}</p>}
 
               {detailJob && (
                 <div className="space-y-4">
                   <dl className="grid sm:grid-cols-3 gap-4 text-xs pt-1">
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Job ID</dt>
-                      <dd className="font-mono text-[#091E42] mt-0.5 font-bold">{detailJob.id}</dd>
+                      <dt className="font-semibold text-[#8491A3]">Job ID</dt>
+                      <dd className="font-mono text-[#17263A] mt-0.5 font-bold">{detailJob.id}</dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Worker Status</dt>
-                      <dd className="font-semibold mt-0.5 text-[#091E42]">{detailJob.status}</dd>
+                      <dt className="font-semibold text-[#8491A3]">Worker Status</dt>
+                      <dd className="font-semibold mt-0.5 text-[#17263A]">{detailJob.status}</dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Attempt Counter / Limit</dt>
-                      <dd className="font-mono font-semibold text-[#091E42] mt-0.5">
+                      <dt className="font-semibold text-[#8491A3]">Attempt Counter / Limit</dt>
+                      <dd className="font-mono font-semibold text-[#17263A] mt-0.5">
                         {detailJob.attemptCount} / {detailJob.maxAttempts}
                       </dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Started</dt>
-                      <dd className="text-[#091E42] mt-0.5">{detailJob.startedAt ? new Date(detailJob.startedAt).toLocaleString() : 'Not started'}</dd>
+                      <dt className="font-semibold text-[#8491A3]">Started</dt>
+                      <dd className="text-[#17263A] mt-0.5">{detailJob.startedAt ? new Date(detailJob.startedAt).toLocaleString() : 'Not started'}</dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Completed</dt>
-                      <dd className="text-[#091E42] mt-0.5">{detailJob.completedAt ? new Date(detailJob.completedAt).toLocaleString() : 'Not completed'}</dd>
+                      <dt className="font-semibold text-[#8491A3]">Completed</dt>
+                      <dd className="text-[#17263A] mt-0.5">{detailJob.completedAt ? new Date(detailJob.completedAt).toLocaleString() : 'Not completed'}</dd>
                     </div>
                     <div>
-                      <dt className="font-semibold text-[#6B778C]">Engine version</dt>
-                      <dd className="font-mono text-[#091E42] mt-0.5">{detailJob.toolVersion || 'Not reported'}</dd>
+                      <dt className="font-semibold text-[#8491A3]">Engine version</dt>
+                      <dd className="font-mono text-[#17263A] mt-0.5">{detailJob.toolVersion || 'Not reported'}</dd>
                     </div>
                   </dl>
 
@@ -665,7 +664,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   </p>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E5EAF0]">
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#DCE3EC]">
                   <Button
                     variant="outline"
                     size="sm"

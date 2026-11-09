@@ -76,7 +76,7 @@ describe('UploadSourceFilesPage (UC-46)', () => {
   it('renders the project context, workflow stepper and upload area', async () => {
     renderPage();
 
-    expect(await screen.findByRole('heading', { name: /Upload Legacy Source Files/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Upload (Legacy )?Source Files/i })).toBeInTheDocument();
     const details = screen.getByLabelText('Project details');
     expect(within(details).getByText('Core Banking Screens')).toBeInTheDocument();
     expect(within(details).getByText(/Fintech Nexus International/)).toBeInTheDocument();

@@ -8,17 +8,17 @@ export interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary', className = '' }) => {
   const styles = {
-    primary: 'bg-[#E8F1FF] text-[#0652CC] border-[#0652CC]/30',
-    secondary: 'bg-[#F7F9FC] text-[#42526E] border-[#D9E2EC]',
-    success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    warning: 'bg-amber-50 text-amber-700 border-amber-200',
-    danger: 'bg-rose-50 text-rose-700 border-rose-200',
-    info: 'bg-sky-50 text-sky-700 border-sky-200',
+    primary: 'bg-[#EEF1F6] text-[#244A70] border-[#DCE3EC]',
+    secondary: 'bg-[#F4F7FB] text-[#17263A] border-[#DCE3EC]',
+    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    warning: 'bg-amber-50 text-amber-800 border-amber-200',
+    danger: 'bg-rose-50 text-rose-800 border-rose-200',
+    info: 'bg-blue-50 text-[#244A70] border-blue-200',
   };
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${styles[variant]} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold border ${styles[variant]} ${className}`}
     >
       {children}
     </span>
@@ -31,7 +31,7 @@ export const StatusBadge: React.FC<{ status: string; className?: string }> = ({ 
   if (['completed', 'passed', 'active', 'ready', 'success', 'converted'].some((s) => lower.includes(s))) {
     variant = 'success';
   } else if (['processing', 'uploading', 'converting', 'analyzing', 'validating', 'queued', 'in_progress'].some((s) => lower.includes(s))) {
-    variant = 'primary';
+    variant = 'info';
   } else if (['review', 'required', 'warning', 'pending', 'attention'].some((s) => lower.includes(s))) {
     variant = 'warning';
   } else if (['failed', 'error', 'danger', 'fatal', 'dead_letter'].some((s) => lower.includes(s))) {

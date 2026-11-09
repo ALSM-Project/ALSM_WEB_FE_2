@@ -23,8 +23,8 @@ export const PartnerStatusBadge: React.FC<PartnerStatusBadgeProps> = ({ status }
       break;
     case 'IN_PROGRESS':
     case 'PROCESSING':
-      bg = 'bg-blue-50 text-[#0652CC] border-blue-200';
-      dot = 'bg-[#0652CC] animate-pulse';
+      bg = 'bg-blue-50 text-[#244A70] border-blue-200';
+      dot = 'bg-[#244A70] animate-pulse';
       label = 'In Progress';
       break;
     case 'READY_FOR_EXPORT':

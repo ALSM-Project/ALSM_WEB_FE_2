@@ -28,16 +28,16 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={`space-y-2 ${className}`}>
       {showLabels && (
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-[#091E42]">Overall Conversion Progress</span>
-          <span className="font-bold text-[#0652CC]">{overallPct}% ({completedItems}/{totalItems} items)</span>
+          <span className="font-semibold text-[#17263A]">Overall Conversion Progress</span>
+          <span className="font-bold text-[#244A70]">{overallPct}% ({completedItems}/{totalItems} items)</span>
         </div>
       )}
 
       {/* Main Bar */}
-      <div className="w-full bg-[#E5EAF0] rounded-full h-2.5 overflow-hidden flex">
+      <div className="w-full bg-[#DCE3EC] rounded-full h-2.5 overflow-hidden flex">
         {totalItems > 0 ? (
           <div
-            className="bg-[#0652CC] h-full transition-all duration-500 rounded-full"
+            className="bg-[#244A70] h-full transition-all duration-500 rounded-full"
             style={{ width: `${overallPct}%` }}
           />
         ) : (
@@ -47,19 +47,19 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
       {/* Dual metric sub-bars if both or either exist */}
       {showLabels && (screensTotal > 0 || programsTotal > 0) && (
-        <div className="grid grid-cols-2 gap-3 pt-1 text-[11px] text-[#6B778C]">
+        <div className="grid grid-cols-2 gap-3 pt-1 text-[11px] text-[#8491A3]">
           {screensTotal > 0 && (
-            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#E5EAF0]">
+            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#DCE3EC]">
               <span>Screens:</span>
-              <span className="font-medium text-[#091E42]">
+              <span className="font-medium text-[#17263A]">
                 {screensCompleted}/{screensTotal} ({screensPct}%)
               </span>
             </div>
           )}
           {programsTotal > 0 && (
-            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#E5EAF0]">
+            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#DCE3EC]">
               <span>COBOL:</span>
-              <span className="font-medium text-[#091E42]">
+              <span className="font-medium text-[#17263A]">
                 {programsCompleted}/{programsTotal} ({programsPct}%)
               </span>
             </div>

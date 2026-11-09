@@ -9,6 +9,16 @@ import {
 } from '../api/offboarding-approval.api';
 import { rbacApi } from '@/features/rbac/api/rbac.api';
 
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
+});
+
 const mockRequests: OffboardingRequestDto[] = [
   {
     id: 'req-01',
@@ -98,6 +108,7 @@ const createWrapper = () => {
 
 describe('UserOffboardingApprovalPage (UC-89 Screen S73)', () => {
   beforeEach(() => {
+    mockNavigate.mockReset();
     vi.spyOn(offboardingApprovalApi, 'listRequests').mockResolvedValue(mockRequests);
     vi.spyOn(offboardingApprovalApi, 'getRequestDetails').mockResolvedValue(mockLiveDetail);
     vi.spyOn(offboardingApprovalApi, 'approveRequest').mockResolvedValue({
@@ -133,8 +144,7 @@ describe('UserOffboardingApprovalPage (UC-89 Screen S73)', () => {
   it('renders Screen S73 header, metrics, and offboarding requests table', async () => {
     render(<UserOffboardingApprovalPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/User Offboarding Approvals/i)).toBeInTheDocument();
-    expect(screen.getByText(/S73/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Offboarding Approvals/i).length).toBeGreaterThan(0);
 
     await waitFor(() => {
       expect(screen.getByText('Departing Staff Alice')).toBeInTheDocument();
@@ -146,7 +156,16 @@ describe('UserOffboardingApprovalPage (UC-89 Screen S73)', () => {
     expect(screen.getAllByText(/Approved/i).length).toBeGreaterThan(0);
   });
 
-  it('opens Review & Impact modal displaying live resource allocations', async () => {
+  it('navigates to dedicated Create Offboarding Request page when clicking Request Offboarding', async () => {
+    render(<UserOffboardingApprovalPage />, { wrapper: createWrapper() });
+
+    const createBtn = screen.getByRole('button', { name: /Request Offboarding/i });
+    fireEvent.click(createBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/team-lead/offboarding-approvals/create');
+  });
+
+  it('navigates to dedicated Request Details page when clicking Review Impact', async () => {
     render(<UserOffboardingApprovalPage />, { wrapper: createWrapper() });
 
     await waitFor(() => {
@@ -156,14 +175,7 @@ describe('UserOffboardingApprovalPage (UC-89 Screen S73)', () => {
     const reviewButtons = screen.getAllByRole('button', { name: /Review Impact/i });
     fireEvent.click(reviewButtons[0]);
 
-    await waitFor(() => {
-      expect(screen.getByText(/Live Resource & Security Posture/i)).toBeInTheDocument();
-      expect(screen.getByText('Core Banking BMS Modernization')).toBeInTheDocument();
-    });
-
-    expect(screen.getAllByText(/Active Sessions/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/API Credentials/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Transferable Projects/i).length).toBeGreaterThan(0);
+    expect(mockNavigate).toHaveBeenCalledWith('/team-lead/offboarding-approvals/req-01');
   });
 
   it('approves an offboarding request and triggers UC-83 execution', async () => {

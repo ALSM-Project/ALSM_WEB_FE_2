@@ -216,15 +216,15 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
       {!generatedBundle ? (
         <div className="space-y-4">
           {/* Target Overview */}
-          <div className="p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0] flex items-center justify-between">
+          <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-[#6B778C] font-semibold uppercase">Target Partner & Project</span>
-              <h4 className="text-sm font-bold text-[#091E42]">{project.name}</h4>
-              <p className="text-xs text-[#4A5568]">{project.partnerName}</p>
+              <span className="text-[11px] text-[#8491A3] font-semibold uppercase">Target Partner & Project</span>
+              <h4 className="text-sm font-bold text-[#17263A]">{project.name}</h4>
+              <p className="text-xs text-[#8491A3]">{project.partnerName}</p>
             </div>
             <div className="text-right">
-              <span className="text-[11px] text-[#6B778C]">Framework Target</span>
-              <p className="text-xs font-semibold text-[#0652CC]">{targetFramework}</p>
+              <span className="text-[11px] text-[#8491A3]">Framework Target</span>
+              <p className="text-xs font-semibold text-[#244A70]">{targetFramework}</p>
             </div>
           </div>
 
@@ -245,7 +245,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
           {isServer && canExport && (
             <>
               {previewLoading && (
-                <div className="flex items-center gap-2 text-xs text-[#6B778C]" aria-live="polite">
+                <div className="flex items-center gap-2 text-xs text-[#8491A3]" aria-live="polite">
                   <Loader2 className="w-4 h-4 animate-spin" /> Checking which items can be exported...
                 </div>
               )}
@@ -307,11 +307,11 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
           )}
 
           {/* Package Configuration */}
-          <div className="space-y-2 pt-2 border-t border-[#E5EAF0]">
-            <span className="text-xs font-bold text-[#091E42]">Package Artifact Options</span>
+          <div className="space-y-2 pt-2 border-t border-[#DCE3EC]">
+            <span className="text-xs font-bold text-[#17263A]">Package Artifact Options</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <label
-                className={`flex items-center gap-2 p-2 rounded border border-[#E5EAF0] ${isJava ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-[#F7F9FC]'}`}
+                className={`flex items-center gap-2 p-2 rounded border border-[#DCE3EC] ${isJava ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:bg-[#F8FAFC]'}`}
                 title={isJava ? 'Applies to React bundles only' : undefined}
               >
                 <input
@@ -319,36 +319,36 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                   checked={includeTs}
                   disabled={isJava}
                   onChange={(e) => setIncludeTs(e.target.checked)}
-                  className="rounded text-[#0652CC]"
+                  className="rounded text-[#244A70]"
                 />
-                <span className="text-[#091E42] font-medium">TypeScript Strict</span>
+                <span className="text-[#17263A] font-medium">TypeScript Strict</span>
               </label>
-              <label className="flex items-center gap-2 p-2 rounded border border-[#E5EAF0] cursor-pointer hover:bg-[#F7F9FC]">
+              <label className="flex items-center gap-2 p-2 rounded border border-[#DCE3EC] cursor-pointer hover:bg-[#F8FAFC]">
                 <input
                   type="checkbox"
                   checked={includeTests}
                   onChange={(e) => setIncludeTests(e.target.checked)}
-                  className="rounded text-[#0652CC]"
+                  className="rounded text-[#244A70]"
                 />
-                <span className="text-[#091E42] font-medium">Unit Tests (.spec / .test)</span>
+                <span className="text-[#17263A] font-medium">Unit Tests (.spec / .test)</span>
               </label>
-              <label className="flex items-center gap-2 p-2 rounded border border-[#E5EAF0] cursor-pointer hover:bg-[#F7F9FC]">
+              <label className="flex items-center gap-2 p-2 rounded border border-[#DCE3EC] cursor-pointer hover:bg-[#F8FAFC]">
                 <input
                   type="checkbox"
                   checked={includeDocs}
                   onChange={(e) => setIncludeDocs(e.target.checked)}
-                  className="rounded text-[#0652CC]"
+                  className="rounded text-[#244A70]"
                 />
-                <span className="text-[#091E42] font-medium">README & Setup Guide</span>
+                <span className="text-[#17263A] font-medium">README & Setup Guide</span>
               </label>
             </div>
           </div>
 
           {/* Partner Notification Preview */}
           <div className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
-            <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#091E42]">
+            <div className="flex items-center justify-between gap-2 text-xs font-bold text-[#17263A]">
               <span className="flex items-center gap-1.5 shrink-0">
-                <Mail className="w-4 h-4 text-[#0652CC]" /> Partner Email Notification Preview
+                <Mail className="w-4 h-4 text-[#244A70]" /> Partner Email Notification Preview
               </span>
               <label className="flex items-center gap-1 text-[11px] font-mono font-normal text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded min-w-0">
                 <span>To:</span>
@@ -367,9 +367,9 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             </div>
             {emailError && <p className="text-[11px] text-red-600 text-right">{emailError}</p>}
             <div className="text-xs bg-white p-3 rounded-lg border border-blue-100 space-y-1.5 text-gray-700">
-              <p className="font-semibold text-[#091E42]">Subject: [ALSM] Modernized Code Bundle Ready: {project.name}</p>
-              <p className="text-[11px] text-[#4A5568]">Dear {project.partnerName} Team,</p>
-              <p className="text-[11px] text-[#4A5568]">
+              <p className="font-semibold text-[#17263A]">Subject: [ALSM] Modernized Code Bundle Ready: {project.name}</p>
+              <p className="text-[11px] text-[#8491A3]">Dear {project.partnerName} Team,</p>
+              <p className="text-[11px] text-[#8491A3]">
                 Your modernization bundle <strong>{packageName || '(name assigned on export)'}</strong> has been
                 generated by the ALSM conversion team.
               </p>
@@ -379,13 +379,13 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                 onChange={(e) => setCustomNotes(e.target.value)}
                 maxLength={CUSTOM_NOTES_MAX_LENGTH}
                 placeholder="Include custom engineering notes to the partner..."
-                className="w-full text-xs p-2 border border-[#D9E2EC] rounded bg-[#F7F9FC] focus:bg-white outline-none focus:ring-1 focus:ring-[#0652CC]"
+                className="w-full text-xs p-2 border border-[#DCE3EC] rounded bg-[#F8FAFC] focus:bg-white outline-none focus:ring-1 focus:ring-[#244A70]"
                 rows={2}
               />
-              <p className="text-[10px] text-[#6B778C] text-right">
+              <p className="text-[10px] text-[#8491A3] text-right">
                 {customNotes.length}/{CUSTOM_NOTES_MAX_LENGTH}
               </p>
-              <p className="text-[11px] text-[#6B778C]">
+              <p className="text-[11px] text-[#8491A3]">
                 You can download the package and inspect file manifests directly from your Partner Download Center.
               </p>
             </div>
@@ -398,7 +398,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
           )}
 
           {/* Dialog Action Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-[#E5EAF0]">
+          <div className="flex items-center justify-between pt-4 border-t border-[#DCE3EC]">
             <Button variant="outline" onClick={onClose} disabled={busy}>
               Cancel
             </Button>
@@ -420,7 +420,7 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                   onClick={handleGenerateAndNotify}
                   isLoading={exporting}
                   disabled={actionsDisabled}
-                  className="flex items-center gap-1.5 bg-[#0652CC] hover:bg-[#0543A8]"
+                  className="flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70]"
                 >
                   <Send className="w-3.5 h-3.5" /> Generate & Notify Partner
                 </Button>
@@ -434,8 +434,8 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-[#091E42]">Export Bundle Published Successfully!</h3>
-            <p className="text-xs text-[#6B778C] max-w-md mx-auto mt-1">
+            <h3 className="text-base font-bold text-[#17263A]">Export Bundle Published Successfully!</h3>
+            <p className="text-xs text-[#8491A3] max-w-md mx-auto mt-1">
               Package <strong>{generatedBundle.packageName}</strong> is stored and the project is marked as exported.{' '}
               {notificationSent
                 ? `A delivery notification was sent to ${generatedBundle.partnerContactEmail}.`
@@ -443,13 +443,13 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
             </p>
           </div>
 
-          <div className="p-4 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0] text-left text-xs space-y-2">
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] text-left text-xs space-y-2">
             <div className="flex justify-between gap-3">
-              <span className="text-[#6B778C]">Bundle ID:</span>
-              <span className="font-mono font-medium text-[#091E42]">{generatedBundle.id}</span>
+              <span className="text-[#8491A3]">Bundle ID:</span>
+              <span className="font-mono font-medium text-[#17263A]">{generatedBundle.id}</span>
             </div>
             <div className="flex justify-between gap-3">
-              <span className="text-[#6B778C]">Notification Status:</span>
+              <span className="text-[#8491A3]">Notification Status:</span>
               {notificationSent ? (
                 <span className="font-medium text-emerald-600">SENT / DELIVERED</span>
               ) : (
@@ -462,8 +462,8 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
               <p className="text-[11px] text-amber-800">{generatedBundle.notificationError}</p>
             )}
             <div className="flex justify-between gap-3">
-              <span className="text-[#6B778C]">Items included:</span>
-              <span className="font-medium text-[#091E42]">
+              <span className="text-[#8491A3]">Items included:</span>
+              <span className="font-medium text-[#17263A]">
                 {generatedBundle.totalItems} ({generatedBundle.excludedItems?.length ?? 0} excluded)
               </span>
             </div>

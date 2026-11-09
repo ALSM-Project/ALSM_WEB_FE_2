@@ -29,11 +29,13 @@ export { PartnerApiError, PartnerUploadError, PartnerConversionError, PartnerExp
 
 
 
-/** Real backend projects have Mongo ObjectId ids; the demo/seed ones created in the browser do not. */
-const BACKEND_PROJECT_ID = /^[a-f0-9]{24}$/i;
+/** Real backend projects have Mongo ObjectId ids (24 hex) or UUIDs (36 chars with dashes); the demo/seed ones created in the browser do not. */
+const BACKEND_PROJECT_ID = /^([a-f0-9]{24}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})$/i;
 
 export function isServerProject(projectId: string): boolean {
-  return BACKEND_PROJECT_ID.test(projectId);
+  if (!projectId) return false;
+  if (projectId.startsWith('demo-') || projectId.startsWith('local-') || projectId.startsWith('proj-')) return false;
+  return BACKEND_PROJECT_ID.test(projectId) || projectId.length >= 20;
 }
 
 const LOCAL_PROJECT_EXPORT_MESSAGE =
@@ -355,9 +357,20 @@ const TARGET_FRAMEWORK: Record<ConversionType, string> = {
   COBOL_TO_JAVA: 'Spring Boot 3.3 / Java 21',
 };
 
+function resolveConversionType(dto: any): ConversionType {
+  if (dto?.conversionType === 'COBOL_TO_JAVA' || dto?.conversionType === 'BMS_DSPF_TO_FRONTEND') {
+    return dto.conversionType;
+  }
+  const text = `${dto?.name || ''} ${dto?.description || ''} ${dto?.targetFramework || ''}`.toLowerCase();
+  if (text.includes('cobol') && text.includes('java')) return 'COBOL_TO_JAVA';
+  if (text.includes('cobol') && !text.includes('bms') && !text.includes('dspf')) return 'COBOL_TO_JAVA';
+  return 'BMS_DSPF_TO_FRONTEND';
+}
+
 /** Project fields that need no extra request; item counts are filled in separately. */
-function toProject(dto: ProjectDto): PartnerProject {
+function toProject(dto: any): PartnerProject {
   const link = loadLinks()[dto.id];
+  const convType = resolveConversionType(dto);
   return {
     id: dto.id,
     name: dto.name,
@@ -365,9 +378,9 @@ function toProject(dto: ProjectDto): PartnerProject {
     partnerId: link?.partnerId ?? '',
     partnerName: link?.partnerName || 'Not linked to a partner',
     organizationId: dto.organizationId,
-    conversionType: dto.conversionType,
-    targetFramework: TARGET_FRAMEWORK[dto.conversionType],
-    status: dto.status === 'COMPLETED' ? 'COMPLETED' : 'NOT_STARTED',
+    conversionType: convType,
+    targetFramework: dto.targetFramework || TARGET_FRAMEWORK[convType] || 'React 19 + TypeScript',
+    status: (dto.status || (dto.status === 'COMPLETED' ? 'COMPLETED' : 'NOT_STARTED')) as any,
     screensTotal: 0,
     screensCompleted: 0,
     programsTotal: 0,
@@ -375,7 +388,7 @@ function toProject(dto: ProjectDto): PartnerProject {
     lastUpdated: dto.updatedAt,
     createdAt: dto.createdAt,
     assignedTeamLeadId: dto.assignedTeamLeadId,
-    assignedTeamLeadName: link?.assignedTeamLeadName,
+    assignedTeamLeadName: dto.assignedTeamLeadName || link?.assignedTeamLeadName,
     // The allocation is stored on the server (UC-86), so every Team Lead and the engineer see the same one.
     assignedStaffId: dto.assignedStaffId,
     assignedStaffName: dto.assignedStaffName,
@@ -383,11 +396,30 @@ function toProject(dto: ProjectDto): PartnerProject {
     isExported: dto.isExported ?? false,
     exportedAt: dto.exportedAt,
     exportedBundleName: dto.exportedBundleName,
+    contractNumber: dto.contractNumber,
+    contractId: dto.contractId,
+    serviceType: dto.serviceType,
+    currentStage: dto.currentStage,
+    stageIndex: dto.stageIndex,
+    progressPct: dto.progressPct,
+    submittedAt: dto.submittedAt,
+    submittedBy: dto.submittedBy,
+    businessRequirements: dto.businessRequirements,
+    adminReviewNotes: dto.adminReviewNotes,
+    reviewedBy: dto.reviewedBy,
+    reviewedAt: dto.reviewedAt,
+    teamLeadAssignedBy: dto.teamLeadAssignedBy,
+    teamLeadAssignedByName: dto.teamLeadAssignedByName,
+    teamLeadAssignedAt: dto.teamLeadAssignedAt,
+    teamLeadAssignmentNote: dto.teamLeadAssignmentNote,
+    teamLeadAssignmentStatus: dto.teamLeadAssignmentStatus,
+    files: dto.files,
+    acceptance: dto.acceptance,
   };
 }
 
 /** Totals and status derived from the project's real screens/programs and conversion jobs. */
-function withItemCounts(project: PartnerProject, items: PartnerConversionItem[]): PartnerProject {
+export function withItemCounts(project: PartnerProject, items: PartnerConversionItem[]): PartnerProject {
   const screens = items.filter((i) => i.type === 'SCREEN');
   const programs = items.filter((i) => i.type === 'PROGRAM');
   const done = (list: PartnerConversionItem[]) => list.filter((i) => i.status === 'COMPLETED').length;
@@ -417,13 +449,56 @@ export const partnersApi = {
       throw toPartnerApiError(err, 'load');
     }
     const projects = await this.listProjectsWithoutCounts().catch(() => [] as PartnerProject[]);
-    return records.map((r) => {
-      const own = projects.filter((p) => p.partnerId === r.id);
+
+    let orgs: Array<{ id: string; name: string; contactEmail?: string; primaryDomain?: string }> = [];
+    try {
+      orgs = await apiClient.get<Array<{ id: string; name: string; contactEmail?: string; primaryDomain?: string }>>('/admin/organizations').catch(() => []);
+    } catch {
+      // ignore
+    }
+
+    const partnerList = records.map((r) => {
+      const own = projects.filter(
+        (p) =>
+          p.partnerId === r.id ||
+          p.organizationId === r.id ||
+          (p.partnerName && r.name && p.partnerName.toLowerCase().trim() === r.name.toLowerCase().trim())
+      );
       return toPartner(r, {
         projectCount: own.length,
         activeConversionCount: own.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
       });
     });
+
+    if (Array.isArray(orgs)) {
+      orgs.forEach((org) => {
+        const alreadyInList = partnerList.some(
+          (pl) => pl.id === org.id || pl.name.toLowerCase().trim() === org.name.toLowerCase().trim()
+        );
+        if (!alreadyInList) {
+          const orgProjects = projects.filter((p) => p.organizationId === org.id);
+          if (orgProjects.length > 0) {
+            partnerList.push({
+              id: org.id,
+              name: org.name,
+              companyName: org.name,
+              domain: org.primaryDomain || `${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+              contactEmail: org.contactEmail || `contact@${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+              contactName: org.name,
+              status: 'ACTIVE',
+              completedExportCount: orgProjects.filter((p) => p.isExported || p.status === 'COMPLETED').length,
+              projectCount: orgProjects.length,
+              activeConversionCount: orgProjects.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
+              engagementType: 'Managed Modernization',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+          }
+        }
+      });
+    }
+
+    return partnerList;
   },
 
   // 2. Get Single Partner
@@ -462,7 +537,10 @@ export const partnersApi = {
   // 4. Get Partner Projects - every project stored on the server, with real item counts.
   async getProjects(partnerId?: string): Promise<PartnerProject[]> {
     const projects = await this.listProjectsWithoutCounts();
-    const scoped = partnerId ? projects.filter((p) => p.partnerId === partnerId) : projects;
+    const scoped = partnerId
+      ? projects.filter((p) => p.partnerId === partnerId || p.organizationId === partnerId)
+      : projects;
+    if (!partnerId && scoped.length > 10) return scoped;
     return Promise.all(
       scoped.map(async (p) => {
         try {
@@ -481,7 +559,27 @@ export const partnersApi = {
     } catch (err) {
       throw toPartnerProjectError(err, 'load');
     }
-    return dtos.map(toProject);
+    const projects = dtos.map(toProject);
+
+    // Enrich projects with real organization names if partnerName is unlinked
+    try {
+      const orgs = await apiClient.get<Array<{ id: string; name: string }>>('/admin/organizations').catch(() => []);
+      if (Array.isArray(orgs) && orgs.length > 0) {
+        const orgMap = new Map(orgs.map((o) => [o.id, o.name]));
+        projects.forEach((p) => {
+          if (p.organizationId && orgMap.has(p.organizationId)) {
+            if (!p.partnerName || p.partnerName === 'Not linked to a partner') {
+              p.partnerName = orgMap.get(p.organizationId)!;
+              p.partnerId = p.organizationId;
+            }
+          }
+        });
+      }
+    } catch {
+      // ignore
+    }
+
+    return projects;
   },
 
   // 5. Get Project by ID
@@ -499,7 +597,19 @@ export const partnersApi = {
   async fetchProject(projectId: string): Promise<PartnerProject | null> {
     if (!isServerProject(projectId)) return null;
     try {
-      return toProject(await apiClient.get<ProjectDto>(`/projects/${projectId}`));
+      const p = toProject(await apiClient.get<ProjectDto>(`/projects/${projectId}`));
+      if (p.organizationId && (!p.partnerName || p.partnerName === 'Not linked to a partner')) {
+        try {
+          const org = await apiClient.get<{ id: string; name: string }>(`/admin/organizations/${p.organizationId}`).catch(() => null);
+          if (org?.name) {
+            p.partnerName = org.name;
+            p.partnerId = org.id;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return p;
     } catch {
       return null;
     }
@@ -589,15 +699,17 @@ export const partnersApi = {
   /** Workspace items of a server project: one per uploaded screen/program, with the status
    * and attempts of its most recent conversion job. */
   async getServerProjectItems(projectId: string): Promise<PartnerConversionItem[]> {
-    let screens: ScreenDto[];
-    let jobs: ConversionJobDto[];
+    let screens: ScreenDto[] = [];
+    let jobs: ConversionJobDto[] = [];
     try {
-      [screens, jobs] = await Promise.all([
-        apiClient.get<ScreenDto[]>(`/projects/${projectId}/screens`),
-        apiClient.get<ConversionJobDto[]>(`/projects/${projectId}/conversions`),
-      ]);
+      screens = await apiClient.get<ScreenDto[]>(`/projects/${projectId}/screens`);
     } catch (err) {
-      throw toPartnerConversionError(err, 'load');
+      screens = [];
+    }
+    try {
+      jobs = await apiClient.get<ConversionJobDto[]>(`/projects/${projectId}/conversions`);
+    } catch {
+      jobs = [];
     }
     const project = await this.fetchProject(projectId);
     const conversionType = project?.conversionType ?? 'BMS_DSPF_TO_FRONTEND';
@@ -860,4 +972,128 @@ export const partnersApi = {
       return [];
     }
   },
+
+  // 22. Deliverables Management & Approval Pipeline (Web2 Staff / Lead / Admin)
+  async getDeliverables(projectId?: string): Promise<PartnerDeliverableItem[]> {
+    try {
+      const url = projectId ? `/deliverables?projectId=${projectId}` : '/deliverables';
+      const items = await apiClient.get<PartnerDeliverableItem[]>(url);
+      return Array.isArray(items) ? items : [];
+    } catch {
+      return [];
+    }
+  },
+
+  async createDeliverableCandidate(data: {
+    projectId: string;
+    title: string;
+    version: string;
+    description: string;
+    packageType: string;
+    fileCount?: number;
+    totalSizeFormatted?: string;
+    downloadUrl?: string;
+    initialStatus?: 'DRAFT' | 'IN_REVIEW';
+  }): Promise<PartnerDeliverableItem> {
+    return apiClient.post<PartnerDeliverableItem>('/deliverables', data);
+  },
+
+  async teamLeadReviewDeliverable(
+    id: string,
+    decision: 'APPROVED' | 'REVISION_REQUESTED',
+    notes?: string,
+  ): Promise<PartnerDeliverableItem> {
+    return apiClient.post<PartnerDeliverableItem>(`/deliverables/${id}/team-lead-review`, {
+      decision,
+      notes,
+    });
+  },
+
+  async publishDeliverable(id: string): Promise<PartnerDeliverableItem> {
+    return apiClient.post<PartnerDeliverableItem>(`/deliverables/${id}/publish`);
+  },
+
+  // 23. Internal Working Files (Private to ALSM engineers, never exposed to customer)
+  async getInternalWorkingFiles(projectId: string): Promise<InternalWorkingFileItem[]> {
+    try {
+      const items = await apiClient.get<InternalWorkingFileItem[]>(
+        `/projects/${projectId}/internal-working-files`,
+      );
+      return Array.isArray(items) ? items : [];
+    } catch {
+      return [];
+    }
+  },
+
+  async createInternalWorkingFile(
+    projectId: string,
+    data: {
+      name: string;
+      category: 'WORKING_DRAFT' | 'INTERMEDIATE_CODE' | 'ANALYSIS_DOC' | 'INTERNAL_NOTE';
+      sizeBytes?: number;
+      content?: string;
+      notes?: string;
+    },
+  ): Promise<InternalWorkingFileItem> {
+    return apiClient.post<InternalWorkingFileItem>(
+      `/projects/${projectId}/internal-working-files`,
+      data,
+    );
+  },
+
+  async deleteInternalWorkingFile(projectId: string, fileId: string): Promise<void> {
+    await apiClient.delete(`/projects/${projectId}/internal-working-files/${fileId}`);
+  },
 };
+
+export interface PartnerDeliverableItem {
+  id: string;
+  projectId: string;
+  projectName: string;
+  organizationId: string;
+  version: string;
+  title: string;
+  description: string;
+  packageType: string;
+  fileCount: number;
+  totalSizeFormatted: string;
+  downloadUrl?: string;
+  status: 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'READY_FOR_REVIEW' | 'REVISION_REQUESTED';
+  uploadedByUserId?: string;
+  uploadedByName?: string;
+  uploadedByRole?: string;
+  teamLeadReview?: {
+    decision: 'APPROVED' | 'REVISION_REQUESTED';
+    reviewedByUserId: string;
+    reviewedByUserName: string;
+    reviewedAt: string;
+    feedbackNotes?: string;
+  };
+  publishedAt?: string;
+  publishedBy?: string;
+  publishedByName?: string;
+  customerReview?: {
+    decision: 'APPROVED' | 'REVISION_REQUESTED';
+    reviewedByUserId: string;
+    reviewedByUserName: string;
+    reviewedAt: string;
+    feedbackNotes?: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InternalWorkingFileItem {
+  _id: string;
+  id?: string;
+  projectId: string;
+  name: string;
+  category: 'WORKING_DRAFT' | 'INTERMEDIATE_CODE' | 'ANALYSIS_DOC' | 'INTERNAL_NOTE';
+  sizeBytes: number;
+  content?: string;
+  storageUrl?: string;
+  uploadedByName: string;
+  uploadedByRole: string;
+  notes?: string;
+  createdAt: string;
+}

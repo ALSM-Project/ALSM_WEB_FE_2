@@ -129,7 +129,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <p className="text-xs text-[#6B778C] -mt-2">
+        <p className="text-xs text-[#8491A3] -mt-2">
           Initiate a modernization project on behalf of an onboarded partner organization.
         </p>
 
@@ -141,19 +141,19 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
 
         {/* Target Partner */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-1.5">
+          <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
             Target Partner Organization <span className="text-rose-500">*</span>
           </label>
           {partner ? (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#F7F9FC] border border-[#D9E2EC]">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC]">
               <div className="flex items-center space-x-2.5">
-                <Building2 className="w-4 h-4 text-[#0652CC]" />
+                <Building2 className="w-4 h-4 text-[#244A70]" />
                 <div>
-                  <p className="text-xs font-bold text-[#091E42]">{partner.name}</p>
-                  <p className="text-[11px] text-[#6B778C]">{partner.domain || partner.contactEmail}</p>
+                  <p className="text-xs font-bold text-[#17263A]">{partner.name}</p>
+                  <p className="text-[11px] text-[#8491A3]">{partner.domain || partner.contactEmail}</p>
                 </div>
               </div>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-[#0652CC]">
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-[#244A70]">
                 {partner.engagementType || 'Dedicated Modernization'}
               </span>
             </div>
@@ -161,7 +161,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
             <select
               value={selectedPartnerId}
               onChange={(e) => setSelectedPartnerId(e.target.value)}
-              className="w-full text-xs p-2.5 bg-[#F7F9FC] focus:bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]"
+              className="w-full text-xs p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] rounded-lg text-[#17263A] outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               {availablePartners.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -185,22 +185,22 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
 
         {/* Project Scope Description */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-1.5 flex items-center justify-between">
+          <label className="block text-xs font-semibold text-[#17263A] mb-1.5 flex items-center justify-between">
             <span>Project Description &amp; Scope Notes</span>
-            <span className="text-[11px] font-normal text-[#6B778C]">Optional</span>
+            <span className="text-[11px] font-normal text-[#8491A3]">Optional</span>
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
             placeholder="Outline legacy system characteristics, batch windows, or modernization guidelines..."
-            className="w-full px-3 py-2 text-xs bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] placeholder-[#6B778C] outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC] resize-none"
+            className="w-full px-3 py-2 text-xs bg-white border border-[#DCE3EC] rounded-lg text-[#17263A] placeholder-[#8491A3] outline-none focus:ring-2 focus:ring-[#244A70]/20 focus:border-[#244A70] resize-none"
           />
         </div>
 
         {/* Modernization Pipeline Selection Cards */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-2">
+          <label className="block text-xs font-semibold text-[#17263A] mb-2">
             Modernization Domain &amp; Pipeline <span className="text-rose-500">*</span>
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -209,8 +209,8 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
               onClick={() => handleTypeChange('BMS_DSPF_TO_FRONTEND')}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer relative ${
                 conversionType === 'BMS_DSPF_TO_FRONTEND'
-                  ? 'border-[#0652CC] bg-blue-50/40 shadow-xs'
-                  : 'border-[#E5EAF0] bg-white hover:border-[#D9E2EC]'
+                  ? 'border-[#244A70] bg-blue-50/40 shadow-xs'
+                  : 'border-[#DCE3EC] bg-white hover:border-[#DCE3EC]'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -218,26 +218,26 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                       conversionType === 'BMS_DSPF_TO_FRONTEND'
-                        ? 'bg-[#0652CC] text-white'
-                        : 'bg-gray-100 text-[#42526E]'
+                        ? 'bg-[#244A70] text-white'
+                        : 'bg-gray-100 text-[#8491A3]'
                     }`}
                   >
                     <Monitor className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-[#091E42]">BMS / DSPF Screens to Web</h5>
-                    <p className="text-[10px] text-[#6B778C]">3270 maps to React 19 components</p>
+                    <h5 className="text-xs font-bold text-[#17263A]">BMS / DSPF Screens to Web</h5>
+                    <p className="text-[10px] text-[#8491A3]">3270 maps to React 19 components</p>
                   </div>
                 </div>
                 {conversionType === 'BMS_DSPF_TO_FRONTEND' && (
-                  <span className="w-4 h-4 rounded-full bg-[#0652CC] text-white flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-[#244A70] text-white flex items-center justify-center shrink-0">
                     <Check className="w-2.5 h-2.5" />
                   </span>
                 )}
               </div>
-              <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-[#E5EAF0]/60">
-                <span className="text-[#6B778C]">Source: BMS / DSPF</span>
-                <span className="font-semibold text-[#0652CC]">React 19 + TypeScript</span>
+              <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-[#DCE3EC]/60">
+                <span className="text-[#8491A3]">Source: BMS / DSPF</span>
+                <span className="font-semibold text-[#244A70]">React 19 + TypeScript</span>
               </div>
             </div>
 
@@ -246,8 +246,8 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
               onClick={() => handleTypeChange('COBOL_TO_JAVA')}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer relative ${
                 conversionType === 'COBOL_TO_JAVA'
-                  ? 'border-[#0652CC] bg-blue-50/40 shadow-xs'
-                  : 'border-[#E5EAF0] bg-white hover:border-[#D9E2EC]'
+                  ? 'border-[#244A70] bg-blue-50/40 shadow-xs'
+                  : 'border-[#DCE3EC] bg-white hover:border-[#DCE3EC]'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -256,24 +256,24 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
                     className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                       conversionType === 'COBOL_TO_JAVA'
                         ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-[#42526E]'
+                        : 'bg-gray-100 text-[#8491A3]'
                     }`}
                   >
                     <Cpu className="w-4 h-4" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-[#091E42]">COBOL to Java Microservices</h5>
-                    <p className="text-[10px] text-[#6B778C]">AST parsing to Spring Boot 3</p>
+                    <h5 className="text-xs font-bold text-[#17263A]">COBOL to Java Microservices</h5>
+                    <p className="text-[10px] text-[#8491A3]">AST parsing to Spring Boot 3</p>
                   </div>
                 </div>
                 {conversionType === 'COBOL_TO_JAVA' && (
-                  <span className="w-4 h-4 rounded-full bg-[#0652CC] text-white flex items-center justify-center shrink-0">
+                  <span className="w-4 h-4 rounded-full bg-[#244A70] text-white flex items-center justify-center shrink-0">
                     <Check className="w-2.5 h-2.5" />
                   </span>
                 )}
               </div>
-              <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-[#E5EAF0]/60">
-                <span className="text-[#6B778C]">Source: COBOL / CBL</span>
+              <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-[#DCE3EC]/60">
+                <span className="text-[#8491A3]">Source: COBOL / CBL</span>
                 <span className="font-semibold text-purple-700">Spring Boot 3 + Java 21</span>
               </div>
             </div>
@@ -282,13 +282,13 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
 
         {/* Target Framework */}
         <div>
-          <label className="block text-xs font-semibold text-[#091E42] mb-1.5">
+          <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
             Target Framework &amp; Stack <span className="text-rose-500">*</span>
           </label>
           <select
             value={targetFramework}
             onChange={(e) => setTargetFramework(e.target.value)}
-            className="w-full text-xs p-2.5 bg-[#F7F9FC] focus:bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] outline-none focus:ring-1 focus:ring-[#0652CC]"
+            className="w-full text-xs p-2.5 bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] rounded-lg text-[#17263A] outline-none focus:ring-1 focus:ring-[#244A70]"
           >
             {conversionType === 'BMS_DSPF_TO_FRONTEND' ? (
               <>
@@ -307,7 +307,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
         </div>
 
         {/* Modal Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E5EAF0]">
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#DCE3EC]">
           <Button
             type="button"
             variant="outline"
@@ -320,7 +320,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
             type="submit"
             variant="primary"
             isLoading={submitting}
-            className="bg-[#0652CC] hover:bg-[#0543A8]"
+            className="bg-[#244A70] hover:bg-[#244A70]"
           >
             Create &amp; Open Workspace
           </Button>
