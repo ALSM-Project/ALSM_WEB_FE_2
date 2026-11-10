@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, AlertCircle, RefreshCw, FolderGit2
+  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, AlertCircle, RefreshCw, FolderGit2, Trash2
 } from 'lucide-react';
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
@@ -48,7 +48,28 @@ export const OrganizationDetailPage: React.FC = () => {
   const [sourcePlatform, setSourcePlatform] = useState('Oracle Forms 11g');
   const [targetPlatform, setTargetPlatform] = useState('React + NestJS');
 
+  // Delete Organisation State
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  const handleDeleteConfirm = async () => {
+    if (!org) return;
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      await adminApi.deleteOrganization(org.id);
+      navigate('/admin/organizations');
+    } catch (err: any) {
+      console.error('Failed to delete organisation:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to delete organisation.';
+      setDeleteError(Array.isArray(msg) ? msg.join(' ') : msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const hydrateEngagementForm = (organization: OrganizationDto) => {
     setEditStatus(organization.status);
@@ -278,15 +299,40 @@ export const OrganizationDetailPage: React.FC = () => {
           )}
 
           {canManageOrganizations && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={openEngagementEditor}
-              className="text-xs bg-[#244A70] hover:bg-[#244A70] text-white"
-            >
-              <Edit3 className="w-3.5 h-3.5 mr-1" />
-              Edit Engagement
-            </Button>
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={openEngagementEditor}
+                className="text-xs bg-[#244A70] hover:bg-[#244A70] text-white"
+              >
+                <Edit3 className="w-3.5 h-3.5 mr-1" />
+                Edit Engagement
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')}
+                onClick={() => {
+                  setDeleteError(null);
+                  setShowDeleteModal(true);
+                }}
+                className={`text-xs ${
+                  org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')
+                    ? 'border-slate-100 text-slate-300 opacity-50 cursor-not-allowed'
+                    : 'border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300'
+                }`}
+                title={
+                  org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')
+                    ? 'Internal ALSM operations organisation cannot be deleted'
+                    : 'Delete this organisation'
+                }
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                Delete
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -870,6 +916,93 @@ export const OrganizationDetailPage: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          if (!isDeleting) {
+            setShowDeleteModal(false);
+            setDeleteError(null);
+          }
+        }}
+        title="Delete Organisation"
+      >
+        {org && (
+          <div className="space-y-4">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-rose-900">Are you sure you want to delete this organisation?</p>
+                <p className="mt-1 text-rose-700">
+                  This action will permanently delete the organisation tenant and archive any associated projects. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Organisation Name:</span>
+                <span className="font-semibold text-slate-800">{org.name}</span>
+              </div>
+              {org.domain && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Domain:</span>
+                  <span className="font-mono text-slate-700">{org.domain}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-slate-500">Engagement Type:</span>
+                <span className="font-medium text-slate-700">{org.engagementType || 'Trial'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Active Projects:</span>
+                <span className="font-medium text-slate-700">{org.projectCount ?? 0} projects</span>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteError(null);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleDeleteConfirm}
+                disabled={isDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-semibold flex items-center gap-1.5"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Organisation
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
