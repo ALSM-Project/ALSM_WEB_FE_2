@@ -6,6 +6,7 @@ import { BankAccountsTable } from './BankAccountsTable';
 import { BankAccountFormModal } from './BankAccountFormModal';
 import { BankAccountDetailModal } from './BankAccountDetailModal';
 import { DeactivateBankAccountModal } from './DeactivateBankAccountModal';
+import { DeleteBankAccountModal } from './DeleteBankAccountModal';
 import { useBankAccounts } from '../hooks/useBankAccounts';
 import {
   BankAccount,
@@ -43,6 +44,8 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
     deactivateAccount,
     isDeactivating,
     reactivateAccount,
+    deleteAccount,
+    isDeleting,
     revealAccountNumber,
   } = useBankAccounts(queryParams);
 
@@ -55,6 +58,9 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
 
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
   const [deactivatingAccount, setDeactivatingAccount] = useState<BankAccount | null>(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState<BankAccount | null>(null);
 
   // Success / error banner feedback
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -86,6 +92,11 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
   const handleOpenDeactivate = (acc: BankAccount) => {
     setDeactivatingAccount(acc);
     setIsDeactivateModalOpen(true);
+  };
+
+  const handleOpenDelete = (acc: BankAccount) => {
+    setDeletingAccount(acc);
+    setIsDeleteModalOpen(true);
   };
 
   const handleFormSubmit = async (input: CreateBankAccountInput | UpdateBankAccountInput) => {
@@ -120,6 +131,17 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || 'Failed to reactivate account';
       showFeedback('error', msg);
+    }
+  };
+
+  const handleDeleteConfirm = async (id: string) => {
+    try {
+      await deleteAccount(id);
+      showFeedback('success', 'Bank account deleted permanently.');
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || 'Failed to delete bank account';
+      showFeedback('error', msg);
+      throw err;
     }
   };
 
@@ -195,6 +217,7 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
         onSetDefault={handleSetDefault}
         onDeactivate={handleOpenDeactivate}
         onReactivate={handleReactivate}
+        onDelete={handleOpenDelete}
       />
 
       {/* Form Modal (Add / Edit) */}
@@ -224,6 +247,15 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
         onConfirm={handleDeactivate}
         account={deactivatingAccount}
         isDeactivating={isDeactivating}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteBankAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteConfirm}
+        account={deletingAccount}
+        isDeleting={isDeleting}
       />
     </div>
   );

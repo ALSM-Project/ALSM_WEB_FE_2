@@ -9,6 +9,7 @@ import {
   Edit2,
   Star,
   Ban,
+  Trash2,
   ChevronLeft,
   ChevronRight,
   Plus,
@@ -36,6 +37,7 @@ interface BankAccountsTableProps {
   onSetDefault: (id: string) => void;
   onDeactivate: (account: BankAccount) => void;
   onReactivate: (id: string) => void;
+  onDelete?: (account: BankAccount) => void;
 }
 
 export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
@@ -51,12 +53,14 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
   onSetDefault,
   onDeactivate,
   onReactivate,
+  onDelete,
 }) => {
   const { hasPermission, user } = useAuth();
   const canCreate = Boolean(user?.isPlatformAdmin || hasPermission('bank_accounts.create'));
   const canUpdate = Boolean(user?.isPlatformAdmin || hasPermission('bank_accounts.update'));
   const canSetDefault = Boolean(user?.isPlatformAdmin || hasPermission('bank_accounts.set_default'));
   const canDeactivate = Boolean(user?.isPlatformAdmin || hasPermission('bank_accounts.deactivate'));
+  const canDelete = Boolean(user?.isPlatformAdmin || hasPermission('bank_accounts.delete'));
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -383,6 +387,18 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
                           <RotateCcw className="w-4 h-4" />
                         </button>
                       )}
+
+                      {/* Delete */}
+                      {canDelete && onDelete && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(acc)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                          title="Permanently delete account"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-500" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -394,40 +410,89 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
 
       {/* Pagination Footer */}
       {pagination.total > 0 && (
-        <div className="px-4 py-3 bg-[#F8FAFC] border-t border-[#EEF1F6] flex items-center justify-between text-xs text-slate-600">
-          <div>
-            Showing{' '}
-            <span className="font-semibold text-[#17263A]">
-              {(pagination.page - 1) * pagination.limit + 1}
-            </span>{' '}
-            to{' '}
-            <span className="font-semibold text-[#17263A]">
-              {Math.min(pagination.page * pagination.limit, pagination.total)}
-            </span>{' '}
-            of <span className="font-semibold text-[#17263A]">{pagination.total}</span> accounts
+        <div className="px-4 py-3 bg-[#F8FAFC] border-t border-[#EEF1F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-3">
+            <span>
+              Showing{' '}
+              <span className="font-semibold text-[#17263A]">
+                {(pagination.page - 1) * pagination.limit + 1}
+              </span>{' '}
+              to{' '}
+              <span className="font-semibold text-[#17263A]">
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+              </span>{' '}
+              of <span className="font-semibold text-[#17263A]">{pagination.total}</span> accounts
+            </span>
+
+            {/* Page Size Selector */}
+            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+              <span className="text-slate-500">Per page:</span>
+              <select
+                value={pagination.limit}
+                onChange={(e) => onQueryChange({ limit: Number(e.target.value), page: 1 })}
+                className="bg-white border border-[#DCE3EC] rounded px-2 py-0.5 text-xs text-[#17263A] focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               disabled={pagination.page <= 1}
               onClick={() => onQueryChange({ page: pagination.page - 1 })}
-              className="p-1 rounded border border-[#DCE3EC] bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center gap-1"
               title="Previous page"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Prev</span>
             </button>
-            <span className="px-2">
-              Page {pagination.page} of {pagination.totalPages}
-            </span>
+
+            {/* Numbered Page Buttons with Ellipsis */}
+            <div className="flex items-center gap-1 mx-1">
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
+                .filter((p) => p === 1 || p === pagination.totalPages || Math.abs(p - pagination.page) <= 1)
+                .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                    acc.push('...');
+                  }
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, idx) =>
+                  typeof p === 'string' ? (
+                    <span key={`ellipsis-${idx}`} className="px-1 text-slate-400 select-none">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => onQueryChange({ page: p })}
+                      className={`min-w-7 h-7 rounded border text-xs font-semibold transition-colors ${
+                        p === pagination.page
+                          ? 'bg-[#244A70] text-white border-[#244A70]'
+                          : 'border-[#DCE3EC] bg-white text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+            </div>
+
             <button
               type="button"
               disabled={pagination.page >= pagination.totalPages}
               onClick={() => onQueryChange({ page: pagination.page + 1 })}
-              className="p-1 rounded border border-[#DCE3EC] bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-2.5 py-1 rounded border border-[#DCE3EC] bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-medium flex items-center gap-1"
               title="Next page"
             >
-              <ChevronRight className="w-4 h-4" />
+              <span>Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
