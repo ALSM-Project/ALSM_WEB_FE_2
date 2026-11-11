@@ -137,6 +137,7 @@ export const AuditLogsPage: React.FC = () => {
   const [isUsingMock, setIsUsingMock] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [exportingCsv, setExportingCsv] = useState<boolean>(false);
+  const [exportingPdf, setExportingPdf] = useState<boolean>(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
   const [selectedLog, setSelectedLog] = useState<AuditLogDto | null>(null);
 
@@ -268,12 +269,29 @@ export const AuditLogsPage: React.FC = () => {
     }
   };
 
-  const handleExportPdfPlaceholder = () => {
-    setExportNotice(
-      'Export PDF initiated: Printable simulated audit log ledger formatted for compliance review.'
-    );
-    window.print();
-    setTimeout(() => setExportNotice(null), 4000);
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      const blob = await adminApi.exportAuditLogsPdf({
+        action: actionFilter || undefined,
+        resourceType: resourceFilter || undefined,
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `alsm-audit-logs-${new Date().toISOString().slice(0, 10)}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      setExportNotice('Audit logs PDF exported successfully.');
+      setTimeout(() => setExportNotice(null), 4000);
+    } catch (err: any) {
+      console.warn('Backend PDF export failed, falling back to print-to-PDF:', err);
+      window.print();
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const resetFilters = () => {
@@ -315,12 +333,13 @@ export const AuditLogsPage: React.FC = () => {
           </button>
 
           <button
-            onClick={handleExportPdfPlaceholder}
-            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer"
-            title="Print or export compliance audit log"
+            disabled={exportingPdf}
+            onClick={handleExportPdf}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+            title="Download authoritative audit logs in PDF format"
           >
             <FileText className="w-3.5 h-3.5 text-slate-500" />
-            Export PDF
+            {exportingPdf ? 'Exporting PDF...' : 'Export PDF'}
           </button>
         </div>
       </div>

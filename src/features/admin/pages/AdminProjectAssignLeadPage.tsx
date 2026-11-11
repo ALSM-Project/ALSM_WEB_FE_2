@@ -122,6 +122,13 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
           };
         });
 
+      const seenCandidateIds = new Set<string>();
+      const uniqueMappedLeads = mappedLeads.filter((lead) => {
+        if (!lead.id || seenCandidateIds.has(lead.id)) return false;
+        seenCandidateIds.add(lead.id);
+        return true;
+      });
+
       // Default fallback leads for development/testing if no workforce items exist
       const fallbackLeads: TeamLeadCandidate[] = [
         {
@@ -153,7 +160,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
         },
       ];
 
-      setTeamLeads(mappedLeads.length > 0 ? mappedLeads : fallbackLeads);
+      setTeamLeads(uniqueMappedLeads.length > 0 ? uniqueMappedLeads : fallbackLeads);
     } catch (err: any) {
       console.error('Failed to load project details for team lead assignment:', err);
       setErrorMsg(err.message || 'Failed to load project information');

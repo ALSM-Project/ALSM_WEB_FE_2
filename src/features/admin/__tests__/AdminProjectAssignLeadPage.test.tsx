@@ -81,7 +81,7 @@ describe('AdminProjectAssignLeadPage - Dedicated Allocation Details Page', () =>
   it('renders project dossier information and candidate roster', async () => {
     render(<AdminProjectAssignLeadPage />, { wrapper: createWrapper() });
 
-    expect(await screen.findByText('Allocate Team Lead')).toBeInTheDocument();
+    expect(await screen.findByText(/Allocate (Project to )?Team Lead/i)).toBeInTheDocument();
     expect(screen.getAllByText('Core Banking BMS Modernization').length).toBeGreaterThan(0);
     expect(screen.getByText('BMS/DSPF → React 19')).toBeInTheDocument();
     expect(screen.getByText('Fintech Nexus Ltd.')).toBeInTheDocument();

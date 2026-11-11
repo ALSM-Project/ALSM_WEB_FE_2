@@ -4,7 +4,8 @@ import {
   FolderKanban, UserCheck, Search, RefreshCw, 
   AlertCircle, CheckCircle2, ExternalLink,
   Users, ShieldAlert, Check, ArrowRightLeft, Copy,
-  Plus, X, RotateCcw, Activity, Eye
+  Plus, X, RotateCcw, Activity, Eye, Sparkles,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { adminApi, OrganizationDto, isManagedModernizationOrg, isManagedModernizationProject } from '../api/admin.api';
 import { UserRbacDto } from '@/features/rbac/api/rbac.api';
@@ -104,6 +105,10 @@ export const AdminProjectsPage: React.FC = () => {
   const [selectedOrgFilter, setSelectedOrgFilter] = useState<string>('ALL');
   const [metricFilter, setMetricFilter] = useState<string>('ALL');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
   // Assign / Reassign Team Lead Modal
   const [assignTargetProject, setAssignTargetProject] = useState<UnifiedProjectItem | null>(null);
   const [selectedLeadId, setSelectedLeadId] = useState('');
@@ -137,6 +142,47 @@ export const AdminProjectsPage: React.FC = () => {
     description: '',
     initialLeadId: '',
   });
+
+  // Create Demo Project Modal (UC-65, Screen S42)
+  const [showDemoModal, setShowDemoModal] = useState<boolean>(false);
+  const [creatingDemo, setCreatingDemo] = useState<boolean>(false);
+  const [demoForm, setDemoForm] = useState({
+    name: 'CICS Banking Core Modernization (Demo)',
+    organizationId: '',
+    sourcePlatform: 'IBM z/OS Mainframe (BMS / CICS / COBOL)',
+    targetPlatform: 'React 19 + TypeScript + Spring Boot 3.3',
+  });
+
+  const handleCreateDemoProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!demoForm.name.trim()) {
+      setErrorMsg('Demo project name is required');
+      return;
+    }
+    const targetOrgId = demoForm.organizationId || organizations[0]?.id || '';
+    if (!targetOrgId) {
+      setErrorMsg('Please select an organization for the demo project');
+      return;
+    }
+    try {
+      setCreatingDemo(true);
+      setErrorMsg(null);
+      const res = await adminApi.createDemoProject({
+        name: demoForm.name.trim(),
+        organizationId: targetOrgId,
+        sourcePlatform: demoForm.sourcePlatform,
+        targetPlatform: demoForm.targetPlatform,
+      });
+      setShowDemoModal(false);
+      setSuccessMsg(`Demo Project "${res.name || demoForm.name}" created successfully (UC-65).`);
+      await fetchData();
+    } catch (err: any) {
+      console.error('Failed to create demo project:', err);
+      setErrorMsg(`Failed to create demo project: ${err.message || 'Unknown error'}`);
+    } finally {
+      setCreatingDemo(false);
+    }
+  };
 
   // Clipboard copy state
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -173,7 +219,7 @@ export const AdminProjectsPage: React.FC = () => {
       });
 
       // Strictly map internal ALSM workforce leads
-      const leads: UserRbacDto[] = (internalStaff || [])
+      const rawLeads: UserRbacDto[] = (internalStaff || [])
         .filter((emp) => emp.status === 'ACTIVE')
         .map((emp) => ({
           id: emp.userId,
@@ -184,6 +230,13 @@ export const AdminProjectsPage: React.FC = () => {
           isActive: true,
           isLocked: false,
         } as unknown as UserRbacDto));
+
+      const seenLeads = new Set<string>();
+      const leads = rawLeads.filter((l) => {
+        if (!l.id || seenLeads.has(l.id)) return false;
+        seenLeads.add(l.id);
+        return true;
+      });
 
       const fallbackLeads: UserRbacDto[] = [
         { id: 'lead-01', fullName: 'Sarah Jenkins', email: 'sarah.j@alsm.io', roles: ['Team Lead'], isPlatformAdmin: false, isActive: true, isLocked: false } as any,
@@ -207,7 +260,7 @@ export const AdminProjectsPage: React.FC = () => {
             id: p.id,
             name: p.name,
             description: p.description,
-            conversionType: p.conversionType,
+            conversionType: (p.conversionType === 'BMS_DSPF_TO_REACT' ? 'BMS_DSPF_TO_FRONTEND' : p.conversionType) as any,
             partnerId: p.partnerId,
             partnerName: org?.name || p.partnerName,
             organizationId: p.organizationId || p.partnerId,
@@ -457,6 +510,19 @@ export const AdminProjectsPage: React.FC = () => {
     });
   }, [projects, searchTerm, allocationFilter, pipelineFilter, statusFilter, selectedLeadFilter, selectedOrgFilter]);
 
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, allocationFilter, pipelineFilter, statusFilter, selectedLeadFilter, selectedOrgFilter]);
+
+  // Pagination calculation
+  const totalPages = Math.max(1, Math.ceil(filteredProjects.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedProjects = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredProjects.slice(start, start + pageSize);
+  }, [filteredProjects, safeCurrentPage, pageSize]);
+
   // Transfer Candidates
   const transferCandidates: CandidateAssignee[] = teamLeads.map((tl) => {
     const activeCount = projects.filter((p) => p.assignedTeamLeadId === tl.id).length;
@@ -527,10 +593,20 @@ export const AdminProjectsPage: React.FC = () => {
           <Button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70] text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition-colors"
+            className="inline-flex items-center gap-1.5 bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             New Enterprise Project
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => setShowDemoModal(true)}
+            className="inline-flex items-center gap-1.5 bg-white border border-[#244A70] text-[#244A70] hover:bg-[#EEF1F6] text-xs font-semibold px-3.5 py-2 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            title="Create sample demo project with preloaded BMS/COBOL files for presentations (UC-65, Screen S42)"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Create Demo Project
           </Button>
 
           <Link
@@ -953,7 +1029,7 @@ export const AdminProjectsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredProjects.map((p) => {
+                paginatedProjects.map((p) => {
                   const leadUser = teamLeads.find((l) => l.id === p.assignedTeamLeadId);
                   const isAssigned = !!p.assignedTeamLeadId;
                   const totalItems = (p.screensTotal || 0) + (p.programsTotal || 0);
@@ -1181,6 +1257,89 @@ export const AdminProjectsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Section VI.2: Projects Pagination Controls */}
+        <div className="px-4 py-3 border-t border-[#DCE3EC] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-[#5A6A80]">
+          <div className="flex items-center gap-2">
+            <span>
+              Showing {filteredProjects.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0} to{' '}
+              {Math.min(safeCurrentPage * pageSize, filteredProjects.length)} of {filteredProjects.length} projects
+            </span>
+            <span className="text-[#DCE3EC]">|</span>
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-0.5 text-xs bg-white border border-[#DCE3EC] rounded font-semibold text-[#17263A]"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safeCurrentPage <= 1}
+              className="text-xs px-2.5 py-1 bg-white"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              Previous
+            </Button>
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  if (totalPages <= 7) return true;
+                  if (page === 1 || page === totalPages) return true;
+                  if (Math.abs(page - safeCurrentPage) <= 1) return true;
+                  return false;
+                })
+                .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                  if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                    acc.push('...');
+                  }
+                  acc.push(page);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  typeof item === 'string' ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-slate-400">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setCurrentPage(item)}
+                      className={`min-w-[28px] h-7 px-2 text-xs rounded border transition-colors ${
+                        safeCurrentPage === item
+                          ? 'bg-[#244A70] text-white border-[#244A70] font-bold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safeCurrentPage >= totalPages}
+              className="text-xs px-2.5 py-1 bg-white"
+            >
+              Next
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Section VII.1: Create Enterprise Project Modal (Managed Modernization Services) */}
@@ -1310,6 +1469,106 @@ export const AdminProjectsPage: React.FC = () => {
               className="bg-[#244A70] hover:bg-[#244A70] text-xs text-white"
             >
               {creating ? 'Creating Project...' : 'Create Enterprise Project'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* UC-65, Screen S42: Create Demo Project Modal */}
+      <Modal
+        isOpen={showDemoModal}
+        onClose={() => setShowDemoModal(false)}
+        title="Create Demo Modernization Project (UC-65, Screen S42)"
+      >
+        <form onSubmit={handleCreateDemoProject} className="space-y-4">
+          <p className="text-xs text-[#8491A3]">
+            Provisions a pre-configured demo modernization project with sample BMS screen maps and COBOL programs for prospective client presentations and technical evaluations.
+          </p>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#17263A] mb-1">
+              Demo Project Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={demoForm.name}
+              onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
+              className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:border-[#244A70]"
+              placeholder="e.g. CICS Banking Core Modernization (Demo)"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[#17263A] mb-1">
+              Client / Internal Organization *
+            </label>
+            <select
+              value={demoForm.organizationId || organizations[0]?.id || ''}
+              onChange={(e) => setDemoForm({ ...demoForm, organizationId: e.target.value })}
+              className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:border-[#244A70]"
+            >
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name} ({org.type || 'ENTERPRISE'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
+                Source Legacy Stack
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={demoForm.sourcePlatform}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#17263A] mb-1">
+                Target Architecture
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={demoForm.targetPlatform}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+              />
+            </div>
+          </div>
+
+          <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1">
+            <span className="font-bold flex items-center gap-1.5 text-[#244A70]">
+              <Sparkles className="w-3.5 h-3.5" /> Demo Workspace Highlights:
+            </span>
+            <ul className="list-disc list-inside text-[11px] text-slate-600 pl-1 space-y-0.5">
+              <li>Includes sample IBM BMS screen definitions &amp; COBOL procedural code.</li>
+              <li>Visible only to authorized Internal Staff for demonstration purposes (BR-63).</li>
+              <li>Ready to demonstrate one-click transpilation and UI preview.</li>
+            </ul>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-[#DCE3EC]">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDemoModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={creatingDemo || !demoForm.name.trim()}
+              className="bg-[#244A70] hover:bg-[#1B3856] text-xs text-white"
+            >
+              {creatingDemo ? 'Provisioning Demo...' : 'Create Demo Project'}
             </Button>
           </div>
         </form>
