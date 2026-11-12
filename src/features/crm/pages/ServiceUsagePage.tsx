@@ -10,6 +10,8 @@ import {
   Monitor,
   ShieldAlert,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { Button, PageHeader, StatCard } from '@/shared/ui';
 import { crmApi } from '../api/crm.api';
@@ -20,6 +22,8 @@ export const ServiceUsagePage: React.FC = () => {
   const [data, setData] = useState<{ items: any[]; summary: any } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const fetchServiceUsage = async () => {
@@ -43,12 +47,20 @@ export const ServiceUsagePage: React.FC = () => {
     fetchServiceUsage();
   }, [statusFilter]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, searchTerm]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     fetchServiceUsage();
   };
 
   const items = data?.items || [];
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedItems = items.slice((safeCurrentPage - 1) * pageSize, safeCurrentPage * pageSize);
+
   const summary = data?.summary || {
     totalOrganizations: 0,
     totalAllocatedScreens: 0,
@@ -225,7 +237,7 @@ export const ServiceUsagePage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                items.map((org) => {
+                paginatedItems.map((org) => {
                   const pct = org.screenCapacity.pct;
                   const barColor =
                     pct >= 100 ? 'bg-rose-500' : pct >= 80 ? 'bg-amber-500' : 'bg-[#244A70]';
@@ -317,6 +329,89 @@ export const ServiceUsagePage: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="px-4 py-3 border-t border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span>
+              Showing {items.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0} to{' '}
+              {Math.min(safeCurrentPage * pageSize, items.length)} of {items.length} organizations
+            </span>
+            <span className="text-slate-300">|</span>
+            <span>Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 py-0.5 text-xs bg-white border border-slate-200 rounded font-semibold text-slate-700"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safeCurrentPage <= 1}
+              className="text-xs px-2.5 py-1 bg-white"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              Previous
+            </Button>
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((page) => {
+                  if (totalPages <= 7) return true;
+                  if (page === 1 || page === totalPages) return true;
+                  if (Math.abs(page - safeCurrentPage) <= 1) return true;
+                  return false;
+                })
+                .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                  if (idx > 0 && page - (arr[idx - 1] as number) > 1) {
+                    acc.push('...');
+                  }
+                  acc.push(page);
+                  return acc;
+                }, [])
+                .map((item, idx) =>
+                  typeof item === 'string' ? (
+                    <span key={`ellipsis-${idx}`} className="px-2 text-slate-400">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      type="button"
+                      onClick={() => setCurrentPage(item)}
+                      className={`min-w-[28px] h-7 px-2 text-xs rounded border transition-colors ${
+                        safeCurrentPage === item
+                          ? 'bg-[#244A70] text-white border-[#244A70] font-bold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safeCurrentPage >= totalPages}
+              className="text-xs px-2.5 py-1 bg-white"
+            >
+              Next
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
