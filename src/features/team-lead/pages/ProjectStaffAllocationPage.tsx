@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Check,
   UserCheck,
-  ChevronRight,
   ArrowLeft,
   Briefcase,
   Layers,
@@ -21,7 +20,7 @@ import {
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { workloadLevel } from '../utils/workload';
-import { Button, StatusBadge } from '@/shared/ui';
+import { Button } from '@/shared/ui';
 
 interface AssignableStaffMember {
   id: string;
@@ -214,17 +213,7 @@ export const ProjectStaffAllocationPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* ── Breadcrumb Navigation ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-        <Link to="/team-lead/projects" className="hover:text-[#244A70] font-medium flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Employee Allocation</span>
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        <span className="font-semibold text-slate-700 truncate max-w-xs">{project?.name}</span>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-[#244A70] font-bold">Staff Allocation Details</span>
-      </div>
+
 
       {/* ── Page Header ────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
@@ -233,11 +222,7 @@ export const ProjectStaffAllocationPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               Allocate Conversion Staff to Project
             </h1>
-            {project?.status && <StatusBadge status={project.status} />}
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Assign qualified modernization engineers to execute AST parsing, field mapping, and interactive code conversions with real-time capacity and workload tracking.
-          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

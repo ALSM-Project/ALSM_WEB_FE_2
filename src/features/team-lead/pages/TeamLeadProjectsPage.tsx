@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   FolderKanban, Users, Search, RefreshCw, AlertCircle,
@@ -9,17 +9,23 @@ import {
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '@/features/admin/api/admin.api';
+import { contractsApi } from '@/features/contracts/api/contracts.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { StatusBadge } from '@/shared/ui/Badge';
 
 export const TeamLeadProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isPlatformAdmin = Boolean(user?.isPlatformAdmin);
+
   const [projects, setProjects] = useState<PartnerProject[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [staffFilter, setStaffFilter] = useState<'ALL' | 'UNALLOCATED' | 'ALLOCATED'>('ALL');
-  const [viewScope, setViewScope] = useState<'MY_PROJECTS' | 'ALL'>('ALL');
+  // Platform admins default to ALL to supervise the floor; Team leads strictly default to MY_PROJECTS.
+  const [viewScope, setViewScope] = useState<'MY_PROJECTS' | 'ALL'>(
+    isPlatformAdmin ? 'ALL' : 'MY_PROJECTS'
+  );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -28,34 +34,94 @@ export const TeamLeadProjectsPage: React.FC = () => {
     try {
       setLoading(true);
       setErrorMsg(null);
-      const [fetchedProjects, fetchedOrgs] = await Promise.all([
+      const [fetchedProjects, fetchedOrgs, contractsRes] = await Promise.all([
         partnersApi.getProjects(),
         adminApi.getOrganizations().catch(() => []),
+        contractsApi.listContracts({ limit: 100 }).catch(() => ({ items: [] as any[] })),
       ]);
 
-      const orgMap = new Map<string, string>();
-      (fetchedOrgs || []).forEach((o: any) => {
-        if (o.id && o.name) orgMap.set(o.id, o.name);
+      const contractsList = Array.isArray(contractsRes) ? contractsRes : (contractsRes?.items || []);
+
+      // Contract Type 2: Managed Modernization Services (WE_CONVERT_FOR_YOU / MANAGED_CONVERSION_SOW / MANAGED)
+      const managedContractNumbers = new Set<string>();
+      const managedContractOrgIds = new Set<string>();
+
+      contractsList.forEach((c: any) => {
+        const mode = (c?.serviceMode || '').toUpperCase();
+        const type = (c?.contractType || '').toUpperCase();
+        const isType2 =
+          mode === 'WE_CONVERT_FOR_YOU' ||
+          mode === 'MANAGED' ||
+          mode.includes('MANAGED') ||
+          type === 'MANAGED_CONVERSION_SOW';
+
+        if (isType2) {
+          if (c.contractNumber) managedContractNumbers.add(c.contractNumber);
+          if (c.organizationId) managedContractOrgIds.add(String(c.organizationId));
+        }
       });
+
+      // Organizations enrolled in Managed Modernization Services
+      const orgMap = new Map<string, any>();
+      const managedOrgIds = new Set<string>(managedContractOrgIds);
+
+      (fetchedOrgs || []).forEach((o: any) => {
+        if (o.id) {
+          orgMap.set(o.id, o);
+          const mode = (o.serviceMode || '').toUpperCase();
+          if (mode === 'WE_CONVERT_FOR_YOU' || mode === 'ALSM_MANAGED' || mode === 'MANAGED') {
+            managedOrgIds.add(String(o.id));
+          }
+        }
+      });
+
+      const hasContractContext = managedContractNumbers.size > 0 || managedOrgIds.size > 0;
 
       // Filter and map ONLY real Managed Modernization Services projects (Web 3 / Contract Type 2)
       const managedOnly = (fetchedProjects || [])
         .map((p) => {
+          const org = orgMap.get(p.organizationId);
           const resolvedPartner =
             p.partnerName && p.partnerName !== 'Not linked to a partner'
               ? p.partnerName
-              : orgMap.get(p.organizationId) || p.partnerName || 'Enterprise Client';
+              : org?.name || p.partnerName || 'Enterprise Client';
           return { ...p, partnerName: resolvedPartner };
         })
-        .filter((p) => {
-          // Exclude pure self-service projects without contracts or managed stages
-          if (p.serviceType === 'SELF_SERVICE' && !p.contractNumber && !p.currentStage) {
+        .filter((p: any) => {
+          // Strictly exclude explicit self-service projects, personal workspaces, or trial accounts
+          if (p.serviceType === 'SELF_SERVICE') return false;
+          if (
+            p.serviceMode === 'CUSTOMER_SELF_SERVICE' ||
+            p.serviceMode === 'SELF_SERVICE_CONVERSION' ||
+            p.serviceMode === 'SELF_SERVICE'
+          ) {
             return false;
           }
-          if (p.serviceType === 'MANAGED') return true;
-          if (p.contractNumber || p.contractId) return true;
-          if (p.currentStage) return true;
-          if (p.partnerId && p.partnerId.trim().length > 0) return true;
+          if (p.partnerName === 'Personal Workspace' || p.partnerName?.toLowerCase().includes('personal')) {
+            return false;
+          }
+
+          // 1. Explicitly tagged as MANAGED service type
+          if (p.serviceType === 'MANAGED' || p.serviceMode === 'WE_CONVERT_FOR_YOU' || p.serviceMode === 'MANAGED') {
+            return true;
+          }
+
+          // 2. Bound to a known Contract Type 2 number
+          if (p.contractNumber && managedContractNumbers.has(p.contractNumber)) {
+            return true;
+          }
+
+          // 3. Organization is enrolled in Contract Type 2 (Managed Modernization Services)
+          if (p.organizationId && managedOrgIds.has(String(p.organizationId))) {
+            return true;
+          }
+
+          // Fallback if contract list is not available (e.g. offline mock tests)
+          if (!hasContractContext) {
+            if (p.serviceType === 'MANAGED' || p.serviceMode === 'WE_CONVERT_FOR_YOU') return true;
+            if (p.contractNumber && !p.contractNumber.includes('SELF') && p.status !== 'DRAFT') return true;
+          }
+
           return false;
         });
 
@@ -72,18 +138,31 @@ export const TeamLeadProjectsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  // Filter projects by current user if viewScope === 'MY_PROJECTS'
-  const isUserTeamLead = (p: PartnerProject) => {
-    if (!user) return true;
-    return (
-      p.assignedTeamLeadId === user.id ||
-      (p.assignedTeamLeadName && p.assignedTeamLeadName.toLowerCase().includes(user.fullName.toLowerCase())) ||
-      user.isPlatformAdmin
-    );
+  // Check if project is assigned to current user by Platform Admin
+  const isAssignedToUser = (p: PartnerProject) => {
+    if (!user) return false;
+    if (p.assignedTeamLeadId && (p.assignedTeamLeadId === user.id || String(p.assignedTeamLeadId) === String(user.id))) {
+      return true;
+    }
+    if (p.assignedTeamLeadName) {
+      const leadName = p.assignedTeamLeadName.toLowerCase().trim();
+      if (user.fullName) {
+        const uName = user.fullName.toLowerCase().trim();
+        if (leadName === uName || leadName.includes(uName) || uName.includes(leadName)) {
+          return true;
+        }
+      }
+      if (user.email && leadName.includes(user.email.toLowerCase().trim())) {
+        return true;
+      }
+    }
+    return false;
   };
 
+  // Team Lead strictly only sees projects assigned to them by Admin.
+  // Platform Admin can view all projects or filter to their own assigned projects.
   const filteredProjects = projects.filter((p) => {
-    const matchesScope = viewScope === 'ALL' || isUserTeamLead(p);
+    const matchesScope = !isPlatformAdmin ? isAssignedToUser(p) : (viewScope === 'ALL' || isAssignedToUser(p));
 
     const matchesSearch =
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,11 +185,19 @@ export const TeamLeadProjectsPage: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm, staffFilter, viewScope, pageSize]);
 
-  // KPI Metrics
-  const totalAssignedProjects = projects.length;
-  const unallocatedStaffCount = projects.filter((p) => !p.assignedStaffId).length;
-  const allocatedStaffCount = projects.filter((p) => !!p.assignedStaffId).length;
-  const readyForReviewCount = projects.filter(
+  // Scoped project list for KPI calculations
+  const scopedProjects = useMemo(() => {
+    if (!isPlatformAdmin) {
+      return projects.filter(isAssignedToUser);
+    }
+    return viewScope === 'MY_PROJECTS' ? projects.filter(isAssignedToUser) : projects;
+  }, [projects, isPlatformAdmin, viewScope, user]);
+
+  // KPI Metrics based on visible scope
+  const totalAssignedProjects = scopedProjects.length;
+  const unallocatedStaffCount = scopedProjects.filter((p) => !p.assignedStaffId).length;
+  const allocatedStaffCount = scopedProjects.filter((p) => !!p.assignedStaffId).length;
+  const readyForReviewCount = scopedProjects.filter(
     (p) => p.status === 'READY_FOR_EXPORT' || p.status === 'COMPLETED'
   ).length;
 
@@ -129,12 +216,10 @@ export const TeamLeadProjectsPage: React.FC = () => {
               Employee Allocation
             </h1>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
-              Managed Modernization Services (Web 3)
+              Managed Modernization Services
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Allocate and supervise engineering staff for enterprise managed conversion projects under Contract Type 2.
-          </p>
+
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -310,24 +395,33 @@ export const TeamLeadProjectsPage: React.FC = () => {
       <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
         <div className="flex items-center gap-2">
           <span>Viewing Scope:</span>
-          <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5 shadow-xs">
-            <button
-              onClick={() => setViewScope('ALL')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                viewScope === 'ALL' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              All Team Lead Projects
-            </button>
-            <button
-              onClick={() => setViewScope('MY_PROJECTS')}
-              className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors ${
-                viewScope === 'MY_PROJECTS' ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Assigned to Me
-            </button>
-          </div>
+          {isPlatformAdmin ? (
+            <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setViewScope('ALL')}
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                  viewScope === 'ALL' ? 'bg-slate-100 text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Team Lead Projects
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewScope('MY_PROJECTS')}
+                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
+                  viewScope === 'MY_PROJECTS' ? 'bg-slate-100 text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Assigned to Me
+              </button>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-[#0652CC] font-semibold text-xs">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Assigned to Me (by Admin)</span>
+            </div>
+          )}
         </div>
         <span>
           Showing {filteredProjects.length} modernizing {filteredProjects.length === 1 ? 'project' : 'projects'}
@@ -360,9 +454,17 @@ export const TeamLeadProjectsPage: React.FC = () => {
               <tr>
                 <td colSpan={7} className="text-center py-12 text-slate-500">
                   <FolderKanban className="w-8 h-8 mx-auto text-slate-300 mb-2" />
-                  <p className="font-semibold text-slate-700">No managed modernization projects found</p>
+                  <p className="font-semibold text-slate-700">
+                    {!isPlatformAdmin
+                      ? 'No Managed Modernization projects assigned to you yet'
+                      : 'No managed modernization projects found'}
+                  </p>
                   <p className="text-xs text-slate-400 mt-1">
-                    {searchTerm ? 'Try adjusting your search criteria' : 'Managed projects created from Web 3 will appear here for staff allocation.'}
+                    {searchTerm
+                      ? 'Try adjusting your search criteria'
+                      : !isPlatformAdmin
+                      ? 'Projects will appear here once allocated to you by a Platform Admin under Contract Type 2.'
+                      : 'Managed projects created from Web 3 under Contract Type 2 will appear here for staff allocation.'}
                   </p>
                 </td>
               </tr>
