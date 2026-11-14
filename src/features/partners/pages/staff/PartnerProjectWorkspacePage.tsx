@@ -38,9 +38,12 @@ import { ConversionStatusBadge } from '../../components/ConversionStatusBadge';
 import { ProgressBar } from '../../components/ProgressBar';
 import { ExportDialog } from '../../components/ExportDialog';
 import { EditMappingModal } from '../../components/EditMappingModal';
-import { Button, Tabs, ModernizationWorkflow, StatusBadge } from '@/shared/ui';
+import { CobolTranspilerWorkbench } from '../../components/CobolTranspilerWorkbench';
+import { Button, ModernizationWorkflow, StatusBadge } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
+import { resolveWorkspace, WORKSPACE_METADATA } from '../../utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '../../components/UnsupportedProjectState';
 
 /** Refresh cadence while any item of a server project is still converting. */
 export const WORKSPACE_POLL_INTERVAL_MS = 3000;
@@ -95,7 +98,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
   }, [paramTab]);
 
   // Conversion Engine Sub-Tab & Filter states
-  const [activeTab, setActiveTab] = useState<'screens' | 'programs' | 'all'>('all');
+  const [internalCobolStage, setInternalCobolStage] = useState<'analyze' | 'convert' | 'validate'>('analyze');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -404,11 +407,26 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
     );
   }
 
-  // Domain lists for conversion queue
+  const workspace = resolveWorkspace(project.conversionType);
+  if (workspace === 'UNSUPPORTED') {
+    return (
+      <UnsupportedProjectState
+        conversionType={project.conversionType}
+        backUrl="/partners/projects"
+        backLabel="Return to Partner Projects List"
+      />
+    );
+  }
+
+  const isCobol = workspace === 'PROGRAMS';
+  const workspaceMeta = WORKSPACE_METADATA[workspace];
+
+  // Domain lists for conversion queue strictly isolated by conversion type
+  const activeDomainList = isCobol
+    ? items.filter((i) => i.type === 'PROGRAM')
+    : items.filter((i) => i.type === 'SCREEN');
   const screensList = items.filter((i) => i.type === 'SCREEN');
   const programsList = items.filter((i) => i.type === 'PROGRAM');
-  const activeDomainList =
-    activeTab === 'screens' ? screensList : activeTab === 'programs' ? programsList : items;
 
   const filteredItems = activeDomainList.filter((item) => {
     const q = searchTerm.toLowerCase().trim();
@@ -454,7 +472,13 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
             </Link>
 
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl font-bold text-[#17263A] tracking-tight">{project.name}</h1>
+              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#244A70] bg-[#E8F1FF] px-2.5 py-0.5 rounded-full border border-[#D4E3FC]">
+                Contract 1: Platform-Based Modernization
+              </span>
+              <h1 className="text-xl font-bold text-[#17263A] tracking-tight">{workspaceMeta.title}</h1>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                {project.name}
+              </span>
               <PartnerStatusBadge status={project.status} type="project" />
               <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-blue-50 text-[#244A70] border border-blue-200">
                 {project.targetFramework}
@@ -466,10 +490,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               )}
             </div>
             <p className="text-xs text-[#8491A3] mt-1">
-              Partner: <strong className="text-[#17263A]">{project.partnerName}</strong> • Pipeline:{' '}
-              <span className="font-semibold text-[#17263A]">
-                {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL to Java Microservices' : 'BMS/DSPF Screens to React Web'}
-              </span>
+              {workspaceMeta.description} • Partner: <strong className="text-[#17263A]">{project.partnerName}</strong>
             </p>
           </div>
 
@@ -504,7 +525,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => setIsExportDialogOpen(true)}
-                className="text-xs flex items-center gap-1.5 bg-[#244A70] hover:bg-[#244A70]"
+                className="text-xs flex items-center gap-1.5 bg-[#244A70] hover:bg-[#1B3856]"
               >
                 <Package className="w-3.5 h-3.5" /> Export Code Bundle
               </Button>
@@ -635,17 +656,46 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
         <div className="space-y-6">
           {/* Modernization Workflow Stepper */}
           <ModernizationWorkflow
-            currentStep="convert"
-            completedSteps={items.length > 0 ? ['upload'] : []}
+            currentStep={isCobol ? internalCobolStage : 'convert'}
+            workflowType={isCobol ? 'PROGRAMS' : 'SCREENS'}
+            completedSteps={
+              isCobol
+                ? internalCobolStage === 'analyze'
+                  ? ['upload']
+                  : internalCobolStage === 'convert'
+                  ? ['upload', 'analyze']
+                  : internalCobolStage === 'validate'
+                  ? ['upload', 'analyze', 'convert']
+                  : ['upload', 'analyze', 'convert', 'validate']
+                : items.length > 0 ? ['upload'] : []
+            }
             onStepClick={(stepId) => {
               if (stepId === 'upload') navigate(`/partners/projects/${project.id}/upload`);
-              if (stepId === 'validate' || stepId === 'review') {
-                const firstItem = items[0];
-                if (firstItem) navigate(`/partners/projects/${project.id}/items/${firstItem.id}/review`);
+              if (isCobol) {
+                if (stepId === 'analyze') setInternalCobolStage('analyze');
+                if (stepId === 'convert') setInternalCobolStage('convert');
+                if (stepId === 'validate') setInternalCobolStage('validate');
+                if (stepId === 'review') {
+                  const firstItem = items[0];
+                  if (firstItem) navigate(`/partners/projects/${project.id}/items/${firstItem.id}/review`);
+                }
+                if (stepId === 'export') setIsExportDialogOpen(true);
+              } else {
+                if (stepId === 'validate' || stepId === 'review') {
+                  const firstItem = items[0];
+                  if (firstItem) navigate(`/partners/projects/${project.id}/items/${firstItem.id}/review`);
+                }
+                if (stepId === 'export') setIsExportDialogOpen(true);
               }
-              if (stepId === 'export') setIsExportDialogOpen(true);
             }}
           />
+
+          {isCobol && (
+            <CobolTranspilerWorkbench
+              totalPrograms={items.length}
+              completedPrograms={completedPrograms}
+            />
+          )}
 
           {/* Interactive Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -718,26 +768,15 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
             </button>
           </div>
 
-          {/* Dual Progress Bar */}
+          {/* Progress Bar */}
           <div className="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-2xs">
             <ProgressBar
-              screensCompleted={completedScreens}
-              screensTotal={screensList.length}
-              programsCompleted={completedPrograms}
-              programsTotal={programsList.length}
+              screensCompleted={isCobol ? 0 : completedScreens}
+              screensTotal={isCobol ? 0 : screensList.length}
+              programsCompleted={isCobol ? completedPrograms : 0}
+              programsTotal={isCobol ? programsList.length : 0}
             />
           </div>
-
-          {/* Signature Pill Tabs */}
-          <Tabs
-            tabs={[
-              { id: 'all', label: 'All Modernization Assets', count: items.length },
-              { id: 'screens', label: 'Legacy Screens (BMS/DSPF)', count: screensList.length },
-              { id: 'programs', label: 'COBOL Programs (Logic)', count: programsList.length },
-            ]}
-            activeTab={activeTab}
-            onChange={(tabId) => setActiveTab(tabId as 'screens' | 'programs' | 'all')}
-          />
 
           {/* Filter & Search Toolbar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-2xs">
@@ -745,7 +784,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8491A3]" />
               <input
                 type="text"
-                placeholder={`Search ${activeTab === 'screens' ? 'screens' : activeTab === 'programs' ? 'programs' : 'assets'} by name or source...`}
+                placeholder={`Search ${isCobol ? 'programs' : 'screens'} by name or source...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#244A70] text-[#17263A] placeholder-[#8491A3]"
@@ -782,7 +821,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 </colgroup>
                 <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold uppercase tracking-wider text-[11px] border-b border-[#DCE3EC]">
                   <tr>
-                    <th className="py-3.5 px-4">{activeTab === 'programs' ? 'PROGRAM NAME' : 'SCREEN / PROGRAM NAME'}</th>
+                    <th className="py-3.5 px-4">{isCobol ? 'PROGRAM NAME' : 'SCREEN MAP NAME'}</th>
                     <th className="py-3.5 px-4">LEGACY SOURCE</th>
                     <th className="py-3.5 px-4">STATUS</th>
                     <th className="py-3.5 px-4">VALIDATION</th>
@@ -807,7 +846,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                               variant="primary"
                               size="sm"
                               onClick={() => navigate(`/partners/projects/${project.id}/upload`)}
-                              className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 shadow-xs"
+                              className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 shadow-xs"
                             >
                               <UploadCloud className="w-3.5 h-3.5" />
                               <span>Upload Source Files</span>
@@ -1072,7 +1111,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => setShowWorkingFileModal(true)}
-              className="text-xs bg-[#244A70] hover:bg-[#244A70] shrink-0 flex items-center gap-1.5"
+              className="text-xs bg-[#244A70] hover:bg-[#1B3856] shrink-0 flex items-center gap-1.5"
             >
               <FolderPlus className="w-3.5 h-3.5" />
               <span>+ Create New Draft File</span>
@@ -1194,7 +1233,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                   variant="primary"
                   size="sm"
                   onClick={() => setShowDeliverableModal(true)}
-                  className="text-xs bg-[#244A70] hover:bg-[#244A70] flex items-center gap-1.5"
+                  className="text-xs bg-[#244A70] hover:bg-[#1B3856] flex items-center gap-1.5"
                 >
                   <Package className="w-3.5 h-3.5" />
                   <span>+ Create Deliverable Candidate</span>
@@ -1516,7 +1555,7 @@ PROCEDURE DIVISION.
                   size="sm"
                   type="submit"
                   isLoading={isSubmittingWf}
-                  className="text-xs bg-[#244A70] hover:bg-[#244A70]"
+                  className="text-xs bg-[#244A70] hover:bg-[#1B3856]"
                 >
                   Save Internal File
                 </Button>
@@ -1743,6 +1782,7 @@ PROCEDURE DIVISION.
           initialMappings={editingMappings}
           onSave={handleSaveMappings}
           itemName={editingMappingItem.name}
+          isCobol={isCobol || editingMappingItem.type === 'PROGRAM'}
         />
       )}
     </div>
