@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -218,13 +218,7 @@ export const ResourceTransferDetailPage: React.FC = () => {
       {/* Top Return Navigation                                        */}
       {/* ──────────────────────────────────────────────────────────── */}
       <div>
-        <Link
-          to="/team-lead/resource-transfers"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F8FAFC] transition-colors shadow-2xs w-fit"
-        >
-          <ArrowLeft className="w-3.5 h-3.5 text-[#8491A3]" />
-          <span>Back to Transfer Approvals</span>
-        </Link>
+
       </div>
 
       {/* ──────────────────────────────────────────────────────────── */}
