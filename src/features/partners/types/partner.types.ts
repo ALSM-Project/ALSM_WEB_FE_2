@@ -17,7 +17,7 @@ export interface Partner {
   updatedAt: string;
 }
 
-export type ConversionType = 'BMS_DSPF_TO_FRONTEND' | 'COBOL_TO_JAVA';
+export type ConversionType = 'BMS_DSPF_TO_FRONTEND' | 'BMS_DSPF_TO_REACT' | 'COBOL_TO_JAVA';
 export type ProjectOverallStatus = 'DRAFT' | 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'READY_FOR_EXPORT';
 export type ItemConversionStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'DEAD_LETTER' | 'READY_FOR_EXPORT';
 export type FindingSeverity = 'HIGH' | 'MEDIUM' | 'LOW' | 'INFO';

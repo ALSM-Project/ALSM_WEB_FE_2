@@ -9,6 +9,7 @@ interface EditMappingModalProps {
   initialMappings: FieldMappingRule[];
   onSave: (mappings: FieldMappingRule[]) => Promise<void>;
   itemName: string;
+  isCobol?: boolean;
 }
 
 export const EditMappingModal: React.FC<EditMappingModalProps> = ({
@@ -17,6 +18,7 @@ export const EditMappingModal: React.FC<EditMappingModalProps> = ({
   initialMappings,
   onSave,
   itemName,
+  isCobol = false,
 }) => {
   const [mappings, setMappings] = useState<FieldMappingRule[]>(initialMappings);
   const [saving, setSaving] = useState(false);
@@ -58,11 +60,13 @@ export const EditMappingModal: React.FC<EditMappingModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Edit Field Mappings: ${itemName}`}
+      title={isCobol ? `Edit Method Mappings: ${itemName}` : `Edit Field Mappings: ${itemName}`}
     >
       <div className="space-y-4">
         <p className="text-xs text-[#8491A3]">
-          Configure AST field extraction mappings. Adjust the target TypeScript property name, data type, and transformation rules.
+          {isCobol
+            ? 'Configure AST method and class mappings. Adjust target Java class and method names and return types.'
+            : 'Configure AST field extraction mappings. Adjust the target TypeScript property name, data type, and transformation rules.'}
         </p>
 
         <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
@@ -73,12 +77,14 @@ export const EditMappingModal: React.FC<EditMappingModalProps> = ({
             >
               <div className="grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-5">
-                  <label className="block text-[11px] font-medium text-[#8491A3] mb-1">Source Field (BMS/COBOL)</label>
+                  <label className="block text-[11px] font-medium text-[#8491A3] mb-1">
+                    {isCobol ? 'Source Paragraph / Method (COBOL)' : 'Source Field (BMS/DSPF)'}
+                  </label>
                   <input
                     type="text"
                     value={mapping.sourceField}
                     onChange={(e) => handleFieldChange(index, 'sourceField', e.target.value)}
-                    placeholder="e.g. CUSTINP"
+                    placeholder={isCobol ? 'e.g. 1000-PROCESS-RECORD' : 'e.g. CUSTINP'}
                     className="w-full px-2.5 py-1.5 bg-white border border-[#DCE3EC] rounded font-mono text-xs focus:ring-1 focus:ring-[#244A70] outline-none"
                   />
                 </div>
@@ -86,12 +92,14 @@ export const EditMappingModal: React.FC<EditMappingModalProps> = ({
                   <ArrowRight className="w-4 h-4" />
                 </div>
                 <div className="col-span-6">
-                  <label className="block text-[11px] font-medium text-[#8491A3] mb-1">Target Property</label>
+                  <label className="block text-[11px] font-medium text-[#8491A3] mb-1">
+                    {isCobol ? 'Target Java Method / Contract' : 'Target Property'}
+                  </label>
                   <input
                     type="text"
                     value={mapping.targetProperty}
                     onChange={(e) => handleFieldChange(index, 'targetProperty', e.target.value)}
-                    placeholder="e.g. customerId"
+                    placeholder={isCobol ? 'e.g. processRecord' : 'e.g. customerId'}
                     className="w-full px-2.5 py-1.5 bg-white border border-[#DCE3EC] rounded font-mono text-xs focus:ring-1 focus:ring-[#244A70] outline-none"
                   />
                 </div>

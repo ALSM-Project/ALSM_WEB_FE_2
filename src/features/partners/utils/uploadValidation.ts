@@ -11,6 +11,7 @@ const ARCHIVE_EXTENSION = 'zip';
 /** What a project of each conversion type accepts (UC-46 business rules). */
 export const ACCEPTED_EXTENSIONS: Record<ConversionType, string[]> = {
   BMS_DSPF_TO_FRONTEND: [...SCREEN_EXTENSIONS, ARCHIVE_EXTENSION],
+  BMS_DSPF_TO_REACT: [...SCREEN_EXTENSIONS, ARCHIVE_EXTENSION],
   COBOL_TO_JAVA: [...PROGRAM_EXTENSIONS, ARCHIVE_EXTENSION],
 };
 

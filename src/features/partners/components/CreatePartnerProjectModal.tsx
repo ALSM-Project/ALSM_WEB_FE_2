@@ -26,7 +26,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>(partner?.id || '');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_FRONTEND');
+  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_REACT');
   const [targetFramework, setTargetFramework] = useState('React 19 + Tailwind CSS');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -58,7 +58,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
   const resetForm = () => {
     setName('');
     setDescription('');
-    setConversionType('BMS_DSPF_TO_FRONTEND');
+    setConversionType('BMS_DSPF_TO_REACT');
     setTargetFramework('React 19 + Tailwind CSS');
     setErrors({});
   };
@@ -70,7 +70,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
 
   const handleTypeChange = (type: ConversionType) => {
     setConversionType(type);
-    if (type === 'BMS_DSPF_TO_FRONTEND') {
+    if (type === 'BMS_DSPF_TO_FRONTEND' || type === 'BMS_DSPF_TO_REACT') {
       setTargetFramework('React 19 + Tailwind CSS');
     } else {
       setTargetFramework('Spring Boot 3.3 / Java 21');
@@ -206,9 +206,9 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Pipeline 1: BMS/DSPF Screens */}
             <div
-              onClick={() => handleTypeChange('BMS_DSPF_TO_FRONTEND')}
+              onClick={() => handleTypeChange('BMS_DSPF_TO_REACT')}
               className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer relative ${
-                conversionType === 'BMS_DSPF_TO_FRONTEND'
+                conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'
                   ? 'border-[#244A70] bg-blue-50/40 shadow-xs'
                   : 'border-[#DCE3EC] bg-white hover:border-[#DCE3EC]'
               }`}
@@ -217,7 +217,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
                 <div className="flex items-center space-x-2">
                   <div
                     className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      conversionType === 'BMS_DSPF_TO_FRONTEND'
+                      conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'
                         ? 'bg-[#244A70] text-white'
                         : 'bg-gray-100 text-[#8491A3]'
                     }`}
@@ -229,7 +229,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
                     <p className="text-[10px] text-[#8491A3]">3270 maps to React 19 components</p>
                   </div>
                 </div>
-                {conversionType === 'BMS_DSPF_TO_FRONTEND' && (
+                {(conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND') && (
                   <span className="w-4 h-4 rounded-full bg-[#244A70] text-white flex items-center justify-center shrink-0">
                     <Check className="w-2.5 h-2.5" />
                   </span>
