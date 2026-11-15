@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { navigationApi } from '@/features/navigation/api/navigation.api';
 import {
   ChevronRight,
   Shield,
@@ -317,7 +319,8 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
   OWNER: ['*'],
 };
 
-const isItemAllowedForRole = (
+// Deprecated: client-side role filtering superseded by authoritative backend /navigation
+export const isItemAllowedForRole = (
   item: MenuItem,
   role: string,
   app: 'WEB_1' | 'WEB_2' | 'WEB_3',
@@ -720,44 +723,40 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
     return list.find((r) => r.value === previewRole) || list[0];
   }, [selectedApp, previewRole]);
 
-  // Filter items for preview based on contract type & role
+  // Helper to map backend nav item to MenuItem format recursively
+  const mapBackendNodeToMenuItem = (node: any): MenuItem => ({
+    id: node.id,
+    label: node.label,
+    icon: node.icon,
+    path: node.route || '',
+    parentId: node.parentId || undefined,
+    order: node.order,
+    isVisible: node.visibility !== false,
+    permissions: node.requiredPermissions || [],
+    contractTypeVisibility: node.contractTypeVisibility || 'ALL',
+    featureKey: node.featureKey || undefined,
+    description: node.description || undefined,
+    requiredRoles: node.requiredRoles || [],
+    capability: node.capability || null,
+    status: node.status || 'ACTIVE',
+    children: (node.children || []).map(mapBackendNodeToMenuItem),
+  });
+
+  // Authoritative Backend Live Preview Call (Big Tech Shared Filtering Engine)
+  const { data: backendNavNodes } = useQuery({
+    queryKey: ['livePreviewNav', selectedApp, previewContractType, previewRole],
+    queryFn: () => navigationApi.getNavigation(selectedApp, previewContractType, previewRole),
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // Use the backend-governed navigation tree
   const filteredSidebarNav = useMemo(() => {
-    const filterItem = (item: MenuItem, parentItem?: MenuItem): MenuItem | null => {
-      if (item.isVisible === false) return null;
-
-      // Contract Type filtering (Web 3)
-      if (previewContractType !== 'ALL') {
-        const vis = item.contractTypeVisibility || 'ALL';
-        if (vis !== 'ALL') {
-          if (previewContractType === 'SELF_SERVICE' && vis !== 'SELF_SERVICE') return null;
-          if (previewContractType === 'WE_CONVERT_FOR_YOU' && vis !== 'WE_CONVERT_FOR_YOU') return null;
-          if (previewContractType === 'HYBRID' && vis !== 'SELF_SERVICE' && vis !== 'WE_CONVERT_FOR_YOU' && vis !== 'HYBRID') return null;
-        }
-      }
-
-      // Role filtering
-      if (!isItemAllowedForRole(item, previewRole, selectedApp, parentItem)) {
-        return null;
-      }
-
-      let filteredChildren: MenuItem[] | undefined = undefined;
-      if (item.children && item.children.length > 0) {
-        filteredChildren = item.children
-          .map((child) => filterItem(child, item))
-          .filter((c): c is MenuItem => c !== null);
-        if ((!item.path || item.path.trim() === '') && filteredChildren.length === 0) {
-          return null;
-        }
-      }
-
-      return {
-        ...item,
-        children: filteredChildren,
-      };
-    };
-
-    return sidebarNav.map((item) => filterItem(item)).filter((i): i is MenuItem => i !== null);
-  }, [sidebarNav, previewContractType, previewRole, selectedApp]);
+    if (backendNavNodes && backendNavNodes.length > 0) {
+      return backendNavNodes.map(mapBackendNodeToMenuItem);
+    }
+    return sidebarNav;
+  }, [backendNavNodes, sidebarNav]);
 
   // If activePreviewItemId is not in filteredSidebarNav, reset it to null and show role screen
   useEffect(() => {

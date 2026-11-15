@@ -41,6 +41,44 @@ const COMMON_ICONS = [
   { value: 'DownloadCloud', label: 'DownloadCloud (Downloads)' },
 ];
 
+const REGISTERED_CAPABILITIES = [
+  { value: '', label: 'None / Inherit from Parent' },
+  { value: 'dashboard.view', label: 'dashboard.view (View Dashboard)' },
+  { value: 'dashboard.managed', label: 'dashboard.managed (Managed Services Dashboard)' },
+  { value: 'dashboard.self_service', label: 'dashboard.self_service (Self-Service Dashboard)' },
+  { value: 'project.view', label: 'project.view (View Projects)' },
+  { value: 'project.files.view', label: 'project.files.view (View Project Files)' },
+  { value: 'project.files.upload', label: 'project.files.upload (Upload Project Files)' },
+  { value: 'contract.view', label: 'contract.view (View Contracts)' },
+  { value: 'invoice.view', label: 'invoice.view (View Invoices)' },
+  { value: 'service_usage.view', label: 'service_usage.view (View Service Usage & Quotas)' },
+  { value: 'meeting.view', label: 'meeting.view (View Meetings)' },
+  { value: 'meeting.schedule', label: 'meeting.schedule (Schedule Meetings)' },
+  { value: 'conversations.view', label: 'conversations.view (View Conversations)' },
+  { value: 'conversations.create', label: 'conversations.create (Send Messages)' },
+  { value: 'account.manage', label: 'account.manage (Manage Profile)' },
+  { value: 'account.security', label: 'account.security (Manage Passwords & 2FA)' },
+  { value: 'organization.view', label: 'organization.view (View Organization Profile)' },
+  { value: 'organization.profile.view', label: 'organization.profile.view (View Org Profile Details)' },
+  { value: 'organization.profile.update', label: 'organization.profile.update (Update Org Profile)' },
+  { value: 'organization.members.view', label: 'organization.members.view (View Team Members)' },
+  { value: 'organization.members.invite', label: 'organization.members.invite (Invite Members)' },
+  { value: 'organization.members.manage', label: 'organization.members.manage (Manage Memberships)' },
+  { value: 'organization.teams.view', label: 'organization.teams.view (View Internal Teams)' },
+  { value: 'organization.teams.manage', label: 'organization.teams.manage (Manage Internal Teams)' },
+  { value: 'organization.roles.manage', label: 'organization.roles.manage (Manage Roles & RBAC)' },
+  { value: 'organization.analytics.view', label: 'organization.analytics.view (View Org Analytics)' },
+  { value: 'organization.audit.view', label: 'organization.audit.view (View Org Audit Logs)' },
+  { value: 'deliverable.view', label: 'deliverable.view (View Conversion Deliverables)' },
+  { value: 'deliverable.download', label: 'deliverable.download (Download Deliverables)' },
+  { value: 'deliverable.signoff', label: 'deliverable.signoff (Sign-Off Deliverables)' },
+  { value: 'conversion_request.view', label: 'conversion_request.view (View Conversion Requests)' },
+  { value: 'conversion_request.create', label: 'conversion_request.create (Submit Conversion Request)' },
+  { value: 'screen.view', label: 'screen.view (View Screens)' },
+  { value: 'screen.convert', label: 'screen.convert (Run Screen Conversion)' },
+  { value: 'code.export', label: 'code.export (Export Code Bundle)' },
+];
+
 export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
   selectedItemId,
   sidebarNav,
@@ -75,6 +113,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         openInNewTab: selectedItem.openInNewTab ?? false,
         hideParentLabel: selectedItem.hideParentLabel ?? false,
         contractTypeVisibility: selectedItem.contractTypeVisibility || 'ALL',
+        capability: selectedItem.capability || '',
         featureKey: selectedItem.featureKey || '',
         description: selectedItem.description || '',
       });
@@ -246,6 +285,13 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
             { value: 'WE_CONVERT_FOR_YOU', label: 'Managed Modernization Services' },
             { value: 'HYBRID', label: 'Hybrid Contracts Only' },
           ]}
+        />
+
+        <Select
+          label="Capability (Big Tech Entitlement Key)"
+          value={formState.capability || ''}
+          onChange={(e) => handleChange('capability', e.target.value)}
+          options={REGISTERED_CAPABILITIES}
         />
 
         <Input
