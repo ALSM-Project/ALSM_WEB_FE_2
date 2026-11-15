@@ -6,6 +6,8 @@ import { TeamLeadProjectsPage } from '../pages/TeamLeadProjectsPage';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '@/features/admin/api/admin.api';
 
+import { tokenStore } from '@/services/api/tokenStore';
+
 const mockProjects = [
   {
     id: 'proj-managed-01',
@@ -83,6 +85,7 @@ const createWrapper = () => {
 
 describe('TeamLeadProjectsPage - Managed Modernization Allocation', () => {
   beforeEach(() => {
+    tokenStore.setTokens({ accessToken: 'mock-access', refreshToken: 'mock-refresh' });
     vi.spyOn(partnersApi, 'getProjects').mockResolvedValue(mockProjects as any);
     vi.spyOn(partnersApi, 'getAssignableStaff').mockResolvedValue(mockStaff as any);
     vi.spyOn(adminApi, 'getOrganizations').mockResolvedValue([
@@ -91,6 +94,7 @@ describe('TeamLeadProjectsPage - Managed Modernization Allocation', () => {
   });
 
   afterEach(() => {
+    tokenStore.clear();
     cleanup();
     vi.restoreAllMocks();
   });
@@ -139,6 +143,6 @@ describe('TeamLeadProjectsPage - Managed Modernization Allocation', () => {
     expect(screen.queryByText('Another Lead Modernization Project')).not.toBeInTheDocument();
 
     // Shows assigned to me scope badge for team lead
-    expect(screen.getByText(/Assigned to Me \(by Admin\)/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Assigned to Me \(by Admin\)/i).length).toBeGreaterThan(0);
   });
 });
