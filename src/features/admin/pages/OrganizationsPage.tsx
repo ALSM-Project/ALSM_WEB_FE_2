@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Building, Search, Plus, Eye, RefreshCw, Mail, CheckCircle2,
-  FolderKanban, Users, AlertCircle, ArrowRight, ArrowLeft
+  FolderKanban, Users, AlertCircle, ArrowRight, ArrowLeft,
+  ChevronLeft, ChevronRight, Trash2
 } from 'lucide-react';
 import { adminApi, OrganizationDto, EngagementTypeDto, OrganizationInvitationStatus } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
@@ -24,6 +25,10 @@ export const OrganizationsPage: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'name_asc' | 'name_desc' | 'date_desc' | 'date_asc'>('name_asc');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
+
   // Modal State for New Org Provisioning (2-Step Wizard)
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [createStep, setCreateStep] = useState<1 | 2>(1);
@@ -32,6 +37,11 @@ export const OrganizationsPage: React.FC = () => {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [inviteWarning, setInviteWarning] = useState(false);
   const [requestId, setRequestId] = useState('');
+
+  // Delete Organisation State
+  const [deleteTargetOrg, setDeleteTargetOrg] = useState<OrganizationDto | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [newOrg, setNewOrg] = useState({
     name: '',
@@ -151,6 +161,31 @@ export const OrganizationsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteClick = (org: OrganizationDto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeleteError(null);
+    setDeleteTargetOrg(org);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetOrg) return;
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+      await adminApi.deleteOrganization(deleteTargetOrg.id);
+      setSuccessMsg(`Organisation "${deleteTargetOrg.name}" has been deleted successfully.`);
+      setTimeout(() => setSuccessMsg(null), 6000);
+      setDeleteTargetOrg(null);
+      await fetchData();
+    } catch (err: any) {
+      console.error('Failed to delete organisation:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to delete organisation.';
+      setDeleteError(Array.isArray(msg) ? msg.join(' ') : msg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Filter & Sort
   const filteredOrgs = organizations
     .filter((org) => {
@@ -172,6 +207,25 @@ export const OrganizationsPage: React.FC = () => {
       if (sortBy === 'date_asc') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
+
+  // Reset to page 1 when filtering or sorting changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter, sortBy]);
+
+  // Pagination slicing
+  const totalPages = Math.max(1, Math.ceil(filteredOrgs.length / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const paginatedOrgs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredOrgs.slice(start, start + pageSize);
+  }, [filteredOrgs, currentPage, pageSize]);
 
   const getStatusBadge = (status: OrganizationDto['status']) => {
     switch (status) {
@@ -361,7 +415,7 @@ export const OrganizationsPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredOrgs.map((org) => {
+                paginatedOrgs.map((org) => {
                   const projectCount = org.projectCount ?? 0;
                   const memberCount = org.memberCount ?? org.members?.length ?? 0;
                   return (
@@ -435,6 +489,25 @@ export const OrganizationsPage: React.FC = () => {
                           >
                             Details
                           </Button>
+                          {canManageOrganizations && (
+                            <button
+                              type="button"
+                              onClick={(e) => handleDeleteClick(org, e)}
+                              disabled={org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')}
+                              className={`p-1.5 rounded-lg border transition-colors ${
+                                org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')
+                                  ? 'border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+                                  : 'border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 cursor-pointer'
+                              }`}
+                              title={
+                                org.domain === 'alsm.internal' || org.name.toLowerCase().includes('internal operations')
+                                  ? 'Internal ALSM operations organisation cannot be deleted'
+                                  : `Delete "${org.name}"`
+                              }
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -444,6 +517,93 @@ export const OrganizationsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {!loading && filteredOrgs.length > 0 && (
+          <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+                <strong>{Math.min(currentPage * pageSize, filteredOrgs.length)}</strong> of{' '}
+                <strong>{filteredOrgs.length}</strong> organisations
+              </span>
+              <span className="text-slate-300">|</span>
+              <div className="flex items-center gap-1.5">
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(parseInt(e.target.value) || 10);
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] text-xs outline-none focus:ring-1 focus:ring-[#244A70] cursor-pointer"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                title="Previous Page"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                  if (
+                    totalPages <= 7 ||
+                    pageNum === 1 ||
+                    pageNum === totalPages ||
+                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`min-w-7 h-7 px-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                          currentPage === pageNum
+                            ? 'bg-[#244A70] text-white shadow-xs'
+                            : 'bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  }
+                  if (
+                    (pageNum === 2 && currentPage > 3) ||
+                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return (
+                      <span key={pageNum} className="px-1 text-[#8491A3]">
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+              </div>
+
+              <button
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                title="Next Page"
+                aria-label="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2-Step Provisioning Modal: New Enterprise Org (Requirement C) */}
@@ -617,6 +777,93 @@ export const OrganizationsPage: React.FC = () => {
                   {submitting ? 'Provisioning...' : 'Confirm & Provision Organisation'}
                 </Button>
               </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={Boolean(deleteTargetOrg)}
+        onClose={() => {
+          if (!isDeleting) {
+            setDeleteTargetOrg(null);
+            setDeleteError(null);
+          }
+        }}
+        title="Delete Organisation"
+      >
+        {deleteTargetOrg && (
+          <div className="space-y-4">
+            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-rose-900">Are you sure you want to delete this organisation?</p>
+                <p className="mt-1 text-rose-700">
+                  This action will permanently delete the organisation tenant and archive any associated projects. This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs space-y-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Organisation Name:</span>
+                <span className="font-semibold text-slate-800">{deleteTargetOrg.name}</span>
+              </div>
+              {deleteTargetOrg.domain && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Domain:</span>
+                  <span className="font-mono text-slate-700">{deleteTargetOrg.domain}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-slate-500">Engagement Type:</span>
+                <span className="font-medium text-slate-700">{deleteTargetOrg.engagementType || 'Trial'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Active Projects:</span>
+                <span className="font-medium text-slate-700">{deleteTargetOrg.projectCount ?? 0} projects</span>
+              </div>
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-700 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setDeleteTargetOrg(null);
+                  setDeleteError(null);
+                }}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="bg-rose-600 hover:bg-rose-700 text-white font-semibold flex items-center gap-1.5"
+              >
+                {isDeleting ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Delete Organisation
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         )}

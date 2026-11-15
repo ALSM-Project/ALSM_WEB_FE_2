@@ -138,6 +138,10 @@ export const adminApi = {
     return apiClient.get<OrganizationDto>(`/admin/organizations/${id}`);
   },
 
+  deleteOrganization: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/organizations/${id}`);
+  },
+
   createEnterpriseOrganization: async (data: {
     name: string;
     domain?: string;
@@ -248,6 +252,13 @@ export const adminApi = {
 
   exportAuditLogsCsv: async (): Promise<string> => {
     return apiClient.get<string>('/admin/audit-logs/export');
+  },
+
+  exportAuditLogsPdf: async (params?: { action?: string; resourceType?: string; startDate?: string; endDate?: string }): Promise<Blob> => {
+    return apiClient.get('/admin/audit-logs/export/pdf', {
+      params,
+      responseType: 'blob',
+    });
   },
 
   createDemoProject: async (data: {

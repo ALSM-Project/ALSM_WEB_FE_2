@@ -33,7 +33,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className =
               <Link
                 to={item.path}
                 title={item.label}
-                className="hover:text-[#244A70] text-slate-600 transition-colors truncate max-w-[140px] sm:max-w-[200px]"
+                className="hover:text-[#0652CC] text-slate-600 transition-colors truncate max-w-[140px] sm:max-w-[220px] lg:max-w-[320px]"
               >
                 {item.label}
               </Link>
@@ -41,7 +41,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className =
               <span
                 title={item.label}
                 aria-current={isLast ? 'page' : undefined}
-                className={`truncate max-w-[160px] sm:max-w-[260px] ${
+                className={`truncate max-w-[180px] sm:max-w-[280px] lg:max-w-[380px] ${
                   isLast ? 'text-[#17263A] font-semibold' : 'text-slate-600'
                 }`}
               >

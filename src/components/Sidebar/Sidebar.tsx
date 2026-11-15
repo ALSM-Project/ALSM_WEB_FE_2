@@ -176,11 +176,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const filteredSidebarNav = useMemo(() => {
     return sidebarNav
-      .filter((item) => item.id !== 'web2_partner_create' && item.path !== '/partners/new' && item.id !== 'web2_conversations' && item.path !== '/crm/conversations')
+      .filter((item) => item.id !== 'web2_partner_create' && item.path !== '/partners/new')
       .map((item) => ({
         ...item,
         children: item.children?.filter(
-          (c) => c.id !== 'web2_partner_create' && c.path !== '/partners/new' && c.id !== 'web2_conversations' && c.path !== '/crm/conversations'
+          (c) => c.id !== 'web2_partner_create' && c.path !== '/partners/new'
         ),
       }));
   }, [sidebarNav]);
@@ -234,12 +234,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Dynamic Navigation Items */}
       <nav className="flex-1 overflow-y-auto px-2.5 py-3 space-y-0.5">
-        {loading ? (
+        {loading && filteredSidebarNav.length === 0 ? (
           <div className="p-4 text-xs text-[#8491A3] text-center flex flex-col items-center gap-2">
             <RefreshCw className="w-4 h-4 animate-spin text-[#8491A3]" />
             {!isCollapsed && <span>Loading Menu...</span>}
           </div>
-        ) : error ? (
+        ) : error && filteredSidebarNav.length === 0 ? (
           <div className="p-3 bg-rose-950/40 border border-rose-500/30 rounded-lg text-xs text-rose-300 text-center space-y-2">
             <AlertTriangle className="w-4 h-4 mx-auto text-rose-400" />
             {!isCollapsed && (

@@ -32,6 +32,8 @@ export interface MenuItem {
   contractTypeVisibility?: 'ALL' | 'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID';
   featureKey?: string;
   requiredRoles?: string[];
+  capability?: string | null;
+  status?: string;
 }
 
 export interface NavigationData {

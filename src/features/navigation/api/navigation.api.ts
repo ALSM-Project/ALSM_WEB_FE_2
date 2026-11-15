@@ -19,7 +19,14 @@ export interface BackendNavItem {
 }
 
 export const navigationApi = {
-  getNavigation: async (application: string = 'WEB_2'): Promise<BackendNavItem[]> => {
-    return apiClient.get<BackendNavItem[]>(`/navigation?application=${application}`);
+  getNavigation: async (
+    application: string = 'WEB_2',
+    contractType?: string,
+    role?: string,
+  ): Promise<BackendNavItem[]> => {
+    let url = `/navigation?application=${application}`;
+    if (contractType && contractType !== 'ALL') url += `&contractType=${contractType}`;
+    if (role && role !== 'ALL') url += `&role=${role}`;
+    return apiClient.get<BackendNavItem[]>(url);
   },
 };

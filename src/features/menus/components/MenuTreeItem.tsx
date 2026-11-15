@@ -204,6 +204,16 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
           />
 
           <span className="truncate font-semibold text-xs flex-1 min-w-0" title={item.label}>{item.label}</span>
+          {item.status === 'INACTIVE' && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+              Inactive
+            </span>
+          )}
+          {item.isVisible === false && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+              Hidden
+            </span>
+          )}
           {item.contractTypeVisibility === 'SELF_SERVICE' && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
               Platform-Based

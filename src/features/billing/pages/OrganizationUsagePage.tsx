@@ -619,7 +619,7 @@ export const OrganizationUsagePage: React.FC = () => {
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 orgScopeFilter === 'ORGANIZATIONS_ONLY'
-                  ? 'bg-[#1E293B] text-white shadow-xs font-bold'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -634,7 +634,7 @@ export const OrganizationUsagePage: React.FC = () => {
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 orgScopeFilter === 'ENTERPRISE'
-                  ? 'bg-[#1E293B] text-white shadow-xs font-bold'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -649,7 +649,7 @@ export const OrganizationUsagePage: React.FC = () => {
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 orgScopeFilter === 'PARTNER'
-                  ? 'bg-[#1E293B] text-white shadow-xs font-bold'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -664,7 +664,7 @@ export const OrganizationUsagePage: React.FC = () => {
               }}
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                 orgScopeFilter === 'ALL'
-                  ? 'bg-[#1E293B] text-white shadow-xs font-bold'
+                  ? 'bg-[#244A70] text-white shadow-xs font-bold'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -711,7 +711,7 @@ export const OrganizationUsagePage: React.FC = () => {
             onClick={() => handleQuickFilterClick('ALL')}
             className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
               quickFilter === 'ALL' && !health && !orgStatusFilter
-                ? 'bg-[#17263A] text-white shadow-2xs'
+                ? 'bg-[#244A70] text-white shadow-2xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
@@ -1143,10 +1143,10 @@ export const OrganizationUsagePage: React.FC = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           {/* View Full Details Button */}
                           <Button
-                            variant="outline"
+                            variant="primary"
                             size="sm"
                             onClick={() => handleViewFullDetails(item.organizationId)}
-                            className="text-xs py-1.5 px-3 bg-[#17263A] text-white hover:bg-[#1E293B] font-semibold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer border-[#17263A]"
+                            className="text-xs py-1.5 px-3 font-semibold inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
                           >
                             <span>Details</span>
                             <ArrowRight className="w-3 h-3 text-white/80" />

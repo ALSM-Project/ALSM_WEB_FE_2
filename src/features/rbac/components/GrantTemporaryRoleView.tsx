@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   RefreshCw,
   KeyRound,
-  ShieldCheck,
   UserCheck,
   Check,
 } from 'lucide-react';
@@ -361,23 +360,6 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
             Grant Temporary Privilege Elevation
           </h1>
-          <p className="text-xs text-[#8491A3]">
-            Delegate time-bound operational or supervisory privileges to eligible internal staff members with strictly enforced expiration and immutable audit trail.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onBack}
-            className="px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors cursor-pointer"
-          >
-            Cancel & Return
-          </button>
-          <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl text-xs font-medium">
-            <ShieldCheck className="w-4 h-4 text-indigo-600" />
-            <span>Zero Standing Privileges (Max 24h Ceiling)</span>
-          </div>
         </div>
       </div>
 
@@ -433,9 +415,6 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                 <h2 className="text-sm font-bold text-[#17263A]">
                   Target Internal Staff Member *
                 </h2>
-                <p className="text-xs text-[#8491A3]">
-                  Choose an internal employee to receive privileged temporary access.
-                </p>
               </div>
             </div>
             {selectedStaff && (
@@ -809,9 +788,6 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
               <h2 className="text-sm font-bold text-[#17263A]">
                 Configure Privilege & Scope *
               </h2>
-              <p className="text-xs text-[#8491A3]">
-                Select the elevated role, duration limit (up to 24h), and operational context.
-              </p>
             </div>
           </div>
 
@@ -988,9 +964,6 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
               <h2 className="text-sm font-bold text-[#17263A]">
                 Security Review & Confirmation
               </h2>
-              <p className="text-xs text-[#8491A3]">
-                Review the authorization dossier and acknowledge compliance before executing.
-              </p>
             </div>
           </div>
 

@@ -285,16 +285,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
 
         {/* Global Action Buttons */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(basePath)}
-            className="text-slate-700"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Back to List
-          </Button>
-
           {canCancel && (
             <Button
               type="button"
@@ -364,9 +354,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">Employee Profile</h3>
-                  <p className="text-xs text-slate-500">
-                    Personnel profile and operational team scope.
-                  </p>
                 </div>
               </div>
             </div>
@@ -461,9 +448,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Offboarding Information</h3>
-                <p className="text-xs text-slate-500">
-                  Formal departure categorization, timeline, and requested reason.
-                </p>
               </div>
             </div>
 
@@ -528,9 +512,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">Project Impact Assessment</h3>
-                  <p className="text-xs text-slate-500">
-                    Live assigned modernization projects and destination transfer leads.
-                  </p>
                 </div>
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
@@ -610,9 +591,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Handover Plan</h3>
-                <p className="text-xs text-slate-500">
-                  Successor assignment, task completion milestones, and technical documentation.
-                </p>
               </div>
             </div>
 
@@ -673,9 +651,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Access Revocation Plan</h3>
-                <p className="text-xs text-slate-500">
-                  Security credentials and token invalidation.
-                </p>
               </div>
             </div>
 
@@ -737,9 +712,6 @@ export const OffboardingRequestDetailPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Workflow & Audit Trail</h3>
-                <p className="text-xs text-slate-500">
-                  State timeline and governance audit history.
-                </p>
               </div>
             </div>
 

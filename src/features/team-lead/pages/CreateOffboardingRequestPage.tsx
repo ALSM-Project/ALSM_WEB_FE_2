@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft,
   Calendar,
   Layers,
   Send,
@@ -173,22 +172,11 @@ export const CreateOffboardingRequestPage: React.FC = () => {
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200">
         <div className="flex items-center space-x-3">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/admin/offboarding-approvals')}
-            className="p-2 h-9 w-9 text-slate-600 hover:text-slate-900 border-slate-200"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+ 
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
               Create Offboarding Request
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Submit a formal request to initiate employee offboarding and controlled resource handover.
-            </p>
           </div>
         </div>
 
@@ -241,9 +229,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Employee Information</h3>
-                <p className="text-xs text-slate-500">
-                  Search and select the employee undergoing offboarding. Details are automatically loaded.
-                </p>
               </div>
             </div>
             {loadingSummary && (
@@ -263,7 +248,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
               required
               label="Select Staff Member"
               placeholder="Search by name, email, employee code, or department..."
-              helperText="Strictly scoped to ALSM Internal Workforce. Partner staff & customer members are excluded."
             />
           </div>
         </div>
@@ -276,9 +260,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-semibold text-slate-900">Offboarding Details</h3>
-              <p className="text-xs text-slate-500">
-                Specify the categorization, formal justification, and timeline for this offboarding workflow.
-              </p>
             </div>
           </div>
 
@@ -313,9 +294,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
                   required
                   className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 focus:border-[#244A70] focus:outline-none focus:ring-2 focus:ring-[#244A70]/15"
                 />
-                <p className="text-xs text-slate-500 mt-1">
-                  Scheduled departure date when system credentials and role access will be revoked.
-                </p>
               </div>
             </div>
 
@@ -363,9 +341,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-semibold text-slate-900">Project & Resource Impact</h3>
-                <p className="text-xs text-slate-500">
-                  Assess live active project commitments and system credentials requiring transition.
-                </p>
               </div>
             </div>
             {liveSummary && (
@@ -501,9 +476,6 @@ export const CreateOffboardingRequestPage: React.FC = () => {
             </div>
             <div>
               <h3 className="text-base font-semibold text-slate-900">Handover Plan</h3>
-              <p className="text-xs text-slate-500">
-                Designate a primary successor, define knowledge transfer milestones, and verify task completion.
-              </p>
             </div>
           </div>
 

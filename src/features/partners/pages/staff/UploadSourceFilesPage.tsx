@@ -9,6 +9,7 @@ import {
   RefreshCw,
   ArrowRight,
   AlertCircle,
+  FolderUp,
 } from 'lucide-react';
 import { Button, ModernizationWorkflow } from '@/shared/ui';
 import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
@@ -22,6 +23,62 @@ import {
   formatFileSize,
   validateIncomingFile,
 } from '../../utils/uploadValidation';
+
+interface WebkitFileSystemEntry {
+  isFile: boolean;
+  isDirectory: boolean;
+  file: (success: (file: File) => void, error?: () => void) => void;
+  createReader: () => {
+    readEntries: (success: (entries: WebkitFileSystemEntry[]) => void, error?: () => void) => void;
+  };
+}
+
+async function extractFilesFromDataTransfer(dataTransfer: DataTransfer): Promise<File[]> {
+  const files: File[] = [];
+  const items = dataTransfer.items;
+  if (items && items.length > 0 && typeof (items[0] as unknown as { webkitGetAsEntry?: () => unknown }).webkitGetAsEntry === 'function') {
+    const entries: WebkitFileSystemEntry[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const entry = (items[i] as unknown as { webkitGetAsEntry: () => WebkitFileSystemEntry | null }).webkitGetAsEntry();
+      if (entry) entries.push(entry);
+    }
+    const readEntry = async (entry: WebkitFileSystemEntry): Promise<void> => {
+      if (entry.isFile) {
+        await new Promise<void>((resolve) => {
+          entry.file(
+            (file: File) => {
+              files.push(file);
+              resolve();
+            },
+            () => resolve(),
+          );
+        });
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const readBatch = async (): Promise<void> => {
+          const batch: WebkitFileSystemEntry[] = await new Promise((resolve) => {
+            reader.readEntries(
+              (results) => resolve(results),
+              () => resolve([]),
+            );
+          });
+          if (batch.length > 0) {
+            for (const child of batch) {
+              await readEntry(child);
+            }
+            await readBatch();
+          }
+        };
+        await readBatch();
+      }
+    };
+    for (const entry of entries) {
+      await readEntry(entry);
+    }
+    return files;
+  }
+  return Array.from(dataTransfer.files);
+}
 
 /** How long the success message stays visible before moving to the workspace. */
 export const UPLOAD_REDIRECT_DELAY_MS = 1200;
@@ -41,6 +98,7 @@ interface QueuedFile {
 
 const CONVERSION_TYPE_LABEL: Record<PartnerProject['conversionType'], string> = {
   BMS_DSPF_TO_FRONTEND: 'BMS / DSPF → React',
+  BMS_DSPF_TO_REACT: 'BMS / DSPF → React',
   COBOL_TO_JAVA: 'COBOL → Java',
 };
 
@@ -74,6 +132,7 @@ export const UploadSourceFilesPage: React.FC = () => {
   const [result, setResult] = useState<SourceUploadResult | null>(null);
   const idCounter = useRef(0);
   const redirectTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
@@ -92,21 +151,47 @@ export const UploadSourceFilesPage: React.FC = () => {
 
   const locked = uploading || result !== null;
 
-  const addFilesToQueue = (fileList: FileList | File[] | null) => {
+  const addFilesToQueue = (fileList: FileList | File[] | null, isFromFolderOrDrop = false) => {
     if (!fileList || !project || locked) return;
+    const rawFiles = Array.from(fileList);
     const rejected: string[] = [];
     const accepted: QueuedFile[] = [];
-    const names = files.map((f) => f.name);
+    const names = files.map((f) => f.name.toLowerCase());
+    const seenInBatch = new Set<string>();
 
-    for (const file of Array.from(fileList)) {
+    // When uploading from a folder or drop, filter to supported source files first and ignore irrelevant files (.gitignore, docs, images)
+    const validExtensions = project.conversionType === 'COBOL_TO_JAVA'
+      ? ['.cbl', '.cob', '.cpy', '.zip']
+      : ['.bms', '.dspf', '.zip'];
+
+    const filteredFiles = isFromFolderOrDrop
+      ? rawFiles.filter((f) => validExtensions.some((ext) => f.name.toLowerCase().endsWith(ext)))
+      : rawFiles;
+
+    // If source files exist, filter out redundant nested zip files
+    const hasUncompressedSource = filteredFiles.some((f) => !f.name.toLowerCase().endsWith('.zip'));
+    const candidateFiles = hasUncompressedSource
+      ? filteredFiles.filter((f) => !f.name.toLowerCase().endsWith('.zip'))
+      : filteredFiles;
+
+    for (const file of candidateFiles) {
+      const lowerName = file.name.toLowerCase();
+      if (seenInBatch.has(lowerName)) {
+        // Skip duplicate basename across subfolders gracefully
+        continue;
+      }
+
       const rejection = validateIncomingFile(file, project.conversionType, [
         ...names,
         ...accepted.map((a) => a.name),
       ]);
       if (rejection) {
-        rejected.push(rejection.message);
+        if (!isFromFolderOrDrop) {
+          rejected.push(rejection.message);
+        }
         continue;
       }
+      seenInBatch.add(lowerName);
       idCounter.current += 1;
       accepted.push({
         id: `file-${idCounter.current}`,
@@ -119,15 +204,38 @@ export const UploadSourceFilesPage: React.FC = () => {
       });
     }
 
+    if (isFromFolderOrDrop && accepted.length === 0 && rawFiles.length > 0) {
+      rejected.push(`No valid source files (${validExtensions.join(', ')}) found in the selected folder.`);
+    }
+
     setRejections(rejected);
     setSubmitError(null);
     if (accepted.length > 0) setFiles((prev) => [...prev, ...accepted]);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
-    addFilesToQueue(e.dataTransfer.files);
+    try {
+      const extractedFiles = await extractFilesFromDataTransfer(e.dataTransfer);
+      if (extractedFiles.length > 0) {
+        addFilesToQueue(extractedFiles, true);
+        return;
+      }
+    } catch {
+      // fallback
+    }
+    if (e.dataTransfer.files.length) {
+      addFilesToQueue(Array.from(e.dataTransfer.files), true);
+    }
+  };
+
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = '';
+    if (picked.length > 0) {
+      addFilesToQueue(picked, true);
+    }
   };
 
   const handleRemoveFile = (id: string) => {
@@ -308,24 +416,50 @@ export const UploadSourceFilesPage: React.FC = () => {
           rejected.
         </p>
 
-        <label className="inline-block">
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <label className="inline-block">
+            <input
+              data-testid="file-input"
+              type="file"
+              multiple
+              accept={acceptAttribute(project.conversionType)}
+              disabled={locked}
+              onChange={(e) => {
+                addFilesToQueue(e.target.files);
+                // Allow picking the same file again after removing it.
+                e.target.value = '';
+              }}
+              className="hidden"
+            />
+            <span className="px-4 py-2 bg-[#244A70] hover:bg-[#1a3857] text-white rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors">
+              Browse Files from Disk
+            </span>
+          </label>
+
           <input
-            data-testid="file-input"
+            ref={(node) => {
+              folderInputRef.current = node;
+              if (node) {
+                node.setAttribute('webkitdirectory', '');
+                node.setAttribute('directory', '');
+              }
+            }}
             type="file"
             multiple
-            accept={acceptAttribute(project.conversionType)}
             disabled={locked}
-            onChange={(e) => {
-              addFilesToQueue(e.target.files);
-              // Allow picking the same file again after removing it.
-              e.target.value = '';
-            }}
+            onChange={handleFolderSelect}
             className="hidden"
           />
-          <span className="px-4 py-2 bg-[#244A70] hover:bg-[#244A70] text-white rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors">
-            Browse Files from Disk
-          </span>
-        </label>
+          <button
+            type="button"
+            disabled={locked}
+            onClick={() => folderInputRef.current?.click()}
+            className="px-4 py-2 bg-white hover:bg-slate-50 text-[#244A70] border border-[#244A70] rounded-lg text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 transition-colors disabled:opacity-60"
+          >
+            <FolderUp className="w-4 h-4 text-[#244A70]" />
+            <span>Select Entire Folder</span>
+          </button>
+        </div>
       </div>
 
       {/* Rejected files */}

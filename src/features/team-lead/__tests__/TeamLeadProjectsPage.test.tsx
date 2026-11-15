@@ -40,6 +40,19 @@ const mockProjects = [
     screensCompleted: 0,
     createdAt: '2026-10-11T00:00:00.000Z',
   },
+  {
+    id: 'proj-managed-02-other-lead',
+    name: 'Another Lead Modernization Project',
+    organizationId: 'org-fnx-prod',
+    conversionType: 'COBOL_TO_JAVA',
+    targetFramework: 'Spring Boot 3.3',
+    status: 'IN_PROGRESS',
+    serviceType: 'MANAGED',
+    contractNumber: 'ALSM-CTR-2026-9A52',
+    assignedTeamLeadId: 'lead-02',
+    assignedTeamLeadName: 'Marcus Vance',
+    createdAt: '2026-10-12T00:00:00.000Z',
+  },
 ];
 
 const mockStaff = [
@@ -114,5 +127,18 @@ describe('TeamLeadProjectsPage - Managed Modernization Allocation', () => {
     // Transfer button links to /team-lead/projects/:id/transfer
     const transferLink = screen.getByRole('link', { name: /^Transfer$/i });
     expect(transferLink).toHaveAttribute('href', '/team-lead/projects/proj-managed-01/transfer');
+  });
+
+  it('strictly hides projects assigned to other team leads for non-admin team lead', async () => {
+    render(<TeamLeadProjectsPage />, { wrapper: createWrapper() });
+
+    // Current user Sarah Jenkins (lead-01) can see her assigned project
+    expect(await screen.findByText('General Ledger COBOL Migration')).toBeInTheDocument();
+
+    // Marcus Vance's (lead-02) project must NOT be displayed
+    expect(screen.queryByText('Another Lead Modernization Project')).not.toBeInTheDocument();
+
+    // Shows assigned to me scope badge for team lead
+    expect(screen.getByText(/Assigned to Me \(by Admin\)/i)).toBeInTheDocument();
   });
 });

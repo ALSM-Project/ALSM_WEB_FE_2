@@ -21,6 +21,72 @@ export interface WorkflowStep {
   description: string;
 }
 
+export const BMS_WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    id: 'upload',
+    label: 'Upload',
+    sublabel: 'Source ingestion',
+    description: 'Ingest legacy BMS/DSPF screen maps (.bms, .dspf).',
+  },
+  {
+    id: 'convert',
+    label: 'Convert',
+    sublabel: 'Target code generation',
+    description: 'The modernization engine parses BMS/DSPF maps into React components.',
+  },
+  {
+    id: 'validate',
+    label: 'Validate',
+    sublabel: 'Rule-based validation',
+    description: 'Rule-based and semantic validation of generated React screens.',
+  },
+  {
+    id: 'export',
+    label: 'Export',
+    sublabel: 'Modernization package',
+    description: 'Package modernized React components and code artifacts for deployment.',
+  },
+];
+
+export const COBOL_WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    id: 'upload',
+    label: 'Upload Source Files',
+    sublabel: 'Source Ingestion',
+    description: 'Upload COBOL programs (.cbl, .cob) and copybooks (.cpy).',
+  },
+  {
+    id: 'analyze',
+    label: 'Analyze & Prepare',
+    sublabel: 'Transpiler Passes 1–2.4',
+    description: 'Project index, CICS normalization, preprocessing, AST parsing, symbol resolution, and control flow analysis.',
+  },
+  {
+    id: 'convert',
+    label: 'Convert to Java',
+    sublabel: 'Code Generation',
+    description: 'Transpile COBOL divisions, statements, and SQL into Java Spring Boot components using Cobol2Java.',
+  },
+  {
+    id: 'validate',
+    label: 'Validate & Build',
+    sublabel: 'Scaffold & Compiler',
+    description: 'Assemble Spring Batch scaffold and verify compilation with Maven build verification.',
+  },
+  {
+    id: 'review',
+    label: 'Review Results',
+    sublabel: 'Findings & Reports',
+    description: 'Inspect generated Java classes, method mappings, conversion diagnostics, and technical reports.',
+  },
+  {
+    id: 'export',
+    label: 'Export Java Project',
+    sublabel: 'Deployable Artifacts',
+    description: 'Download complete modernized Spring Boot Maven project bundle and conversion reports.',
+  },
+];
+
 export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: 'upload',
@@ -48,7 +114,30 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   },
 ];
 
-function getStepIndex(stepId: WorkflowStepId): number {
+function getStepIndex(stepId: WorkflowStepId, isCobol = false): number {
+  if (isCobol) {
+    switch (stepId) {
+      case 'upload':
+        return 0;
+      case 'analyze':
+      case 'analysis':
+      case 'mapping':
+        return 1;
+      case 'convert':
+      case 'conversion':
+        return 2;
+      case 'validate':
+      case 'validation':
+        return 3;
+      case 'review':
+      case 'result':
+        return 4;
+      case 'export':
+        return 5;
+      default:
+        return 0;
+    }
+  }
   switch (stepId) {
     case 'upload':
       return 0;
@@ -73,6 +162,7 @@ function getStepIndex(stepId: WorkflowStepId): number {
 export interface ModernizationWorkflowProps {
   currentStep: WorkflowStepId;
   completedSteps?: WorkflowStepId[];
+  workflowType?: 'SCREENS' | 'PROGRAMS' | 'BMS_DSPF_TO_REACT' | 'BMS_DSPF_TO_FRONTEND' | 'COBOL_TO_JAVA';
   onStepClick?: (stepId: WorkflowStepId) => void;
   onActionClick?: () => void;
   actionLabel?: string;
@@ -82,13 +172,23 @@ export interface ModernizationWorkflowProps {
 export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
   currentStep,
   completedSteps = [],
+  workflowType,
   onStepClick,
   onActionClick,
   actionLabel,
   className = '',
 }) => {
-  const currentIndex = getStepIndex(currentStep);
-  const currentStepInfo = WORKFLOW_STEPS[currentIndex] ?? WORKFLOW_STEPS[0];
+  const steps =
+    workflowType === 'PROGRAMS' || workflowType === 'COBOL_TO_JAVA'
+      ? COBOL_WORKFLOW_STEPS
+      : workflowType === 'SCREENS' ||
+        workflowType === 'BMS_DSPF_TO_REACT' ||
+        workflowType === 'BMS_DSPF_TO_FRONTEND'
+      ? BMS_WORKFLOW_STEPS
+      : WORKFLOW_STEPS;
+  const isCobolWorkflow = workflowType === 'PROGRAMS' || workflowType === 'COBOL_TO_JAVA';
+  const currentIndex = getStepIndex(currentStep, isCobolWorkflow);
+  const currentStepInfo = steps[currentIndex] ?? steps[0];
 
   return (
     <div className={`bg-white border border-[#DCE3EC] rounded-lg overflow-hidden shadow-xs ${className}`}>
@@ -103,7 +203,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
           </p>
         </div>
         <div className="text-xs font-semibold text-[#8491A3]">
-          Stage <span className="text-[#244A70] font-bold">{currentIndex + 1}</span> of {WORKFLOW_STEPS.length}
+          Stage <span className="text-[#244A70] font-bold">{currentIndex + 1}</span> of {steps.length}
         </div>
       </div>
 
@@ -111,7 +211,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
       <div className="p-5">
         {/* Desktop / Tablet Horizontal Stepper */}
         <div className="hidden md:flex items-center justify-between relative">
-          {WORKFLOW_STEPS.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isCompleted = idx < currentIndex || completedSteps.includes(step.id as WorkflowStepId);
             const isCurrent = idx === currentIndex;
 
@@ -162,7 +262,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 </button>
 
                 {/* Connector line */}
-                {idx < WORKFLOW_STEPS.length - 1 && (
+                {idx < steps.length - 1 && (
                   <div
                     className={`flex-1 h-[2px] mx-3 transition-colors ${
                       idx < currentIndex ? 'bg-emerald-300' : 'bg-[#DCE3EC]'
@@ -176,7 +276,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
 
         {/* Mobile Vertical Stepper */}
         <div className="md:hidden space-y-3">
-          {WORKFLOW_STEPS.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isCompleted = idx < currentIndex;
             const isCurrent = idx === currentIndex;
 

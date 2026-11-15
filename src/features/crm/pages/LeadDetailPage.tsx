@@ -134,7 +134,7 @@ export const LeadDetailPage: React.FC = () => {
     && contract.activationStatus === 'ELIGIBLE',
   );
   const isWon = lead.stage === 'WON';
-  const customerAccountReady = contractInvitations.some((invitation) => invitation.status === 'CONSUMED');
+  const customerAccountReady = contractInvitations.some((invitation) => invitation.status === 'CONSUMED') || Boolean((lead as any).organizationId);
   const previewLegalContract = (item: LegalContractRecord): LeadContract => ({
     id: item.contract.id,
     contractNumber: item.contract.contractNumber,
@@ -286,19 +286,11 @@ export const LeadDetailPage: React.FC = () => {
       {/* Top Breadcrumb & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/sales/leads')}
-            className="p-2 rounded-xl border border-[#D9E2EC] bg-white hover:bg-[#F7F9FC] text-[#6B778C] transition-colors"
-            title="Back to Lead Directory"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
+
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{leadDisplayName}</h1>
-              <span className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
-                Score: {lead.score}
-              </span>
+    
               {isWon && (
                 <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                   <Award className="w-3.5 h-3.5 text-emerald-600" />

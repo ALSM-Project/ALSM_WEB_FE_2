@@ -47,6 +47,10 @@ export const bankAccountApi = {
     return apiClient.post<BankAccount>(`/admin/bank-accounts/${id}/reactivate`, {});
   },
 
+  delete: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return apiClient.delete<{ success: boolean; message: string }>(`/admin/bank-accounts/${id}`);
+  },
+
   revealAccountNumber: async (id: string): Promise<{ id: string; accountNumber: string }> => {
     return apiClient.post<{ id: string; accountNumber: string }>(
       `/admin/bank-accounts/${id}/reveal-account-number`,

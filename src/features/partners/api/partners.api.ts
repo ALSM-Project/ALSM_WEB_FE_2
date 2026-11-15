@@ -354,6 +354,7 @@ interface ProjectDto {
 
 const TARGET_FRAMEWORK: Record<ConversionType, string> = {
   BMS_DSPF_TO_FRONTEND: 'React 19 + Tailwind CSS',
+  BMS_DSPF_TO_REACT: 'React 19 + Tailwind CSS',
   COBOL_TO_JAVA: 'Spring Boot 3.3 / Java 21',
 };
 

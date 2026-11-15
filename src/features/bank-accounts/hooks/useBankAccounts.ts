@@ -48,6 +48,11 @@ export function useBankAccounts(params?: BankAccountsQueryParams) {
     onSuccess: () => invalidate(),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => bankAccountApi.delete(id),
+    onSuccess: () => invalidate(),
+  });
+
   const revealMutation = useMutation({
     mutationFn: (id: string) => bankAccountApi.revealAccountNumber(id),
   });
@@ -70,6 +75,8 @@ export function useBankAccounts(params?: BankAccountsQueryParams) {
     isDeactivating: deactivateMutation.isPending,
     reactivateAccount: reactivateMutation.mutateAsync,
     isReactivating: reactivateMutation.isPending,
+    deleteAccount: deleteMutation.mutateAsync,
+    isDeleting: deleteMutation.isPending,
     revealAccountNumber: revealMutation.mutateAsync,
     isRevealing: revealMutation.isPending,
   };
