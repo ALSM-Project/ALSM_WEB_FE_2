@@ -138,7 +138,7 @@ export const AdminProjectsPage: React.FC = () => {
     name: '',
     organizationId: '',
     conversionType: 'COBOL_TO_JAVA' as 'BMS_DSPF_TO_FRONTEND' | 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.3 / Java 21',
+    targetFramework: 'Spring Boot 3.3 / Java 17',
     description: '',
     initialLeadId: '',
   });
@@ -423,7 +423,7 @@ export const AdminProjectsPage: React.FC = () => {
         name: '',
         organizationId: organizations.find((o) => isManagedModernizationOrg(o))?.id || '',
         conversionType: 'COBOL_TO_JAVA',
-        targetFramework: 'Spring Boot 3.3 / Java 21',
+        targetFramework: 'Spring Boot 3.3 / Java 17',
         description: '',
         initialLeadId: '',
       });
@@ -861,7 +861,7 @@ export const AdminProjectsPage: React.FC = () => {
               {[
                 { key: 'ALL', label: 'All Pipelines' },
                 { key: 'BMS_DSPF_TO_FRONTEND', label: 'BMS/DSPF to React' },
-                { key: 'COBOL_TO_JAVA', label: 'COBOL to Java 21' },
+                { key: 'COBOL_TO_JAVA', label: 'COBOL to Java 17' },
               ].map((t) => (
                 <button
                   key={t.key}
@@ -1116,7 +1116,7 @@ export const AdminProjectsPage: React.FC = () => {
                       {/* Column 3: Target Architecture */}
                       <td className="py-3 px-4 text-[#17263A]">
                         <span className="inline-block px-2.5 py-1 rounded bg-[#F8FAFC] border border-[#DCE3EC] text-xs font-mono font-medium whitespace-nowrap text-slate-700">
-                          {p.targetFramework || (p.conversionType === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 21' : 'React 19 + Tailwind CSS')}
+                          {p.targetFramework || (p.conversionType === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 17' : 'React 19 + Tailwind CSS')}
                         </span>
                       </td>
 
@@ -1180,7 +1180,7 @@ export const AdminProjectsPage: React.FC = () => {
                       </td>
 
                       {/* Column 7: Allocation Actions */}
-                      <td className="py-3 px-4 text-right">
+                      <td className="py-3 px-4 text-right whitespace-nowrap min-w-[280px]">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           {/* Admin Intake Review Button for submitted / pending projects */}
                           {(p.status === 'SUBMITTED' || p.status === 'PENDING_REVIEW' || p.status === 'NEEDS_INFO' || p.status === 'READY_FOR_ASSIGNMENT') && (
@@ -1189,11 +1189,11 @@ export const AdminProjectsPage: React.FC = () => {
                                 e.stopPropagation();
                                 openIntakeModal(p);
                               }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 transition-colors cursor-pointer h-8"
                               title="Review Customer Submission"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" />
-                              Review Intake
+                              <span>Review Intake</span>
                             </button>
                           )}
 
@@ -1203,27 +1203,27 @@ export const AdminProjectsPage: React.FC = () => {
                               e.stopPropagation();
                               openAssignModal(p);
                             }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all shadow-xs cursor-pointer h-8 ${
                               isAssigned
-                                ? 'border border-[#DCE3EC] bg-white text-[#17263A] hover:bg-[#F8FAFC]'
-                                : 'bg-[#244A70] text-white hover:bg-[#244A70] shadow-2xs'
+                                ? 'border border-[#DCE3EC] bg-white text-slate-800 hover:bg-[#F8FAFC]'
+                                : 'bg-[#244A70] text-white hover:bg-[#1B3856]'
                             }`}
                           >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            {isAssigned ? 'Reassign Lead' : 'Assign to Lead'}
+                            <UserCheck className="w-3.5 h-3.5 shrink-0" />
+                            <span>{isAssigned ? 'Reassign Lead' : 'Assign to Lead'}</span>
                           </button>
 
                           {/* Transfer Resource Ownership */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setTransferTargetProject(p);
+                              navigate(`/admin/projects/${p.id}/transfer`);
                             }}
                             title="Transfer Resource Ownership"
-                            className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold border border-[#DCE3EC] bg-white text-[#17263A] hover:bg-blue-50/50 hover:text-[#244A70] transition-colors cursor-pointer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 border border-[#DCE3EC] bg-white text-slate-800 hover:bg-blue-50/70 hover:text-[#244A70] transition-all shadow-xs cursor-pointer h-8"
                           >
-                            <ArrowRightLeft className="w-3.5 h-3.5 text-[#244A70]" />
-                            Transfer
+                            <ArrowRightLeft className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+                            <span>Transfer</span>
                           </button>
 
                           {/* View Project Details Modal */}
@@ -1234,9 +1234,9 @@ export const AdminProjectsPage: React.FC = () => {
                               setDetailsTargetProject(p);
                             }}
                             title="View Project Details Dossier"
-                            className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#8491A3] hover:text-[#244A70] hover:bg-blue-50 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg border border-[#DCE3EC] bg-white text-[#8491A3] hover:text-[#244A70] hover:bg-blue-50 transition-all shadow-xs cursor-pointer h-8 w-8 flex items-center justify-center shrink-0"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-3.5 h-3.5 shrink-0" />
                           </button>
 
                           {/* Jump to Workspace */}
@@ -1398,12 +1398,12 @@ export const AdminProjectsPage: React.FC = () => {
                   setCreateForm({
                     ...createForm,
                     conversionType: type,
-                    targetFramework: type === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 21' : 'React 19 + Tailwind CSS',
+                    targetFramework: type === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 17' : 'React 19 + Tailwind CSS',
                   });
                 }}
                 className="w-full text-xs p-2.5 rounded-xl border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:border-[#244A70]"
               >
-                <option value="COBOL_TO_JAVA">COBOL → Java 21</option>
+                <option value="COBOL_TO_JAVA">COBOL → Java 17</option>
                 <option value="BMS_DSPF_TO_FRONTEND">BMS/DSPF → React 19</option>
               </select>
             </div>
@@ -1594,7 +1594,7 @@ export const AdminProjectsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-[#8491A3]">Category & Pipeline:</span>
               <span className="font-semibold text-slate-800">
-                {assignTargetProject?.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 21' : 'BMS/DSPF → React 19'}
+                {assignTargetProject?.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 17' : 'BMS/DSPF → React 19'}
               </span>
             </div>
 
@@ -1733,7 +1733,7 @@ export const AdminProjectsPage: React.FC = () => {
               <div className="p-3 rounded-lg border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400">Conversion Pipeline</span>
                 <p className="font-semibold text-slate-800">
-                  {detailsTargetProject.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 21' : 'BMS/DSPF → React 19'}
+                  {detailsTargetProject.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 17' : 'BMS/DSPF → React 19'}
                 </p>
                 <p className="text-[10px] font-mono text-slate-500">{detailsTargetProject.targetFramework || 'Default Framework'}</p>
               </div>
@@ -1841,7 +1841,7 @@ export const AdminProjectsPage: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[#8491A3]">Modernization Pipeline:</span>
-                <span className="font-semibold">{intakeTargetProject.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 21' : 'BMS/DSPF → React 19'}</span>
+                <span className="font-semibold">{intakeTargetProject.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 17' : 'BMS/DSPF → React 19'}</span>
               </div>
               {intakeTargetProject.businessRequirements && (
                 <div className="pt-2 border-t border-[#DCE3EC]">
