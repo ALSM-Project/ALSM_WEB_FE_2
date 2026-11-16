@@ -12,7 +12,7 @@ const mockProjects = [
     partnerId: 'partner-alpha',
     partnerName: 'Alpha Financial Corp',
     conversionType: 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.0 / Java 21',
+    targetFramework: 'Spring Boot 3.0 / Java 17',
     status: 'ACTIVE',
     screensTotal: 0,
     screensCompleted: 0,
@@ -74,7 +74,7 @@ describe('ProjectStaffAllocationPage - Detailed Staff Allocation', () => {
     // Breadcrumbs & Heading
     expect(await screen.findByRole('heading', { level: 1, name: /Allocate Conversion Staff to Project/i })).toBeInTheDocument();
     expect(screen.getAllByText('General Ledger COBOL Migration').length).toBeGreaterThan(0);
-    expect(screen.getByText('Spring Boot 3.0 / Java 21')).toBeInTheDocument();
+    expect(screen.getByText('Spring Boot 3.0 / Java 17')).toBeInTheDocument();
     expect(screen.getByText('Alpha Financial Corp')).toBeInTheDocument();
 
     // Roster count and employees
