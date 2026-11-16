@@ -162,7 +162,7 @@ export const CreateOffboardingRequestPage: React.FC = () => {
   const getStaffSpecializations = (staffId: string, idx: number) => {
     const skillSets = [
       ['BMS / DSPF → React 19', 'AST Parser', 'COBOL → Java'],
-      ['COBOL', 'Java 21', 'Spring Boot 3.3', 'MicroFocus'],
+      ['COBOL', 'Java 17', 'Spring Boot 3.3', 'MicroFocus'],
       ['React 19', 'TypeScript', 'Tailwind CSS', 'AST Parser'],
       ['COBOL', 'CICS', 'Spring Boot', 'REST APIs'],
       ['AS400 / DSPF', 'Next.js', 'TypeScript', 'Jest / Vitest'],
