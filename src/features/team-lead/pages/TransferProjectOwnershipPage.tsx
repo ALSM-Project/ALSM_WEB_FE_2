@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   FolderKanban,
   ArrowLeft,
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '@/features/admin/api/admin.api';
+import { workforceApi, WorkforceEmployee } from '@/shared/api/workforce.api';
 import { PartnerProject } from '@/features/partners/types/partner.types';
 import { workloadLevel } from '../utils/workload';
 import { Button, StatusBadge } from '@/shared/ui';
@@ -35,6 +36,9 @@ interface AssignableStaffMember {
   email: string;
   role: string;
   activeWorkload: number;
+  department?: string;
+  employeeCode?: string;
+  roles?: string[];
 }
 
 export type TransferScope = 'FULL_HANDOVER' | 'OWNERSHIP_ONLY' | 'OWNERSHIP_WITH_TRIAGE';
@@ -59,6 +63,11 @@ const ALL_SPECIALIZATIONS = [
 export const TransferProjectOwnershipPage: React.FC = () => {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAdminPath = location.pathname.startsWith('/admin');
+  const returnPath = isAdminPath ? '/admin/projects' : '/team-lead/projects';
+  const returnLabel = isAdminPath ? 'Return to Team Lead Assignment' : 'Return to Employee Allocation';
 
   const [project, setProject] = useState<PartnerProject | null>(null);
   const [staffRoster, setStaffRoster] = useState<AssignableStaffMember[]>([]);
@@ -81,9 +90,19 @@ export const TransferProjectOwnershipPage: React.FC = () => {
       setLoading(true);
       setErrorMsg(null);
 
-      const [projectsList, staffList] = await Promise.all([
+      const [projectsList, staffList, workforceRes, internalStaffRes, teamLeadsRes] = await Promise.all([
         partnersApi.getProjects().catch(() => []),
         partnersApi.getAssignableStaff().catch(() => []),
+        workforceApi
+          .searchWorkforce({
+            portal: 'WEB2',
+            memberType: 'INTERNAL_EMPLOYEE',
+            status: 'ACTIVE',
+            limit: 100,
+          })
+          .catch(() => ({ items: [] as WorkforceEmployee[] })),
+        workforceApi.getInternalStaff().catch(() => [] as WorkforceEmployee[]),
+        adminApi.getAssignableTeamLeads().catch(() => [] as any[]),
       ]);
 
       const found = (projectsList || []).find((p) => p.id === projectId);
@@ -98,7 +117,61 @@ export const TransferProjectOwnershipPage: React.FC = () => {
         }
       }
 
-      setStaffRoster(staffList || []);
+      // Combine authoritative workforce, assignable team leads, and staff roster
+      const combined = new Map<string, AssignableStaffMember>();
+      (staffList || []).forEach((s) => {
+        if (s.id) combined.set(s.id, s);
+      });
+      (workforceRes?.items || []).forEach((emp) => {
+        const key = emp.userId || emp.id;
+        if (key && !combined.has(key)) {
+          combined.set(key, {
+            id: key,
+            fullName: emp.fullName || emp.email,
+            email: emp.email,
+            role: emp.role || (emp.roles && emp.roles[0]) || 'Internal Employee',
+            activeWorkload: emp.activeWorkload || 0,
+            department: emp.department,
+            employeeCode: emp.employeeCode,
+            roles: emp.roles,
+          });
+        }
+      });
+      (Array.isArray(internalStaffRes) ? internalStaffRes : []).forEach((emp) => {
+        const key = emp.userId || emp.id;
+        if (key && !combined.has(key)) {
+          combined.set(key, {
+            id: key,
+            fullName: emp.fullName || emp.email,
+            email: emp.email,
+            role: emp.role || (emp.roles && emp.roles[0]) || 'Internal Employee',
+            activeWorkload: emp.activeWorkload || 0,
+            department: emp.department,
+            employeeCode: emp.employeeCode,
+            roles: emp.roles,
+          });
+        }
+      });
+      (Array.isArray(teamLeadsRes) ? teamLeadsRes : []).forEach((tl) => {
+        const key = tl.id || tl.userId;
+        if (key && !combined.has(key)) {
+          combined.set(key, {
+            id: key,
+            fullName: tl.fullName || tl.email,
+            email: tl.email,
+            role: tl.role || 'Team Lead',
+            activeWorkload: tl.activeWorkload || 0,
+            department: 'Modernization Engineering',
+          });
+        }
+      });
+
+      const staffArray = Array.from(combined.values());
+      if (staffArray.length > 0) {
+        setStaffRoster(staffArray);
+      } else {
+        setStaffRoster(staffList || []);
+      }
     } catch (err: any) {
       console.error('Failed to load project details for transfer:', err);
       setErrorMsg(err.message || 'Failed to load project information');
@@ -162,7 +235,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
   const getStaffSpecializations = (staffId: string, idx: number) => {
     const skillSets = [
       ['BMS / DSPF → React 19', 'AST Parser', 'COBOL → Java'],
-      ['COBOL', 'Java 21', 'Spring Boot 3.3', 'MicroFocus'],
+      ['COBOL', 'Java 17', 'Spring Boot 3.3', 'MicroFocus'],
       ['React 19', 'TypeScript', 'Tailwind CSS', 'AST Parser'],
       ['COBOL', 'CICS', 'Spring Boot', 'REST APIs'],
       ['AS400 / DSPF', 'Next.js', 'TypeScript', 'Jest / Vitest'],
@@ -274,6 +347,19 @@ export const TransferProjectOwnershipPage: React.FC = () => {
         // Handled gracefully if already logged by assignProject
       }
 
+      // If in admin mode or assignee has team lead role, ensure team lead assignment is also updated
+      if (isAdminPath || selectedAssignee.role.toLowerCase().includes('lead') || selectedAssignee.roles?.includes('TEAM_LEAD')) {
+        try {
+          await adminApi.assignTeamLead(
+            project.id,
+            selectedAssignee.id,
+            referenceNote.trim() || `Transferred via ${transferReason}`
+          );
+        } catch {
+          // Handled gracefully
+        }
+      }
+
       setProject(updated);
       setSuccessMsg(
         `Ownership of "${project.name}" has been successfully transferred to ${selectedAssignee.fullName}. Access policies updated, notifications dispatched, and audit history recorded.`
@@ -281,12 +367,12 @@ export const TransferProjectOwnershipPage: React.FC = () => {
 
       // Redirect back after short feedback delay
       setTimeout(() => {
-        navigate('/team-lead/projects', {
+        navigate(returnPath, {
           state: {
             notification: `Ownership of "${project.name}" transferred to ${selectedAssignee.fullName}.`,
           },
         });
-      }, 2000);
+      }, 1500);
     } catch (err: any) {
       console.error('Failed to execute ownership transfer:', err);
       setErrorMsg(err?.message || 'Failed to execute project ownership transfer.');
@@ -316,11 +402,11 @@ export const TransferProjectOwnershipPage: React.FC = () => {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => navigate('/team-lead/projects')}
+            onClick={() => navigate(returnPath)}
             className="text-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Return to Employee Allocation
+            {returnLabel}
           </Button>
         </div>
       </div>
@@ -336,11 +422,11 @@ export const TransferProjectOwnershipPage: React.FC = () => {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               Transfer Project Ownership
             </h1>
-            {project?.status && <StatusBadge status={project.status} />}
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Transfer project responsibility to another eligible internal employee with impact validation and audit logging.
-          </p>
+
+        </div>
+        <div className="flex items-center gap-2">
+         
         </div>
       </div>
 
@@ -411,7 +497,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
               <Layers className="w-3.5 h-3.5 text-[#244A70]" />
               <div>
                 <span>
-                  {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 21' : 'IBM BMS/DSPF → React 19'}
+                  {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 17' : 'IBM BMS/DSPF → React 19'}
                 </span>
                 <span className="text-[10px] text-slate-500 block">
                   {project?.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
@@ -1125,7 +1211,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/team-lead/projects')}
+            onClick={() => navigate(returnPath)}
             disabled={isExecuting}
             className="text-xs h-9 w-full sm:w-auto"
           >
