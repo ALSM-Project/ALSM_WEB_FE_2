@@ -10,6 +10,7 @@ import {
 import { temporaryRolesApi, TemporaryRoleDto } from '../api/temporary-roles.api';
 import { rbacApi, RoleDto, UserRbacDto } from '../api/rbac.api';
 import { partnersApi } from '@/features/partners/api/partners.api';
+import { workforceApi, WorkforceEmployee } from '@/shared/api/workforce.api';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 /** Roles that must never be handed out through a temporary elevation. */
@@ -80,7 +81,15 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
   
   
   
-  const [projectOptions, setProjectOptions] = useState<Array<{ id: string; name: string }>>([]);
+  const [projectOptions, setProjectOptions] = useState<Array<{
+    id: string;
+    name: string;
+    assignedStaffId?: string;
+    assignedStaffName?: string;
+    status?: string;
+    targetFramework?: string;
+    partnerName?: string;
+  }>>([]);
   
   
 
@@ -114,12 +123,13 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
     try {
       setLoading(true);
       setErrorMsg(null);
-      const [actives, history, allRoles, allUsers, projects] = await Promise.all([
+      const [actives, history, allRoles, allUsers, projects, internalStaffRes] = await Promise.all([
         temporaryRolesApi.getActiveRoles().catch(() => []),
         (canViewHistory ? temporaryRolesApi.getHistory() : temporaryRolesApi.getMyRequests()).catch(() => []),
         rbacApi.getRoles().catch(() => [] as RoleDto[]),
         (canGrant ? rbacApi.getAllUsers() : Promise.resolve([])).catch(() => [] as UserRbacDto[]),
         partnersApi.getProjects().catch(() => []),
+        workforceApi.getInternalStaff().catch(() => [] as WorkforceEmployee[]),
       ]);
       setActiveRoles(actives);
       setPendingRequests(history.filter((r) => r.status === 'PENDING'));
@@ -129,8 +139,59 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
           (r) => !PLATFORM_ADMIN_ROLE_IDS.has(String(r.id).toLowerCase()) && !PLATFORM_ADMIN_ROLE_IDS.has(String(r.key ?? '').toLowerCase()),
         ),
       );
-      setUsers(allUsers);
-      setProjectOptions(projects.map((p) => ({ id: p.id, name: p.name })));
+
+      // Filter to only internal employees / staff for elevation workflows
+      const internalIds = new Set(
+        (Array.isArray(internalStaffRes) ? internalStaffRes : []).map((s) => s.userId || s.id)
+      );
+      const internalRoles = new Set([
+        'ADMIN',
+        'PLATFORM_ADMIN',
+        'TEAM_LEAD',
+        'STAFF',
+        'CONVERSION_STAFF',
+        'ENGINEER',
+        'SUPPORT',
+        'INTERNAL_SALES',
+        'INTERNAL_SUPPORT',
+        'SALES_MANAGER',
+        'VP_OF_SALES',
+        'SYSTEM_ADMIN',
+      ]);
+      const internalUsers = allUsers.filter((u) => {
+        if (u.isPlatformAdmin) return true;
+        if (internalIds.has(u.id)) return true;
+        const roles = (u.roles || []).map((r) => r.toUpperCase());
+        return roles.some((r) => internalRoles.has(r));
+      });
+
+      // Merge any workforce internal employees not already present in allUsers
+      for (const emp of Array.isArray(internalStaffRes) ? internalStaffRes : []) {
+        const eid = emp.userId || emp.id;
+        if (eid && !internalUsers.some((u) => u.id === eid)) {
+          internalUsers.push({
+            id: eid,
+            fullName: emp.fullName || emp.email,
+            email: emp.email,
+            isPlatformAdmin: (emp.roles || []).includes('PLATFORM_ADMIN') || emp.role === 'PLATFORM_ADMIN',
+            roles: emp.roles || [emp.role || 'CONVERSION_STAFF'],
+            isActive: emp.status === 'ACTIVE',
+            isLocked: false,
+          });
+        }
+      }
+      setUsers(internalUsers);
+      setProjectOptions(
+        projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          assignedStaffId: p.assignedStaffId,
+          assignedStaffName: p.assignedStaffName,
+          status: p.status,
+          targetFramework: p.targetFramework,
+          partnerName: p.partnerName,
+        }))
+      );
     } catch (err: any) {
       console.error('Failed to load temporary roles:', err);
       setErrorMsg(err.message || 'Failed to load temporary role records');
