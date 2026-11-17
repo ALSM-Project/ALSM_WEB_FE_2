@@ -196,20 +196,20 @@ export const LeadsListPage: React.FC = () => {
         <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               id="lead-search-input"
               type="text"
               value={searchTerm}
               onChange={handleSearchChange}
               placeholder="Search by company, contact name, or email..."
-              className="w-full pl-9 pr-9 py-2 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] placeholder-[#8491A3] outline-none transition-all focus:ring-2 focus:ring-[#244A70]/15"
+              className="w-full h-8 pl-9 pr-8 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] placeholder-[#8491A3] outline-none transition-all focus:ring-2 focus:ring-[#244A70]/15"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => { setSearchTerm(''); setDebouncedSearch(''); setPage(1); }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer inline-flex items-center justify-center"
                 title="Clear search"
               >
                 <XCircle className="w-4 h-4" />
@@ -223,7 +223,7 @@ export const LeadsListPage: React.FC = () => {
               id="lead-status-filter"
               value={selectedStatus}
               onChange={(e) => { setSelectedStatus(e.target.value as LeadStatus | ''); setPage(1); }}
-              className="w-full py-2 px-3 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
+              className="w-full h-8 px-3 py-0 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
             >
               <option value="">All Statuses</option>
               {Object.entries(LEAD_STATUS_LABELS).map(([key, label]) => (
@@ -240,7 +240,7 @@ export const LeadsListPage: React.FC = () => {
               id="lead-priority-filter"
               value={selectedPriority}
               onChange={(e) => { setSelectedPriority(e.target.value as LeadPriority | ''); setPage(1); }}
-              className="w-full py-2 px-3 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
+              className="w-full h-8 px-3 py-0 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
             >
               <option value="">All Priorities</option>
               {Object.entries(LEAD_PRIORITY_LABELS).map(([key, label]) => (
@@ -257,7 +257,7 @@ export const LeadsListPage: React.FC = () => {
               id="lead-source-filter"
               value={selectedSource}
               onChange={(e) => { setSelectedSource(e.target.value as LeadSource | ''); setPage(1); }}
-              className="w-full py-2 px-3 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
+              className="w-full h-8 px-3 py-0 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
             >
               <option value="">All Sources</option>
               {Object.entries(LEAD_SOURCE_LABELS).map(([key, label]) => (
@@ -279,7 +279,7 @@ export const LeadsListPage: React.FC = () => {
                 setSortOrder(so as 'asc' | 'desc');
                 setPage(1);
               }}
-              className="w-full py-2 px-3 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
+              className="w-full h-8 px-3 py-0 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] outline-none transition-all cursor-pointer"
             >
               <option value="createdAt-desc">Newest First</option>
               <option value="createdAt-asc">Oldest First</option>

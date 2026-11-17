@@ -163,7 +163,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           <label className="block text-sm font-medium text-slate-800">
             Company name <span aria-hidden="true" className="text-rose-600">*</span>
             <span className="relative mt-1 block">
-              <Building2 aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Building2 aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 h-4 w-4 text-slate-400" />
               <input
                 autoFocus
                 required
@@ -180,7 +180,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           <label className="block text-sm font-medium text-slate-800">
             Contact name <span aria-hidden="true" className="text-rose-600">*</span>
             <span className="relative mt-1 block">
-              <UserRound aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <UserRound aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 h-4 w-4 text-slate-400" />
               <input
                 required
                 maxLength={120}
@@ -196,7 +196,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           <label className="block text-sm font-medium text-slate-800">
             Contact email <span aria-hidden="true" className="text-rose-600">*</span>
             <span className="relative mt-1 block">
-              <Mail aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Mail aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 h-4 w-4 text-slate-400" />
               <input
                 required
                 type="email"
@@ -214,7 +214,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
           <label className="block text-sm font-medium text-slate-800">
             Phone
             <span className="relative mt-1 block">
-              <Phone aria-hidden="true" className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Phone aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 h-4 w-4 text-slate-400" />
               <input
                 type="tel"
                 maxLength={30}
