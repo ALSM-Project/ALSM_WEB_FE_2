@@ -281,12 +281,12 @@ export const EmployeeWorkQueuePage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search */}
           <div className="relative flex-1 min-w-64 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
             <Input
               placeholder="Search assigned files, projects, or partners..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs h-9 border-slate-200 rounded-md"
+              className="h-8 py-0 pl-9 text-xs border-slate-200 rounded-md"
             />
           </div>
 
