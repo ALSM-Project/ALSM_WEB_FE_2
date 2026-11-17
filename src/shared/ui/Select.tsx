@@ -9,15 +9,21 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: string;
   options: SelectOption[];
   error?: string;
   helperText?: string;
+  size?: 'sm' | 'md';
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, options, error, helperText, className, disabled, ...props }, ref) => {
+  ({ label, options, error, helperText, size = 'md', className, disabled, ...props }, ref) => {
+    const sizeStyles = {
+      sm: 'h-8 px-3 py-0 text-xs',
+      md: 'px-3 py-2 text-xs sm:text-sm',
+    };
+
     return (
       <div className="w-full flex flex-col space-y-1.5">
         {label && (
@@ -31,7 +37,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             disabled={disabled}
             className={twMerge(
               clsx(
-                'w-full px-3 py-2 text-xs sm:text-sm bg-white border border-[#DCE3EC] rounded-md text-[#17263A] shadow-2xs transition-all focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] disabled:bg-[#EEF1F6] disabled:text-[#8491A3] disabled:cursor-not-allowed appearance-none pr-8',
+                'w-full bg-white border border-[#DCE3EC] rounded-md text-[#17263A] shadow-2xs transition-all focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] disabled:bg-[#EEF1F6] disabled:text-[#8491A3] disabled:cursor-not-allowed appearance-none pr-8',
+                sizeStyles[size],
                 error && 'border-rose-500 focus:ring-rose-500 focus:border-rose-500',
                 className
               )
