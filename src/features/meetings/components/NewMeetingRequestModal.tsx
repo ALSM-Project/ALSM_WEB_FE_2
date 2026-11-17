@@ -25,7 +25,7 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
   const [companyName, setCompanyName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [customerType, _setCustomerType] = useState<CustomerType>('PROSPECT');
+  const [customerType, setCustomerType] = useState<CustomerType>('PROSPECT');
   const [topic, setTopic] = useState('');
   const [consultationType, setConsultationType] = useState<ConsultationType>('SALES_SERVICE');
   const [priority, setPriority] = useState<MeetingPriority>('MEDIUM');
@@ -90,7 +90,7 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
                   Full Name *
                 </label>
                 <div className="relative">
-                  <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <User className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="text"
                     value={fullName}
@@ -107,7 +107,7 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
                   Company / Organization *
                 </label>
                 <div className="relative">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Building2 className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="text"
                     value={companyName}
@@ -124,7 +124,7 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
                   Email Address *
                 </label>
                 <div className="relative">
-                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="email"
                     value={email}
@@ -141,7 +141,7 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="tel"
                     value={phone}
@@ -150,6 +150,21 @@ export const NewMeetingRequestModal: React.FC<NewMeetingRequestModalProps> = ({
                     className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                   />
                 </div>
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Customer Relationship Type
+                </label>
+                <select
+                  value={customerType}
+                  onChange={(e) => setCustomerType(e.target.value as CustomerType)}
+                  className="w-full px-3 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                >
+                  <option value="PROSPECT">New Prospect (Lead Qualification)</option>
+                  <option value="EXISTING_CUSTOMER">Existing Enterprise Customer</option>
+                  <option value="PARTNER">Strategic Partner</option>
+                </select>
               </div>
             </div>
           </div>

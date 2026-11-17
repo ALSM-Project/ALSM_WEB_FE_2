@@ -128,8 +128,8 @@ export const CreateResourceTransferPage: React.FC = () => {
               disabled={isSubmitting || !selectedProject || !selectedStaff}
               className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs h-9 px-4 shadow-xs font-semibold cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              {isSubmitting ? 'Submitting Request...' : 'Submit Transfer Request'}
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>{isSubmitting ? 'Submitting Request...' : 'Submit Transfer Request'}</span>
             </Button>
           </div>
         </div>
@@ -344,8 +344,8 @@ export const CreateResourceTransferPage: React.FC = () => {
               disabled={isSubmitting || !selectedProject || !selectedStaff}
               className="w-full bg-[#244A70] hover:bg-[#244A70] text-white text-xs h-10 shadow-xs font-semibold cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              {isSubmitting ? 'Submitting Request...' : 'Submit Transfer Request'}
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>{isSubmitting ? 'Submitting Request...' : 'Submit Transfer Request'}</span>
             </Button>
 
             <div className="text-center">

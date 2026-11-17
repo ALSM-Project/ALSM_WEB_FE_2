@@ -1,0 +1,664 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ShieldAlert,
+  KeyRound,
+  UserCheck,
+  AlertCircle,
+  FolderGit2,
+} from 'lucide-react';
+import { Button, Badge } from '@/shared/ui';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import {
+  temporaryRolesApi,
+  TemporaryRoleDto,
+  ElevationRoleCatalogItem,
+} from '../api/temporary-roles.api';
+
+export interface RequestTemporaryRoleViewProps {
+  onBack: () => void;
+  onSuccess: (message?: string) => void;
+  projectOptions?: Array<{ id: string; name: string }>;
+  myActiveRole?: TemporaryRoleDto | null;
+  userHasPendingRequest?: boolean;
+}
+
+const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
+const PLATFORM_ADMIN_ROLE_IDS = new Set(['platform_admin', 'system_admin', 'admin']);
+
+export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> = ({
+  onBack,
+  onSuccess,
+  projectOptions = [],
+  myActiveRole = null,
+  userHasPendingRequest = false,
+}) => {
+  const { user } = useAuth();
+
+  // Role Catalog Data
+  const [roleCatalog, setRoleCatalog] = useState<ElevationRoleCatalogItem[]>([]);
+  const [selectedRoleCode, setSelectedRoleCode] = useState<string>('team_lead');
+  const [durationHours, setDurationHours] = useState<number>(4);
+  const [targetProjectId, setTargetProjectId] = useState<string>('');
+  const [targetWorkflow, setTargetWorkflow] = useState<string>('');
+  const [justification, setJustification] = useState<string>('');
+
+  // Confirmation & State
+  const [confirmCheckbox, setConfirmCheckbox] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Load elevation role catalog
+  useEffect(() => {
+    let active = true;
+    const fetchCatalog = async () => {
+      try {
+        const catalog = await temporaryRolesApi.getElevationCatalog();
+        if (active && catalog && catalog.length > 0) {
+          setRoleCatalog(catalog);
+        }
+      } catch {
+        // Fallback to safe static catalog below
+      }
+    };
+    void fetchCatalog();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Safe catalog of non-admin roles
+  const safeCatalog = useMemo(() => {
+    const list =
+      roleCatalog.length > 0
+        ? roleCatalog
+        : [
+            {
+              id: 'team_lead',
+              code: 'TEAM_LEAD',
+              name: 'Team Lead',
+              description:
+                'Review peer conversion deliverables, supervise engineering allocations, and manage sprint milestones.',
+              modules: ['Staff Allocation', 'Transfer Approvals', 'Quality Gate Review'],
+              sensitivePermissions: ['team.assignments.manage'],
+              permissions: ['team.view', 'team.assignments.manage', 'conversions.approve'],
+            },
+            {
+              id: 'conversion_staff',
+              code: 'CONVERSION_STAFF',
+              name: 'Conversion Staff',
+              description:
+                'Execute modernization pipeline tasks, inspect AST conversion trees, and push code patches.',
+              modules: ['Operations', 'Conversions', 'Queue Execution'],
+              sensitivePermissions: [],
+              permissions: ['conversions.queue.view', 'conversions.execute'],
+            },
+            {
+              id: 'internal_support',
+              code: 'INTERNAL_SUPPORT',
+              name: 'Internal Support',
+              description:
+                'Investigate partner tickets, resolve customer escalation cases, and diagnose tenant jobs.',
+              modules: ['Support', 'Customer Portal', 'Operational Logs'],
+              sensitivePermissions: [],
+              permissions: ['support.tickets.view', 'support.tickets.respond'],
+            },
+          ];
+
+    return list.filter(
+      (r) =>
+        !PLATFORM_ADMIN_ROLE_IDS.has(r.id.toLowerCase()) &&
+        !PLATFORM_ADMIN_ROLE_IDS.has(r.code.toLowerCase()) &&
+        !PLATFORM_ADMIN_ROLE_IDS.has(r.name.toLowerCase()),
+    );
+  }, [roleCatalog]);
+
+  // Selected role details
+  const activeRoleDetails = useMemo(() => {
+    const found = safeCatalog.find(
+      (r) =>
+        r.code.toLowerCase() === selectedRoleCode.toLowerCase() ||
+        r.id.toLowerCase() === selectedRoleCode.toLowerCase(),
+    );
+    return (
+      found || {
+        id: selectedRoleCode,
+        code: selectedRoleCode.toUpperCase(),
+        name: selectedRoleCode,
+        description: 'Temporary elevated operational privileges.',
+        modules: ['Operations'],
+      }
+    );
+  }, [safeCatalog, selectedRoleCode]);
+
+  // Expiration calculation
+  const expirationDate = useMemo(() => {
+    const d = new Date();
+    d.setHours(d.getHours() + durationHours);
+    return d;
+  }, [durationHours]);
+
+  // Target project name if selected
+  const selectedProjectName = useMemo(() => {
+    if (!targetProjectId) return targetWorkflow || 'General Operational Workflow';
+    const found = projectOptions.find((p) => p.id === targetProjectId);
+    return found ? found.name : targetWorkflow || 'Modernization Project';
+  }, [targetProjectId, targetWorkflow, projectOptions]);
+
+  // Form submission handler
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (myActiveRole || userHasPendingRequest) return;
+
+    if (justification.trim().length < 10) {
+      setSubmitError('A detailed justification of at least 10 characters is required.');
+      return;
+    }
+    if (durationHours < 1 || durationHours > 24) {
+      setSubmitError('Requested duration must be between 1 and 24 hours.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+      await temporaryRolesApi.requestRole({
+        role: selectedRoleCode,
+        durationHours,
+        reason: justification.trim(),
+        ...(targetProjectId ? { projectId: targetProjectId } : {}),
+      });
+      onSuccess('Temporary elevation request dispatched for Team Lead & Administrator approval.');
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to submit temporary role elevation request';
+      setSubmitError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const isSubmitDisabled =
+    isSubmitting ||
+    !!myActiveRole ||
+    userHasPendingRequest ||
+    justification.trim().length < 10;
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* ── PAGE HEADER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
+            Request Temporary Role Elevation
+          </h1>
+          <p className="text-xs text-[#8491A3]">
+            Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are strictly capped at 24 hours.
+          </p>
+        </div>
+      </div>
+
+      {/* ── NOTIFICATIONS & SERVER ERRORS ── */}
+      {submitError && (
+        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />
+            <span className="font-semibold">{submitError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSubmitError(null)}
+            className="text-rose-500 font-bold hover:text-rose-700 text-sm cursor-pointer"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Active Elevation Conflict Alert */}
+      {myActiveRole && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start justify-between gap-3 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold text-amber-950 flex items-center gap-2">
+                <span>Active Role Conflict: You already hold an active temporary elevation</span>
+                <span className="font-mono font-bold bg-amber-100 px-2 py-0.5 rounded text-amber-900 text-xs">
+                  {myActiveRole.role}
+                </span>
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Under platform security policy, only <strong>1 active temporary role</strong> is permitted per user. Elevated privileges expire at {new Date(myActiveRole.expiresAt).toLocaleTimeString()} ({new Date(myActiveRole.expiresAt).toLocaleDateString()}).
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Request Alert */}
+      {userHasPendingRequest && !myActiveRole && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-3 shadow-2xs">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <div className="font-bold text-amber-950">
+              Pending Request Awaiting Review
+            </div>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              You already have a pending elevation request awaiting Team Lead review. You cannot submit another request until the current request is reviewed.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ── FORM CONTAINER ── */}
+      <form onSubmit={handleFinalSubmit} className="space-y-8">
+        {/* ══════════════════════════════════════════════════
+            SECTION 1: REQUESTER PROFILE & SCOPE CONTEXT
+           ══════════════════════════════════════════════════ */}
+        <div className="bg-white border border-[#DCE3EC] rounded-2xl p-6 shadow-2xs space-y-5">
+          <div className="border-b border-[#DCE3EC] pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <span className="w-6 h-6 rounded-full bg-[#244A70] text-white flex items-center justify-center font-bold text-xs">
+                1
+              </span>
+              <div>
+                <h2 className="text-sm font-bold text-[#17263A]">
+                  Requester Profile & Assignment Scope *
+                </h2>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-[#244A70] border border-blue-200">
+              Requester: {user?.fullName || user?.email || 'Self-Service'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Requester Dossier Card (5 cols on lg) */}
+            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
+                <UserCheck className="w-4 h-4 text-[#244A70]" />
+                <span>Requester Security Dossier</span>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div>
+                  <div className="font-bold text-[#17263A] text-sm">
+                    {user?.fullName || 'Internal Specialist'}
+                  </div>
+                  <div className="text-[11px] text-[#8491A3]">{user?.email}</div>
+                  <div className="text-[10px] font-mono text-[#244A70] font-bold mt-0.5">
+                    {user?.id ? `EMP-${user.id.slice(-6).toUpperCase()}` : 'EMP-ALSM-01'}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-200 text-[11px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Department:</span>
+                    <span className="font-medium text-[#17263A]">Modernization Operations</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Baseline Roles:</span>
+                    <div className="flex flex-wrap gap-1 justify-end">
+                      {user?.roles && user.roles.length > 0 ? (
+                        user.roles.map((r: string) => (
+                          <span
+                            key={r}
+                            className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-medium"
+                          >
+                            {r}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-medium">
+                          CONVERSION_STAFF
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Account Standing:</span>
+                    <Badge variant="success">ACTIVE</Badge>
+                  </div>
+                </div>
+
+                {myActiveRole ? (
+                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Has Active Elevation: {myActiveRole.role}</span>
+                  </div>
+                ) : userHasPendingRequest ? (
+                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Pending Request in Review</span>
+                  </div>
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-semibold">Eligible to request temporary role elevation</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Target Project or Workflow Inputs (7 cols on lg) */}
+            <div className="lg:col-span-7 space-y-4">
+              <div>
+                <label
+                  htmlFor="target-project-select"
+                  className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5"
+                >
+                  Target Project (Optional Linkage)
+                </label>
+                <div className="relative">
+                  <FolderGit2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
+                  <select
+                    id="target-project-select"
+                    value={targetProjectId}
+                    onChange={(e) => {
+                      const pId = e.target.value;
+                      setTargetProjectId(pId);
+                      const found = projectOptions.find((p) => p.id === pId);
+                      if (found && !targetWorkflow) {
+                        setTargetWorkflow(found.name);
+                      }
+                    }}
+                    disabled={!!myActiveRole || userHasPendingRequest}
+                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] text-[#17263A]"
+                  >
+                    <option value="">Global / Workspace Operational Queue (No specific project)</option>
+                    {projectOptions.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        Project: {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="target-workflow-input"
+                  className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5"
+                >
+                  Target Project or Workflow *
+                </label>
+                <input
+                  id="target-workflow-input"
+                  required
+                  value={targetWorkflow}
+                  onChange={(e) => setTargetWorkflow(e.target.value)}
+                  disabled={!!myActiveRole || userHasPendingRequest}
+                  placeholder="e.g. Core Banking Modernization AST Inspection"
+                  className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] text-[#17263A]"
+                />
+                <p className="text-[11px] text-[#8491A3] mt-1.5">
+                  Specify the target modernization project, pipeline queue, or operational task that requires elevated privileges.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════
+            SECTION 2: CONFIGURE PRIVILEGE & DURATION
+           ══════════════════════════════════════════════════ */}
+        <div className="bg-white border border-[#DCE3EC] rounded-2xl p-6 shadow-2xs space-y-6">
+          <div className="border-b border-[#DCE3EC] pb-3 flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-[#244A70] text-white flex items-center justify-center font-bold text-xs">
+              2
+            </span>
+            <div>
+              <h2 className="text-sm font-bold text-[#17263A]">
+                Configure Privilege & Scope *
+              </h2>
+            </div>
+          </div>
+
+          {/* Role Selection Dropdown + Cards */}
+          <div className="space-y-3">
+            <label
+              htmlFor="elevation-role-select"
+              className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block"
+            >
+              Requested Role *
+            </label>
+
+            {/* Standard Accessible Select with Options */}
+            <select
+              id="elevation-role-select"
+              value={selectedRoleCode}
+              onChange={(e) => setSelectedRoleCode(e.target.value.toLowerCase())}
+              disabled={!!myActiveRole || userHasPendingRequest}
+              className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] text-[#17263A]"
+            >
+              {safeCatalog.map((r) => (
+                <option key={r.id} value={r.code.toLowerCase()}>
+                  {r.name} ({r.code})
+                </option>
+              ))}
+            </select>
+
+            {/* Visual Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              {safeCatalog.map((role) => {
+                const isSelected =
+                  selectedRoleCode.toLowerCase() === role.code.toLowerCase() ||
+                  selectedRoleCode.toLowerCase() === role.id.toLowerCase();
+                return (
+                  <div
+                    key={role.id}
+                    onClick={() => {
+                      if (!myActiveRole && !userHasPendingRequest) {
+                        setSelectedRoleCode(role.code.toLowerCase());
+                      }
+                    }}
+                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-50/70 border-[#244A70] ring-2 ring-[#244A70]/20 shadow-xs'
+                        : 'bg-white border-[#DCE3EC] hover:border-slate-300 hover:bg-slate-50/50'
+                    } ${myActiveRole || userHasPendingRequest ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="font-bold text-xs text-[#17263A]">{role.name}</span>
+                      <span
+                        className={`font-mono text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                          isSelected ? 'bg-[#244A70] text-white' : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {role.code}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#8491A3] line-clamp-2 leading-relaxed mb-2">
+                      {role.description}
+                    </p>
+                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-slate-100">
+                      {role.modules.map((m) => (
+                        <span key={m} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Duration Selector */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
+                Requested Duration (Max 24h Ceiling) *
+              </label>
+              <span className="text-xs text-indigo-700 font-semibold">
+                Estimated Expiry: {expirationDate.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {PREDEFINED_DURATIONS.map((hrs) => {
+                const isSelected = durationHours === hrs;
+                return (
+                  <button
+                    key={hrs}
+                    type="button"
+                    disabled={!!myActiveRole || userHasPendingRequest}
+                    onClick={() => setDurationHours(hrs)}
+                    className={`p-3 rounded-xl border text-center font-bold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#244A70] text-white border-[#244A70] shadow-xs'
+                        : 'bg-[#F8FAFC] text-[#17263A] border-[#DCE3EC] hover:bg-slate-100'
+                    } ${myActiveRole || userHasPendingRequest ? 'opacity-60 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="text-sm">{hrs} Hours</div>
+                    <div
+                      className={`text-[10px] font-medium mt-0.5 ${
+                        isSelected ? 'text-white/80' : 'text-[#8491A3]'
+                      }`}
+                    >
+                      {hrs === 1
+                        ? 'Hotfix'
+                        : hrs === 4
+                        ? 'Half Shift'
+                        : hrs === 8
+                        ? 'Standard Shift'
+                        : hrs === 24
+                        ? 'Max Limit'
+                        : 'Temporary'}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Business Need & Justification Input */}
+          <div className="space-y-1.5 pt-2">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="request-justification-textarea"
+                className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block"
+              >
+                Business Need & Justification (Minimum 10 characters) *
+              </label>
+              <span
+                className={`text-[11px] font-mono font-bold ${
+                  justification.trim().length >= 10 ? 'text-emerald-700' : 'text-amber-600'
+                }`}
+              >
+                {justification.trim().length >= 10
+                  ? '✓ Justification valid'
+                  : `${justification.trim().length} / 10 min`}
+              </span>
+            </div>
+            <textarea
+              id="request-justification-textarea"
+              rows={3}
+              required
+              value={justification}
+              onChange={(e) => setJustification(e.target.value)}
+              disabled={!!myActiveRole || userHasPendingRequest}
+              placeholder="Explain why temporary elevated permissions are necessary for this task..."
+              className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] text-[#17263A]"
+            />
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════
+            SECTION 3: SECURITY REVIEW & SUBMISSION
+           ══════════════════════════════════════════════════ */}
+        <div className="bg-white border border-[#DCE3EC] rounded-2xl p-6 shadow-2xs space-y-5">
+          <div className="border-b border-[#DCE3EC] pb-3 flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-[#244A70] text-white flex items-center justify-center font-bold text-xs">
+              3
+            </span>
+            <div>
+              <h2 className="text-sm font-bold text-[#17263A]">
+                Security Review & Submission
+              </h2>
+            </div>
+          </div>
+
+          {/* Summary Preview Box */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs">
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Requester Staff</span>
+              <span className="font-bold text-[#17263A] truncate block">
+                {user?.fullName || user?.email || 'Current Specialist'}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Requested Privilege</span>
+              <span className="font-bold text-[#244A70] font-mono">{activeRoleDetails.code}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Target Scope</span>
+              <span className="font-bold text-[#17263A] truncate block" title={selectedProjectName}>
+                {selectedProjectName}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Duration Requested</span>
+              <span className="font-bold text-[#17263A]">{durationHours} hours (ceiling)</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-500 font-bold uppercase block">Estimated Expiration</span>
+              <span className="font-bold text-indigo-700">{expirationDate.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Compliance Alert */}
+          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="leading-relaxed">
+              This delegation request requires formal approval from your Team Lead or Platform Administrator before permissions take effect. All actions undertaken with elevated credentials are logged to the immutable audit trail.
+            </p>
+          </div>
+
+          {/* Confirmation Checkbox */}
+          <div className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+            <input
+              type="checkbox"
+              id="confirm-elevation-checkbox"
+              checked={confirmCheckbox}
+              onChange={(e) => setConfirmCheckbox(e.target.checked)}
+              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#244A70] focus:ring-[#244A70] cursor-pointer"
+            />
+            <label
+              htmlFor="confirm-elevation-checkbox"
+              className="text-xs text-[#17263A] font-semibold cursor-pointer select-none leading-relaxed"
+            >
+              I confirm submitting this temporary role delegation request for review by my Team Lead or Platform Administrator. I certify that elevated permissions will be used strictly for the stated business need.
+            </label>
+          </div>
+
+          {/* Submit Actions */}
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={onBack}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              disabled={isSubmitDisabled}
+              className="bg-[#244A70] hover:bg-[#244A70] text-white flex items-center gap-2 font-bold px-6 py-2.5 shadow-xs disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>{isSubmitting ? 'Submitting Request...' : 'Submit Elevation Request'}</span>
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+};

@@ -181,13 +181,13 @@ export const ServiceUsagePage: React.FC = () => {
       {/* Search & Filter Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
         <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md relative">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search organization name, domain, or contract..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#244A70] focus:bg-white"
+            className="w-full h-8 pl-9 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#244A70] focus:bg-white"
           />
         </form>
 
@@ -196,7 +196,7 @@ export const ServiceUsagePage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-[#244A70]"
+            className="h-8 px-2.5 text-xs border border-slate-200 rounded-md bg-white outline-none focus:border-[#244A70]"
           >
             <option value="ALL">All Organizations</option>
             <option value="ACTIVE">Normal Capacity</option>

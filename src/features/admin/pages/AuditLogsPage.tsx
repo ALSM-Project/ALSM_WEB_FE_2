@@ -204,7 +204,8 @@ export const AuditLogsPage: React.FC = () => {
           JSON.stringify(log.metadata || {}).toLowerCase().includes(term);
 
         const matchesAction = !actionFilter || log.action === actionFilter;
-        const matchesResource = !resourceFilter || log.resourceType === resourceFilter;
+        const matchesResource =
+          !resourceFilter || log.resourceType?.toUpperCase() === resourceFilter.toUpperCase();
 
         // Date range filter
         const logTime = new Date(log.timestamp).getTime();
@@ -244,7 +245,7 @@ export const AuditLogsPage: React.FC = () => {
             `"${log.timestamp}"`,
             `"${log.actor}"`,
             `"${log.action}"`,
-            `"${log.resourceType}"`,
+            `"${(log.resourceType || '').toUpperCase()}"`,
             `"${log.resourceId || ''}"`,
             `"${formatIpAddress(log.ipAddress)}"`,
             `"${JSON.stringify(log.metadata || {}).replace(/"/g, '""')}"`,
@@ -404,9 +405,9 @@ export const AuditLogsPage: React.FC = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
+              className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <FileSearch className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
+            <FileSearch className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
@@ -419,7 +420,7 @@ export const AuditLogsPage: React.FC = () => {
                   setDateRangeFilter(e.target.value as any);
                   setCurrentPage(1);
                 }}
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="ALL">All Time</option>
                 <option value="TODAY">Today (24h)</option>
@@ -432,7 +433,7 @@ export const AuditLogsPage: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-[#8491A3]">Action:</span>
               <select
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={actionFilter}
                 onChange={(e) => {
                   setActionFilter(e.target.value);
@@ -457,7 +458,7 @@ export const AuditLogsPage: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-[#8491A3]">Target:</span>
               <select
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={resourceFilter}
                 onChange={(e) => {
                   setResourceFilter(e.target.value);
@@ -469,6 +470,7 @@ export const AuditLogsPage: React.FC = () => {
                 <option value="USER">USER</option>
                 <option value="PROJECT">PROJECT</option>
                 <option value="ROLE">ROLE</option>
+                <option value="PERMISSION">PERMISSION</option>
                 <option value="QUOTE">QUOTE</option>
                 <option value="CONVERSION">CONVERSION</option>
               </select>
@@ -554,7 +556,7 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* Target Resource */}
                     <td className="py-3.5 px-4 text-[#17263A]">
-                      <div className="font-semibold text-xs">{log.resourceType}</div>
+                      <div className="font-semibold text-xs">{log.resourceType?.toUpperCase()}</div>
                       {log.resourceId && (
                         <div className="font-mono text-[10px] text-[#8491A3] truncate max-w-[160px]">
                           {log.resourceId}

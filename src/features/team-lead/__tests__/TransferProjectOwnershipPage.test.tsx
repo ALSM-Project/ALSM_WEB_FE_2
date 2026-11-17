@@ -91,8 +91,8 @@ describe('TransferProjectOwnershipPage - Dedicated Transfer Workflow', () => {
     // Eligible new assignee dropdown should NOT include current owner Alex Mercer
     const select = screen.getByRole('combobox', { name: /New Assignee/i });
     expect(select).toBeInTheDocument();
-    expect(screen.getByText(/David Chen/i)).toBeInTheDocument();
-    expect(screen.getByText(/Elena Rostova/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/David Chen/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Elena Rostova/i).length).toBeGreaterThan(0);
     expect(screen.queryByRole('option', { name: /Alex Mercer/i })).not.toBeInTheDocument();
   });
 

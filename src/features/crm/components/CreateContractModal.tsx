@@ -343,7 +343,7 @@ export const CreateContractModal: React.FC<CreateContractModalProps> = ({
             variant="primary"
             size="sm"
             disabled={submitting || !canCreateContract || templatesLoading || approvedTemplates.length === 0 || !approvedTemplateVersionId}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white"
           >
             <FileCheck2 className="w-3.5 h-3.5 mr-1" />
             {submitting ? 'Saving Draft...' : editingContract ? 'Save New Version' : 'Create Draft'}

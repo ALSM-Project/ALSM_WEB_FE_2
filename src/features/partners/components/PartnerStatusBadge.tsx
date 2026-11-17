@@ -24,7 +24,7 @@ export const PartnerStatusBadge: React.FC<PartnerStatusBadgeProps> = ({ status }
     case 'IN_PROGRESS':
     case 'PROCESSING':
       bg = 'bg-blue-50 text-[#244A70] border-blue-200';
-      dot = 'bg-[#244A70] animate-pulse';
+      dot = 'bg-[#244A70]';
       label = 'In Progress';
       break;
     case 'READY_FOR_EXPORT':
@@ -63,9 +63,9 @@ export const PartnerStatusBadge: React.FC<PartnerStatusBadgeProps> = ({ status }
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${bg}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${bg}`}
     >
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
+      <span className={`w-2 h-2 rounded-full ${dot}`} />
       {label}
     </span>
   );

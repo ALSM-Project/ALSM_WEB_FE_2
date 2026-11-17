@@ -67,7 +67,7 @@ export const RescheduleMeetingModal: React.FC<RescheduleMeetingModalProps> = ({
               New Date
             </label>
             <div className="relative">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <input
                 type="date"
                 value={date}
@@ -84,7 +84,7 @@ export const RescheduleMeetingModal: React.FC<RescheduleMeetingModalProps> = ({
                 New Start Time
               </label>
               <div className="relative">
-                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                 <input
                   type="time"
                   value={startTime}
@@ -100,7 +100,7 @@ export const RescheduleMeetingModal: React.FC<RescheduleMeetingModalProps> = ({
                 New End Time
               </label>
               <div className="relative">
-                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                 <input
                   type="time"
                   value={endTime}

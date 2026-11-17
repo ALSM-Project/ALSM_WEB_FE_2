@@ -98,7 +98,7 @@ export const ProposeSlotsModal: React.FC<ProposeSlotsModalProps> = ({
             {slots.map((slot, idx) => (
               <div key={idx} className="flex items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                 <div className="relative flex-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="date"
                     value={slot.date}
@@ -108,7 +108,7 @@ export const ProposeSlotsModal: React.FC<ProposeSlotsModalProps> = ({
                   />
                 </div>
                 <div className="relative w-24">
-                  <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                  <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="time"
                     value={slot.startTime}
@@ -119,7 +119,7 @@ export const ProposeSlotsModal: React.FC<ProposeSlotsModalProps> = ({
                 </div>
                 <span className="text-xs text-slate-400">to</span>
                 <div className="relative w-24">
-                  <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                  <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <input
                     type="time"
                     value={slot.endTime}

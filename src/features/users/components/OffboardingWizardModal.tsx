@@ -508,13 +508,11 @@ export const OffboardingWizardModal: React.FC<OffboardingWizardModalProps> = ({
                   >
                     {submitting ? (
                       <>
-                        <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />
-                        Executing Offboard Procedure...
+                        <RefreshCw className="w-3.5 h-3.5 shrink-0 animate-spin" /><span>Executing Offboard Procedure...</span>
                       </>
                     ) : (
                       <>
-                        <UserMinus className="w-3.5 h-3.5 mr-1" />
-                        Confirm & Execute Offboarding
+                        <UserMinus className="w-3.5 h-3.5 shrink-0" /><span>Confirm & Execute Offboarding</span>
                       </>
                     )}
                   </Button>

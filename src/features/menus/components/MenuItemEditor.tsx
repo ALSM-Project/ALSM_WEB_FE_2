@@ -129,14 +129,16 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         padding="lg"
         className="h-[700px] flex flex-col items-center justify-center text-center p-8 bg-white border border-[#DCE3EC] rounded-2xl shadow-xs"
       >
-        <div className="w-16 h-16 rounded-2xl bg-[#F4F7FB] text-[#244A70] flex items-center justify-center mb-4 shadow-2xs">
-          <Workflow className="w-8 h-8 opacity-80" />
+        <div className="flex items-center gap-2.5 mb-2">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#244A70] flex items-center justify-center">
+            <Workflow className="w-5 h-5 text-[#244A70]" />
+          </div>
+          <h3 className="text-base font-bold text-[#17263A]">No Menu Item Selected</h3>
         </div>
-        <h3 className="text-base font-bold text-[#17263A]">No Menu Item Selected</h3>
-        <p className="text-xs text-[#8491A3] max-w-sm mt-1.5 leading-relaxed">
+        <p className="text-xs text-slate-600 font-medium max-w-sm mt-1 leading-relaxed">
           Select a menu item from the tree on the left to edit its properties, route, permissions, and visibility rules.
         </p>
-        <div className="mt-5 flex items-center gap-2 text-[11px] text-[#8491A3] bg-[#F8FAFC] px-3.5 py-2 rounded-xl border border-[#DCE3EC]">
+        <div className="mt-4 flex items-center gap-2 text-xs text-slate-600 font-medium bg-slate-50 px-3.5 py-2 rounded-lg">
           <Info className="w-4 h-4 text-[#244A70] shrink-0" />
           <span>Tip: You can drag and drop items in the tree to reorder or re-parent them.</span>
         </div>

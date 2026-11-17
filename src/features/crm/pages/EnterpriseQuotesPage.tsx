@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Plus,
@@ -16,8 +16,10 @@ import {
   ShieldCheck,
   Copy,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import { Button, Badge, PageHeader, Card } from '@/shared/ui';
+import { Button, Badge, PageHeader } from '@/shared/ui';
 import { formatVnd } from '@/shared/utils/currency';
 import { crmApi, LeadDto } from '../api/crm.api';
 import { contractsApi, EnterpriseContract } from '@/features/contracts/api/contracts.api';
@@ -65,6 +67,92 @@ export const isContractAlsmSigned = (c: EnterpriseContract): boolean => {
   return s === 'ACTIVE' || cs === 'ACTIVE' || true;
 };
 
+// ── Table Pagination Component ────────────────────────────────────────────────
+export interface TablePaginationProps {
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  itemName?: string;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
+  pageSizeOptions?: number[];
+  ariaLabel?: string;
+}
+
+export const TablePagination: React.FC<TablePaginationProps> = ({
+  currentPage,
+  pageSize,
+  totalItems,
+  itemName = 'records',
+  onPageChange,
+  onPageSizeChange,
+  pageSizeOptions = [5, 10, 25, 50],
+  ariaLabel = 'Per page',
+}) => {
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+
+  if (totalItems === 0) return null;
+
+  return (
+    <div className="p-3.5 bg-white border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+      <div className="flex items-center gap-2">
+        <span>
+          Showing <strong>{startIndex + 1}</strong> to <strong>{endIndex}</strong> of{' '}
+          <strong>{totalItems}</strong> {itemName}
+        </span>
+        <span className="text-slate-300">|</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-slate-500 font-medium">Per page:</span>
+          <select
+            aria-label={ariaLabel}
+            value={pageSize}
+            onChange={(e) => {
+              onPageSizeChange(parseInt(e.target.value) || 5);
+              onPageChange(1);
+            }}
+            className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 text-xs font-semibold outline-none cursor-pointer shadow-2xs"
+          >
+            {pageSizeOptions.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={safeCurrentPage <= 1}
+          onClick={() => onPageChange(Math.max(1, safeCurrentPage - 1))}
+          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
+          title="Previous Page"
+          aria-label="Previous Page"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <span className="font-semibold text-slate-800">
+          Page {safeCurrentPage} of {totalPages}
+        </span>
+        <button
+          type="button"
+          disabled={safeCurrentPage >= totalPages}
+          onClick={() => onPageChange(Math.min(totalPages, safeCurrentPage + 1))}
+          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
+          title="Next Page"
+          aria-label="Next Page"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const EnterpriseQuotesPage: React.FC = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
@@ -87,6 +175,19 @@ export const EnterpriseQuotesPage: React.FC = () => {
   const [contractSignatureFilter, setContractSignatureFilter] = useState<'ALL' | 'SIGNED' | 'UNSIGNED'>('ALL');
   const [contractsLoading, setContractsLoading] = useState<boolean>(false);
   const [copiedContractId, setCopiedContractId] = useState<string | null>(null);
+
+  // Pagination State
+  const [pendingSignaturesPage, setPendingSignaturesPage] = useState<number>(1);
+  const [pendingSignaturesPageSize, setPendingSignaturesPageSize] = useState<number>(5);
+
+  const [activeContractsPage, setActiveContractsPage] = useState<number>(1);
+  const [activeContractsPageSize, setActiveContractsPageSize] = useState<number>(5);
+
+  const [quotesPage, setQuotesPage] = useState<number>(1);
+  const [quotesPageSize, setQuotesPageSize] = useState<number>(10);
+
+  const [contractsTablePage, setContractsTablePage] = useState<number>(1);
+  const [contractsTablePageSize, setContractsTablePageSize] = useState<number>(10);
 
   // Modals & Feedback
   const [showWizard, setShowWizard] = useState<boolean>(false);
@@ -136,8 +237,20 @@ export const EnterpriseQuotesPage: React.FC = () => {
     fetchContracts();
   }, [statusFilter, serviceTypeFilter]);
 
+  useEffect(() => {
+    setQuotesPage(1);
+  }, [statusFilter, serviceTypeFilter]);
+
+  useEffect(() => {
+    setContractsTablePage(1);
+  }, [activeTab, contractSignatureFilter]);
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setQuotesPage(1);
+    setContractsTablePage(1);
+    setPendingSignaturesPage(1);
+    setActiveContractsPage(1);
     fetchQuotesAndLeads();
     fetchContracts();
   };
@@ -292,14 +405,39 @@ export const EnterpriseQuotesPage: React.FC = () => {
   const pendingApprovalContracts = contracts.filter((c) => c.lifecycleStatus === 'INTERNAL_REVIEW' || c.status === 'DRAFT');
 
   // Filtered contracts for the table
-  const tableContracts = (() => {
+  const tableContracts = useMemo(() => {
     if (activeTab === 'PENDING_SIGNATURE') return pendingSignatureList;
     if (activeTab === 'ACTIVE_CONTRACTS') return activeContractsList;
     if (activeTab === 'EXPIRED_TERMINATED') return expiredContractsList;
     if (contractSignatureFilter === 'SIGNED') return activeContractsList;
     if (contractSignatureFilter === 'UNSIGNED') return pendingSignatureList;
     return contracts;
-  })();
+  }, [activeTab, contractSignatureFilter, pendingSignatureList, activeContractsList, expiredContractsList, contracts]);
+
+  // Paginated slices
+  const paginatedPendingSignatures = useMemo(() => {
+    const start = (pendingSignaturesPage - 1) * pendingSignaturesPageSize;
+    return pendingSignatureList.slice(start, start + pendingSignaturesPageSize);
+  }, [pendingSignatureList, pendingSignaturesPage, pendingSignaturesPageSize]);
+
+  const paginatedActiveContracts = useMemo(() => {
+    const start = (activeContractsPage - 1) * activeContractsPageSize;
+    return activeContractsList.slice(start, start + activeContractsPageSize);
+  }, [activeContractsList, activeContractsPage, activeContractsPageSize]);
+
+  const quotesList = useMemo(() => {
+    return activeTab === 'PENDING_APPROVAL' ? pendingApprovalQuotes : quotes;
+  }, [activeTab, pendingApprovalQuotes, quotes]);
+
+  const paginatedQuotes = useMemo(() => {
+    const start = (quotesPage - 1) * quotesPageSize;
+    return quotesList.slice(start, start + quotesPageSize);
+  }, [quotesList, quotesPage, quotesPageSize]);
+
+  const paginatedTableContracts = useMemo(() => {
+    const start = (contractsTablePage - 1) * contractsTablePageSize;
+    return tableContracts.slice(start, start + contractsTablePageSize);
+  }, [tableContracts, contractsTablePage, contractsTablePageSize]);
 
   return (
     <div className="space-y-6">
@@ -550,109 +688,109 @@ export const EnterpriseQuotesPage: React.FC = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Commercial Pipeline Funnel */}
-            <Card variant="default" padding="lg" className="bg-white border-slate-200 space-y-4 md:col-span-2">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+            <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-2xs space-y-4 md:col-span-2">
+              <div className="flex items-center justify-between border-b border-[#DCE3EC] pb-3">
+                <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#244A70]" />
                   Commercial Conversion Pipeline
-                </h3>
+                </h2>
                 <span className="text-xs font-bold text-emerald-800">
                   Total Active Value: {formatVnd(totalContractValue || totalPipelineValue)}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1.5">
                   <span className="text-xs text-slate-600 uppercase tracking-wider block font-semibold">
                     1. Proposed Quotes
                   </span>
                   <div className="text-xl font-bold text-[#17263A]">{totalQuotes} proposals</div>
-                  <span className="text-xs text-slate-600">{formatVnd(totalPipelineValue)}</span>
+                  <span className="text-xs text-slate-600 font-medium block">{formatVnd(totalPipelineValue)}</span>
                 </div>
 
-                <div className="p-4 bg-amber-50/60 rounded-xl border border-amber-200 space-y-1.5">
-                  <span className="text-xs text-amber-800 uppercase tracking-wider block font-semibold">
+                <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-1.5">
+                  <span className="text-xs text-amber-900 uppercase tracking-wider block font-semibold">
                     2. Awaiting Signature
                   </span>
-                  <div className="text-xl font-bold text-amber-900">{pendingSignatureContracts} contracts</div>
-                  <span className="text-xs text-amber-700">Awaiting customer countersign</span>
+                  <div className="text-xl font-bold text-amber-950">{pendingSignatureContracts} contracts</div>
+                  <span className="text-xs text-amber-800 font-medium block">Awaiting customer countersign</span>
                 </div>
 
-                <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1.5">
-                  <span className="text-xs text-emerald-800 uppercase tracking-wider block font-semibold">
+                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1.5">
+                  <span className="text-xs text-emerald-900 uppercase tracking-wider block font-semibold">
                     3. Executed & Active MSAs
                   </span>
-                  <div className="text-xl font-bold text-emerald-900">{activeContracts} executed</div>
-                  <span className="text-xs text-emerald-700">Fully countersigned & live quotas</span>
+                  <div className="text-xl font-bold text-emerald-950">{activeContracts} executed</div>
+                  <span className="text-xs text-emerald-800 font-medium block">Fully countersigned & live quotas</span>
                 </div>
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <span className="text-slate-600 font-normal">
+                <span className="text-slate-600 font-medium">
                   Quick Actions: Start a new proposal for an existing CRM lead or jump straight to contract management.
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('QUOTES')} className="text-xs px-3">
+                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('QUOTES')} className="text-xs px-3 shadow-2xs">
                     Browse Quotes
                   </Button>
-                  <Button variant="primary" size="sm" onClick={() => setActiveTab('CONTRACTS')} className="text-xs px-3 bg-[#244A70]">
+                  <Button variant="primary" size="sm" onClick={() => setActiveTab('CONTRACTS')} className="text-xs px-3 bg-[#244A70] shadow-2xs">
                     Browse Contracts
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Service Model Allocation */}
-            <Card variant="default" padding="lg" className="bg-white border-slate-200 space-y-3">
-              <h3 className="text-sm font-bold text-[#17263A] flex items-center gap-2 border-b border-slate-100 pb-2">
+            <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-2xs space-y-3">
+              <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2 border-b border-[#DCE3EC] pb-3">
                 <Layers className="w-4 h-4 text-purple-600" />
                 Service Model Breakdown
-              </h3>
+              </h2>
               <div className="space-y-3 text-xs">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Platform-Based Modernization</span>
                     <span className="text-[#244A70] font-bold">
                       {contracts.filter((c) => c.serviceMode === 'SELF_SERVICE' || c.serviceMode === 'SELF_SERVICE_CONVERSION').length} contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 font-normal">
+                  <p className="text-xs text-slate-600 font-medium">
                     Customers independently compile BMS/DSPF to React 19.
                   </p>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Managed Modernization Services</span>
                     <span className="text-emerald-800 font-bold">
                       {contracts.filter((c) => c.serviceMode === 'WE_CONVERT_FOR_YOU' || c.serviceMode === 'HYBRID').length || 1} contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 font-normal">
+                  <p className="text-xs text-slate-600 font-medium">
                     Full-service managed modernization delivered via Web 3.
                   </p>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* ── SECTION 1: CONTRACTS AWAITING CUSTOMER SIGNATURE ─── */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-5 bg-amber-50/50 border-b border-amber-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3.5 max-w-3xl">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 mt-0.5 sm:mt-0 border border-amber-200">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-amber-950">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Contracts Awaiting Customer Signature
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300">
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
                       {pendingSignatureContracts} Pending Customer Signature
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
                     Contracts currently in signature routing, countersigned by ALSM and awaiting customer representative signature to activate service entitlements.
                   </p>
                 </div>
@@ -664,7 +802,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 onClick={() => {
                   setActiveTab('PENDING_SIGNATURE');
                 }}
-                className="text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100/60"
+                className="text-xs bg-white text-slate-700 border-[#DCE3EC] hover:bg-[#F8FAFC] shadow-2xs cursor-pointer shrink-0"
               >
                 View All ({pendingSignatureContracts})
               </Button>
@@ -699,7 +837,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    pendingSignatureList.map((c) => (
+                    paginatedPendingSignatures.map((c) => (
                       <tr key={c.id} className="hover:bg-amber-50/20 transition-colors">
                         {/* Customer */}
                         <td className="py-4 px-5">
@@ -756,16 +894,18 @@ export const EnterpriseQuotesPage: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => handleCopySigningLink(c)}
-                              className="text-xs px-2.5 py-1.5 text-slate-700 border-slate-300 hover:bg-slate-50"
+                              className="text-xs px-2.5 text-slate-700 border-slate-300 hover:bg-slate-50"
                               title="Copy e-signature link to clipboard"
                             >
                               {copiedContractId === c.id ? (
-                                <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                                  <Check className="w-3.5 h-3.5" /> Copied
+                                <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold">
+                                  <Check className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Copied</span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1">
-                                  <Copy className="w-3.5 h-3.5 text-slate-500" /> Copy Link
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Copy className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                                  <span>Copy Link</span>
                                 </span>
                               )}
                             </Button>
@@ -774,10 +914,10 @@ export const EnterpriseQuotesPage: React.FC = () => {
                               variant="primary"
                               size="sm"
                               onClick={() => navigate(`/sales/contracts/${c.id}`)}
-                              className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs px-3 py-1.5 inline-flex items-center gap-1.5"
+                              className="bg-[#244A70] hover:bg-[#244A70] text-white text-xs px-3"
                             >
-                              <PenTool className="w-3.5 h-3.5" />
-                              Review & Sign
+                              <PenTool className="w-3.5 h-3.5 shrink-0" />
+                              <span>Review & Sign</span>
                             </Button>
                           </div>
                         </td>
@@ -787,25 +927,37 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {!contractsLoading && pendingSignatureList.length > 0 && (
+              <TablePagination
+                currentPage={pendingSignaturesPage}
+                pageSize={pendingSignaturesPageSize}
+                totalItems={pendingSignatureList.length}
+                itemName="contracts"
+                onPageChange={setPendingSignaturesPage}
+                onPageSizeChange={setPendingSignaturesPageSize}
+                ariaLabel="Pending signatures per page"
+              />
+            )}
           </div>
 
           {/* ── SECTION 2: EXECUTED & ACTIVE CONTRACTS ──────── */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-5 bg-emerald-50/50 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3.5 max-w-3xl">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5 sm:mt-0 border border-emerald-200">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-emerald-950">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Executed & Active Contracts
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200">
                       {activeContracts} Executed Contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
                     Contracts with full bilateral execution (ALSM & Customer), certified by digital signature, with live service entitlements granted.
                   </p>
                 </div>
@@ -817,7 +969,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 onClick={() => {
                   setActiveTab('ACTIVE_CONTRACTS');
                 }}
-                className="text-xs bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-100/60"
+                className="text-xs bg-white text-slate-700 border-[#DCE3EC] hover:bg-[#F8FAFC] shadow-2xs cursor-pointer shrink-0"
               >
                 View All ({activeContracts})
               </Button>
@@ -850,7 +1002,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    activeContractsList.map((c) => (
+                    paginatedActiveContracts.map((c) => (
                       <tr key={c.id} className="hover:bg-emerald-50/20 transition-colors">
                         {/* Customer */}
                         <td className="py-4 px-5">
@@ -915,18 +1067,18 @@ export const EnterpriseQuotesPage: React.FC = () => {
                               onClick={() => {
                                 window.open(contractsApi.getPdfUrl(c.id), '_blank');
                               }}
-                              className="text-xs px-2.5 py-1.5 text-slate-700 border-slate-300 hover:bg-slate-50"
+                              className="text-xs px-2.5 text-slate-700 border-slate-300 hover:bg-slate-50"
                               title="Download certified PDF agreement"
                             >
-                              <Download className="w-3.5 h-3.5 text-[#244A70]" />
-                              PDF
+                              <Download className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+                              <span>PDF</span>
                             </Button>
 
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => navigate(`/sales/contracts/${c.id}`)}
-                              className="text-xs px-3 py-1.5 text-[#244A70] border-[#244A70]/40 hover:bg-blue-50"
+                              className="text-xs px-3 text-[#244A70] border-[#244A70]/40 hover:bg-blue-50"
                             >
                               Details
                             </Button>
@@ -938,6 +1090,18 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {!contractsLoading && activeContractsList.length > 0 && (
+              <TablePagination
+                currentPage={activeContractsPage}
+                pageSize={activeContractsPageSize}
+                totalItems={activeContractsList.length}
+                itemName="contracts"
+                onPageChange={setActiveContractsPage}
+                onPageSizeChange={setActiveContractsPageSize}
+                ariaLabel="Active contracts per page"
+              />
+            )}
           </div>
         </div>
       )}
@@ -948,13 +1112,13 @@ export const EnterpriseQuotesPage: React.FC = () => {
           {/* Quotes Filter Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <form onSubmit={handleSearchSubmit} className="flex-1 max-w-md relative">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search quote number, customer, organization, email..."
-                className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                className="w-full h-8 pl-9 pr-4 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
               />
             </form>
 
@@ -962,7 +1126,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
               <select
                 value={serviceTypeFilter}
                 onChange={(e) => setServiceTypeFilter(e.target.value)}
-                className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                className="h-8 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
               >
                 <option value="ALL">All Service Plans</option>
                 <option value="SELF_SERVICE">Platform-Based Modernization</option>
@@ -973,7 +1137,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                className="h-8 px-3 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
               >
                 <option value="ALL">All Statuses</option>
                 <option value="DRAFT">Draft</option>
@@ -1011,14 +1175,14 @@ export const EnterpriseQuotesPage: React.FC = () => {
                         Loading commercial quotations...
                       </td>
                     </tr>
-                  ) : (activeTab === 'PENDING_APPROVAL' ? pendingApprovalQuotes : quotes).length === 0 ? (
+                  ) : quotesList.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="py-8 text-center text-slate-500">
                         No quotes found matching criteria.
                       </td>
                     </tr>
                   ) : (
-                    (activeTab === 'PENDING_APPROVAL' ? pendingApprovalQuotes : quotes).map((q) => (
+                    paginatedQuotes.map((q) => (
                       <tr key={q.id} className="hover:bg-slate-50/80 transition-colors">
                         {/* 1. Quote Number */}
                         <td className="py-4 px-4 font-mono font-bold text-[#17263A]">
@@ -1104,6 +1268,18 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {!loading && quotesList.length > 0 && (
+              <TablePagination
+                currentPage={quotesPage}
+                pageSize={quotesPageSize}
+                totalItems={quotesList.length}
+                itemName="quotes"
+                onPageChange={setQuotesPage}
+                onPageSizeChange={setQuotesPageSize}
+                ariaLabel="Quotes per page"
+              />
+            )}
           </div>
         </div>
       )}
@@ -1117,13 +1293,13 @@ export const EnterpriseQuotesPage: React.FC = () => {
           {/* Contracts Filter Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
             <div className="flex-1 max-w-md relative">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search contract number, title, customer legal entity..."
-                className="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                className="w-full h-8 pl-9 pr-4 text-xs bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
               />
             </div>
 
@@ -1134,7 +1310,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                   variant={contractSignatureFilter === 'ALL' ? 'secondary' : 'outline'}
                   size="sm"
                   onClick={() => setContractSignatureFilter('ALL')}
-                  className={`text-xs px-3 py-1.5 cursor-pointer font-medium ${
+                  className={`h-8 text-xs px-3 cursor-pointer font-medium ${
                     contractSignatureFilter === 'ALL'
                       ? 'bg-slate-200 text-slate-900 border-slate-300 font-bold'
                       : 'bg-white text-slate-600 border-slate-300 hover:text-slate-900 hover:bg-slate-50'
@@ -1146,27 +1322,27 @@ export const EnterpriseQuotesPage: React.FC = () => {
                   variant={contractSignatureFilter === 'SIGNED' ? 'secondary' : 'outline'}
                   size="sm"
                   onClick={() => setContractSignatureFilter('SIGNED')}
-                  className={`text-xs px-3 py-1.5 cursor-pointer font-medium inline-flex items-center gap-1.5 ${
+                  className={`h-8 text-xs px-3 cursor-pointer font-medium inline-flex items-center gap-1.5 ${
                     contractSignatureFilter === 'SIGNED'
                       ? 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold'
                       : 'bg-white text-slate-600 border-slate-300 hover:text-emerald-800 hover:bg-emerald-50/50'
                   }`}
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Signed ({activeContracts})
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Signed ({activeContracts})</span>
                 </Button>
                 <Button
                   variant={contractSignatureFilter === 'UNSIGNED' ? 'secondary' : 'outline'}
                   size="sm"
                   onClick={() => setContractSignatureFilter('UNSIGNED')}
-                  className={`text-xs px-3 py-1.5 cursor-pointer font-medium inline-flex items-center gap-1.5 ${
+                  className={`h-8 text-xs px-3 cursor-pointer font-medium inline-flex items-center gap-1.5 ${
                     contractSignatureFilter === 'UNSIGNED'
                       ? 'bg-amber-100 text-amber-900 border-amber-300 font-bold'
                       : 'bg-white text-slate-600 border-slate-300 hover:text-amber-800 hover:bg-amber-50/50'
                   }`}
                 >
-                  <Clock className="w-3.5 h-3.5 text-amber-600" />
-                  Awaiting Customer ({pendingSignatureContracts})
+                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Awaiting Customer ({pendingSignatureContracts})</span>
                 </Button>
               </div>
 
@@ -1174,10 +1350,10 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => navigate('/sales/contracts/new')}
-                className="bg-[#244A70] text-white text-xs px-3 py-1.5 inline-flex items-center gap-1.5 shadow-xs"
+                className="h-8 bg-[#244A70] hover:bg-[#1B3856] text-white text-xs px-3 inline-flex items-center gap-1.5 shadow-xs"
               >
-                <Plus className="w-3.5 h-3.5" />
-                Create Contract
+                <Plus className="w-3.5 h-3.5 shrink-0" />
+                <span>Create Contract</span>
               </Button>
             </div>
           </div>
@@ -1217,7 +1393,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                       </td>
                     </tr>
                   ) : (
-                    tableContracts.map((c) => (
+                    paginatedTableContracts.map((c) => (
                       <tr
                         key={c.id}
                         onClick={() => navigate(`/sales/contracts/${c.id}`)}
@@ -1320,7 +1496,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                               variant="outline"
                               size="sm"
                               onClick={() => navigate(`/sales/contracts/${c.id}`)}
-                              className="text-xs px-2.5 py-1 text-slate-700 border-slate-300 hover:bg-slate-50"
+                              className="text-xs px-2.5 text-slate-700 border-slate-300 hover:bg-slate-50"
                             >
                               View
                             </Button>
@@ -1330,10 +1506,10 @@ export const EnterpriseQuotesPage: React.FC = () => {
                               onClick={() => {
                                 window.open(contractsApi.getPdfUrl(c.id), '_blank');
                               }}
-                              className="text-xs px-2 py-1 text-slate-700 border-slate-300 hover:bg-slate-50"
+                              className="w-7 h-7 p-0 text-slate-700 border-slate-300 hover:bg-slate-50 inline-flex items-center justify-center"
                               title="Download certified PDF agreement"
                             >
-                              <Download className="w-3.5 h-3.5" />
+                              <Download className="w-3.5 h-3.5 shrink-0" />
                             </Button>
                           </div>
                         </td>
@@ -1343,6 +1519,18 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+
+            {!contractsLoading && tableContracts.length > 0 && (
+              <TablePagination
+                currentPage={contractsTablePage}
+                pageSize={contractsTablePageSize}
+                totalItems={tableContracts.length}
+                itemName="contracts"
+                onPageChange={setContractsTablePage}
+                onPageSizeChange={setContractsTablePageSize}
+                ariaLabel="Contracts per page"
+              />
+            )}
           </div>
         </div>
       )}

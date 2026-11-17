@@ -283,26 +283,26 @@ export const DiscountApprovalPage: React.FC = () => {
       </div>
 
       {/* Authority Policy Card */}
-      <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-start gap-3">
-          <div className="p-2 rounded-xl bg-blue-100 text-[#244A70] shrink-0 mt-0.5">
+      <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/60 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs shadow-2xs">
+        <div className="flex items-start gap-3.5 max-w-3xl">
+          <div className="p-2.5 rounded-xl bg-blue-100 text-[#244A70] shrink-0 mt-0.5">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="font-bold text-blue-950">Active Manager Authorization Scope</h4>
-            <p className="text-slate-600 mt-0.5 leading-relaxed">
-              You are signed in as <strong>{user?.fullName || user?.email || 'Sales Manager'}</strong>. Your pre-authorized discount limit is <strong>20.0%</strong>.
+            <h2 className="text-xs font-bold text-blue-950 uppercase tracking-wider">Active Manager Authorization Scope</h2>
+            <p className="text-slate-600 mt-1 leading-relaxed max-w-2xl text-xs font-medium">
+              You are signed in as <strong className="text-slate-900">{user?.fullName || user?.email || 'Sales Manager'}</strong>. Your pre-authorized discount limit is <strong className="text-slate-900">20.0%</strong>.
               Requests above 20% are flagged as <em>Requires Higher Approval</em> and must be escalated to executive leadership.
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-white border border-blue-200 px-3 py-1.5 rounded-xl text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Limit</span>
+          <div className="bg-white border border-blue-200 px-3.5 py-2 rounded-xl text-center shadow-2xs">
+            <span className="text-xs uppercase font-bold text-slate-500 block">Your Limit</span>
             <span className="text-sm font-bold text-[#244A70]">20% Max</span>
           </div>
-          <div className="bg-white border border-blue-200 px-3 py-1.5 rounded-xl text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">VP Level</span>
+          <div className="bg-white border border-blue-200 px-3.5 py-2 rounded-xl text-center shadow-2xs">
+            <span className="text-xs uppercase font-bold text-slate-500 block">VP Level</span>
             <span className="text-sm font-bold text-indigo-700">&gt;20% Limit</span>
           </div>
         </div>
@@ -322,7 +322,7 @@ export const DiscountApprovalPage: React.FC = () => {
             onClick={() => setStatusFilter(tab.key as any)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
               statusFilter === tab.key
-                ? 'bg-[#244A70] text-white shadow-xs'
+                ? 'bg-[#244A70] text-white shadow-2xs'
                 : 'bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]'
             }`}
           >
@@ -333,51 +333,51 @@ export const DiscountApprovalPage: React.FC = () => {
 
       {/* Notifications */}
       {errorMsg && (
-        <div role="alert" className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between">
+        <div role="alert" className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{errorMsg}</span>
+            <span className="font-medium">{errorMsg}</span>
           </div>
-          <button onClick={() => setErrorMsg(null)} className="text-rose-500 font-bold">&times;</button>
+          <button onClick={() => setErrorMsg(null)} className="text-rose-500 font-bold cursor-pointer">&times;</button>
         </div>
       )}
       {successMsg && (
-        <div role="status" aria-live="polite" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
+        <div role="status" aria-live="polite" className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>{successMsg}</span>
+            <span className="font-medium">{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-500 font-bold">&times;</button>
+          <button onClick={() => setSuccessMsg(null)} className="text-emerald-500 font-bold cursor-pointer">&times;</button>
         </div>
       )}
 
       {loadError && (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs font-medium text-rose-800 shadow-2xs">
           <p>{loadError}</p>
-          <button onClick={fetchDiscounts} disabled={loading} className="mt-2 font-semibold underline disabled:opacity-50">Retry loading requests</button>
+          <button onClick={fetchDiscounts} disabled={loading} className="mt-2 font-semibold underline disabled:opacity-50 cursor-pointer">Retry loading requests</button>
         </div>
       )}
 
       {/* Discount Approvals Table */}
-      <div className="rounded-2xl border border-[#DCE3EC] bg-white shadow-xs overflow-hidden">
+      <div className="rounded-2xl border border-[#DCE3EC] bg-white shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
-                <th className="py-3 px-4">Request # & Account</th>
-                <th className="py-3 px-4">Sales Rep</th>
-                <th className="py-3 px-4">Quote Scope</th>
-                <th className="py-3 px-4">Base Fee</th>
-                <th className="py-3 px-4">Discount</th>
-                <th className="py-3 px-4">Proposed Price</th>
-                <th className="py-3 px-4">Status & Authority</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Request # & Account</th>
+                <th className="py-3.5 px-4">Sales Rep</th>
+                <th className="py-3.5 px-4">Quote Scope</th>
+                <th className="py-3.5 px-4">Base Fee</th>
+                <th className="py-3.5 px-4">Discount</th>
+                <th className="py-3.5 px-4">Proposed Price</th>
+                <th className="py-3.5 px-4">Status & Authority</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-medium">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Checking approval queue...</span>
@@ -385,10 +385,10 @@ export const DiscountApprovalPage: React.FC = () => {
                   </td>
                 </tr>
               ) : loadError ? (
-                <tr><td colSpan={8} className="py-12 text-center text-rose-700">Discount requests are unavailable.</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-rose-700 font-medium">Discount requests are unavailable.</td></tr>
               ) : filteredDiscounts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={8} className="py-12 text-center text-slate-500 font-medium">
                     <ShieldCheck className="w-8 h-8 mx-auto text-emerald-500/60 mb-2" />
                     No discount requests matching current filter.
                   </td>
@@ -403,61 +403,61 @@ export const DiscountApprovalPage: React.FC = () => {
 
                   return (
                     <tr key={item.quote.id} className="hover:bg-[#F8FAFC] transition-colors">
-                      <td className="py-3.5 px-4">
-                        <div className="font-mono text-[10px] font-bold text-blue-600">{item.requestId}</div>
-                        <div className="font-semibold text-[#17263A] mt-0.5">{item.leadCompany}</div>
-                        <div className="text-[11px] text-[#8491A3]">{item.leadContact}</div>
+                      <td className="py-4 px-4">
+                        <div className="font-mono text-xs font-semibold text-blue-700">{item.requestId}</div>
+                        <div className="font-bold text-xs text-[#17263A] mt-0.5">{item.leadCompany}</div>
+                        <div className="text-xs text-slate-500 font-medium">{item.leadContact}</div>
                       </td>
-                      <td className="py-3.5 px-4 text-[#17263A]">
-                        <div className="font-medium">{item.assignedToName}</div>
-                        <div className="text-[10px] text-slate-400">Enterprise Rep</div>
+                      <td className="py-4 px-4 text-[#17263A]">
+                        <div className="font-semibold text-xs text-[#17263A]">{item.assignedToName}</div>
+                        <div className="text-xs text-slate-500 font-medium">Enterprise Rep</div>
                       </td>
-                      <td className="py-3.5 px-4">
-                        <div className="text-[#17263A] font-semibold">{item.quote.plan}</div>
-                        <div className="text-[11px] font-mono text-[#8491A3]">{item.quote.quoteNumber}</div>
+                      <td className="py-4 px-4">
+                        <div className="text-[#17263A] font-semibold text-xs">{item.quote.plan}</div>
+                        <div className="text-xs font-mono text-slate-500 font-medium">{item.quote.quoteNumber}</div>
                       </td>
-                      <td className="py-3.5 px-4 text-[#8491A3]">
+                      <td className="py-4 px-4 font-semibold text-xs text-slate-700">
                         {formatVnd(item.originalPrice)}
                       </td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                          isExceedingLimit ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-800'
+                      <td className="py-4 px-4">
+                        <span className={`px-2.5 py-1 rounded-lg text-xs font-bold inline-block ${
+                          isExceedingLimit ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-800 border border-blue-200'
                         }`}>
                           {item.discountPercent}% (-{formatVnd(item.discountAmount)})
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-emerald-700">
+                      <td className="py-4 px-4 font-bold text-xs text-emerald-800 font-mono">
                         {formatVnd(item.proposedFinalPrice)}
                       </td>
-                      <td className="py-3.5 px-4">
+                      <td className="py-4 px-4">
                         {isApproved && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-block">
                             Approved
                           </span>
                         )}
                         {isRejected && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300 inline-block">
                             Rejected
                           </span>
                         )}
                         {isHigherApproval && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 block w-fit" title="Exceeds standard 20% manager limit">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 inline-block" title="Exceeds standard 20% manager limit">
                             Requires VP Approval
                           </span>
                         )}
                         {isPending && !isExceedingLimit && (
-                          <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200 inline-block">
                             Pending Review
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-4 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setDetailItem(item)}
-                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1"
+                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1 cursor-pointer"
                             title="View full quote rationale and details"
                           >
                             <Eye className="w-3.5 h-3.5 mr-1 text-slate-500" />
@@ -472,7 +472,7 @@ export const DiscountApprovalPage: React.FC = () => {
                                   size="sm"
                                   disabled={actionLoading}
                                   onClick={() => setRejectItem(item)}
-                                  className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1"
+                                  className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 py-1 cursor-pointer"
                                 >
                                   <XCircle className="w-3.5 h-3.5 mr-1" />
                                   Reject
@@ -486,7 +486,7 @@ export const DiscountApprovalPage: React.FC = () => {
                                     size="sm"
                                     disabled={actionLoading}
                                     onClick={() => setApproveItem(item)}
-                                    className="text-xs py-1"
+                                    className="text-xs py-1 cursor-pointer"
                                   >
                                     <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                                     Approve
@@ -497,7 +497,7 @@ export const DiscountApprovalPage: React.FC = () => {
                                     size="sm"
                                     disabled={actionLoading}
                                     onClick={() => handleEscalateToVP(item)}
-                                    className="text-xs bg-[#244A70] hover:bg-[#1B3856] py-1 text-white"
+                                    className="text-xs bg-[#244A70] hover:bg-[#1B3856] py-1 text-white cursor-pointer"
                                     title="Escalate to VP of Sales for >20% authorization"
                                   >
                                     <Send className="w-3.5 h-3.5 mr-1" />
@@ -507,7 +507,7 @@ export const DiscountApprovalPage: React.FC = () => {
                               )}
 
                               {!canApprove && !canReject && (
-                                <span className="text-[11px] text-slate-400 font-medium px-1.5 py-0.5 rounded bg-slate-100">
+                                <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded bg-slate-100">
                                   View Only
                                 </span>
                               )}

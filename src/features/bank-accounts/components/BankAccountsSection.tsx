@@ -188,7 +188,7 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
               onClick={handleOpenAdd}
               className="bg-[#244A70] hover:bg-[#244A70] text-white"
             >
-              <Plus className="w-4 h-4 mr-1.5" />
+              <Plus className="w-4 h-4 shrink-0" />
               <span>Add Bank Account</span>
             </Button>
           )}

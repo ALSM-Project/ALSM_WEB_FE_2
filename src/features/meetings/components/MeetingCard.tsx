@@ -108,7 +108,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({
       variant="default"
       padding="md"
       onClick={() => onSelect?.(meeting)}
-      className="border border-[#DCE3EC] rounded-xl hover:border-[#244A70] hover:shadow-md transition-all duration-200 bg-white shadow-2xs flex flex-col justify-between cursor-pointer group"
+      className="border border-[#DCE3EC] rounded-2xl hover:border-[#244A70] hover:shadow-md transition-all duration-200 bg-white shadow-2xs flex flex-col justify-between cursor-pointer group"
       id={`meeting-card-${meeting.id}`}
     >
       <div>
@@ -116,7 +116,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({
         <div className="flex items-center justify-between gap-2 mb-3">
           <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-mono text-[#8491A3] bg-[#F8FAFC] border border-[#DCE3EC] px-2 py-0.5 rounded">
+            <span className="text-xs font-mono text-slate-600 bg-[#F8FAFC] border border-[#DCE3EC] px-2 py-0.5 rounded-md">
               {meeting.meetingCode}
             </span>
             {onEdit && (
@@ -149,44 +149,44 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({
 
         {/* Optional Description */}
         {meeting.description && (
-          <p className="text-xs text-[#8491A3] line-clamp-2 mb-3 leading-relaxed">
+          <p className="text-xs text-slate-600 line-clamp-2 mb-3 leading-relaxed">
             {meeting.description}
           </p>
         )}
 
         {/* Schedule & Metadata */}
-        <div className="space-y-1.5 mt-3 pt-3 border-t border-[#F4F7FB] text-xs text-[#8491A3]">
+        <div className="space-y-1.5 mt-3 pt-3 border-t border-[#F4F7FB] text-xs text-slate-600">
           <div className="flex items-center gap-2">
             <Calendar className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
             <span className="font-semibold text-[#17263A]">{dateStr}</span>
             {timeStr && (
               <>
-                <span className="text-gray-300">•</span>
-                <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                <span className="text-slate-300">•</span>
+                <Clock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                 <span>{timeStr}</span>
               </>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <User className="w-3.5 h-3.5 text-slate-500 shrink-0" />
             <span className="truncate">Host: {meeting.hostEmail}</span>
           </div>
 
           {meeting.attendeeEmails && meeting.attendeeEmails.length > 0 && (
             <div className="flex items-start gap-2">
-              <Users className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
+              <Users className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
               <div className="flex flex-wrap gap-1">
                 {meeting.attendeeEmails.slice(0, 2).map((email, idx) => (
                   <span
                     key={idx}
-                    className="inline-block px-1.5 py-0.5 bg-[#F4F7FB] text-[#8491A3] rounded text-[11px]"
+                    className="inline-block px-2 py-0.5 bg-[#F4F7FB] text-slate-700 font-medium rounded-md text-xs border border-slate-100"
                   >
                     {email}
                   </span>
                 ))}
                 {meeting.attendeeEmails.length > 2 && (
-                  <span className="inline-block px-1.5 py-0.5 bg-[#F4F7FB] text-[#8491A3] rounded text-[11px] font-semibold">
+                  <span className="inline-block px-2 py-0.5 bg-[#F4F7FB] text-slate-700 font-semibold rounded-md text-xs border border-slate-100">
                     +{meeting.attendeeEmails.length - 2} more
                   </span>
                 )}
@@ -208,7 +208,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({
           {copied ? (
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
           ) : (
-            <Copy className="w-3.5 h-3.5 text-[#8491A3]" />
+            <Copy className="w-3.5 h-3.5 text-slate-500" />
           )}
           {copied ? 'Copied!' : 'Copy Link'}
         </Button>
@@ -217,7 +217,7 @@ export const MeetingCard: React.FC<MeetingCardProps> = ({
           id={`join-meet-${meeting.id}`}
           variant="primary"
           size="sm"
-          className="flex-1 gap-1 text-xs bg-[#244A70] hover:bg-[#244A70]"
+          className="flex-1 gap-1 text-xs bg-[#244A70] hover:bg-[#1b3855]"
           onClick={handleJoin}
         >
           <Video className="w-3.5 h-3.5" />

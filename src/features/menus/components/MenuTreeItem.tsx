@@ -156,27 +156,27 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
   if (isInvalid) {
     borderStyle = 'border-2 border-rose-500 bg-rose-50/70 shadow-xs cursor-not-allowed';
   } else if (dropPlacement === 'before') {
-    borderStyle = 'border-t-4 border-t-[#244A70] bg-[#EEF1F6]/60 shadow-xs';
+    borderStyle = 'border-t-2 border-t-[#244A70] bg-[#EEF1F6]/60';
   } else if (dropPlacement === 'after') {
-    borderStyle = 'border-b-4 border-b-[#244A70] bg-[#EEF1F6]/60 shadow-xs';
+    borderStyle = 'border-b-2 border-b-[#244A70] bg-[#EEF1F6]/60';
   } else if (dropPlacement === 'inside') {
-    borderStyle = 'border-2 border-[#244A70] bg-[#EEF1F6] ring-2 ring-[#244A70]/30 font-bold';
+    borderStyle = 'bg-[#EEF1F6] ring-2 ring-[#244A70] font-bold';
   } else if (isDraggingMe) {
-    borderStyle = 'opacity-40 border-dashed border-2 border-[#244A70] bg-[#F8FAFC]';
+    borderStyle = 'opacity-40 border-dashed border-2 border-[#244A70] bg-slate-100';
   } else if (isSelected) {
-    borderStyle = 'bg-[#EEF1F6] border-[#244A70] text-[#244A70] font-bold shadow-2xs';
+    borderStyle = 'bg-blue-50/80 text-[#244A70] font-bold border-l-2 border-l-[#244A70] shadow-2xs';
   } else {
-    borderStyle = 'bg-white border-[#DCE3EC] text-[#17263A] hover:border-[#DCE3EC] hover:bg-[#F8FAFC]';
+    borderStyle = 'bg-transparent text-[#17263A] hover:bg-slate-100/80 border-b border-slate-100/60';
   }
 
   return (
-    <div className="select-none my-1 relative">
+    <div className="select-none my-0.5 relative">
       <div
         onClick={() => onSelect(item.id)}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer border ${borderStyle}`}
+        className={`group relative flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors cursor-pointer ${borderStyle}`}
         style={{ marginLeft: `${depth * 20}px` }}
       >
         <div className="flex items-center space-x-2.5 min-w-0 flex-1 mr-2">

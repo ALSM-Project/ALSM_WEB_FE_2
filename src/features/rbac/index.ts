@@ -5,3 +5,4 @@ export * from './pages/UserRolesPage';
 export * from './pages/TemporaryRolesPage';
 export * from './components/GrantTemporaryRoleWizardModal';
 export * from './components/GrantTemporaryRoleView';
+export * from './components/RequestTemporaryRoleView';

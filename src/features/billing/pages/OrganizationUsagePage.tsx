@@ -467,7 +467,7 @@ export const OrganizationUsagePage: React.FC = () => {
             {isSummaryLoading ? '...' : summary?.totalOrganizations ?? items.length}
           </div>
           <div
-            className="text-xs text-slate-500 font-normal truncate"
+            className="text-xs text-slate-600 font-semibold truncate"
             title={
               orgScopeFilter === 'ALL'
                 ? 'All registered tenants'
@@ -759,7 +759,7 @@ export const OrganizationUsagePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* 1. Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               value={searchTerm}
@@ -768,7 +768,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setPage(1);
               }}
               placeholder="Search organization, company, Org ID, domain..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
+              className="w-full h-8 pl-8 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
             />
           </div>
 
@@ -780,7 +780,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setOrgScopeFilter(e.target.value as any);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="ORGANIZATIONS_ONLY">Enterprise &amp; Partners</option>
               <option value="ENTERPRISE">Enterprise Only</option>
@@ -798,7 +798,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setServiceMode(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Service Modes</option>
               <option value="CUSTOMER_SELF_SERVICE">Platform-Based Modernization</option>
@@ -815,7 +815,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setSubscriptionPlanFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Subscription Plans</option>
               <option value="Trial">Trial / Evaluation</option>
@@ -833,7 +833,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setContractStatus(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Contract States</option>
               <option value="ACTIVE">Active</option>
@@ -1192,21 +1192,22 @@ export const OrganizationUsagePage: React.FC = () => {
           </div>
 
           {/* Pagination Controls */}
-          <div className="px-4 py-3 border-t border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600">
+          <div className="px-5 py-3.5 border-t border-[#DCE3EC] bg-white flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
             <div className="flex items-center gap-2">
               <span>
-                Showing {items.length > 0 ? (page - 1) * limit + 1 : 0} to{' '}
-                {Math.min(page * limit, data?.total || items.length)} of {data?.total || items.length} organizations
+                Showing <strong className="font-semibold text-slate-900">{items.length > 0 ? (page - 1) * limit + 1 : 0}</strong> to{' '}
+                <strong className="font-semibold text-slate-900">{Math.min(page * limit, data?.total || items.length)}</strong> of{' '}
+                <strong className="font-semibold text-slate-900">{data?.total || items.length}</strong> organizations
               </span>
-              <span className="text-slate-300">|</span>
-              <span>Rows per page:</span>
+              <span className="text-slate-300 mx-1">|</span>
+              <span className="font-medium text-slate-500">Rows per page:</span>
               <select
                 value={limit}
                 onChange={(e) => {
                   setLimit(Number(e.target.value));
                   setPage(1);
                 }}
-                className="px-2 py-0.5 text-xs bg-white border border-slate-200 rounded font-semibold text-slate-700"
+                className="px-2.5 py-1 text-xs bg-white border border-[#DCE3EC] rounded-lg font-semibold text-slate-700 shadow-2xs outline-none focus:border-[#244A70] cursor-pointer"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -1214,30 +1215,28 @@ export const OrganizationUsagePage: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center gap-1.5 self-end sm:self-auto">
-              <Button
-                variant="outline"
-                size="sm"
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="text-xs px-2.5 py-1 bg-white"
+                className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
-                <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+                <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
                 Previous
-              </Button>
-              <span className="px-2 font-semibold text-slate-700">
+              </button>
+              <span className="px-2 font-semibold text-slate-800">
                 Page {page} of {data?.totalPages || 1}
               </span>
-              <Button
-                variant="outline"
-                size="sm"
+              <button
+                type="button"
                 onClick={() => setPage((p) => Math.min(data?.totalPages || 1, p + 1))}
                 disabled={page >= (data?.totalPages || 1)}
-                className="text-xs px-2.5 py-1 bg-white"
+                className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
               >
                 Next
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
+                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+              </button>
             </div>
           </div>
         </div>

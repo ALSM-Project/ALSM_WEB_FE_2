@@ -442,8 +442,8 @@ export const CreateMeetingModal: React.FC<CreateMeetingModalProps> = ({
               className="flex-1 text-xs p-2 rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             />
             <Button type="button" variant="outline" size="sm" onClick={handleAddAttendee}>
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Add
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>Add</span>
             </Button>
           </div>
           {errors.attendeeInput && (

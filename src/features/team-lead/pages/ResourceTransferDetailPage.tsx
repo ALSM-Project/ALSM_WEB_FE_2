@@ -193,8 +193,8 @@ export const ResourceTransferDetailPage: React.FC = () => {
           <p className="text-xs text-[#8491A3] mt-1">{errorMsg || 'The requested transfer request could not be found.'}</p>
           <div className="flex items-center justify-center gap-3 mt-6">
             <Button variant="secondary" size="sm" onClick={fetchDetails}>
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-              Try Again
+              <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+              <span>Try Again</span>
             </Button>
             <Button
               size="sm"
@@ -218,7 +218,15 @@ export const ResourceTransferDetailPage: React.FC = () => {
       {/* Top Return Navigation                                        */}
       {/* ──────────────────────────────────────────────────────────── */}
       <div>
-
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/team-lead/transfers')}
+          className="text-xs font-semibold gap-1.5"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Back to Transfer Approvals</span>
+        </Button>
       </div>
 
       {/* ──────────────────────────────────────────────────────────── */}
@@ -287,8 +295,8 @@ export const ResourceTransferDetailPage: React.FC = () => {
                   }}
                   className="text-xs h-9 px-3.5 shadow-2xs font-semibold"
                 >
-                  <X className="w-3.5 h-3.5 mr-1.5" />
-                  Reject Request
+                  <X className="w-3.5 h-3.5 shrink-0" />
+                  <span>Reject Request</span>
                 </Button>
                 <Button
                   onClick={() => {
@@ -300,8 +308,8 @@ export const ResourceTransferDetailPage: React.FC = () => {
                   disabled={!detailData.isValid}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-9 px-4 shadow-xs font-semibold"
                 >
-                  <Check className="w-3.5 h-3.5 mr-1.5" />
-                  Approve Transfer
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  <span>Approve Transfer</span>
                 </Button>
               </>
             )}
@@ -815,8 +823,8 @@ export const ResourceTransferDetailPage: React.FC = () => {
                       }}
                       className="w-full text-xs"
                     >
-                      <X className="w-3.5 h-3.5 mr-1" />
-                      Reject
+                      <X className="w-3.5 h-3.5 shrink-0" />
+                      <span>Reject</span>
                     </Button>
                     <Button
                       onClick={() => {
@@ -828,8 +836,8 @@ export const ResourceTransferDetailPage: React.FC = () => {
                       disabled={!detailData.isValid}
                       className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold"
                     >
-                      <Check className="w-3.5 h-3.5 mr-1" />
-                      Approve
+                      <Check className="w-3.5 h-3.5 shrink-0" />
+                      <span>Approve</span>
                     </Button>
                   </div>
                 ) : (

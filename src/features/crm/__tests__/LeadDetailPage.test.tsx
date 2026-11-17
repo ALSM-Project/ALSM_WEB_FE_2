@@ -41,6 +41,8 @@ vi.mock('../api/crm.api', () => ({
     sendContractForSignature: vi.fn(),
     simulateSignContract: vi.fn(),
     activateCustomer: vi.fn(),
+    listLegalContracts: vi.fn().mockResolvedValue([]),
+    listContractInvitations: vi.fn().mockResolvedValue([]),
   },
 }));
 
@@ -193,6 +195,32 @@ describe('LeadDetailPage - Redesigned Enterprise CRM Experience', () => {
 
     // Ensure there is no "Back to Lead Directory" button
     expect(screen.queryByTitle(/Back to Lead Directory/i)).not.toBeInTheDocument();
+  });
+
+  it('navigates to New Consultation & Meeting Request with prefilled lead details when clicking Schedule', async () => {
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getAllByText('FPT Software Global').length).toBeGreaterThanOrEqual(1);
+    });
+
+    const scheduleBtn = screen.getByRole('button', { name: /^Schedule$/i });
+    expect(scheduleBtn).toBeInTheDocument();
+    fireEvent.click(scheduleBtn);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.stringContaining('/sales/meeting-requests/new?leadId=lead-test-123'),
+      expect.objectContaining({
+        state: expect.objectContaining({
+          leadId: 'lead-test-123',
+          companyName: 'FPT Software Global',
+          fullName: 'Hoang Nguyen',
+          email: 'hoangndhde180837@fpt.edu.vn',
+          phone: '+84 987 654 321',
+          customerType: 'PROSPECT',
+        }),
+      }),
+    );
   });
 
   it('navigates to dedicated Create Contract wizard when clicking Create Contract', async () => {

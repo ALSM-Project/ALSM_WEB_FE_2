@@ -77,7 +77,7 @@ export const ConfirmMeetingModal: React.FC<ConfirmMeetingModalProps> = ({
                 Meeting Date
               </label>
               <div className="relative">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Calendar className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                 <input
                   type="date"
                   value={date}
@@ -93,7 +93,7 @@ export const ConfirmMeetingModal: React.FC<ConfirmMeetingModalProps> = ({
                 Start Time
               </label>
               <div className="relative">
-                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                 <input
                   type="time"
                   value={startTime}
@@ -109,7 +109,7 @@ export const ConfirmMeetingModal: React.FC<ConfirmMeetingModalProps> = ({
                 End Time
               </label>
               <div className="relative">
-                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <Clock className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                 <input
                   type="time"
                   value={endTime}
@@ -175,7 +175,7 @@ export const ConfirmMeetingModal: React.FC<ConfirmMeetingModalProps> = ({
               Custom / External Meeting URL (Optional)
             </label>
             <div className="relative">
-              <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Globe className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <input
                 type="url"
                 value={customMeetingUrl}

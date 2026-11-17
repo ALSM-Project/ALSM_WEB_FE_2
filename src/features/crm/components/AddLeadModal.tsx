@@ -97,7 +97,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
                 placeholder="e.g. Apex Commercial Bank"
                 className="pl-8 text-xs"
               />
-              <Building className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5" />
+              <Building className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
                 placeholder="e.g. Jonathan Vance (CTO)"
                 className="pl-8 text-xs"
               />
-              <User className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5" />
+              <User className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
                 placeholder="j.vance@apexbank.com"
                 className="pl-8 text-xs"
               />
-              <Mail className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5" />
+              <Mail className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
             <p className="text-[10px] text-[#8491A3] mt-0.5">Validated for uniqueness against current lead roster.</p>
           </div>
@@ -142,7 +142,7 @@ export const AddLeadModal: React.FC<AddLeadModalProps> = ({ isOpen, onClose, onS
                 placeholder="+1 (555) 234-5678"
                 className="pl-8 text-xs"
               />
-              <Phone className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5" />
+              <Phone className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
           </div>
         </div>

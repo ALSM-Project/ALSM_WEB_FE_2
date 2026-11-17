@@ -356,7 +356,7 @@ export const BankAccountFormModal: React.FC<BankAccountFormModalProps> = ({
                 <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-[#DCE3EC] rounded-lg shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                   <div className="p-2 border-b border-slate-100 bg-slate-50/70">
                     <div className="relative">
-                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
                       <input
                         type="text"
                         value={bankSearchTerm}

@@ -1,4 +1,5 @@
 import { GrantTemporaryRoleView } from '../components/GrantTemporaryRoleView';
+import { RequestTemporaryRoleView } from '../components/RequestTemporaryRoleView';
 import { useLocation, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
@@ -18,18 +19,23 @@ import { Button, Modal, Input } from '@/shared/ui';
 const PREDEFINED_DURATIONS = [1, 4, 8, 12, 24];
 
 export interface TemporaryRolesPageProps {
-  initialView?: 'list' | 'grant';
+  initialView?: 'list' | 'grant' | 'request';
 }
 
 export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialView }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isGrantPath = location.pathname.endsWith('/grant') || initialView === 'grant';
-  const [viewMode, setViewMode] = useState<'list' | 'grant'>(isGrantPath ? 'grant' : 'list');
+  const isRequestPath = location.pathname.endsWith('/request') || initialView === 'request';
+  const [viewMode, setViewMode] = useState<'list' | 'grant' | 'request'>(
+    isGrantPath ? 'grant' : isRequestPath ? 'request' : 'list',
+  );
 
   useEffect(() => {
     if (location.pathname.endsWith('/grant') || initialView === 'grant') {
       setViewMode('grant');
+    } else if (location.pathname.endsWith('/request') || initialView === 'request') {
+      setViewMode('request');
     } else {
       setViewMode('list');
     }
@@ -454,29 +460,53 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
   if (viewMode === 'grant') {
     return (
       <GrantTemporaryRoleView
-          onBack={() => {
-            setViewMode('list');
-            if (location.pathname.endsWith('/grant')) {
-              navigate('/admin/temporary-roles');
-            }
-          }}
-          onSuccess={(msg) => {
-            setSuccessMsg(msg || 'Temporary elevation granted successfully.');
-            setViewMode('list');
-            if (location.pathname.endsWith('/grant')) {
-              navigate('/admin/temporary-roles');
-            }
-            fetchData();
-          }}
-          projectOptions={projectOptions}
-          existingUsers={users}
-          currentAdminEmail={user?.email || 'admin@alsm.io'}
-          activeElevations={activeRoles.map((r) => ({
-            userId: r.userId,
-            role: r.role,
-            expiresAt: r.expiresAt,
-          }))}
-        />
+        onBack={() => {
+          setViewMode('list');
+          if (location.pathname.endsWith('/grant')) {
+            navigate('/admin/temporary-roles');
+          }
+        }}
+        onSuccess={(msg) => {
+          setSuccessMsg(msg || 'Temporary elevation granted successfully.');
+          setViewMode('list');
+          if (location.pathname.endsWith('/grant')) {
+            navigate('/admin/temporary-roles');
+          }
+          fetchData();
+        }}
+        projectOptions={projectOptions}
+        existingUsers={users}
+        currentAdminEmail={user?.email || 'admin@alsm.io'}
+        activeElevations={activeRoles.map((r) => ({
+          userId: r.userId,
+          role: r.role,
+          expiresAt: r.expiresAt,
+        }))}
+      />
+    );
+  }
+
+  if (viewMode === 'request') {
+    return (
+      <RequestTemporaryRoleView
+        onBack={() => {
+          setViewMode('list');
+          if (location.pathname.endsWith('/request')) {
+            navigate('/admin/temporary-roles');
+          }
+        }}
+        onSuccess={(msg) => {
+          setSuccessMsg(msg || 'Temporary elevation request dispatched for Team Lead & Administrator approval.');
+          setViewMode('list');
+          if (location.pathname.endsWith('/request')) {
+            navigate('/admin/temporary-roles');
+          }
+          fetchData();
+        }}
+        projectOptions={projectOptions}
+        myActiveRole={myActiveRole}
+        userHasPendingRequest={userHasPendingRequest}
+      />
     );
   }
 
@@ -493,9 +523,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
           {canRequest && (
             <button
               onClick={() => {
-                setRequestReason('');
-                setRequestProject('');
-                setShowRequestModal(true);
+                setViewMode('request');
+                navigate('/admin/temporary-roles/request');
               }}
               className="flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-[#DCE3EC] text-[#17263A] rounded-xl text-xs font-semibold hover:bg-[#F8FAFC] transition-colors shadow-2xs cursor-pointer"
             >
@@ -616,8 +645,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                 className="text-xs border-[#DCE3EC] text-[#244A70]"
                 onClick={handleExportCsv}
               >
-                <Download className="w-3.5 h-3.5 mr-1" />
-                CSV Export
+                <Download className="w-3.5 h-3.5 shrink-0" />
+                <span>CSV Export</span>
               </Button>
             )}
             <Button
@@ -626,8 +655,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
               className="text-xs border-[#DCE3EC] text-[#17263A]"
               onClick={handleExportPdf}
             >
-              <FileDown className="w-3.5 h-3.5 mr-1" />
-              PDF Audit Report
+              <FileDown className="w-3.5 h-3.5 shrink-0" />
+              <span>PDF Audit Report</span>
             </Button>
           </div>
         )}
@@ -639,7 +668,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
           {/* Search, Filter & Sort Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-[#DCE3EC]">
             <div className="relative flex-1 min-w-64 max-w-md">
-              <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
               <Input
                 placeholder="Search active elevations by staff name or email..."
                 value={activeSearch}
@@ -647,7 +676,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                   setActiveSearch(e.target.value);
                   setActivePage(1);
                 }}
-                className="pl-9 text-xs h-9"
+                className="h-8 py-0 pl-9 text-xs"
               />
             </div>
 
@@ -787,8 +816,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                                     setRevokeReason('Task completed ahead of schedule');
                                   }}
                                 >
-                                  <XCircle className="w-3.5 h-3.5 mr-1" />
-                                  Revoke
+                                  <XCircle className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Revoke</span>
                                 </Button>
                               )}
                             </div>
@@ -919,8 +948,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                                       setRejectReason('');
                                     }}
                                   >
-                                    <X className="w-3.5 h-3.5 mr-1" />
-                                    Reject
+                                    <X className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Reject</span>
                                   </Button>
                                   <Button
                                     variant="primary"
@@ -931,8 +960,8 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                                       setApproveDuration(req.durationHours);
                                     }}
                                   >
-                                    <Check className="w-3.5 h-3.5 mr-1" />
-                                    Approve
+                                    <Check className="w-3.5 h-3.5 shrink-0" />
+                                    <span>Approve</span>
                                   </Button>
                                 </div>
                               );
@@ -962,7 +991,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
           <div className="bg-white p-3.5 rounded-xl border border-[#DCE3EC] space-y-3 shadow-2xs">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="relative flex-1 min-w-64 max-w-md">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
                 <Input
                   placeholder="Search history by staff name, email, or role..."
                   value={historySearch}
@@ -970,7 +999,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
                     setHistorySearch(e.target.value);
                     setHistoryPage(1);
                   }}
-                  className="pl-9 text-xs h-9"
+                  className="h-8 py-0 pl-9 text-xs"
                 />
               </div>
 

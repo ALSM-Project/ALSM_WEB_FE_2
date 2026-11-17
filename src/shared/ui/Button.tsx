@@ -17,7 +17,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70]/30 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none';
+  const baseStyles = 'inline-flex items-center justify-center gap-1.5 font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70]/30 focus-visible:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer select-none whitespace-nowrap';
 
   const variants = {
     primary: 'bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white shadow-xs',
@@ -28,9 +28,9 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const sizes = {
-    sm: 'px-2.5 py-1 text-xs',
-    md: 'px-3.5 py-1.5 text-xs sm:text-sm',
-    lg: 'px-5 py-2 text-sm sm:text-base font-semibold',
+    sm: 'h-7 px-2.5 text-xs',
+    md: 'h-9 px-3.5 text-xs sm:text-sm',
+    lg: 'h-11 px-5 text-sm sm:text-base font-semibold',
   };
 
   return (

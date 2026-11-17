@@ -135,7 +135,7 @@ export const AuditDetailModal: React.FC<AuditDetailModalProps> = ({
                   <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Target Resource</div>
                   <div className="text-slate-900 font-semibold mt-0.5 flex items-center gap-1.5">
                     <span className="font-mono px-1.5 py-0.5 bg-slate-100 rounded text-[11px] text-slate-700">
-                      {log.resourceType}
+                      {log.resourceType?.toUpperCase()}
                     </span>
                   </div>
                   {log.resourceId && (

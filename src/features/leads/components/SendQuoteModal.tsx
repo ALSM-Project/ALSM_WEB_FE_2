@@ -489,7 +489,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     Recipient Email *
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
+                    <Mail className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                     <input
                       id="quote-recipient-email"
                       type="email"
@@ -510,7 +510,7 @@ export const SendQuoteModal: React.FC<SendQuoteModalProps> = ({
                     Validity Period (Days)
                   </label>
                   <div className="relative">
-                    <Calendar className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5" />
+                    <Calendar className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                     <input
                       id="quote-validity-days"
                       type="number"

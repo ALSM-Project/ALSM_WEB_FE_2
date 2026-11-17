@@ -281,7 +281,7 @@ export const PlatformAdminOverview: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between mt-1 text-xs text-slate-600">
                       <span>Actor: <b className="text-[#17263A]">{log.actor}</b></span>
-                      <span className="font-mono text-xs text-slate-600 font-medium">{log.resourceType}</span>
+                      <span className="font-mono text-xs text-slate-600 font-medium">{log.resourceType?.toUpperCase()}</span>
                     </div>
                   </div>
                 ))

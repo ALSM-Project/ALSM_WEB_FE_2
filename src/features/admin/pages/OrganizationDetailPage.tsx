@@ -243,10 +243,10 @@ export const OrganizationDetailPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/admin/organizations')}
-            className="p-2 rounded-xl border border-[#DCE3EC] hover:bg-[#F8FAFC] text-[#8491A3] transition-colors cursor-pointer"
+            className="p-2 rounded-xl border border-[#DCE3EC] hover:bg-[#F8FAFC] text-[#8491A3] transition-colors cursor-pointer inline-flex items-center justify-center shrink-0"
             title="Back to Directory"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 shrink-0" />
           </button>
           <div>
             <div className="flex items-center gap-2">
@@ -281,8 +281,8 @@ export const OrganizationDetailPage: React.FC = () => {
               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
               className="text-xs border-[#DCE3EC] text-[#17263A]"
             >
-              <Eye className="w-3.5 h-3.5 mr-1 text-[#244A70]" />
-              Support View
+              <Eye className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+              <span>Support View</span>
             </Button>
           )}
 
@@ -329,8 +329,8 @@ export const OrganizationDetailPage: React.FC = () => {
                     : 'Delete this organisation'
                 }
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1" />
-                Delete
+                <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                <span>Delete</span>
               </Button>
             </>
           )}
@@ -990,13 +990,13 @@ export const OrganizationDetailPage: React.FC = () => {
               >
                 {isDeleting ? (
                   <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    Deleting...
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
+                    <span>Deleting...</span>
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete Organisation
+                    <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>Delete Organisation</span>
                   </>
                 )}
               </Button>

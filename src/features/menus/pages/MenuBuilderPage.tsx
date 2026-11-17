@@ -249,7 +249,7 @@ export const MenuBuilderPage: React.FC = () => {
             <div>
               <h2 className="text-base font-bold text-[#17263A]">Navigation Tree</h2>
             </div>
-            <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#EEF1F6] text-[#244A70]">
+            <span className="px-2.5 py-0.5 text-xs font-bold rounded bg-[#EEF1F6] text-[#244A70]">
               {selectedApp}
             </span>
           </div>
@@ -299,9 +299,9 @@ export const MenuBuilderPage: React.FC = () => {
                 placeholder="Search menu items..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 text-xs py-1.5"
+                className="h-8 py-0 pl-8 text-xs"
               />
-              <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
 
             {/* Quick Mode Filter for WEB_3 */}

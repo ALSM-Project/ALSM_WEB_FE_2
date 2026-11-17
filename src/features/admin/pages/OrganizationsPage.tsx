@@ -243,15 +243,15 @@ export const OrganizationsPage: React.FC = () => {
   const getTypeBadge = (type?: string) => {
     const normalized = (type || 'ENTERPRISE').toUpperCase();
     if (normalized === 'PARTNER') {
-      return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">PARTNER</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-800 border border-teal-200">PARTNER</span>;
     }
     if (normalized === 'STANDARD') {
-      return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">STANDARD</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-800 border border-sky-200">STANDARD</span>;
     }
     if (normalized === 'SELF_SERVICE' || normalized === 'PLATFORM_BASED') {
-      return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">PLATFORM-BASED</span>;
+      return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">PLATFORM-BASED</span>;
     }
-    return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">ENTERPRISE</span>;
+    return <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">ENTERPRISE</span>;
   };
 
   return (
@@ -317,9 +317,9 @@ export const OrganizationsPage: React.FC = () => {
               maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
+              className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
@@ -329,7 +329,7 @@ export const OrganizationsPage: React.FC = () => {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="ALL">All Types</option>
                 <option value="ENTERPRISE">Enterprise</option>
@@ -345,7 +345,7 @@ export const OrganizationsPage: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
@@ -375,24 +375,24 @@ export const OrganizationsPage: React.FC = () => {
       </div>
 
       {/* Organisations Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
-                <th className="py-3 px-4">Organisation Name</th>
-                <th className="py-3 px-4">Type</th>
-                <th className="py-3 px-4">Members</th>
-                <th className="py-3 px-4">Projects</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Created Date</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4">Organisation Name</th>
+                <th className="py-3.5 px-4">Type</th>
+                <th className="py-3.5 px-4">Members</th>
+                <th className="py-3.5 px-4">Projects</th>
+                <th className="py-3.5 px-4">Status</th>
+                <th className="py-3.5 px-4">Created Date</th>
+                <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#DCE3EC]" aria-live="polite" aria-busy={loading}>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-medium">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Loading tenant organisations...</span>
@@ -401,14 +401,14 @@ export const OrganizationsPage: React.FC = () => {
                 </tr>
               ) : loadError ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-medium">
                     The organisation directory could not be loaded. Use Refresh to try again.
                   </td>
                 </tr>
               ) : filteredOrgs.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
-                    <Building className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
+                  <td colSpan={7} className="py-12 text-center text-slate-500 font-medium">
+                    <Building className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                     {organizations.length === 0
                       ? 'No organisations are available yet.'
                       : 'No organisations match your search criteria.'}
@@ -433,11 +433,11 @@ export const OrganizationsPage: React.FC = () => {
                             <div className="group-hover:text-[#244A70] transition-colors font-medium text-[#17263A]">
                               {org.name}
                             </div>
-                            <div className="text-[10px] text-[#8491A3] flex flex-wrap items-center gap-2 mt-0.5">
-                              <span className="font-mono text-slate-500">{org.id}</span>
+                            <div className="text-xs text-slate-500 font-medium flex flex-wrap items-center gap-2 mt-0.5">
+                              <span className="font-mono text-xs text-slate-500">{org.id}</span>
                               {org.contactEmail && (
-                                <span className="flex items-center gap-1">
-                                  <Mail className="w-2.5 h-2.5 text-[#8491A3]" />
+                                <span className="flex items-center gap-1 text-slate-600">
+                                  <Mail className="w-3 h-3 text-slate-400" />
                                   <span>{org.contactEmail}</span>
                                 </span>
                               )}
@@ -477,14 +477,14 @@ export const OrganizationsPage: React.FC = () => {
                               aria-describedby="support-view-unavailable"
                               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
                             >
-                              <Eye className="w-3 h-3 mr-1" />
-                              Support View
+                              <Eye className="w-3 h-3 shrink-0" />
+                              <span>Support View</span>
                             </Button>
                           )}
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1"
+                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]"
                             onClick={() => navigate(`/admin/organizations/${org.id}`)}
                           >
                             Details
@@ -520,23 +520,23 @@ export const OrganizationsPage: React.FC = () => {
 
         {/* Pagination Bar */}
         {!loading && filteredOrgs.length > 0 && (
-          <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
+          <div className="p-3.5 bg-white border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
             <div className="flex flex-wrap items-center gap-2">
               <span>
-                Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
-                <strong>{Math.min(currentPage * pageSize, filteredOrgs.length)}</strong> of{' '}
-                <strong>{filteredOrgs.length}</strong> organisations
+                Showing <strong className="font-semibold text-slate-900">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+                <strong className="font-semibold text-slate-900">{Math.min(currentPage * pageSize, filteredOrgs.length)}</strong> of{' '}
+                <strong className="font-semibold text-slate-900">{filteredOrgs.length}</strong> organisations
               </span>
-              <span className="text-slate-300">|</span>
+              <span className="text-slate-300 mx-1">|</span>
               <div className="flex items-center gap-1.5">
-                <span>Per page:</span>
+                <span className="text-slate-500 font-medium">Per page:</span>
                 <select
                   value={pageSize}
                   onChange={(e) => {
                     setPageSize(parseInt(e.target.value) || 10);
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] text-xs outline-none focus:ring-1 focus:ring-[#244A70] cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 text-xs font-semibold outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
                 >
                   <option value={10}>10</option>
                   <option value={20}>20</option>
@@ -549,7 +549,7 @@ export const OrganizationsPage: React.FC = () => {
               <button
                 disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
                 title="Previous Page"
                 aria-label="Previous Page"
               >
@@ -570,8 +570,8 @@ export const OrganizationsPage: React.FC = () => {
                         onClick={() => setCurrentPage(pageNum)}
                         className={`min-w-7 h-7 px-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                           currentPage === pageNum
-                            ? 'bg-[#244A70] text-white shadow-xs'
-                            : 'bg-white border border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]'
+                            ? 'bg-[#244A70] text-white shadow-2xs'
+                            : 'bg-white border border-[#DCE3EC] text-slate-700 hover:bg-[#F8FAFC] shadow-2xs'
                         }`}
                       >
                         {pageNum}
@@ -583,7 +583,7 @@ export const OrganizationsPage: React.FC = () => {
                     (pageNum === totalPages - 1 && currentPage < totalPages - 2)
                   ) {
                     return (
-                      <span key={pageNum} className="px-1 text-[#8491A3]">
+                      <span key={pageNum} className="px-1 text-slate-400">
                         ...
                       </span>
                     );
@@ -595,7 +595,7 @@ export const OrganizationsPage: React.FC = () => {
               <button
                 disabled={currentPage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
                 title="Next Page"
                 aria-label="Next Page"
               >

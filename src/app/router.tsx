@@ -5,6 +5,7 @@ import { MenuBuilderPage } from '@/features/menus';
 import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import UserDetailPage from '@/features/users/pages/UserDetailPage';
+import { OnboardUserPage } from '@/features/users/pages/OnboardUserPage';
 import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
@@ -128,6 +129,22 @@ export const router = createBrowserRouter([
         ) 
       },
       { 
+        path: '/admin/users/onboard', 
+        element: (
+          <PermissionGuard permission="users.manage">
+            <OnboardUserPage />
+          </PermissionGuard>
+        ) 
+      },
+      { 
+        path: '/admin/users/new', 
+        element: (
+          <PermissionGuard permission="users.manage">
+            <OnboardUserPage />
+          </PermissionGuard>
+        ) 
+      },
+      { 
         path: '/admin/users/:id', 
         element: (
           <PermissionGuard permission="users.manage">
@@ -152,6 +169,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/admin/temporary-roles/request',
+        element: (
+          <PermissionGuard permission="roles.temporary.request">
+            <TemporaryRolesPage initialView="request" />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: '/rbac/temporary-roles',
         element: (
           <PermissionGuard permission="roles.temporary.view">
@@ -164,6 +189,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="roles.temporary.grant">
             <TemporaryRolesPage initialView="grant" />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/rbac/temporary-roles/request',
+        element: (
+          <PermissionGuard permission="roles.temporary.request">
+            <TemporaryRolesPage initialView="request" />
           </PermissionGuard>
         ),
       },
@@ -376,7 +409,7 @@ export const router = createBrowserRouter([
         path: '/sales/reports',
         element: (
           <PermissionGuard permission="sales.reports.view">
-            <SalesReportsPage />
+            <SalesReportsPage key="sales-reports" initialTab="overview" />
           </PermissionGuard>
         ),
       },
@@ -384,7 +417,7 @@ export const router = createBrowserRouter([
         path: '/reports/sales',
         element: (
           <PermissionGuard permission="sales.reports.view">
-            <SalesReportsPage />
+            <SalesReportsPage key="sales-reports" initialTab="overview" />
           </PermissionGuard>
         ),
       },
@@ -392,7 +425,7 @@ export const router = createBrowserRouter([
         path: '/reports/team-performance',
         element: (
           <PermissionGuard permission="sales.team-performance.view">
-            <SalesReportsPage initialTab="team" />
+            <SalesReportsPage key="team-performance" initialTab="team" />
           </PermissionGuard>
         ),
       },
@@ -400,7 +433,7 @@ export const router = createBrowserRouter([
         path: '/sales/team-performance',
         element: (
           <PermissionGuard permission="sales.team-performance.view">
-            <SalesReportsPage initialTab="team" />
+            <SalesReportsPage key="team-performance" initialTab="team" />
           </PermissionGuard>
         ),
       },
@@ -703,7 +736,7 @@ export const router = createBrowserRouter([
         path: '/billing/quotes',
         element: (
           <PermissionGuard permission="billing.quotes.manage">
-            <MeetingRequestsPage />
+            <EnterpriseQuotesPage />
           </PermissionGuard>
         ),
       },
@@ -711,7 +744,7 @@ export const router = createBrowserRouter([
         path: '/admin/billing/quotes',
         element: (
           <PermissionGuard permission="billing.quotes.manage">
-            <MeetingRequestsPage />
+            <EnterpriseQuotesPage />
           </PermissionGuard>
         ),
       },

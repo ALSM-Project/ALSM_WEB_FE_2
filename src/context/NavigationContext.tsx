@@ -89,8 +89,11 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       'web2_partner_create',
       'web2_group_organization',
       'web2_conv_temporary_roles',
+      'conversions.temporary_roles',
       'web2_tl_temporary_roles',
+      'team_lead.temporary_roles',
       'web2_ops_temporary_roles',
+      'operations.temporary_roles',
       'web2_tl_members',
       'web2_online_meetings',
     ]);
@@ -249,27 +252,8 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const processed = mapped
       .filter((g) => g.id !== 'web2_group_conversions' && g.label?.toLowerCase() !== 'conversions')
       .map((group) => {
-        // Provide a direct shortcut from the dashboard to the Lead-scoped contract workflow.
-        if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
-          const children = [...(group.children || [])];
-          const hasContractShortcut = children.some((child) => child.id === 'web2_contracts_esign' || child.label === 'Contracts & E-Sign');
-          if (!hasContractShortcut) {
-            children.push({
-              id: 'web2_contracts_esign',
-              label: 'Contracts & E-Sign',
-              icon: 'FileText',
-              path: '/sales/contracts',
-              order: 2,
-              isVisible: true,
-              permissions: ['sales.leads.view'],
-              openInNewTab: false,
-            });
-          }
-          return { ...group, children };
-        }
-
         // 1. Ensure Partner Management has Partner Directory, Partner Projects, and Demo Projects
-      if (group.id === 'web2_group_partners' || group.label?.toLowerCase() === 'partner management') {
+        if (group.id === 'web2_group_partners' || group.label?.toLowerCase() === 'partner management') {
         const hasDirectory = group.children?.some((c) => c.path === '/partners');
         const hasProjects = group.children?.some((c) => c.path === '/partners/projects');
         const hasDemoProjects = group.children?.some((c) => c.path === '/partners/projects?scope=demo');
@@ -414,20 +398,101 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             c.path !== '/admin/finance/bank-accounts'
         );
 
+        // Ensure Temporary Roles is present in Administration
+        const hasTempRoles = children.some(
+          (c) => c.path === '/admin/temporary-roles' || c.label?.toLowerCase() === 'temporary roles'
+        );
+        if (!hasTempRoles) {
+          children.push({
+            id: 'web2_temporary_roles',
+            label: 'Temporary Roles',
+            icon: 'Shield',
+            path: '/admin/temporary-roles',
+            order: 7,
+            isVisible: true,
+            permissions: ['roles.temporary.view'],
+            openInNewTab: false,
+          });
+        }
+
         return { ...group, children };
       }
 
-      // 4. Ensure CRM & Sales has Meeting Requests, Quotes & Contracts, and Service Usage & Quotas
+      // 3.B Ensure Operations group does NOT duplicate Temporary Roles
+      if (group.id === 'web2_group_operations' || group.label?.toLowerCase() === 'operations') {
+        const children = (group.children || []).filter(
+          (c) =>
+            c.id !== 'web2_ops_temporary_roles' &&
+            c.id !== 'operations.temporary_roles' &&
+            c.path !== '/admin/temporary-roles' &&
+            c.label?.toLowerCase() !== 'temporary roles'
+        );
+        return { ...group, children };
+      }
+
+      // 4. Ensure CRM & Sales has Contracts & E-Sign, Enterprise Quotes, Meeting Requests, and Service Usage & Quotas
       if (group.id === 'web2_group_commercial' || group.label?.toLowerCase() === 'crm & sales') {
         let children = [...(group.children || [])];
 
-        // Ensure Meeting Requests item
+        // Ensure Contracts & E-Sign shortcut
+        const hasContractShortcut = children.some(
+          (child) => child.id === 'web2_contracts_esign' || child.label === 'Contracts & E-Sign'
+        );
+        if (!hasContractShortcut) {
+          children.push({
+            id: 'web2_contracts_esign',
+            label: 'Contracts & E-Sign',
+            icon: 'FileText',
+            path: '/sales/contracts',
+            order: 2,
+            isVisible: true,
+            permissions: ['sales.leads.view'],
+            openInNewTab: false,
+          });
+        }
+
+        // Ensure Enterprise Quotes is correctly mapped to /sales/enterprise-quotes
+        const quoteIdx = children.findIndex(
+          (c) =>
+            c.id === 'web2_enterprise_quotes' ||
+            c.id === 'commercial.quotes' ||
+            (c as any).key === 'commercial.quotes' ||
+            c.path === '/sales/enterprise-quotes' ||
+            c.path === '/admin/billing/quotes' ||
+            c.label?.toLowerCase() === 'enterprise quotes'
+        );
+        if (quoteIdx !== -1) {
+          children[quoteIdx] = {
+            ...children[quoteIdx],
+            id: 'web2_enterprise_quotes',
+            label: 'Enterprise Quotes',
+            path: '/sales/enterprise-quotes',
+            icon: 'FileText',
+            order: children[quoteIdx].order || 6,
+            isVisible: true,
+            permissions: ['billing.quotes.manage', 'sales.leads.manage'],
+            openInNewTab: false,
+          };
+        } else {
+          children.push({
+            id: 'web2_enterprise_quotes',
+            label: 'Enterprise Quotes',
+            icon: 'FileText',
+            path: '/sales/enterprise-quotes',
+            order: 6,
+            isVisible: true,
+            permissions: ['billing.quotes.manage', 'sales.leads.manage'],
+            openInNewTab: false,
+          });
+        }
+
+        // Ensure Meeting Requests item is present with its dedicated route /sales/meeting-requests
         const meetingIdx = children.findIndex(
           (c) =>
             c.id === 'web2_customer_meetings' ||
             c.id === 'web2_meeting_requests' ||
             c.path === '/sales/meeting-requests' ||
-            c.path === '/admin/billing/quotes'
+            c.label?.toLowerCase() === 'meeting requests'
         );
         if (meetingIdx !== -1) {
           children[meetingIdx] = {
@@ -436,7 +501,10 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             label: 'Meeting Requests',
             path: '/sales/meeting-requests',
             icon: 'Calendar',
-            order: 6,
+            order: children[meetingIdx].order || 6.5,
+            isVisible: true,
+            permissions: ['billing.quotes.manage', 'sales.leads.view'],
+            openInNewTab: false,
           };
         } else {
           children.push({
@@ -444,7 +512,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             label: 'Meeting Requests',
             icon: 'Calendar',
             path: '/sales/meeting-requests',
-            order: 6,
+            order: 6.5,
             isVisible: true,
             permissions: ['billing.quotes.manage', 'sales.leads.view'],
             openInNewTab: false,
@@ -466,23 +534,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             icon: 'CreditCard',
             order: 7,
           };
-        }
-
-        // Ensure Quotes & Contracts item
-        const hasQuotesAndContracts = children.some(
-          (c) => c.id === 'web2_enterprise_quotes' && c.path === '/sales/enterprise-quotes'
-        );
-        if (!hasQuotesAndContracts) {
-          children.push({
-            id: 'web2_enterprise_quotes',
-            label: 'Quotes & Contracts',
-            icon: 'FileText',
-            path: '/sales/enterprise-quotes',
-            order: 8,
-            isVisible: true,
-            permissions: ['billing.quotes.manage', 'sales.leads.manage'],
-            openInNewTab: false,
-          });
         }
 
         return { ...group, children };

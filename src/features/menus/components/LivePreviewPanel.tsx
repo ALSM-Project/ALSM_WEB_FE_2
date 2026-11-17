@@ -642,14 +642,14 @@ const PreviewSidebarItem: React.FC<{
       <button
         type="button"
         onClick={() => onSelect(item)}
-        className={`w-full text-left flex items-center space-x-1.5 px-2 py-1 rounded-lg text-[10px] transition-colors cursor-pointer ${
+        className={`w-full text-left flex items-center space-x-1.5 px-2 py-1 rounded-lg text-xs transition-colors cursor-pointer ${
           isSelected ? selectedClass : normalClass
         }`}
         style={{ paddingLeft: `${Math.max(8, depth * 8 + 8)}px` }}
       >
         <DynamicIcon
           name={item.icon}
-          className={`w-3 h-3 shrink-0 ${
+          className={`w-3.5 h-3.5 shrink-0 ${
             isSelected ? (isLight ? 'text-[#244A70]' : 'text-white') : isLight ? 'text-[#64748B]' : 'text-[#94A3B8]'
           }`}
         />
@@ -750,13 +750,25 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
     refetchOnWindowFocus: false,
   });
 
-  // Use the backend-governed navigation tree
+  // Use the backend-governed navigation tree, with client-side fallback
   const filteredSidebarNav = useMemo(() => {
     if (backendNavNodes && backendNavNodes.length > 0) {
       return backendNavNodes.map(mapBackendNodeToMenuItem);
     }
+    if (previewRole !== 'ALL') {
+      const filterTree = (items: MenuItem[], parent?: MenuItem): MenuItem[] => {
+        return items
+          .filter((item) => isItemAllowedForRole(item, previewRole, selectedApp, parent))
+          .map((item) => ({
+            ...item,
+            children: item.children ? filterTree(item.children, item) : undefined,
+          }))
+          .filter((item) => !(item.children && item.children.length === 0 && (!item.path || item.path === '#')));
+      };
+      return filterTree(sidebarNav);
+    }
     return sidebarNav;
-  }, [backendNavNodes, sidebarNav]);
+  }, [backendNavNodes, sidebarNav, previewRole, selectedApp]);
 
   // If activePreviewItemId is not in filteredSidebarNav, reset it to null and show role screen
   useEffect(() => {
@@ -808,11 +820,11 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <h2 className="text-base font-bold text-[#17263A]">Live Preview</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#EEF1F6] text-[#244A70]">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-[#EEF1F6] text-[#244A70]">
                 {selectedApp}
               </span>
             </div>
-            <span className="text-[11px] text-[#8491A3] font-medium">
+            <span className="text-xs text-slate-500 font-medium">
               Interactive Shell
             </span>
           </div>
@@ -820,13 +832,13 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
           {/* Preview Controls for Contract Type and Role */}
           <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-[#DCE3EC]">
             <div>
-              <label className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Contract Type
               </label>
               <select
                 value={previewContractType}
                 onChange={(e) => setPreviewContractType(e.target.value)}
-                className="w-full text-[11px] h-7 px-2 rounded-md border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:ring-1 focus:ring-[#244A70] font-medium"
+                className="w-full text-xs h-8 px-2 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] focus:outline-none focus:ring-1 focus:ring-[#244A70] font-medium"
               >
                 <option value="ALL">All Contracts</option>
                 <option value="SELF_SERVICE">Platform-Based Modernization</option>
@@ -836,13 +848,13 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
                 Preview Role
               </label>
               <select
                 value={previewRole}
                 onChange={(e) => handleRoleChange(e.target.value)}
-                className="w-full text-[11px] h-7 px-2 rounded-md border border-[#DCE3EC] bg-white text-[#244A70] font-bold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                className="w-full text-xs h-8 px-2 rounded-lg border border-[#DCE3EC] bg-white text-[#244A70] font-bold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
               >
                 {(APP_ROLES[selectedApp] || []).map((r) => (
                   <option key={r.value} value={r.value}>
@@ -855,13 +867,13 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         </div>
 
         {/* Role Scope Notice Bar */}
-        <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-[#F4F7FB] border border-[#244A70]/20 flex items-center justify-between text-[10.5px] shrink-0">
+        <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-[#F4F7FB] border border-[#244A70]/20 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center space-x-1.5 truncate">
             <Shield className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
             <span className="text-[#17263A] font-semibold truncate">
               Role: <span className="text-[#244A70]">{currentRoleInfo.label}</span>
             </span>
-            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-white text-[#244A70] border border-[#244A70]/20 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-white text-[#244A70] border border-[#244A70]/20 shrink-0">
               {currentRoleInfo.badge}
             </span>
           </div>
@@ -870,10 +882,10 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
             <button
               type="button"
               onClick={() => setViewMode('ROLE_SCREEN')}
-              className="text-[9.5px] font-bold text-[#244A70] hover:underline flex items-center space-x-1 shrink-0 ml-2"
+              className="text-xs font-bold text-[#244A70] hover:underline flex items-center space-x-1 shrink-0 ml-2"
             >
               <span>View Role Home</span>
-              <ArrowRight className="w-2.5 h-2.5" />
+              <ArrowRight className="w-3 h-3" />
             </button>
           )}
         </div>
@@ -949,8 +961,8 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                   ))}
                 </div>
                 <div className="flex items-center space-x-1.5 shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[8.5px] font-bold text-slate-500">Live</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-slate-600">Live</span>
                 </div>
               </div>
 
@@ -1453,12 +1465,12 @@ const RoleHomeScreen: React.FC<{
 
   // Fallback Overview Screen
   return (
-    <div className="space-y-3 text-[9.5px]">
+    <div className="space-y-3 text-xs">
       <h3 className="text-xs font-bold text-[#17263A]">{roleInfo.homeTitle || roleInfo.label}</h3>
-      <p className="text-slate-500">{roleInfo.tagline}</p>
-      <div className="p-3 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl space-y-1">
-        <span className="font-bold text-[#17263A] block">Navigation Scope</span>
-        <span className="text-slate-600 text-[8.5px]">
+      <p className="text-slate-600 text-xs font-medium">{roleInfo.tagline}</p>
+      <div className="p-3 bg-slate-50 rounded-xl space-y-1">
+        <span className="font-bold text-[#17263A] block text-xs">Navigation Scope</span>
+        <span className="text-slate-600 text-xs font-medium">
           All permissible modules and actions for this role are visible in the miniature sidebar. Click any item to preview its screen.
         </span>
       </div>

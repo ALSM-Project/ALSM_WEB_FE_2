@@ -231,10 +231,10 @@ describe('breadcrumbUtils & Enterprise Navigation Hierarchy', () => {
         { label: 'Service Usage & Quotas' },
       ]);
       expect(resolveNavigationContext(mockMenu, '/billing/quotes').breadcrumbs).toEqual([
-        { label: 'Meeting Requests' },
+        { label: 'Enterprise Quotes' },
       ]);
       expect(resolveNavigationContext(mockMenu, '/admin/billing/quotes').breadcrumbs).toEqual([
-        { label: 'Meeting Requests' },
+        { label: 'Enterprise Quotes' },
       ]);
     });
 
