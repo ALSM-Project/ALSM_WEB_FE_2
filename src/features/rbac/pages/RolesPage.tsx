@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Plus,
   Trash2,
@@ -9,6 +9,9 @@ import {
   AlertCircle,
   Save,
   KeyRound,
+  ChevronDown,
+  ChevronRight,
+  ChevronsUpDown,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import {
@@ -24,6 +27,36 @@ import {
   useUpdateRolePermissionsMutation,
 } from '@/features/roles/hooks/useRolesQuery';
 import { RoleDto, PermissionDto } from '@/features/rbac/api/rbac.api';
+import { SearchInput } from '@/shared/ui/SearchInput';
+
+const IndeterminateCheckbox: React.FC<{
+  checked: boolean;
+  indeterminate: boolean;
+  disabled?: boolean;
+  onChange: () => void;
+  title?: string;
+  ariaLabel?: string;
+}> = ({ checked, indeterminate, disabled, onChange, title, ariaLabel }) => {
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.indeterminate = indeterminate;
+    }
+  }, [indeterminate]);
+
+  return (
+    <input
+      ref={ref}
+      type="checkbox"
+      checked={checked}
+      disabled={disabled}
+      onChange={onChange}
+      title={title}
+      aria-label={ariaLabel}
+      className="w-4 h-4 rounded text-[#244A70] focus:ring-[#244A70] border-[#DCE3EC] cursor-pointer disabled:cursor-not-allowed shrink-0"
+    />
+  );
+};
 
 export const RolesPage: React.FC = () => {
   const { hasPermission } = useAuth();
@@ -34,6 +67,16 @@ export const RolesPage: React.FC = () => {
   const { data: permissions = [], isLoading: isLoadingPerms, error: permsError } = usePermissionsQuery();
 
   const [selectedRoleId, setSelectedRoleId] = useState<string>('ADMIN');
+  const permissionsScrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll permissions panel to top when selected role changes
+  useEffect(() => {
+    if (typeof permissionsScrollRef.current?.scrollTo === 'function') {
+      permissionsScrollRef.current.scrollTo({ top: 0, behavior: 'instant' });
+    } else if (permissionsScrollRef.current) {
+      permissionsScrollRef.current.scrollTop = 0;
+    }
+  }, [selectedRoleId]);
 
   // When roles load, ensure selectedRoleId is valid
   useEffect(() => {
@@ -42,8 +85,10 @@ export const RolesPage: React.FC = () => {
     }
   }, [roles, selectedRoleId]);
 
-  const { data: serverPermissions = [], isLoading: isLoadingRolePerms } =
+  const { data: serverPermissions, isLoading: isLoadingRolePerms } =
     useRolePermissionsQuery(selectedRoleId);
+
+  const activeServerPermissions = serverPermissions ?? [];
 
   // Unsaved Permissions Local Form State
   const [unsavedPermissions, setUnsavedPermissions] = useState<string[]>([]);
@@ -51,11 +96,15 @@ export const RolesPage: React.FC = () => {
 
   // Synchronize local permissions when serverPermissions data resolves
   useEffect(() => {
-    setUnsavedPermissions(serverPermissions);
+    if (serverPermissions) {
+      setUnsavedPermissions(serverPermissions);
+    }
   }, [serverPermissions]);
 
   const hasUnsavedChanges =
-    JSON.stringify([...unsavedPermissions].sort()) !== JSON.stringify([...serverPermissions].sort());
+    !isLoadingRolePerms &&
+    Boolean(serverPermissions) &&
+    JSON.stringify([...unsavedPermissions].sort()) !== JSON.stringify([...activeServerPermissions].sort());
 
   // Error Banner State
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -126,7 +175,7 @@ export const RolesPage: React.FC = () => {
   const deleteRoleMutation = useDeleteRoleMutation();
   const updateRolePermissionsMutation = useUpdateRolePermissionsMutation();
 
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) || roles[0];
+  const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
   // Role Selection with Unsaved Check
   const handleSelectRole = (id: string) => {
@@ -308,50 +357,107 @@ export const RolesPage: React.FC = () => {
     }
   };
 
-  // Group Permissions by Module
-  const groupedPermissions = permissions.reduce((acc, perm) => {
+  // Search & Filter State
+  const [roleSearchQuery, setRoleSearchQuery] = useState('');
+  const [permSearchQuery, setPermSearchQuery] = useState('');
+  const [collapsedModules, setCollapsedModules] = useState<Record<string, boolean>>({});
+
+  // Filtered Roles
+  const filteredRoles = roles.filter(
+    (r) =>
+      r.name.toLowerCase().includes(roleSearchQuery.toLowerCase()) ||
+      r.id.toLowerCase().includes(roleSearchQuery.toLowerCase()) ||
+      (r.description && r.description.toLowerCase().includes(roleSearchQuery.toLowerCase()))
+  );
+
+  // Filtered Permissions & Grouping
+  const filteredPermissions = permissions.filter((p) => {
+    if (!permSearchQuery.trim()) return true;
+    const q = permSearchQuery.toLowerCase();
+    return (
+      (p.label && p.label.toLowerCase().includes(q)) ||
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      p.key.toLowerCase().includes(q) ||
+      (p.description && p.description.toLowerCase().includes(q)) ||
+      (p.group && p.group.toLowerCase().includes(q))
+    );
+  });
+
+  const groupedPermissions = filteredPermissions.reduce((acc, perm) => {
     const grp = perm.group || 'General';
     acc[grp] = acc[grp] || [];
     acc[grp].push(perm);
     return acc;
   }, {} as Record<string, PermissionDto[]>);
 
+  const groupKeys = Object.keys(groupedPermissions);
+  const allCollapsed = groupKeys.length > 0 && groupKeys.every((grp) => collapsedModules[grp]);
+
+  const toggleCollapseAll = () => {
+    const nextState: Record<string, boolean> = {};
+    const shouldCollapse = !allCollapsed;
+    groupKeys.forEach((grp) => {
+      nextState[grp] = shouldCollapse;
+    });
+    setCollapsedModules(nextState);
+  };
+
+  const toggleModuleCollapse = (grp: string) => {
+    setCollapsedModules((prev) => ({ ...prev, [grp]: !prev[grp] }));
+  };
+
+  const handleToggleModuleAll = (perms: PermissionDto[]) => {
+    if (!canManage) return;
+    const permKeys = perms.map((p) => p.key);
+    const allSelected = permKeys.every((k) => unsavedPermissions.includes(k));
+    if (allSelected) {
+      setUnsavedPermissions((prev) => prev.filter((k) => !permKeys.includes(k)));
+    } else {
+      setUnsavedPermissions((prev) => Array.from(new Set([...prev, ...permKeys])));
+    }
+  };
+
   const combinedError = rolesError || permsError;
 
   if (isLoadingRoles || isLoadingPerms) {
     return (
       <div className="flex h-96 w-full flex-col items-center justify-center space-y-3 text-xs text-[#8491A3]">
-        <RefreshCw className="w-6 h-6 animate-spin text-[#244A70]" />
+        <RefreshCw className="w-6 h-6 animate-spin text-[#244A70] shrink-0" />
         <span className="font-semibold text-[#17263A]">Loading Roles & Permissions Catalog...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="flex flex-col gap-4 w-full lg:h-[calc(100vh-6rem)] lg:max-h-[calc(100vh-6rem)] min-h-0">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DCE3EC] pb-4">
+      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#DCE3EC] pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
-            Roles & Permissions
+          <h1 className="text-xl sm:text-2xl font-bold text-[#17263A] tracking-tight">
+            Roles & Permissions Management
           </h1>
+          <p className="text-xs text-[#8491A3] mt-0.5">
+            Configure access control policies, system capabilities, and role assignments
+          </p>
         </div>
 
         {canManage && (
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setIsCreatePermModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white border border-[#244A70] text-[#244A70] rounded-xl text-xs font-semibold hover:bg-[#EEF1F6] transition-colors shadow-xs cursor-pointer"
+              className="h-8 px-3.5 bg-white border border-[#244A70] text-[#244A70] rounded-lg text-xs font-semibold hover:bg-[#EEF1F6] transition-colors shadow-2xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
-              <KeyRound className="w-4 h-4" />
-              Create New Permission
+              <KeyRound className="w-3.5 h-3.5 shrink-0" />
+              <span>Create New Permission</span>
             </button>
             <button
+              type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#244A70] text-white rounded-xl text-xs font-semibold hover:bg-[#244A70] transition-colors shadow-xs cursor-pointer"
+              className="h-8 px-3.5 bg-[#244A70] text-white rounded-lg text-xs font-semibold hover:bg-[#1B3856] transition-colors shadow-2xs cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
             >
-              <Plus className="w-4 h-4" />
-              Create New Role
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>Create New Role</span>
             </button>
           </div>
         )}
@@ -359,7 +465,7 @@ export const RolesPage: React.FC = () => {
 
       {/* Global Alerts */}
       {combinedError && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center justify-between">
+        <div className="shrink-0 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{(combinedError as any)?.response?.data?.message || 'Unable to load roles or permissions from backend.'}</span>
@@ -368,132 +474,161 @@ export const RolesPage: React.FC = () => {
       )}
 
       {errorMessage && (
-        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center justify-between">
+        <div className="shrink-0 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span>{errorMessage}</span>
           </div>
-          <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800 text-xs font-bold">
+          <button onClick={() => setErrorMessage(null)} className="text-rose-500 hover:text-rose-800 text-xs font-bold cursor-pointer">
             Dismiss
           </button>
         </div>
       )}
 
       {successMessage && (
-        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-semibold flex items-center justify-between">
+        <div className="shrink-0 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-semibold flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMessage}</span>
           </div>
-          <button onClick={() => setSuccessMessage(null)} className="text-emerald-500 hover:text-emerald-800 text-xs font-bold">
+          <button onClick={() => setSuccessMessage(null)} className="text-emerald-500 hover:text-emerald-800 text-xs font-bold cursor-pointer">
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)] gap-6 items-start">
+      {/* Two-Column Workspace */}
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-5 items-stretch">
         {/* Left Column: Role List */}
-        <div className="space-y-3 shrink-0">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-[#8491A3] px-1">
-            Platform Roles ({roles.length})
-          </h2>
-
-          {roles.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-xl border border-[#DCE3EC] text-xs text-[#8491A3]">
-              No roles have been configured.
+        <aside className="w-full lg:w-[320px] lg:shrink-0 flex flex-col min-h-0">
+          <div className="shrink-0 space-y-2.5 pb-1">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#8491A3]">
+                Platform Roles ({roles.length})
+              </h2>
+              {roleSearchQuery && (
+                <span className="text-[11px] text-[#8491A3]">
+                  {filteredRoles.length} matching
+                </span>
+              )}
             </div>
-          ) : (
-            <div className="space-y-2.5">
-              {roles.map((role) => {
+
+            <SearchInput
+              value={roleSearchQuery}
+              onChangeValue={setRoleSearchQuery}
+              placeholder="Search roles..."
+              className="w-full max-w-none"
+            />
+          </div>
+
+          <div className="mt-2 space-y-2 pr-1.5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [scrollbar-gutter:stable]">
+            {filteredRoles.length === 0 ? (
+              <div className="p-6 text-center bg-white rounded-xl border border-[#DCE3EC] text-xs text-[#8491A3] space-y-1">
+                <p className="font-semibold text-[#17263A]">No roles found</p>
+                <p className="text-[11px]">No roles match your search criteria.</p>
+              </div>
+            ) : (
+              filteredRoles.map((role) => {
                 const isSelected = role.id === selectedRoleId;
                 return (
                   <div
                     key={role.id}
                     onClick={() => handleSelectRole(role.id)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                    className={`group relative p-3 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#244A70] bg-[#EEF1F6]/60 shadow-xs'
-                        : 'border-[#DCE3EC] bg-white hover:border-[#B8C7D9]'
+                        ? 'border-[#DCE3EC] border-l-[3px] border-l-[#244A70] bg-[#F4F7FB] shadow-xs'
+                        : 'border-[#DCE3EC] bg-white hover:border-[#B8C7D9] hover:bg-slate-50/60'
                     }`}
                   >
-                    <div className="space-y-1.5 min-w-0 pr-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-[#17263A] truncate">{role.name}</span>
-                        {role.isSystem && (
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-md bg-[#17263A] text-white shrink-0">
-                            SYSTEM
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-sm text-[#17263A] truncate">
+                            {role.name}
                           </span>
+                          {role.isSystem && (
+                            <span className="px-1.5 py-0.5 text-[9px] font-extrabold rounded bg-[#17263A] text-white shrink-0 tracking-wider">
+                              SYSTEM
+                            </span>
+                          )}
+                        </div>
+                        {role.description && (
+                          <p className="text-xs text-[#8491A3] line-clamp-1 mt-0.5">
+                            {role.description}
+                          </p>
                         )}
+                        <span className="inline-block text-[11px] font-semibold text-[#244A70] mt-1.5">
+                          {role.permissionCount !== undefined ? role.permissionCount : '—'} Permissions
+                        </span>
                       </div>
-                      <p className="text-xs text-[#8491A3] line-clamp-1">{role.description}</p>
-                      <span className="inline-block text-[11px] font-semibold text-[#244A70]">
-                        {role.permissionCount !== undefined ? role.permissionCount : '—'} Permissions
-                      </span>
+
+                      {canManage && (
+                        <div className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center gap-0.5 shrink-0 bg-white/90 backdrop-blur-2xs rounded-lg p-0.5 border border-[#DCE3EC] shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingRole(role);
+                              setEditRoleName(role.name);
+                              setEditRoleDesc(role.description || '');
+                              setIsEditModalOpen(true);
+                            }}
+                            className="p-1 text-[#8491A3] hover:text-[#244A70] rounded-md hover:bg-[#EEF1F6] transition-colors cursor-pointer"
+                            title="Edit Role Details"
+                            aria-label={`Edit ${role.name}`}
+                          >
+                            <Edit2 className="w-3.5 h-3.5 shrink-0" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingRole(role);
+                              setIsDeleteModalOpen(true);
+                            }}
+                            className="p-1 text-[#8491A3] hover:text-rose-600 rounded-md hover:bg-rose-50 transition-colors cursor-pointer"
+                            title="Delete Role"
+                            aria-label={`Delete ${role.name}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-
-                    {canManage && (
-                      <div className="flex items-center space-x-1 shrink-0">
-                        {/* Edit Role Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingRole(role);
-                            setEditRoleName(role.name);
-                            setEditRoleDesc(role.description || '');
-                            setIsEditModalOpen(true);
-                          }}
-                          className="p-1.5 text-[#64748B] hover:text-[#244A70] rounded-lg hover:bg-[#244A70]/10 transition-colors cursor-pointer"
-                          title="Edit Role Details"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-
-                        {/* Delete Role Button */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingRole(role);
-                            setIsDeleteModalOpen(true);
-                          }}
-                          className="p-1.5 text-[#94A3B8] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Delete Role"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 );
-              })}
-            </div>
-          )}
-        </div>
+              })
+            )}
+          </div>
+        </aside>
 
         {/* Right Column: Permissions Matrix for Selected Role */}
-        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-xs space-y-5 flex flex-col justify-between min-w-0">
+        <section className="flex-1 min-h-0 flex flex-col rounded-2xl border border-[#DCE3EC] bg-white overflow-hidden shadow-xs">
           {selectedRole ? (
             <>
-              <div>
-                {/* Selected Role Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#DCE3EC] pb-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-base font-bold text-[#17263A]">{selectedRole.name}</h3>
-                      <span className="text-xs text-[#8491A3] font-mono">({selectedRole.id})</span>
+              {/* Zone 1: Role Header (Pinned) */}
+              <div className="shrink-0 border-b border-[#DCE3EC] p-5 space-y-3 bg-white">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base sm:text-lg font-bold text-[#17263A]">
+                        {selectedRole.name} Permissions <span className="text-xs font-normal text-[#8491A3] font-mono">({selectedRole.id})</span>
+                      </h3>
                       {selectedRole.isSystem && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-[#17263A] text-white">
+                        <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
                           System Role
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#8491A3] mt-0.5">{selectedRole.description}</p>
+                    {selectedRole.description && (
+                      <p className="text-xs text-[#8491A3] mt-0.5 line-clamp-1 max-w-2xl">
+                        {selectedRole.description}
+                      </p>
+                    )}
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-[#244A70] font-semibold bg-[#EEF1F6] px-3 py-1.5 rounded-lg border border-[#B8C7D9]/40">
+                  <div className="flex items-center gap-2 flex-wrap shrink-0">
+                    <span className="text-xs text-[#244A70] font-semibold bg-[#EEF1F6] px-3 py-1.5 rounded-lg border border-[#DCE3EC]">
                       {unsavedPermissions.length} Active Permissions
                     </span>
 
@@ -506,10 +641,10 @@ export const RolesPage: React.FC = () => {
                           setEditRoleDesc(selectedRole.description || '');
                           setIsEditModalOpen(true);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-[#244A70] bg-[#EEF1F6] hover:bg-[#BFDBFE] border border-[#B8C7D9] transition-colors cursor-pointer"
+                        className="h-8 px-3 rounded-lg text-xs font-semibold text-[#244A70] bg-white hover:bg-[#EEF1F6] border border-[#DCE3EC] transition-colors cursor-pointer inline-flex items-center gap-1.5"
                         title="Edit Role Details"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <Edit2 className="w-3.5 h-3.5 shrink-0" />
                         <span>Edit Role</span>
                       </button>
                     )}
@@ -521,10 +656,10 @@ export const RolesPage: React.FC = () => {
                           setDeletingRole(selectedRole);
                           setIsDeleteModalOpen(true);
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer"
+                        className="h-8 px-3 rounded-lg text-xs font-semibold text-rose-600 bg-white hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer inline-flex items-center gap-1.5"
                         title="Delete this role"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
                         <span>Delete Role</span>
                       </button>
                     )}
@@ -534,16 +669,16 @@ export const RolesPage: React.FC = () => {
                         type="button"
                         onClick={handleSavePermissions}
                         disabled={!hasUnsavedChanges || updateRolePermissionsMutation.isPending}
-                        className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold transition-all shadow-xs ${
+                        className={`h-8 px-4 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 transition-all shadow-xs ${
                           hasUnsavedChanges
-                            ? 'bg-[#244A70] text-white hover:bg-[#244A70] cursor-pointer animate-pulse'
-                            : 'bg-[#DCE3EC] text-[#94A3B8] cursor-not-allowed'
+                            ? 'bg-[#244A70] text-white hover:bg-[#1B3856] cursor-pointer ring-2 ring-[#244A70]/20'
+                            : 'bg-[#EEF1F6] text-[#8491A3] border border-[#DCE3EC] cursor-not-allowed'
                         }`}
                       >
                         {updateRolePermissionsMutation.isPending ? (
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
                         ) : (
-                          <Save className="w-3.5 h-3.5" />
+                          <Save className="w-3.5 h-3.5 shrink-0" />
                         )}
                         <span>Save Permission Changes</span>
                       </button>
@@ -552,95 +687,185 @@ export const RolesPage: React.FC = () => {
                 </div>
 
                 {hasUnsavedChanges && (
-                  <div className="mt-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold flex items-center justify-between">
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 font-semibold flex items-center justify-between">
                     <span>You have unsaved permission changes for this role.</span>
                     <button
-                      onClick={() => setUnsavedPermissions(serverPermissions)}
-                      className="text-amber-700 underline text-xs font-bold hover:text-amber-900"
+                      onClick={() => setUnsavedPermissions(activeServerPermissions)}
+                      className="text-amber-700 underline text-xs font-bold hover:text-amber-900 cursor-pointer"
                     >
                       Reset Changes
                     </button>
                   </div>
                 )}
+              </div>
 
-                {/* Grouped Permissions List */}
-                {isLoadingRolePerms ? (
-                  <div className="p-12 text-center text-xs text-[#8491A3] flex items-center justify-center space-x-2">
-                    <RefreshCw className="w-4 h-4 animate-spin text-[#244A70]" />
-                    <span>Loading permissions for {selectedRole.name}...</span>
-                  </div>
-                ) : (
-                  <div className="space-y-5 max-h-[560px] overflow-y-auto pr-2 mt-4">
-                    {Object.entries(groupedPermissions).map(([group, perms]) => {
-                      const selectedCount = perms.filter((p) => unsavedPermissions.includes(p.key)).length;
-                      return (
-                        <div key={group} className="border border-[#DCE3EC] rounded-xl p-4 bg-[#F8FAFC]">
-                          <div className="flex items-center justify-between mb-3 border-b border-[#DCE3EC] pb-2">
-                            <h4 className="text-xs font-bold text-[#17263A] uppercase tracking-wide">
+              {/* Zone 2: Permissions Toolbar (Pinned below Header) */}
+              <div className="shrink-0 border-b border-[#DCE3EC] px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFBFD]">
+                <SearchInput
+                  value={permSearchQuery}
+                  onChangeValue={setPermSearchQuery}
+                  placeholder="Search permissions by name, key, or group..."
+                  className="w-full sm:w-80"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={toggleCollapseAll}
+                    className="h-8 px-3 rounded-lg text-xs font-medium text-[#17263A] bg-white hover:bg-[#EEF1F6] border border-[#DCE3EC] transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <ChevronsUpDown className="w-3.5 h-3.5 text-[#8491A3] shrink-0" />
+                    <span>{allCollapsed ? 'Expand All' : 'Collapse All'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Zone 3: Scrollable Module & Permissions List */}
+              <div
+                ref={permissionsScrollRef}
+                className="p-5 space-y-4 lg:min-h-0 lg:flex-1 lg:overflow-y-auto [scrollbar-gutter:stable]"
+              >
+              {isLoadingRolePerms ? (
+                <div className="p-12 text-center text-xs text-[#8491A3] flex items-center justify-center space-x-2">
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#244A70] shrink-0" />
+                  <span>Loading permissions for {selectedRole.name}...</span>
+                </div>
+              ) : Object.keys(groupedPermissions).length === 0 ? (
+                <div className="p-12 text-center text-xs text-[#8491A3] space-y-1">
+                  <p className="font-semibold text-[#17263A]">No permissions match your search.</p>
+                  <p className="text-[11px]">Try searching with a different term or clearing the filter.</p>
+                </div>
+              ) : (
+                Object.entries(groupedPermissions).map(([group, perms]) => {
+                  const selectedCount = perms.filter((p) => unsavedPermissions.includes(p.key)).length;
+                    const isAllSelected = perms.length > 0 && selectedCount === perms.length;
+                    const isIndeterminate = selectedCount > 0 && selectedCount < perms.length;
+                    const isCollapsed = Boolean(collapsedModules[group]);
+                    const percent = perms.length > 0 ? Math.round((selectedCount / perms.length) * 100) : 0;
+
+                    return (
+                      <div key={group} className="border border-[#DCE3EC] rounded-xl overflow-hidden bg-white shadow-2xs">
+                        {/* Module Header */}
+                        <div className="flex items-center justify-between p-3 bg-[#F8FAFC] border-b border-[#DCE3EC] gap-3">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <button
+                              type="button"
+                              onClick={() => toggleModuleCollapse(group)}
+                              className="p-1 text-[#8491A3] hover:text-[#17263A] rounded transition-colors cursor-pointer"
+                              title={isCollapsed ? 'Expand module' : 'Collapse module'}
+                            >
+                              {isCollapsed ? (
+                                <ChevronRight className="w-4 h-4 shrink-0" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 shrink-0" />
+                              )}
+                            </button>
+
+                            {canManage && (
+                              <IndeterminateCheckbox
+                                checked={isAllSelected}
+                                indeterminate={isIndeterminate}
+                                disabled={!canManage}
+                                onChange={() => handleToggleModuleAll(perms)}
+                                title={isAllSelected ? `Deselect all in ${group}` : `Select all in ${group}`}
+                                ariaLabel={`Select all ${group} permissions`}
+                              />
+                            )}
+
+                            <h4
+                              className="text-xs font-bold text-[#17263A] uppercase tracking-wider cursor-pointer select-none truncate"
+                              onClick={() => toggleModuleCollapse(group)}
+                            >
                               {group} Module
                             </h4>
-                            <span className="text-[11px] font-bold text-[#8491A3]">
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="hidden sm:block w-20 h-1.5 bg-[#DCE3EC] rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-[#244A70] rounded-full transition-all duration-300"
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                            <span className="text-[11px] font-bold text-[#8491A3] font-mono">
                               {selectedCount} / {perms.length} SELECTED
                             </span>
                           </div>
+                        </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
+                        {/* Cards Grid */}
+                        {!isCollapsed && (
+                          <div className="p-3.5 grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3">
                             {perms.map((perm) => {
                               const isChecked = unsavedPermissions.includes(perm.key);
                               return (
                                 <div
                                   key={perm.key}
-                                  className={`flex items-start justify-between gap-2 p-3 rounded-xl border text-xs transition-all ${
+                                  className={`relative group p-3 rounded-xl border text-xs transition-all ${
                                     isChecked
-                                      ? 'border-[#244A70] bg-white shadow-2xs'
-                                      : 'border-[#DCE3EC] bg-white/60 hover:bg-white'
+                                      ? 'border-blue-200 bg-blue-50/50 shadow-2xs'
+                                      : 'border-[#DCE3EC] bg-white hover:border-slate-300'
                                   }`}
                                 >
-                                  <label className={`flex items-start gap-3 min-w-0 cursor-pointer flex-1 ${!canManage ? 'opacity-80 cursor-not-allowed' : ''}`}>
+                                  <label
+                                    className={`flex items-start gap-2.5 min-w-0 cursor-pointer ${
+                                      !canManage ? 'opacity-80 cursor-not-allowed' : ''
+                                    }`}
+                                  >
                                     <input
                                       type="checkbox"
                                       checked={isChecked}
                                       disabled={!canManage}
                                       onChange={() => handleTogglePermission(perm.key)}
-                                      className="mt-0.5 rounded text-[#244A70] focus:ring-[#244A70] w-4 h-4 cursor-pointer shrink-0"
+                                      aria-label={perm.label || perm.name || perm.key}
+                                      className="mt-0.5 rounded text-[#244A70] focus:ring-[#244A70] w-4 h-4 cursor-pointer shrink-0 border-[#DCE3EC]"
                                     />
-                                    <div className="space-y-0.5 min-w-0">
-                                      <div className="font-bold text-[#17263A] truncate">
+                                    <div className="space-y-0.5 min-w-0 flex-1 pr-6">
+                                      <div className="font-semibold text-[#17263A] truncate">
                                         {perm.label || perm.name || perm.key}
                                       </div>
-                                      <div className="text-[10px] text-[#244A70] font-mono">{perm.key}</div>
-                                      <div className="text-[11px] text-[#8491A3] mt-1">{perm.description}</div>
+                                      <code className="text-[10px] text-slate-500 font-mono px-1 py-0.5 rounded bg-slate-100 border border-slate-200 inline-block">
+                                        {perm.key}
+                                      </code>
+                                      {perm.description && (
+                                        <p className="text-[11px] text-[#8491A3] mt-1 line-clamp-2 leading-relaxed">
+                                          {perm.description}
+                                        </p>
+                                      )}
                                     </div>
                                   </label>
 
                                   {canManage && (
-                                    <div className="flex items-center space-x-1 shrink-0 ml-1">
+                                    <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity flex items-center gap-0.5 bg-white/90 backdrop-blur-2xs rounded-md p-0.5 border border-[#DCE3EC] shadow-2xs">
                                       <button
                                         type="button"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          e.preventDefault();
                                           setEditingPerm(perm);
                                           setEditPermLabel(perm.label || perm.name || perm.key);
                                           setEditPermGroup(perm.group || 'General');
                                           setEditPermDesc(perm.description || '');
                                           setIsEditPermModalOpen(true);
                                         }}
-                                        className="p-1 text-[#64748B] hover:text-[#244A70] rounded hover:bg-[#244A70]/10 transition-colors"
+                                        className="p-1 text-[#8491A3] hover:text-[#244A70] rounded hover:bg-[#EEF1F6] transition-colors cursor-pointer"
                                         title="Edit Permission Details"
+                                        aria-label={`Edit ${perm.key}`}
                                       >
-                                        <Edit2 className="w-3.5 h-3.5" />
+                                        <Edit2 className="w-3.5 h-3.5 shrink-0" />
                                       </button>
                                       <button
                                         type="button"
                                         onClick={(e) => {
                                           e.stopPropagation();
+                                          e.preventDefault();
                                           setDeletingPerm(perm);
                                           setIsDeletePermModalOpen(true);
                                         }}
-                                        className="p-1 text-[#94A3B8] hover:text-rose-600 rounded hover:bg-rose-50 transition-colors"
+                                        className="p-1 text-[#8491A3] hover:text-rose-600 rounded hover:bg-rose-50 transition-colors cursor-pointer"
                                         title="Delete Permission"
+                                        aria-label={`Delete ${perm.key}`}
                                       >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
                                       </button>
                                     </div>
                                   )}
@@ -648,19 +873,19 @@ export const RolesPage: React.FC = () => {
                               );
                             })}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </>
           ) : (
-            <div className="p-12 text-center text-xs text-[#8491A3]">
+            <div className="p-12 text-center text-xs text-[#8491A3] my-auto">
               Select a role from the left panel to configure permissions.
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {/* Modal: Create Permission */}
