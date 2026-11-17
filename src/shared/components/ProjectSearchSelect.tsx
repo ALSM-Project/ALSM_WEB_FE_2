@@ -82,7 +82,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
       {!value ? (
         <div className="relative">
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               value={query}
@@ -227,8 +227,8 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                 onClick={handleDeselect}
                 className="text-xs bg-white text-slate-700 hover:text-rose-600 hover:border-rose-300 h-8"
               >
-                <X className="w-3.5 h-3.5 mr-1" />
-                Change Project
+                <X className="w-3.5 h-3.5 shrink-0" />
+                <span>Change Project</span>
               </Button>
             )}
           </div>

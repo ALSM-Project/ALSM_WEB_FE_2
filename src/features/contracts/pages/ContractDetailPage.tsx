@@ -784,8 +784,7 @@ export const ContractDetailPage: React.FC = () => {
                 disabled={isSignSubmitting || !signerName.trim()}
                 className="bg-[#244A70] text-white"
               >
-                {isSignSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <PenTool className="w-3.5 h-3.5 mr-1" />}
-                Affix Legal Signature
+                {isSignSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" /> : <PenTool className="w-3.5 h-3.5 shrink-0" />}<span>Affix Legal Signature</span>
               </Button>
             </div>
           </div>
@@ -835,8 +834,7 @@ export const ContractDetailPage: React.FC = () => {
                 disabled={isReviewSubmitting}
                 className="bg-[#244A70] text-white"
               >
-                {isReviewSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <FileCheck className="w-3.5 h-3.5 mr-1" />}
-                Confirm Legal Decision
+                {isReviewSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" /> : <FileCheck className="w-3.5 h-3.5 shrink-0" />}<span>Confirm Legal Decision</span>
               </Button>
             </div>
           </div>
@@ -904,8 +902,7 @@ export const ContractDetailPage: React.FC = () => {
                 disabled={isAmendSubmitting}
                 className="bg-[#244A70] text-white"
               >
-                {isAmendSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Plus className="w-3.5 h-3.5 mr-1" />}
-                Attach Amendment
+                {isAmendSubmitting ? <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" /> : <Plus className="w-3.5 h-3.5 shrink-0" />}<span>Attach Amendment</span>
               </Button>
             </div>
           </div>

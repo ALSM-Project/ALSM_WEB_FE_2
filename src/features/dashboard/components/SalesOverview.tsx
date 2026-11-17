@@ -61,11 +61,15 @@ export const SalesOverview: React.FC = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sales', 'dashboard', 'discounts'] });
       queryClient.invalidateQueries({ queryKey: ['crm', 'discounts'] });
-      setActionSuccess(variables.approved ? 'Đã duyệt yêu cầu giảm giá thành công!' : 'Đã từ chối yêu cầu giảm giá!');
+      setActionSuccess(
+        variables.approved
+          ? 'Discount request approved successfully!'
+          : 'Discount request rejected successfully.'
+      );
       setTimeout(() => setActionSuccess(null), 5000);
     },
     onError: (err: any) => {
-      alert(`Lỗi: ${err.message || 'Không thể cập nhật chiết khấu'}`);
+      alert(`Error: ${err.message || 'Unable to update discount decision'}`);
     },
   });
 
@@ -95,353 +99,377 @@ export const SalesOverview: React.FC = () => {
     .slice(0, 4);
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       {/* ── Success Alert ────────────────────────────────────────── */}
       {actionSuccess && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs px-3.5 py-2.5 rounded-md flex items-center justify-between shadow-xs">
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs px-4 py-3 rounded-xl flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="font-semibold">{actionSuccess}</span>
           </div>
           <button
+            type="button"
             onClick={() => setActionSuccess(null)}
-            className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-0.5"
+            className="text-emerald-700 hover:text-emerald-900 text-xs font-semibold px-2 py-0.5 cursor-pointer"
           >
-            Đóng
+            Dismiss
           </button>
         </div>
       )}
 
-      {/* ── Quick Navigation: Hợp đồng & Ký số ───────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/90 via-indigo-50/70 to-white border border-blue-200/90 rounded-xl p-4 shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#0652CC] text-white flex items-center justify-center shrink-0 shadow-xs">
+      {/* ── Quick Navigation: Contracts & E-Sign Banner ─────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#DCE3EC] rounded-2xl p-5 shadow-2xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#244A70] text-white flex items-center justify-center shrink-0 shadow-xs">
             <FileCheck2 className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-[#091E42]">Quản lý Hợp đồng & Ký số trực tuyến (Contracts & E-Sign)</h4>
-            <p className="text-xs text-[#42526E] mt-0.5">Soạn thảo, thẩm định nội bộ, gửi ký điện tử VNPT và kích hoạt khách hàng doanh nghiệp</p>
+            <h2 className="text-sm font-bold text-[#17263A]">
+              Contracts &amp; E-Sign Management
+            </h2>
+            <p className="text-xs text-[#8491A3] mt-0.5">
+              Draft, review, dispatch electronic signing, and provision enterprise client agreements.
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <Button
             variant="primary"
             size="sm"
             onClick={() => navigate('/sales/contracts')}
-            className="text-xs font-semibold shadow-xs"
+            className="text-xs font-semibold shadow-xs bg-[#244A70] hover:bg-[#1B3856]"
           >
-            <FileText className="w-3.5 h-3.5 mr-1.5" />
-            Xem Tất cả Hợp đồng
+            <FileText className="w-3.5 h-3.5 shrink-0" />
+            <span>View All Contracts</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate('/sales/leads')}
-            className="text-xs font-semibold bg-white"
+            className="text-xs font-semibold bg-white border-[#DCE3EC] hover:bg-slate-50 text-[#17263A]"
           >
-            Danh sách Leads (CRM)
+            Leads Directory (CRM)
             <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
           </Button>
         </div>
       </div>
 
-      {/* ── KPI Row: Doanh thu & Hiệu suất bán hàng ────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {/* Doanh thu tháng */}
+      {/* ── KPI Row: Revenue & Sales Performance ───────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Monthly Revenue */}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/crm/reports')}
-          className="alsm-metric-card cursor-pointer group"
-          title="Xem báo cáo doanh thu"
+          onClick={() => navigate('/sales/reports')}
+          className="bg-white border border-[#DCE3EC] rounded-2xl p-5 shadow-2xs cursor-pointer group hover:border-[#244A70] transition-colors"
+          title="View revenue analytics"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Doanh Thu Tháng</span>
-            <div className="w-8 h-8 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8491A3]">
+              Monthly Revenue
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-[#0F172A] mt-2">
+          <p className="text-2xl font-extrabold text-[#17263A] mt-2">
             {formatVnd(reports?.monthlyRevenue ?? 185000)}
           </p>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-emerald-600">+14.2% so với tháng trước</span>
-            <span className="text-[#0652CC] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          <div className="flex items-center justify-between text-xs text-[#8491A3] mt-2 pt-2 border-t border-slate-100">
+            <span className="font-semibold text-emerald-600">+14.2% vs last month</span>
+            <span className="text-[#244A70] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
 
-        {/* Tổng số Leads & Win Rate */}
+        {/* Total Pipeline Leads */}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/crm/pipeline')}
-          className="alsm-metric-card cursor-pointer group"
-          title="Xem phễu khách hàng"
+          onClick={() => navigate('/sales/pipeline')}
+          className="bg-white border border-[#DCE3EC] rounded-2xl p-5 shadow-2xs cursor-pointer group hover:border-[#244A70] transition-colors"
+          title="View sales pipeline funnel"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Tổng Leads Pipeline</span>
-            <div className="w-8 h-8 rounded-md bg-blue-50 text-[#0652CC] flex items-center justify-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8491A3]">
+              Total Leads Pipeline
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#244A70] flex items-center justify-center">
               <Target className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-[#0F172A] mt-2">
+          <p className="text-2xl font-extrabold text-[#17263A] mt-2">
             {loadingLeads ? '...' : leads.length}
           </p>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-[#0652CC]">
-              Tỷ lệ chốt: {reports?.conversionRate || 34}%
+          <div className="flex items-center justify-between text-xs text-[#8491A3] mt-2 pt-2 border-t border-slate-100">
+            <span className="font-semibold text-[#244A70]">
+              Win Rate: {reports?.conversionRate || 34}%
             </span>
-            <span className="text-[#0652CC] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+            <span className="text-[#244A70] group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
 
-        {/* Yêu cầu duyệt Discount */}
+        {/* Pending Discount Approvals */}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/crm/discounts')}
-          className="alsm-metric-card cursor-pointer group hover:border-amber-300"
-          title="Xem yêu cầu phê duyệt chiết khấu"
+          onClick={() => navigate('/sales/discounts')}
+          className="bg-white border border-[#DCE3EC] rounded-2xl p-5 shadow-2xs cursor-pointer group hover:border-amber-400 transition-colors"
+          title="View pending discount approvals"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Yêu Cầu Duyệt Discount</span>
-            <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8491A3]">
+              Pending Discounts
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <Percent className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-[#0F172A] mt-2">
+          <p className="text-2xl font-extrabold text-[#17263A] mt-2">
             {loadingDiscounts ? '...' : pendingDiscounts.length}
           </p>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
+          <div className="flex items-center justify-between text-xs text-[#8491A3] mt-2 pt-2 border-t border-slate-100">
             {pendingDiscounts.length > 0 ? (
-              <span className="font-medium text-amber-700">Cần phê duyệt &gt;15% chiết khấu</span>
+              <span className="font-semibold text-amber-700">Requires approval: &gt;15% discount</span>
             ) : (
-              <span className="font-medium text-emerald-700">Đã giải quyết hết</span>
+              <span className="font-semibold text-emerald-700">All requests resolved</span>
             )}
             <span className="text-amber-700 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
 
-        {/* Deal Size Trung Bình */}
+        {/* Average Contract Value */}
         <div
           role="button"
           tabIndex={0}
-          onClick={() => navigate('/crm/reports')}
-          className="alsm-metric-card cursor-pointer group"
-          title="Xem báo cáo giá trị hợp đồng"
+          onClick={() => navigate('/sales/reports')}
+          className="bg-white border border-[#DCE3EC] rounded-2xl p-5 shadow-2xs cursor-pointer group hover:border-purple-400 transition-colors"
+          title="View contract value metrics"
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#64748B]">Giá Trị Hợp Đồng TB</span>
-            <div className="w-8 h-8 rounded-md bg-purple-50 text-purple-600 flex items-center justify-center">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#8491A3]">
+              Avg Contract Value
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
-          <p className="text-2xl font-bold text-[#0F172A] mt-2">
+          <p className="text-2xl font-extrabold text-[#17263A] mt-2">
             {formatVnd(reports?.avgDealSize ?? 24500)}
           </p>
-          <div className="flex items-center justify-between text-xs text-[#64748B] mt-2 pt-2 border-t border-[#F1F5F9]">
-            <span className="font-medium text-purple-700">Enterprise Tiers</span>
+          <div className="flex items-center justify-between text-xs text-[#8491A3] mt-2 pt-2 border-t border-slate-100">
+            <span className="font-semibold text-purple-700">Enterprise Tiers</span>
             <span className="text-purple-700 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </div>
         </div>
       </div>
 
-      {/* ── Pipeline Breakdown theo giai đoạn ───────────────────────── */}
-      <div className="bg-white rounded-lg border border-[#E2E8F0] p-5 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3.5">
+      {/* ── Pipeline Breakdown by Stage ─────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3.5">
           <div>
-            <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-              <Target className="w-4 h-4 text-[#0652CC]" />
-              Phễu Bán Hàng &amp; Lead Theo Từng Giai Đoạn (Sales Pipeline)
-            </h3>
-            <p className="text-xs text-[#64748B] mt-0.5">
-              Phân bổ số lượng khách hàng tiềm năng qua các vòng thẩm định, demo và đàm phán hợp đồng
+            <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+              <Target className="w-4 h-4 text-[#244A70]" />
+              <span>Sales Pipeline &amp; Stage Distribution</span>
+            </h2>
+            <p className="text-xs text-[#8491A3] mt-0.5">
+              Breakdown of prospective clients across qualification, demo, and contract negotiation stages.
             </p>
           </div>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/crm/pipeline')}
-            className="text-xs font-semibold"
+            onClick={() => navigate('/sales/pipeline')}
+            className="text-xs font-semibold border-[#DCE3EC] text-[#17263A] hover:bg-slate-50"
           >
             Kanban Pipeline
             <ArrowRight className="w-3.5 h-3.5 ml-1" />
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-0.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 pt-0.5">
           {[
-            { key: 'NEW', label: '1. Mới (New)', bg: 'bg-slate-50 border-slate-200 text-slate-800', count: stageCounts.NEW },
-            { key: 'CONTACTED', label: '2. Đã liên hệ', bg: 'bg-blue-50/70 border-blue-200 text-blue-900', count: stageCounts.CONTACTED },
-            { key: 'QUALIFIED', label: '3. Tiềm năng', bg: 'bg-indigo-50/70 border-indigo-200 text-indigo-900', count: stageCounts.QUALIFIED },
-            { key: 'PROPOSAL', label: '4. Báo giá', bg: 'bg-amber-50/70 border-amber-200 text-amber-900', count: stageCounts.PROPOSAL },
-            { key: 'NEGOTIATION', label: '5. Đàm phán', bg: 'bg-purple-50/70 border-purple-200 text-purple-900', count: stageCounts.NEGOTIATION },
-            { key: 'WON', label: '6. Thắng (Won)', bg: 'bg-emerald-50/70 border-emerald-200 text-emerald-900', count: stageCounts.WON },
-            { key: 'LOST', label: '7. Mất (Lost)', bg: 'bg-rose-50/70 border-rose-200 text-rose-900', count: stageCounts.LOST },
+            { key: 'NEW', label: '1. New', bg: 'bg-slate-50 border-slate-200 text-slate-800', count: stageCounts.NEW },
+            { key: 'CONTACTED', label: '2. Contacted', bg: 'bg-slate-50 border-slate-200 text-slate-800', count: stageCounts.CONTACTED },
+            { key: 'QUALIFIED', label: '3. Qualified', bg: 'bg-slate-50 border-slate-200 text-slate-800', count: stageCounts.QUALIFIED },
+            { key: 'PROPOSAL', label: '4. Proposal', bg: 'bg-amber-50/70 border-amber-200 text-amber-900', count: stageCounts.PROPOSAL },
+            { key: 'NEGOTIATION', label: '5. Negotiation', bg: 'bg-amber-50/70 border-amber-200 text-amber-900', count: stageCounts.NEGOTIATION },
+            { key: 'WON', label: '6. Closed Won', bg: 'bg-emerald-50/70 border-emerald-200 text-emerald-900', count: stageCounts.WON },
+            { key: 'LOST', label: '7. Closed Lost', bg: 'bg-rose-50/70 border-rose-200 text-rose-900', count: stageCounts.LOST },
           ].map((stage) => (
             <div
               key={stage.key}
               role="button"
               tabIndex={0}
-              onClick={() => navigate('/crm/pipeline')}
-              className={`p-2.5 rounded-md border ${stage.bg} text-center hover:shadow-xs transition-all cursor-pointer`}
+              onClick={() => navigate('/sales/pipeline')}
+              className={`p-3 rounded-xl border ${stage.bg} text-center hover:shadow-xs transition-all cursor-pointer`}
             >
-              <span className="text-[11px] font-semibold block truncate">{stage.label}</span>
-              <p className="text-xl font-bold mt-1.5">{stage.count}</p>
+              <span className="text-xs font-semibold block truncate">{stage.label}</span>
+              <p className="text-xl font-extrabold mt-1.5">{stage.count}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── Duyệt Discount & Hoạt Động Tiếp Theo ─────────────────────── */}
+      {/* ── Pending Discounts & Next Activities ─────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Yêu Cầu Duyệt Discount */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
-            <div>
-              <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                <Percent className="w-4 h-4 text-amber-600" />
-                Yêu Cầu Duyệt Discount Đang Chờ
-              </h3>
-              <p className="text-xs text-[#64748B] mt-0.5">
-                Chiết khấu vượt thẩm quyền Sales Rep cần Sales Manager phê duyệt
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/crm/discounts')}
-              className="text-xs font-semibold"
-            >
-              Tất cả
-            </Button>
-          </div>
-
-          <div className="space-y-2.5">
-            {loadingDiscounts ? (
-              <div className="text-xs text-[#64748B] py-6 text-center">Đang tải yêu cầu chiết khấu...</div>
-            ) : pendingDiscounts.length === 0 ? (
-              <div className="py-8 text-center text-xs text-[#64748B]">
-                <CheckCircle2 className="w-7 h-7 text-emerald-500 mx-auto mb-1.5" />
-                Không có yêu cầu chiết khấu nào đang chờ duyệt!
-              </div>
-            ) : (
-              pendingDiscounts.slice(0, 3).map((item) => (
-                <div
-                  key={item.quoteId}
-                  className="p-3 rounded-md bg-amber-50/50 border border-amber-200/80 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#0F172A]">{item.leadCompany}</span>
-                      <span className="px-1.5 py-0.2 rounded font-bold bg-amber-100 text-amber-800 text-[10px] border border-amber-300">
-                        -{item.discountPercent}%
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Sale Rep: <b className="text-[#0F172A]">{item.assignedToName || item.requestId}</b> • Trị giá:
-                      {formatVnd(item.proposedFinalPrice)}
-                    </p>
-                  </div>
-
-                  {(canApproveDiscounts || canRejectDiscounts) && (
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {canApproveDiscounts && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          reviewMutation.mutate({
-                            leadId: item.leadId,
-                            quoteId: item.quoteId || item.quote?.id || '',
-                            approved: true,
-                          })
-                        }
-                        disabled={reviewMutation.isPending}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Duyệt</span>
-                      </button>
-                      )}
-
-                      {canRejectDiscounts && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          reviewMutation.mutate({
-                            leadId: item.leadId,
-                            quoteId: item.quoteId || item.quote?.id || '',
-                            approved: false,
-                            rejectionReason: 'Vượt trần ngân sách cho phép',
-                          })
-                        }
-                        disabled={reviewMutation.isPending}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-600 text-white hover:bg-rose-700 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        <span>Từ chối</span>
-                      </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Các Hoạt Động Cần Thực Hiện Tiếp Theo */}
-        <div className="bg-white rounded-lg border border-[#E2E8F0] p-5 shadow-xs flex flex-col justify-between space-y-4">
+        {/* Pending Discount Approvals */}
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3 mb-3">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
               <div>
-                <h3 className="text-sm font-bold text-[#0F172A] flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#0652CC]" />
-                  Hoạt Động Cần Thực Hiện Tiếp Theo
-                </h3>
-                <p className="text-xs text-[#64748B] mt-0.5">
-                  Lịch hẹn, cuộc gọi tư vấn và các đầu việc chăm sóc khách hàng trong ngày
+                <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-amber-600" />
+                  <span>Pending Discount Approvals</span>
+                </h2>
+                <p className="text-xs text-[#8491A3] mt-0.5">
+                  Discounts exceeding representative thresholds requiring sales manager sign-off.
                 </p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/crm/leads')}
-                className="text-xs font-semibold"
+                onClick={() => navigate('/sales/discounts')}
+                className="text-xs font-semibold border-[#DCE3EC] text-[#17263A] hover:bg-slate-50"
               >
-                Danh sách Leads
+                View All
               </Button>
             </div>
 
-            <div className="space-y-2.5">
-              {urgentFollowUps.map((lead) => (
-                <div
-                  key={lead.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/crm/leads/${lead.id}`)}
-                  className="p-3 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#0652CC]/40 text-xs transition-colors cursor-pointer flex items-center justify-between"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-[#0F172A]">{lead.company}</span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 font-semibold border border-blue-200">
-                        {lead.stage}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#64748B] mt-1">
-                      Liên hệ: <b className="text-[#0F172A]">{lead.contactName}</b> ({lead.email})
-                    </p>
-                  </div>
-
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-[#0652CC]">
-                      {formatVnd(lead.dealValue ?? 15000)}
-                    </span>
-                    <p className="text-[10px] text-[#64748B] mt-0.5">Mở hồ sơ &rarr;</p>
-                  </div>
+            <div className="divide-y divide-slate-100">
+              {loadingDiscounts ? (
+                <div className="text-xs text-[#8491A3] py-8 text-center">Loading pending discount requests...</div>
+              ) : pendingDiscounts.length === 0 ? (
+                <div className="py-8 text-center text-xs text-[#8491A3] space-y-1">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-500 mx-auto mb-1.5" />
+                  <p className="font-semibold text-slate-700">No pending discount requests requiring approval.</p>
+                  <p className="text-[11px]">All commercial proposals are compliant with threshold policies.</p>
                 </div>
-              ))}
+              ) : (
+                pendingDiscounts.slice(0, 3).map((item) => (
+                  <div
+                    key={item.quoteId}
+                    className="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-2 rounded-xl transition-colors"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-[#17263A]">{item.leadCompany}</span>
+                        <span className="px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 text-xs border border-amber-200">
+                          -{item.discountPercent}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#8491A3] mt-1">
+                        Sales Rep: <b className="text-[#17263A] font-semibold">{item.assignedToName || item.requestId}</b> • Value: {formatVnd(item.proposedFinalPrice)}
+                      </p>
+                    </div>
+
+                    {(canApproveDiscounts || canRejectDiscounts) && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        {canApproveDiscounts && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              reviewMutation.mutate({
+                                leadId: item.leadId,
+                                quoteId: item.quoteId || item.quote?.id || '',
+                                approved: true,
+                              })
+                            }
+                            disabled={reviewMutation.isPending}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve</span>
+                          </button>
+                        )}
+
+                        {canRejectDiscounts && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              reviewMutation.mutate({
+                                leadId: item.leadId,
+                                quoteId: item.quoteId || item.quote?.id || '',
+                                approved: false,
+                                rejectionReason: 'Exceeds authorized commercial margin ceiling',
+                              })
+                            }
+                            disabled={reviewMutation.isPending}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Reject</span>
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Priority & Upcoming Activities */}
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div>
+                <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#244A70]" />
+                  <span>Upcoming &amp; Priority Activities</span>
+                </h2>
+                <p className="text-xs text-[#8491A3] mt-0.5">
+                  Scheduled consultations, follow-up calls, and daily client engagement tasks.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/sales/leads')}
+                className="text-xs font-semibold border-[#DCE3EC] text-[#17263A] hover:bg-slate-50"
+              >
+                All Leads
+              </Button>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              {urgentFollowUps.length === 0 ? (
+                <div className="py-8 text-center text-xs text-[#8491A3]">
+                  No active client follow-ups pending today.
+                </div>
+              ) : (
+                urgentFollowUps.map((lead) => (
+                  <div
+                    key={lead.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => navigate(`/sales/leads/${lead.id}`)}
+                    className="py-3.5 first:pt-1 last:pb-1 flex items-center justify-between gap-3 hover:bg-slate-50/60 px-2 rounded-xl transition-colors cursor-pointer"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-[#17263A]">{lead.company}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-[#244A70] font-semibold border border-blue-200">
+                          {lead.stage}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#8491A3] mt-1">
+                        Contact: <b className="text-[#17263A] font-semibold">{lead.contactName}</b> ({lead.email})
+                      </p>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-bold text-[#244A70]">
+                        {formatVnd(lead.dealValue ?? 15000)}
+                      </span>
+                      <p className="text-xs font-semibold text-[#8491A3] hover:text-[#244A70] mt-0.5 flex items-center justify-end gap-1">
+                        <span>View Lead</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -449,3 +477,5 @@ export const SalesOverview: React.FC = () => {
     </div>
   );
 };
+
+export default SalesOverview;

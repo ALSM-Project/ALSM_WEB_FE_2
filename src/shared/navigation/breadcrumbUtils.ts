@@ -129,7 +129,9 @@ export const VALID_NAVIGABLE_ROUTES = new Set<string>([
   '/admin/roles',
   '/admin/temporary-roles',
   '/admin/temporary-roles/grant',
+  '/admin/temporary-roles/request',
   '/rbac/temporary-roles/grant',
+  '/rbac/temporary-roles/request',
   '/rbac/temporary-roles',
   '/admin/menu-builder',
   '/admin/revenue',
@@ -449,7 +451,7 @@ export function resolveNavigationContext(
       currentItem: null,
     };
   }
-  if (cleanPath === '/reports/team-performance') {
+  if (cleanPath === '/reports/team-performance' || cleanPath === '/sales/team-performance') {
     return {
       sectionTitle: 'CRM & Sales',
       pageTitle: 'Team Performance',
@@ -690,6 +692,17 @@ export function resolveNavigationContext(
       currentItem: null,
     };
   }
+  if (cleanPath === '/admin/users/onboard' || cleanPath === '/admin/users/new') {
+    return {
+      sectionTitle: 'Administration',
+      pageTitle: 'Onboard Staff Account',
+      breadcrumbs: [
+        { label: 'User Management', path: '/admin/users' },
+        { label: 'Onboard Staff Account' },
+      ],
+      currentItem: null,
+    };
+  }
   if (cleanPath === '/admin/roles') {
     return {
       sectionTitle: 'Administration',
@@ -705,6 +718,17 @@ export function resolveNavigationContext(
       breadcrumbs: [
         { label: 'Temporary Roles', path: '/admin/temporary-roles' },
         { label: 'Grant Temporary Role' },
+      ],
+      currentItem: null,
+    };
+  }
+  if (cleanPath === '/admin/temporary-roles/request' || cleanPath === '/rbac/temporary-roles/request') {
+    return {
+      sectionTitle: 'Administration',
+      pageTitle: 'Request Temporary Role',
+      breadcrumbs: [
+        { label: 'Temporary Roles', path: '/admin/temporary-roles' },
+        { label: 'Request Temporary Role' },
       ],
       currentItem: null,
     };
@@ -825,7 +849,7 @@ export function resolveNavigationContext(
       currentItem: null,
     };
   }
-  if (cleanPath === '/sales/meeting-requests' || cleanPath === '/sales/consultations' || cleanPath === '/billing/quotes' || cleanPath === '/admin/billing/quotes') {
+  if (cleanPath === '/sales/meeting-requests' || cleanPath === '/sales/consultations') {
     return {
       sectionTitle: 'CRM & Sales',
       pageTitle: 'Meeting Requests',
@@ -833,11 +857,18 @@ export function resolveNavigationContext(
       currentItem: null,
     };
   }
-  if (cleanPath === '/sales/enterprise-quotes' || cleanPath === '/sales/quotes') {
+  if (
+    cleanPath === '/sales/enterprise-quotes' ||
+    cleanPath === '/sales/quotes' ||
+    cleanPath === '/sales/quotes-contracts' ||
+    cleanPath === '/admin/quotes-contracts' ||
+    cleanPath === '/billing/quotes' ||
+    cleanPath === '/admin/billing/quotes'
+  ) {
     return {
       sectionTitle: 'CRM & Sales',
-      pageTitle: 'Quotes & Contracts',
-      breadcrumbs: [{ label: 'Quotes & Contracts' }],
+      pageTitle: 'Enterprise Quotes',
+      breadcrumbs: [{ label: 'Enterprise Quotes' }],
       currentItem: null,
     };
   }
@@ -1032,7 +1063,7 @@ export function resolveNavigationContext(
     billing: 'Billing',
     invoices: 'Invoices',
     usage: 'Organization Usage & Quotas',
-    quotes: 'Meeting Requests',
+    quotes: 'Enterprise Quotes',
   };
 
   const firstSeg = segments[0].toLowerCase();

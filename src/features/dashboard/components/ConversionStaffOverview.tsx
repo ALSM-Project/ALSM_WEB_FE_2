@@ -378,7 +378,7 @@ export const ConversionStaffOverview: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
