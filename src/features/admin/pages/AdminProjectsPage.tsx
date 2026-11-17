@@ -786,12 +786,12 @@ export const AdminProjectsPage: React.FC = () => {
               placeholder="Search by project name, ID, partner, org, or lead..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs h-8"
+              className="h-8 py-0 pl-9 pr-8 text-xs"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 inline-flex items-center justify-center cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8491A3] hover:text-[#17263A] inline-flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

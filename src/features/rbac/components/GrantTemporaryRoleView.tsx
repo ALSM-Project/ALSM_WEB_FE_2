@@ -474,19 +474,19 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
               <div className="sm:col-span-2 relative">
-                <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search staff by name, email, or employee ID..."
-                  className="w-full pl-9 pr-8 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full h-8 pl-9 pr-8 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
                 />
                 {search && (
                   <button
                     type="button"
                     onClick={() => setSearch('')}
-                    className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer inline-flex items-center justify-center"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -500,7 +500,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                     setDepartmentFilter(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full h-8 px-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
                 >
                   <option value="ALL">All Departments</option>
                   {departmentOptions.map((dept) => (
@@ -518,7 +518,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                     setRoleFilter(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full h-8 px-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
                 >
                   <option value="ALL">All Roles</option>
                   {roleOptions.map((r) => (
@@ -536,7 +536,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                     setAccountStatusFilter(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full h-8 px-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="ACTIVE">Active</option>
@@ -552,7 +552,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                     setEligibilityFilter(e.target.value);
                     setPage(1);
                   }}
-                  className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full h-8 px-2 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
                 >
                   <option value="ALL">All Eligibility</option>
                   <option value="ELIGIBLE">Eligible Only</option>
@@ -707,8 +707,8 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                       disabled={page <= 1}
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
-                      <ChevronLeft className="w-3 h-3 mr-1" />
-                      Prev
+                      <ChevronLeft className="w-3 h-3 shrink-0" />
+                      <span>Prev</span>
                     </Button>
                     <Button
                       type="button"
@@ -717,8 +717,8 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                       disabled={page >= totalPages}
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     >
-                      Next
-                      <ChevronRight className="w-3 h-3 ml-1" />
+                      <span>Next</span>
+                      <ChevronRight className="w-3 h-3 shrink-0" />
                     </Button>
                   </div>
                 </div>

@@ -598,7 +598,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search team lead by name, email, employee ID, or department..."
-                  className="w-full h-8 pl-9 pr-8 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+                  className="w-full text-xs pl-9 pr-8 h-8 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#244A70] transition-colors"
                 />
                 {searchQuery && (
                   <button
@@ -649,7 +649,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowWorkloadMenu((prev) => !prev)}
-                  className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none hover:border-[#244A70] text-[#17263A] text-left cursor-pointer"
+                  className="w-full h-8 flex items-center justify-between px-2.5 text-xs bg-white border border-slate-200 rounded-lg outline-none hover:border-[#244A70] text-[#17263A] text-left cursor-pointer"
                 >
                   <span className="truncate">
                     {workloadFilter === 'ALL' && `All Workloads (${teamLeads.length})`}
@@ -850,10 +850,10 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       size="sm"
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="h-6 text-[11px] px-1.5"
+                      className="h-6 text-[11px] px-1.5 gap-0.5"
                     >
-                      <ChevronLeft className="w-3 h-3 mr-0.5" />
-                      Prev
+                      <ChevronLeft className="w-3 h-3 shrink-0" />
+                      <span>Prev</span>
                     </Button>
                     <Button
                       type="button"
@@ -861,10 +861,10 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       size="sm"
                       disabled={currentPage >= totalLeadPages}
                       onClick={() => setCurrentPage((p) => Math.min(totalLeadPages, p + 1))}
-                      className="h-6 text-[11px] px-1.5"
+                      className="h-6 text-[11px] px-1.5 gap-0.5"
                     >
-                      Next
-                      <ChevronRight className="w-3 h-3 ml-0.5" />
+                      <span>Next</span>
+                      <ChevronRight className="w-3 h-3 shrink-0" />
                     </Button>
                   </div>
                 </div>

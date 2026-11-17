@@ -183,7 +183,7 @@ export const InvoicesPage: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by invoice #, company, or email..."
-            className="h-8 pl-9 text-xs"
+            className="h-8 py-0 pl-9 text-xs"
           />
         </div>
 
