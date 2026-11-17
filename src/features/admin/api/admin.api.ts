@@ -242,7 +242,7 @@ export const adminApi = {
         ? (log.actorUserId.fullName || log.actorUserId.email || 'System')
         : (log.actor || 'System'),
       action: log.action || 'Unknown Action',
-      resourceType: log.resourceType || 'SYSTEM',
+      resourceType: (log.resourceType || 'SYSTEM').toUpperCase(),
       resourceId: log.resourceId,
       metadata: log.metadata,
       timestamp: log.createdAt || log.timestamp || new Date().toISOString(),

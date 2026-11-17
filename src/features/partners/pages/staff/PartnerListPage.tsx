@@ -286,16 +286,16 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       </div>
 
       {/* Partner Data Table */}
-      <div className="alsm-table-container">
-        <table className="alsm-table">
+      <div className="alsm-table-container rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <table className="alsm-table w-full text-xs text-left border-collapse">
           <thead>
-            <tr>
-              <th>Partner Name & Domain</th>
-              <th>Engagement Tier</th>
-              <th>Assigned Conversion Lead</th>
-              <th className="text-center">Projects</th>
-              <th>Status</th>
-              <th className="text-right">Actions</th>
+            <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+              <th className="py-3.5 px-4">Partner Name & Domain</th>
+              <th className="py-3.5 px-4">Engagement Tier</th>
+              <th className="py-3.5 px-4">Assigned Conversion Lead</th>
+              <th className="py-3.5 px-4 text-center">Projects</th>
+              <th className="py-3.5 px-4">Status</th>
+              <th className="py-3.5 px-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -323,40 +323,40 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                   onClick={() => navigate(`/partners/${partner.id}`)}
                   className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                 >
-                  <td className="py-3 px-4">
+                  <td className="py-3.5 px-4">
                     <div>
                       <button
                         onClick={() => navigate(`/partners/${partner.id}`)}
-                        className="font-semibold text-sm text-slate-900 group-hover:text-[#244A70] hover:underline text-left block transition-colors"
+                        className="font-semibold text-sm text-slate-900 group-hover:text-[#244A70] hover:underline text-left block transition-colors cursor-pointer"
                       >
                         {partner.name}
                       </button>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
+                      <div className="flex items-center gap-2 text-xs text-slate-600 font-medium mt-0.5">
                         <span className="font-mono">{partner.domain || 'no-domain.com'}</span>
                         <span className="text-slate-300">•</span>
                         <span>{partner.contactEmail}</span>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 px-4 font-medium text-slate-700">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/80">
+                  <td className="py-3.5 px-4 font-medium text-slate-700">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                       {partner.engagementType || 'Dedicated Modernization'}
                     </span>
                   </td>
-                  <td className="py-3 px-4">
-                    <div className="font-medium text-slate-800 text-xs">
+                  <td className="py-3.5 px-4">
+                    <div className="font-semibold text-slate-800 text-xs">
                       {partner.assignedStaffName || 'Not assigned'}
                     </div>
-                    <span className="text-[10px] text-slate-400 font-mono">SLA: 4h response</span>
+                    <span className="text-xs text-slate-500 font-mono font-medium">SLA: 4h response</span>
                   </td>
-                  <td className="py-3 px-4 text-center">
+                  <td className="py-3.5 px-4 text-center">
                     <span className="font-bold text-sm text-slate-900">{partner.projectCount}</span>
-                    <span className="text-[10px] text-slate-400 block uppercase font-medium">projects</span>
+                    <span className="text-xs text-slate-500 block uppercase font-bold tracking-wider">projects</span>
                   </td>
-                  <td className="py-3 px-4">
+                  <td className="py-3.5 px-4">
                     <PartnerStatusBadge status={partner.status} type="partner" />
                   </td>
-                  <td className="py-3 px-4 text-right">
+                  <td className="py-3.5 px-4 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <Button
                         variant="ghost"
@@ -365,7 +365,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                           e.stopPropagation();
                           navigate(`/partners/${partner.id}`);
                         }}
-                        className="text-xs text-[#244A70] hover:bg-blue-50/60 transition-colors font-medium h-7"
+                        className="text-xs text-[#244A70] hover:bg-blue-50/60 transition-colors font-semibold h-7"
                       >
                         View Details
                       </Button>
@@ -378,7 +378,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
                             setSelectedProjectPartner(partner);
                             setIsCreateProjectModalOpen(true);
                           }}
-                          className="text-xs flex items-center gap-1 border-slate-200 text-[#244A70] hover:bg-blue-50/60 font-medium h-7"
+                          className="text-xs flex items-center gap-1 border-slate-200 text-[#244A70] hover:bg-blue-50/60 font-semibold h-7"
                         >
                           <Plus className="w-3 h-3" /> New Project
                         </Button>

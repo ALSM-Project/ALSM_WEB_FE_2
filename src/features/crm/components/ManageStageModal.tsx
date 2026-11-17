@@ -92,7 +92,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
           </div>
           <div className="text-right">
             <span className="text-[10px] uppercase font-bold text-slate-400">Deal Value</span>
-            <div className="font-semibold text-blue-600 mt-0.5">
+            <div className="font-semibold text-[#244A70] mt-0.5">
               {formatVnd(lead.dealValue || 0)}
             </div>
           </div>
@@ -107,7 +107,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                 key={st.key}
                 className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                   selectedStage === st.key
-                    ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500'
+                    ? 'border-[#244A70] bg-[#244A70]/5 ring-1 ring-[#244A70]'
                     : 'border-slate-200 hover:border-slate-300 bg-white'
                 }`}
               >
@@ -117,7 +117,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                   value={st.key}
                   checked={selectedStage === st.key}
                   onChange={() => setSelectedStage(st.key)}
-                  className="mt-0.5 text-blue-600 focus:ring-blue-500"
+                  className="mt-0.5 text-[#244A70] focus:ring-[#244A70]"
                 />
                 <div className="flex-1">
                   <div className="font-semibold text-slate-900">{st.label}</div>
@@ -147,7 +147,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
                         onClose();
                         onOpenActivation();
                       }}
-                      className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold text-xs"
+                      className="inline-flex items-center gap-1.5 text-[#244A70] hover:text-[#1B3856] font-semibold text-xs"
                     >
                       <ArrowRight className="w-3.5 h-3.5" />
                       {hasProviderVerifiedContract ? 'Execute Customer Activation' : 'Review Activation Requirements'}
@@ -169,7 +169,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Add context for this stage change (logged to stage audit history)..."
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70]"
             required={selectedStage !== lead.stage}
           />
         </div>
@@ -193,7 +193,7 @@ export const ManageStageModal: React.FC<ManageStageModalProps> = ({
             variant="primary"
             size="sm"
             disabled={submitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white"
           >
             {submitting ? 'Updating...' : 'Save Stage Update'}
           </Button>

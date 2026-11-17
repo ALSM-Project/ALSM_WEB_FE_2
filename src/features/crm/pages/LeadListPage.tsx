@@ -128,7 +128,7 @@ export const LeadListPage: React.FC = () => {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-3 shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] p-3.5 shadow-2xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <form onSubmit={handleSearchSubmit} className="relative w-full md:w-80">
             <input
@@ -138,11 +138,11 @@ export const LeadListPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </form>
 
           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <span className="text-xs font-semibold text-[#8491A3] inline-flex items-center gap-1">
+            <span className="text-xs font-bold text-slate-600 inline-flex items-center gap-1.5">
               <Filter className="w-3.5 h-3.5 shrink-0" />
               <span>Stage:</span>
             </span>
@@ -150,10 +150,10 @@ export const LeadListPage: React.FC = () => {
               <button
                 key={st}
                 onClick={() => { setStageFilter(st); setCurrentPage(1); }}
-                className={`h-8 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center transition-all ${
+                className={`h-8 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center transition-all cursor-pointer ${
                   stageFilter === st
-                    ? 'bg-[#244A70] text-white shadow-xs'
-                    : 'bg-[#F8FAFC] text-[#17263A] hover:bg-[#DCE3EC]'
+                    ? 'bg-[#244A70] text-white shadow-2xs'
+                    : 'bg-[#F8FAFC] text-slate-700 hover:bg-[#DCE3EC]'
                 }`}
               >
                 {st.charAt(0) + st.slice(1).toLowerCase()}
@@ -162,10 +162,10 @@ export const LeadListPage: React.FC = () => {
 
             <button
               onClick={() => setSortByScoreDesc(!sortByScoreDesc)}
-              className="ml-2 h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer"
+              className="ml-2 h-8 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 cursor-pointer shadow-2xs"
               title="Toggle sort by lead qualification score"
             >
-              <ArrowUpDown className="w-3 h-3 text-slate-500 shrink-0" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>Score: {sortByScoreDesc ? 'High-to-Low' : 'Low-to-High'}</span>
             </button>
           </div>
@@ -173,25 +173,25 @@ export const LeadListPage: React.FC = () => {
       </div>
 
       {/* Leads Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
-                <th className="py-3 px-4">Contact & Company</th>
-                <th className="py-3 px-4">Contact Info</th>
-                <th className="py-3 px-3 text-center">Score</th>
-                <th className="py-3 px-4">Deal Value</th>
-                <th className="py-3 px-4">Stage</th>
-                <th className="py-3 px-4">Assigned Rep</th>
-                <th className="py-3 px-4">Last Activity</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th className="py-3.5 px-4 sm:px-5">Contact & Company</th>
+                <th className="py-3.5 px-4 sm:px-5">Contact Info</th>
+                <th className="py-3.5 px-3 text-center">Score</th>
+                <th className="py-3.5 px-4 sm:px-5">Deal Value</th>
+                <th className="py-3.5 px-4 sm:px-5">Stage</th>
+                <th className="py-3.5 px-4 sm:px-5">Assigned Rep</th>
+                <th className="py-3.5 px-4 sm:px-5">Last Activity</th>
+                <th className="py-3.5 px-4 sm:px-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#DCE3EC] text-xs">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Loading ...</span>
@@ -200,8 +200,8 @@ export const LeadListPage: React.FC = () => {
                 </tr>
               ) : sortedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-[#8491A3]">
-                    <Users className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
+                    <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                     No leads found matching your criteria.
                   </td>
                 </tr>
@@ -210,63 +210,63 @@ export const LeadListPage: React.FC = () => {
                   <tr
                     key={lead.id}
                     onClick={() => navigate(`/sales/leads/${lead.id}`)}
-                    className="hover:bg-blue-50/40 cursor-pointer transition-colors group"
+                    className="hover:bg-[#F8FAFC] cursor-pointer transition-colors group"
                     title="Click to view lead details"
                   >
-                    <td className="py-3.5 px-4">
-                      <div className="font-semibold text-[#17263A] group-hover:text-[#244A70] transition-colors">
+                    <td className="py-4 px-4 sm:px-5">
+                      <div className="font-semibold text-xs text-[#17263A] group-hover:text-[#244A70] transition-colors">
                         {lead.contactName}
                       </div>
-                      <div className="text-[11px] text-[#8491A3] flex items-center gap-1 mt-0.5">
-                        <Building className="w-3 h-3 text-[#8491A3]" />
-                        {lead.company}
+                      <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                        <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{lead.company}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <div className="text-[#17263A] flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-[#8491A3]" />
-                        {lead.email}
+                    <td className="py-4 px-4 sm:px-5">
+                      <div className="text-xs text-slate-700 font-medium flex items-center gap-1.5">
+                        <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{lead.email}</span>
                       </div>
                       {lead.phone && (
-                        <div className="text-[11px] text-[#8491A3] flex items-center gap-1 mt-0.5">
-                          <Phone className="w-3.5 h-3.5 text-[#8491A3]" />
-                          {lead.phone}
+                        <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                          <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{lead.phone}</span>
                         </div>
                       )}
                     </td>
-                    <td className="py-3.5 px-3 text-center">
+                    <td className="py-4 px-3 text-center">
                       {getScoreBadge(lead.score)}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
+                    <td className="py-4 px-4 sm:px-5 font-semibold text-xs text-slate-800">
                       {formatVnd(lead.dealValue || 0)}
                     </td>
-                    <td className="py-3.5 px-4">
+                    <td className="py-4 px-4 sm:px-5">
                       {getStageBadge(lead.stage)}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-700">
+                    <td className="py-4 px-4 sm:px-5 text-xs text-slate-700">
                       <div className="flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                        <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span>{lead.assignedToName || 'Unassigned'}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-[#8491A3]">
+                    <td className="py-4 px-4 sm:px-5 text-xs text-slate-500 font-medium">
                       {lead.lastContactAt
                         ? new Date(lead.lastContactAt).toLocaleDateString()
                         : 'No activity'}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-4 px-4 sm:px-5 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end" onClick={(e) => e.stopPropagation()}>
                         <Button
-                          variant="outline"
+                          variant="secondary"
                           size="sm"
-                          className="text-xs border-[#DCE3EC] text-[#244A70] hover:bg-[#F8FAFC]"
+                          className="text-xs h-8 px-3 border border-[#DCE3EC] text-[#244A70] hover:bg-[#F8FAFC]"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate(`/sales/leads/${lead.id}`);
                           }}
                         >
                           View
-                          <ArrowRight className="w-3 h-3 ml-1" />
+                          <ArrowRight className="w-3.5 h-3.5 ml-1" />
                         </Button>
                       </div>
                     </td>
@@ -279,16 +279,16 @@ export const LeadListPage: React.FC = () => {
 
         {/* Pagination Bar */}
         {sortedLeads.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#F8FAFC] border-t border-[#DCE3EC] text-xs text-slate-600">
-            <div className="flex items-center gap-2">
-              <span>Rows per page:</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-white border-t border-[#DCE3EC] text-xs text-slate-600">
+            <div className="flex items-center gap-3">
+              <span className="font-medium text-slate-500">Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-white border border-[#DCE3EC] rounded px-2 py-1 text-xs font-semibold text-[#17263A] focus:outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
+                className="bg-white border border-[#DCE3EC] rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -297,34 +297,32 @@ export const LeadListPage: React.FC = () => {
               </select>
               <span className="text-slate-300">|</span>
               <span>
-                Showing <strong className="font-semibold text-[#17263A]">{sortedLeads.length === 0 ? 0 : startIndex + 1}</strong> to{' '}
-                <strong className="font-semibold text-[#17263A]">{endIndex}</strong> of{' '}
-                <strong className="font-semibold text-[#17263A]">{sortedLeads.length}</strong> leads
+                Showing <strong className="font-semibold text-slate-900">{sortedLeads.length === 0 ? 0 : startIndex + 1}</strong> to{' '}
+                <strong className="font-semibold text-slate-900">{endIndex}</strong> of{' '}
+                <strong className="font-semibold text-slate-900">{sortedLeads.length}</strong> leads
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={safeCurrentPage <= 1}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#DCE3EC] bg-white text-xs font-semibold text-slate-700 hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Previous</span>
               </button>
 
-              <div className="flex items-center gap-1 px-2 text-xs">
-                <span className="font-semibold text-[#17263A]">{safeCurrentPage}</span>
-                <span className="text-slate-400">/</span>
-                <span>{totalPages}</span>
-              </div>
+              <span className="px-2 text-xs font-semibold text-slate-700">
+                {safeCurrentPage} / {totalPages}
+              </span>
 
               <button
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={safeCurrentPage >= totalPages}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-[#DCE3EC] bg-white text-xs font-semibold text-[#17263A] hover:bg-[#F4F7FB] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#DCE3EC] bg-white text-xs font-semibold text-slate-700 hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs cursor-pointer"
               >
                 <span>Next</span>
                 <ChevronRight className="w-3.5 h-3.5" />

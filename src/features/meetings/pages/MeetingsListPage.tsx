@@ -155,30 +155,30 @@ export const MeetingsListPage: React.FC = () => {
             size="sm"
             onClick={() => void refetch()}
             disabled={isFetching}
-            className="gap-2 text-[#8491A3]"
+            className="gap-2 text-slate-600 h-9 px-3.5 rounded-xl border border-[#DCE3EC] bg-white hover:bg-[#F8FAFC] text-xs font-semibold cursor-pointer"
           >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </Button>
           <Button
             id="quick-meeting-btn"
             variant="outline"
             size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="gap-1.5 text-xs text-[#244A70] border-blue-200 hover:bg-blue-50 cursor-pointer"
+            className="gap-1.5 text-xs h-9 px-3.5 rounded-xl text-[#244A70] border border-blue-200 bg-blue-50 hover:bg-blue-100 font-semibold cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            Quick Room
+            <span>Quick Room</span>
           </Button>
           <Button
             id="create-meeting-btn"
             variant="primary"
             size="sm"
             onClick={() => navigate('/enterprise/meetings/create')}
-            className="gap-2 bg-[#244A70] hover:bg-[#244A70] text-white shadow-xs cursor-pointer"
+            className="gap-2 text-xs h-9 px-3.5 rounded-xl bg-[#244A70] hover:bg-[#1b3855] text-white font-semibold shadow-2xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Create Meeting Room
+            <span>Create Meeting Room</span>
           </Button>
         </div>
       </div>
@@ -186,7 +186,7 @@ export const MeetingsListPage: React.FC = () => {
       {/* Global Feedback Banner */}
       {feedback && (
         <div
-          className={`p-3 rounded-xl border flex items-center justify-between text-xs animate-fade-in ${
+          className={`p-3.5 rounded-xl border flex items-center justify-between text-xs animate-fade-in shadow-2xs ${
             feedback.type === 'success'
               ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
               : 'bg-rose-50 border-rose-200 text-rose-800'
@@ -203,7 +203,7 @@ export const MeetingsListPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setFeedback(null)}
-            className="font-bold opacity-60 hover:opacity-100"
+            className="font-bold opacity-60 hover:opacity-100 cursor-pointer"
           >
             &times;
           </button>
@@ -212,33 +212,33 @@ export const MeetingsListPage: React.FC = () => {
 
       {/* Summary KPI Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-[#DCE3EC] p-4 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#EEF1F6] flex items-center justify-center text-[#244A70] shrink-0">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-[#EEF1F6] flex items-center justify-center text-[#244A70] shrink-0">
             <Video className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#8491A3] font-semibold">Total Meetings</p>
-            <p className="text-2xl font-bold text-[#17263A] mt-0.5">{total}</p>
+            <p className="text-xs text-slate-600 font-bold uppercase tracking-wider">Total Meetings</p>
+            <p className="text-2xl font-extrabold text-[#17263A] mt-1">{total}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#DCE3EC] p-4 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#8491A3] font-semibold">Scheduled</p>
-            <p className="text-2xl font-bold text-sky-700 mt-0.5">{scheduledCount}</p>
+            <p className="text-xs text-sky-800 font-bold uppercase tracking-wider">Scheduled</p>
+            <p className="text-2xl font-extrabold text-sky-900 mt-1">{scheduledCount}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-[#DCE3EC] p-4 shadow-2xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+        <div className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-[#8491A3] font-semibold">In Progress</p>
-            <p className="text-2xl font-bold text-emerald-700 mt-0.5">{inProgressCount}</p>
+            <p className="text-xs text-emerald-800 font-bold uppercase tracking-wider">In Progress</p>
+            <p className="text-2xl font-extrabold text-emerald-900 mt-1">{inProgressCount}</p>
           </div>
         </div>
       </div>
@@ -262,7 +262,7 @@ export const MeetingsListPage: React.FC = () => {
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#244A70] text-white shadow-2xs'
-                    : 'bg-white text-[#8491A3] hover:bg-[#F8FAFC] hover:text-[#244A70] border border-[#DCE3EC]'
+                    : 'bg-white text-slate-600 hover:bg-[#F8FAFC] hover:text-[#244A70] border border-[#DCE3EC]'
                 }`}
               >
                 {f.label}
@@ -273,13 +273,13 @@ export const MeetingsListPage: React.FC = () => {
 
         {/* Search Input */}
         <div className="relative max-w-xs w-full">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search meetings by title, host..."
-            className="w-full h-8 text-xs pl-8 pr-3 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+            className="w-full h-8 text-xs pl-8 pr-3 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
           />
         </div>
       </div>
@@ -288,7 +288,7 @@ export const MeetingsListPage: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="meetings-loading-skeleton">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="animate-pulse space-y-4 border border-[#DCE3EC] p-6 bg-white rounded-xl shadow-2xs">
+            <Card key={i} className="animate-pulse space-y-4 border border-[#DCE3EC] p-6 bg-white rounded-2xl shadow-2xs">
               <div className="flex justify-between items-center">
                 <div className="h-5 w-20 bg-gray-200 rounded-full" />
                 <div className="h-4 w-24 bg-gray-200 rounded" />
@@ -300,11 +300,11 @@ export const MeetingsListPage: React.FC = () => {
           ))}
         </div>
       ) : isError ? (
-        <Card className="text-center py-12 px-4 border border-rose-200 bg-rose-50/50 rounded-xl">
+        <Card className="text-center py-12 px-4 border border-rose-200 bg-rose-50/50 rounded-2xl">
           <div className="flex flex-col items-center gap-3">
             <AlertCircle className="w-10 h-10 text-rose-500" />
-            <h3 className="text-lg font-bold text-[#17263A]">Failed to load meetings</h3>
-            <p className="text-sm text-[#8491A3] max-w-md">
+            <h2 className="text-lg font-bold text-[#17263A]">Failed to load meetings</h2>
+            <p className="text-sm text-slate-600 max-w-md">
               {(error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
                 'An error occurred while fetching your meetings. Please verify your connection.'}
             </p>
@@ -313,20 +313,20 @@ export const MeetingsListPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => void refetch()}
-              className="mt-2"
+              className="mt-2 text-xs h-8 px-3 rounded-lg"
             >
               Try Again
             </Button>
           </div>
         </Card>
       ) : meetings.length === 0 ? (
-        <Card className="text-center py-16 px-4 border border-[#DCE3EC] bg-white rounded-xl shadow-2xs">
+        <Card className="text-center py-16 px-4 border border-[#DCE3EC] bg-white rounded-2xl shadow-2xs">
           <div className="flex flex-col items-center max-w-md mx-auto">
             <div className="w-16 h-16 rounded-full bg-[#EEF1F6] flex items-center justify-center text-[#244A70] mb-4">
               <Calendar className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-[#17263A]">No meetings found</h3>
-            <p className="text-sm text-[#8491A3] mt-1 mb-6">
+            <h2 className="text-lg font-bold text-[#17263A]">No meetings found</h2>
+            <p className="text-sm text-slate-600 mt-1 mb-6 leading-relaxed">
               {searchQuery
                 ? `No meetings matching "${searchQuery}".`
                 : selectedStatus
@@ -338,10 +338,10 @@ export const MeetingsListPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => navigate('/enterprise/meetings/create')}
-              className="gap-2 bg-[#244A70] hover:bg-[#244A70]"
+              className="gap-2 bg-[#244A70] hover:bg-[#1b3855] text-xs h-9 px-4 rounded-xl shadow-2xs font-semibold cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              Schedule Online Meeting
+              <span>Schedule Online Meeting</span>
             </Button>
           </div>
         </Card>
@@ -362,9 +362,9 @@ export const MeetingsListPage: React.FC = () => {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-[#DCE3EC] pt-4 mt-6">
-              <p className="text-xs text-[#8491A3]">
-                Showing page <span className="font-semibold text-[#17263A]">{page}</span> of{' '}
-                <span className="font-semibold text-[#17263A]">{totalPages}</span> ({total} meetings)
+              <p className="text-xs text-slate-600">
+                Showing page <span className="font-semibold text-slate-900">{page}</span> of{' '}
+                <span className="font-semibold text-slate-900">{totalPages}</span> ({total} meetings)
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -373,6 +373,7 @@ export const MeetingsListPage: React.FC = () => {
                   size="sm"
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="text-xs h-8 px-3 rounded-lg"
                 >
                   Previous
                 </Button>
@@ -382,6 +383,7 @@ export const MeetingsListPage: React.FC = () => {
                   size="sm"
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className="text-xs h-8 px-3 rounded-lg"
                 >
                   Next
                 </Button>

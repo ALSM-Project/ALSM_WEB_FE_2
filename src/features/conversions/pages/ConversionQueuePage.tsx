@@ -126,7 +126,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
       <PageHeader 
         title={reviewOnly ? 'Conversion Quality Reviews' : 'Conversion Queue'}
         badge={
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#244A70] bg-[#E8F1FF] px-2.5 py-0.5 rounded-full border border-[#D4E3FC]">
+          <span className="text-xs font-semibold text-[#244A70] bg-[#E8F1FF] px-3 py-1 rounded-full border border-[#D4E3FC] shadow-2xs">
             Contract 1: Platform-Based Modernization
           </span>
         }

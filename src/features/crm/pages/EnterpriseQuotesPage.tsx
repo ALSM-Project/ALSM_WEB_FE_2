@@ -19,7 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { Button, Badge, PageHeader, Card } from '@/shared/ui';
+import { Button, Badge, PageHeader } from '@/shared/ui';
 import { formatVnd } from '@/shared/utils/currency';
 import { crmApi, LeadDto } from '../api/crm.api';
 import { contractsApi, EnterpriseContract } from '@/features/contracts/api/contracts.api';
@@ -97,15 +97,15 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
   if (totalItems === 0) return null;
 
   return (
-    <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
+    <div className="p-3.5 bg-white border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
       <div className="flex items-center gap-2">
         <span>
           Showing <strong>{startIndex + 1}</strong> to <strong>{endIndex}</strong> of{' '}
           <strong>{totalItems}</strong> {itemName}
         </span>
         <span className="text-slate-300">|</span>
-        <div className="flex items-center gap-1">
-          <span>Per page:</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-slate-500 font-medium">Per page:</span>
           <select
             aria-label={ariaLabel}
             value={pageSize}
@@ -113,7 +113,7 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
               onPageSizeChange(parseInt(e.target.value) || 5);
               onPageChange(1);
             }}
-            className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] text-xs outline-none cursor-pointer"
+            className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 text-xs font-semibold outline-none cursor-pointer shadow-2xs"
           >
             {pageSizeOptions.map((opt) => (
               <option key={opt} value={opt}>
@@ -129,20 +129,20 @@ export const TablePagination: React.FC<TablePaginationProps> = ({
           type="button"
           disabled={safeCurrentPage <= 1}
           onClick={() => onPageChange(Math.max(1, safeCurrentPage - 1))}
-          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
           title="Previous Page"
           aria-label="Previous Page"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="font-semibold text-[#17263A]">
+        <span className="font-semibold text-slate-800">
           Page {safeCurrentPage} of {totalPages}
         </span>
         <button
           type="button"
           disabled={safeCurrentPage >= totalPages}
           onClick={() => onPageChange(Math.min(totalPages, safeCurrentPage + 1))}
-          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
           title="Next Page"
           aria-label="Next Page"
         >
@@ -688,109 +688,109 @@ export const EnterpriseQuotesPage: React.FC = () => {
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Commercial Pipeline Funnel */}
-            <Card variant="default" padding="lg" className="bg-white border-slate-200 space-y-4 md:col-span-2">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+            <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-2xs space-y-4 md:col-span-2">
+              <div className="flex items-center justify-between border-b border-[#DCE3EC] pb-3">
+                <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-[#244A70]" />
                   Commercial Conversion Pipeline
-                </h3>
+                </h2>
                 <span className="text-xs font-bold text-emerald-800">
                   Total Active Value: {formatVnd(totalContractValue || totalPipelineValue)}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1.5">
                   <span className="text-xs text-slate-600 uppercase tracking-wider block font-semibold">
                     1. Proposed Quotes
                   </span>
                   <div className="text-xl font-bold text-[#17263A]">{totalQuotes} proposals</div>
-                  <span className="text-xs text-slate-600">{formatVnd(totalPipelineValue)}</span>
+                  <span className="text-xs text-slate-600 font-medium block">{formatVnd(totalPipelineValue)}</span>
                 </div>
 
-                <div className="p-4 bg-amber-50/60 rounded-xl border border-amber-200 space-y-1.5">
-                  <span className="text-xs text-amber-800 uppercase tracking-wider block font-semibold">
+                <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-1.5">
+                  <span className="text-xs text-amber-900 uppercase tracking-wider block font-semibold">
                     2. Awaiting Signature
                   </span>
-                  <div className="text-xl font-bold text-amber-900">{pendingSignatureContracts} contracts</div>
-                  <span className="text-xs text-amber-700">Awaiting customer countersign</span>
+                  <div className="text-xl font-bold text-amber-950">{pendingSignatureContracts} contracts</div>
+                  <span className="text-xs text-amber-800 font-medium block">Awaiting customer countersign</span>
                 </div>
 
-                <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1.5">
-                  <span className="text-xs text-emerald-800 uppercase tracking-wider block font-semibold">
+                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1.5">
+                  <span className="text-xs text-emerald-900 uppercase tracking-wider block font-semibold">
                     3. Executed & Active MSAs
                   </span>
-                  <div className="text-xl font-bold text-emerald-900">{activeContracts} executed</div>
-                  <span className="text-xs text-emerald-700">Fully countersigned & live quotas</span>
+                  <div className="text-xl font-bold text-emerald-950">{activeContracts} executed</div>
+                  <span className="text-xs text-emerald-800 font-medium block">Fully countersigned & live quotas</span>
                 </div>
               </div>
 
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                <span className="text-slate-600 font-normal">
+                <span className="text-slate-600 font-medium">
                   Quick Actions: Start a new proposal for an existing CRM lead or jump straight to contract management.
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('QUOTES')} className="text-xs px-3">
+                  <Button variant="secondary" size="sm" onClick={() => setActiveTab('QUOTES')} className="text-xs px-3 shadow-2xs">
                     Browse Quotes
                   </Button>
-                  <Button variant="primary" size="sm" onClick={() => setActiveTab('CONTRACTS')} className="text-xs px-3 bg-[#244A70]">
+                  <Button variant="primary" size="sm" onClick={() => setActiveTab('CONTRACTS')} className="text-xs px-3 bg-[#244A70] shadow-2xs">
                     Browse Contracts
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Service Model Allocation */}
-            <Card variant="default" padding="lg" className="bg-white border-slate-200 space-y-3">
-              <h3 className="text-sm font-bold text-[#17263A] flex items-center gap-2 border-b border-slate-100 pb-2">
+            <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-2xs space-y-3">
+              <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2 border-b border-[#DCE3EC] pb-3">
                 <Layers className="w-4 h-4 text-purple-600" />
                 Service Model Breakdown
-              </h3>
+              </h2>
               <div className="space-y-3 text-xs">
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Platform-Based Modernization</span>
                     <span className="text-[#244A70] font-bold">
                       {contracts.filter((c) => c.serviceMode === 'SELF_SERVICE' || c.serviceMode === 'SELF_SERVICE_CONVERSION').length} contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 font-normal">
+                  <p className="text-xs text-slate-600 font-medium">
                     Customers independently compile BMS/DSPF to React 19.
                   </p>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1.5">
+                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Managed Modernization Services</span>
                     <span className="text-emerald-800 font-bold">
                       {contracts.filter((c) => c.serviceMode === 'WE_CONVERT_FOR_YOU' || c.serviceMode === 'HYBRID').length || 1} contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 font-normal">
+                  <p className="text-xs text-slate-600 font-medium">
                     Full-service managed modernization delivered via Web 3.
                   </p>
                 </div>
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* ── SECTION 1: CONTRACTS AWAITING CUSTOMER SIGNATURE ─── */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-5 bg-amber-50/50 border-b border-amber-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3.5 max-w-3xl">
+                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 shrink-0 mt-0.5 sm:mt-0 border border-amber-200">
                   <Clock className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-amber-950">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Contracts Awaiting Customer Signature
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-900 border border-amber-300">
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
                       {pendingSignatureContracts} Pending Customer Signature
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
                     Contracts currently in signature routing, countersigned by ALSM and awaiting customer representative signature to activate service entitlements.
                   </p>
                 </div>
@@ -802,7 +802,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 onClick={() => {
                   setActiveTab('PENDING_SIGNATURE');
                 }}
-                className="text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100/60"
+                className="text-xs bg-white text-slate-700 border-[#DCE3EC] hover:bg-[#F8FAFC] shadow-2xs cursor-pointer shrink-0"
               >
                 View All ({pendingSignatureContracts})
               </Button>
@@ -942,22 +942,22 @@ export const EnterpriseQuotesPage: React.FC = () => {
           </div>
 
           {/* ── SECTION 2: EXECUTED & ACTIVE CONTRACTS ──────── */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
-            <div className="p-5 bg-emerald-50/50 border-b border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+          <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
+            <div className="p-5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-start sm:items-center gap-3.5 max-w-3xl">
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700 shrink-0 mt-0.5 sm:mt-0 border border-emerald-200">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-emerald-950">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Executed & Active Contracts
-                    </h3>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    </h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200">
                       {activeContracts} Executed Contracts
                     </span>
                   </div>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
                     Contracts with full bilateral execution (ALSM & Customer), certified by digital signature, with live service entitlements granted.
                   </p>
                 </div>
@@ -969,7 +969,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 onClick={() => {
                   setActiveTab('ACTIVE_CONTRACTS');
                 }}
-                className="text-xs bg-white text-emerald-900 border-emerald-300 hover:bg-emerald-100/60"
+                className="text-xs bg-white text-slate-700 border-[#DCE3EC] hover:bg-[#F8FAFC] shadow-2xs cursor-pointer shrink-0"
               >
                 View All ({activeContracts})
               </Button>

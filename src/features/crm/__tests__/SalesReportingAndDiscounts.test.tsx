@@ -108,6 +108,19 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
       expect(screen.getByText('Recent Closed Won Deals (Audited Revenue)')).toBeInTheDocument();
     });
 
+    it('renders Team Performance heading and team view when initialTab is team or route is /reports/team-performance', async () => {
+      render(
+        <MemoryRouter initialEntries={['/reports/team-performance']}>
+          <SalesReportsPage initialTab="team" />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByRole('heading', { level: 1, name: 'Team Performance' })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Representative Scorecard & Output')).toBeInTheDocument();
+      });
+    });
+
     it('shows an actionable error when the reports API is unavailable', async () => {
       vi.spyOn(crmApi, 'getReports').mockRejectedValueOnce(new Error('dependency failure'));
       render(<MemoryRouter><SalesReportsPage /></MemoryRouter>);

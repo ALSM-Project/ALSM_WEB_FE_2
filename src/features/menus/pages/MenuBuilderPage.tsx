@@ -249,7 +249,7 @@ export const MenuBuilderPage: React.FC = () => {
             <div>
               <h2 className="text-base font-bold text-[#17263A]">Navigation Tree</h2>
             </div>
-            <span className="px-2 py-0.5 text-[10px] font-extrabold rounded bg-[#EEF1F6] text-[#244A70]">
+            <span className="px-2.5 py-0.5 text-xs font-bold rounded bg-[#EEF1F6] text-[#244A70]">
               {selectedApp}
             </span>
           </div>

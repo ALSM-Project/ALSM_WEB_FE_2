@@ -437,17 +437,17 @@ export const TeamLeadProjectsPage: React.FC = () => {
       </div>
 
       {/* Projects Table */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-              <th className="py-3 px-4">Modernization Project</th>
-              <th className="py-3 px-4">Partner Client</th>
-              <th className="py-3 px-4">Conversion Target</th>
-              <th className="py-3 px-4">Progress & Status</th>
-              <th className="py-3 px-4">Assigned Team Lead</th>
-              <th className="py-3 px-4">Assigned Conversion Staff</th>
-              <th className="py-3 px-4 text-right">Engineering Actions</th>
+            <tr className="border-b border-[#DCE3EC] bg-[#F8FAFC] text-xs font-bold text-[#8491A3] uppercase tracking-wider">
+              <th className="py-3.5 px-4">Modernization Project</th>
+              <th className="py-3.5 px-4">Partner Client</th>
+              <th className="py-3.5 px-4">Conversion Target</th>
+              <th className="py-3.5 px-4">Progress &amp; Status</th>
+              <th className="py-3.5 px-4">Assigned Team Lead</th>
+              <th className="py-3.5 px-4">Assigned Conversion Staff</th>
+              <th className="py-3.5 px-4 text-right">Engineering Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -490,8 +490,8 @@ export const TeamLeadProjectsPage: React.FC = () => {
                     className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
                   >
                     {/* Modernization Project */}
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-900 group-hover:text-[#244A70] transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="font-bold text-slate-900 group-hover:text-[#244A70] transition-colors text-xs">
                         <Link
                           to={`/partners/projects/${p.id}`}
                           onClick={(e) => e.stopPropagation()}
@@ -502,10 +502,10 @@ export const TeamLeadProjectsPage: React.FC = () => {
                           <span>{p.name}</span>
                         </Link>
                       </div>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-mono text-slate-400">{p.id}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-mono text-slate-500">{p.id}</span>
                         {p.contractNumber && (
-                          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-50 text-[#244A70] border border-blue-200">
+                          <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-blue-50 text-[#244A70] border border-blue-200 font-medium">
                             {p.contractNumber}
                           </span>
                         )}
@@ -513,16 +513,16 @@ export const TeamLeadProjectsPage: React.FC = () => {
                     </td>
 
                     {/* Partner Client */}
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
                         <div>
-                          <div className="font-semibold text-slate-800">
+                          <div className="font-bold text-slate-900 text-xs">
                             {p.partnerName && p.partnerName !== 'Not linked to a partner'
                               ? p.partnerName
                               : 'Enterprise Client'}
                           </div>
-                          <div className="text-[10px] font-mono text-slate-400">
+                          <div className="text-xs font-mono text-slate-500 mt-0.5">
                             {p.partnerId || p.organizationId}
                           </div>
                         </div>
@@ -530,27 +530,27 @@ export const TeamLeadProjectsPage: React.FC = () => {
                     </td>
 
                     {/* Conversion Target */}
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200/80 text-[11px] font-mono text-slate-800">
+                    <td className="py-3.5 px-4">
+                      <span className="inline-block px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-xs font-mono font-medium text-slate-800">
                         {p.targetFramework}
                       </span>
-                      <div className="text-[10px] text-slate-500 mt-0.5">
+                      <div className="text-xs text-slate-500 mt-1">
                         {p.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
                       </div>
                     </td>
 
                     {/* Progress & Status */}
-                    <td className="py-3 px-4">
-                      <div className="space-y-1">
+                    <td className="py-3.5 px-4">
+                      <div className="space-y-1.5">
                         <StatusBadge status={p.status} />
-                        <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                          <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                        <div className="flex items-center gap-2 text-xs text-slate-600">
+                          <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                             <div
                               className="h-full bg-[#244A70] rounded-full"
                               style={{ width: `${progressPct}%` }}
                             />
                           </div>
-                          <span className="font-mono">
+                          <span className="font-mono text-xs">
                             {completedItems}/{totalItems} ({progressPct}%)
                           </span>
                         </div>
@@ -558,49 +558,49 @@ export const TeamLeadProjectsPage: React.FC = () => {
                     </td>
 
                     {/* Assigned Team Lead */}
-                    <td className="py-3 px-4">
-                      <div className="text-slate-800 font-medium flex items-center gap-1.5">
-                        <div className="w-5 h-5 rounded-md bg-blue-100 text-[#244A70] flex items-center justify-center text-[10px] font-bold">
+                    <td className="py-3.5 px-4">
+                      <div className="text-slate-800 font-medium flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-md bg-blue-100 text-[#244A70] flex items-center justify-center text-xs font-bold shrink-0">
                           {(p.assignedTeamLeadName || 'TL').charAt(0)}
                         </div>
-                        <span className="text-xs">{p.assignedTeamLeadName || 'Unassigned'}</span>
+                        <span className="text-xs font-medium text-slate-900">{p.assignedTeamLeadName || <span className="text-slate-500 italic">Unassigned</span>}</span>
                       </div>
                     </td>
 
                     {/* Assigned Conversion Staff */}
-                    <td className="py-3 px-4">
+                    <td className="py-3.5 px-4">
                       {hasStaff ? (
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-bold">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold shrink-0">
                             {(p.assignedStaffName || 'CS').charAt(0)}
                           </div>
                           <div>
-                            <div className="font-semibold text-slate-800 flex items-center gap-1 text-xs">
+                            <div className="font-bold text-slate-900 flex items-center gap-1 text-xs">
                               {p.assignedStaffName}
-                              <Check className="w-3 h-3 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                             </div>
-                            <span className="text-[10px] text-slate-400">Conversion Staff</span>
+                            <span className="text-xs text-slate-500">Conversion Staff</span>
                           </div>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                          <AlertCircle className="w-3 h-3" />
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                          <AlertCircle className="w-3.5 h-3.5" />
                           Awaiting Staff Allocation
                         </span>
                       )}
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                         {/* Allocate Staff -> directly navigates to /team-lead/projects/:projectId/allocate */}
                         <Link
                           to={`/team-lead/projects/${p.id}/allocate`}
                           title={hasStaff ? 'Reallocate Conversion Staff (Detailed Page)' : 'Allocate Conversion Staff (Detailed Page)'}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-colors h-7 ${
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors h-8 ${
                             hasStaff
-                              ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                              : 'bg-amber-500 text-white hover:bg-amber-600 shadow-xs'
+                              ? 'border border-[#DCE3EC] bg-white text-slate-700 hover:bg-slate-50'
+                              : 'bg-[#244A70] text-white hover:bg-[#1B3856] shadow-xs'
                           }`}
                         >
                           <Users className="w-3.5 h-3.5" />
@@ -611,7 +611,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                         <Link
                           to={`/partners/projects/${p.id}`}
                           title="View Project Specifications, Files & Deliverables"
-                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-semibold border border-blue-200 bg-blue-50 text-[#244A70] hover:bg-blue-100 transition-colors h-7"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 bg-blue-50 text-[#244A70] hover:bg-blue-100 transition-colors h-8"
                         >
                           <FolderKanban className="w-3.5 h-3.5" />
                           <span>Detail</span>
@@ -621,7 +621,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
                         <Link
                           to={`/team-lead/projects/${p.id}/transfer`}
                           title="Transfer Project Responsibility"
-                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-semibold border border-slate-200 bg-white text-slate-700 hover:bg-blue-50/50 hover:text-[#244A70] transition-colors h-7"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#DCE3EC] bg-white text-slate-700 hover:bg-slate-50 hover:text-[#244A70] transition-colors h-8"
                         >
                           <ArrowRightLeft className="w-3.5 h-3.5 text-[#244A70]" />
                           <span>Transfer</span>
@@ -637,20 +637,20 @@ export const TeamLeadProjectsPage: React.FC = () => {
 
         {/* Pagination Bar */}
         {filteredProjects.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3.5 bg-white border-t border-[#DCE3EC] text-xs text-slate-600">
             <div className="flex items-center gap-2">
               <span>Rows per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="bg-white border border-slate-200 rounded px-2 py-1 text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#244A70]"
+                className="bg-white border border-[#DCE3EC] rounded-lg px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:border-[#244A70] cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
               </select>
-              <span className="text-slate-400">|</span>
+              <span className="text-slate-300 mx-1">|</span>
               <span>
                 Showing <strong className="font-semibold text-slate-900">{startIndex + 1}</strong> to{' '}
                 <strong className="font-semibold text-slate-900">{endIndex}</strong> of{' '}
@@ -658,29 +658,31 @@ export const TeamLeadProjectsPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage <= 1}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#DCE3EC] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
                 Previous
               </button>
               
-              <div className="flex items-center gap-1 px-2">
-                <span className="font-semibold text-slate-900">{currentPage}</span>
+              <div className="flex items-center gap-1 px-2 font-medium">
+                <span className="font-bold text-slate-900">{currentPage}</span>
                 <span className="text-slate-400">/</span>
                 <span>{totalPages}</span>
               </div>
 
               <button
+                type="button"
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage >= totalPages}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#DCE3EC] bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs"
               >
                 Next
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
               </button>
             </div>
           </div>

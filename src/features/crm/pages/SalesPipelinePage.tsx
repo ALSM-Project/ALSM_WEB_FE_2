@@ -12,14 +12,14 @@ const STAGES: Array<{
   tone: string;
   surface: string;
 }> = [
-  { key: 'NEW', label: 'New inbound', description: 'New opportunities', tone: 'text-slate-700', surface: 'bg-slate-100' },
-  { key: 'CONTACTED', label: 'Contacted', description: 'Initial dialogue', tone: 'text-blue-700', surface: 'bg-blue-50' },
-  { key: 'QUALIFIED', label: 'Qualified', description: 'Needs confirmed', tone: 'text-indigo-700', surface: 'bg-indigo-50' },
-  { key: 'PROPOSAL', label: 'Proposal', description: 'Quote or proposal sent', tone: 'text-amber-700', surface: 'bg-amber-50' },
-  { key: 'NEGOTIATION', label: 'Negotiation', description: 'Commercial discussion', tone: 'text-orange-700', surface: 'bg-orange-50' },
-  { key: 'WON', label: 'Closed won', description: 'Successfully closed', tone: 'text-emerald-700', surface: 'bg-emerald-50' },
-  { key: 'LOST', label: 'Closed lost', description: 'Closed opportunities', tone: 'text-rose-700', surface: 'bg-rose-50' },
-  { key: 'UNMAPPED', label: 'Needs review', description: 'Stage needs review', tone: 'text-slate-700', surface: 'bg-slate-100' },
+  { key: 'NEW', label: 'New inbound', description: 'New opportunities', tone: 'text-slate-700', surface: 'bg-slate-200/70' },
+  { key: 'CONTACTED', label: 'Contacted', description: 'Initial dialogue', tone: 'text-sky-800', surface: 'bg-sky-100' },
+  { key: 'QUALIFIED', label: 'Qualified', description: 'Needs confirmed', tone: 'text-indigo-800', surface: 'bg-indigo-100' },
+  { key: 'PROPOSAL', label: 'Proposal', description: 'Quote or proposal sent', tone: 'text-purple-800', surface: 'bg-purple-100' },
+  { key: 'NEGOTIATION', label: 'Negotiation', description: 'Commercial discussion', tone: 'text-blue-900', surface: 'bg-blue-100' },
+  { key: 'WON', label: 'Closed won', description: 'Successfully closed', tone: 'text-emerald-800', surface: 'bg-emerald-100' },
+  { key: 'LOST', label: 'Closed lost', description: 'Closed opportunities', tone: 'text-rose-800', surface: 'bg-rose-100' },
+  { key: 'UNMAPPED', label: 'Needs review', description: 'Stage needs review', tone: 'text-slate-700', surface: 'bg-slate-200/70' },
 ];
 
 type LoadError = 'permission' | 'unexpected';
@@ -119,7 +119,7 @@ export const SalesPipelinePage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/sales/leads')}
-            className="inline-flex items-center gap-2 rounded-xl border border-[#DCE3EC] bg-white px-4 py-2 text-xs font-semibold text-[#17263A] shadow-xs transition-colors hover:bg-[#F8FAFC]"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#DCE3EC] bg-white px-3.5 py-2 text-xs font-semibold text-[#17263A] shadow-2xs transition-colors hover:bg-[#F8FAFC] cursor-pointer"
           >
             <TrendingUp className="h-3.5 w-3.5" aria-hidden="true" />
             Table view
@@ -129,7 +129,7 @@ export const SalesPipelinePage: React.FC = () => {
             onClick={() => void loadPipeline()}
             disabled={loading}
             aria-label="Refresh sales pipeline"
-            className="inline-flex items-center gap-2 rounded-xl border border-[#DCE3EC] bg-white px-3 py-2 text-xs font-semibold text-[#17263A] shadow-xs transition-colors hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl border border-[#DCE3EC] bg-white px-3.5 py-2 text-xs font-semibold text-[#17263A] shadow-2xs transition-colors hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
             Refresh
@@ -139,27 +139,27 @@ export const SalesPipelinePage: React.FC = () => {
 
       {!loading && !loadError && pipeline && (
         <>
-          <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Pipeline summary">
+          <section className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Pipeline summary">
             <MetricCard label="Pipeline value" value={formatCurrencyTotals(pipelineValue)} detail={`${visibleLeads.length} tracked opportunities`} />
             <MetricCard label="Active deals" value={`${activeLeads.length}`} detail="Open opportunities" />
             <MetricCard label="Closed won revenue" value={formatCurrencyTotals(wonRevenue)} detail={`${wonDeals} closed won`} />
             <MetricCard label="Average active deal" value={formatCurrencyTotals(averageDealSize)} detail="Amounts shown in VND" />
           </section>
 
-          <div className="flex flex-col gap-3 rounded-2xl border border-[#DCE3EC] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-[#DCE3EC] bg-white p-3.5 sm:flex-row sm:items-center sm:justify-between shadow-2xs">
             <label className="relative block w-full sm:max-w-lg">
               <span className="sr-only">Search sales pipeline</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8491A3] shrink-0" aria-hidden="true" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 shrink-0" aria-hidden="true" />
               <input
                 type="search"
                 aria-label="Search sales pipeline"
                 placeholder="Search by company, contact, source, or salesperson..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full h-8 rounded-xl border border-[#DCE3EC] bg-white pl-9 pr-4 text-xs outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
+                className="w-full h-9 rounded-xl border border-[#DCE3EC] bg-white pl-9 pr-4 text-xs font-medium text-slate-800 outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
               />
             </label>
-            <p className="text-xs text-[#8491A3]" aria-live="polite">
+            <p className="text-xs font-medium text-slate-600" aria-live="polite">
               Showing {visibleLeads.length} of {pipeline.total} opportunities
             </p>
           </div>
@@ -167,16 +167,16 @@ export const SalesPipelinePage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-[#8491A3]" role="status" aria-live="polite">
+        <div className="py-20 text-center text-sm text-slate-500" role="status" aria-live="polite">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-[#244A70] border-t-transparent" />
           Loading sales pipeline...
         </div>
       ) : loadError ? (
-        <div className="rounded-2xl border border-rose-200 bg-white px-6 py-12 text-center" role="alert">
+        <div className="rounded-2xl border border-rose-200 bg-white px-6 py-12 text-center shadow-2xs" role="alert">
           <h2 className="font-semibold text-[#17263A]">
             {loadError === 'permission' ? 'Access denied' : 'Failed to load sales pipeline'}
           </h2>
-          <p className="mt-2 text-sm text-[#8491A3]">
+          <p className="mt-2 text-xs text-slate-600 font-medium">
             {loadError === 'permission'
               ? 'You do not have permission to view the sales pipeline.'
               : 'The sales pipeline could not be loaded. Please try again.'}
@@ -185,7 +185,7 @@ export const SalesPipelinePage: React.FC = () => {
             <button
               type="button"
               onClick={() => void loadPipeline()}
-              className="mt-4 rounded-lg bg-[#244A70] px-4 py-2 text-sm font-semibold text-white hover:bg-[#244A70]"
+              className="mt-4 rounded-xl bg-[#244A70] px-4 py-2 text-xs font-semibold text-white hover:bg-[#1d3c5c] shadow-2xs cursor-pointer"
             >
               Try again
             </button>
@@ -194,35 +194,35 @@ export const SalesPipelinePage: React.FC = () => {
       ) : pipeline?.total === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#DCE3EC] bg-white px-6 py-16 text-center" role="status">
           <h2 className="font-semibold text-[#17263A]">No sales opportunities yet</h2>
-          <p className="mt-2 text-sm text-[#8491A3]">When leads are available, they will appear here by stage.</p>
+          <p className="mt-2 text-xs text-slate-500 font-medium">When leads are available, they will appear here by stage.</p>
         </div>
       ) : visibleLeads.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-[#DCE3EC] bg-white px-6 py-16 text-center" role="status">
           <h2 className="font-semibold text-[#17263A]">No matching opportunities</h2>
-          <p className="mt-2 text-sm text-[#8491A3]">Try another search term or clear the search.</p>
-          <button type="button" onClick={() => setSearchTerm('')} className="mt-3 text-sm font-semibold text-[#244A70] hover:underline">
+          <p className="mt-2 text-xs text-slate-500 font-medium">Try another search term or clear the search.</p>
+          <button type="button" onClick={() => setSearchTerm('')} className="mt-3 text-xs font-semibold text-[#244A70] hover:underline cursor-pointer">
             Clear search
           </button>
         </div>
       ) : (
-        <div className="overflow-x-auto pb-2" aria-label="Sales pipeline board">
-          <div className="grid min-h-[460px] gap-3" style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(230px, 1fr))` }}>
+        <div className="overflow-x-auto px-1 pt-1 pb-4 -mx-1" aria-label="Sales pipeline board">
+          <div className="grid min-h-[500px] gap-3.5" style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(260px, 1fr))` }}>
             {STAGES.map((stage) => {
               const leads = groupedLeads.get(stage.key) ?? [];
               return (
-                <section key={stage.key} aria-labelledby={`pipeline-stage-${stage.key}`} className={`flex min-h-[420px] flex-col rounded-2xl border border-[#DCE3EC] ${stage.key === 'WON' ? 'bg-emerald-50/40' : 'bg-[#F8FAFC]'}`}>
-                  <header className="border-b border-[#DCE3EC] p-3">
+                <section key={stage.key} aria-labelledby={`pipeline-stage-${stage.key}`} className={`flex min-h-[460px] flex-col rounded-2xl border border-[#DCE3EC] ${stage.key === 'WON' ? 'bg-emerald-50/30' : 'bg-[#F8FAFC]'}`}>
+                  <header className="border-b border-[#DCE3EC] p-3.5 bg-white/70 rounded-t-2xl">
                     <div className="flex items-center justify-between gap-2">
-                      <h2 id={`pipeline-stage-${stage.key}`} className={`text-xs font-bold uppercase tracking-wide ${stage.tone}`}>{stage.label}</h2>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${stage.surface} ${stage.tone}`} aria-label={`${leads.length} opportunities`}>
+                      <h2 id={`pipeline-stage-${stage.key}`} className={`text-xs font-bold uppercase tracking-wider ${stage.tone}`}>{stage.label}</h2>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${stage.surface} ${stage.tone}`} aria-label={`${leads.length} opportunities`}>
                         {leads.length}
                       </span>
                     </div>
-                    <p className="mt-1 text-[10px] text-slate-500">{stage.description}</p>
+                    <p className="mt-1 text-xs text-slate-500 font-medium">{stage.description}</p>
                   </header>
-                  <div className="flex-1 space-y-2.5 overflow-y-auto p-2.5">
+                  <div className="flex-1 space-y-3 overflow-y-auto p-3">
                     {leads.length === 0 ? (
-                      <p className="py-8 text-center text-xs italic text-[#8491A3]">No opportunities in this stage.</p>
+                      <p className="py-12 text-center text-xs italic text-slate-500 font-medium">No opportunities in this stage.</p>
                     ) : leads.map((lead) => (
                       <PipelineLeadCard key={lead.id} lead={lead} onOpen={() => navigate(`/crm/leads/${encodeURIComponent(lead.id)}`)} />
                     ))}
@@ -238,10 +238,10 @@ export const SalesPipelinePage: React.FC = () => {
 };
 
 const MetricCard = ({ label, value, detail }: { label: string; value: string; detail: string }) => (
-  <div className="rounded-xl border border-[#DCE3EC] bg-white p-4 shadow-xs">
-    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</span>
-    <div className="mt-1 break-words text-lg font-bold text-slate-900">{value}</div>
-    <span className="text-[10px] text-slate-500">{detail}</span>
+  <div className="rounded-2xl border border-[#DCE3EC] bg-white p-4 sm:p-5 shadow-2xs">
+    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</span>
+    <div className="mt-1.5 break-words text-xl font-bold text-[#17263A]">{value}</div>
+    <span className="mt-1 block text-xs text-slate-500 font-medium">{detail}</span>
   </div>
 );
 
@@ -250,21 +250,21 @@ const PipelineLeadCard = ({ lead, onOpen }: { lead: SalesPipelineLeadDto; onOpen
     type="button"
     onClick={onOpen}
     aria-label={`View ${lead.company} lead details`}
-    className="block w-full rounded-xl border border-[#DCE3EC] bg-white p-3 text-left text-xs shadow-xs transition-all hover:border-[#244A70] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70]"
+    className="block w-full rounded-xl border border-[#DCE3EC] bg-white p-3.5 text-left text-xs shadow-2xs transition-all hover:border-[#244A70] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70] cursor-pointer group"
   >
-    <span className="flex items-start justify-between gap-2">
-      <span className="line-clamp-2 font-bold text-[#17263A]">{lead.company}</span>
-      <span className="shrink-0 rounded bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#244A70]" aria-label={`Score ${lead.score ?? 'not set'}`}>
+    <div className="flex items-start justify-between gap-2">
+      <span className="line-clamp-2 font-bold text-xs text-[#17263A] group-hover:text-[#244A70] transition-colors">{lead.company}</span>
+      <span className="shrink-0 rounded-lg bg-blue-50 px-2 py-0.5 text-xs font-bold text-[#244A70] border border-blue-200/60" aria-label={`Score ${lead.score ?? 'not set'}`}>
         {lead.score ?? '—'}
       </span>
-    </span>
-    <span className="mt-1 block line-clamp-1 text-[11px] text-[#8491A3]">{lead.contactName}</span>
-    <span className="mt-2 block border-t border-slate-100 pt-2 text-[10px] text-slate-600">
+    </div>
+    <div className="mt-1.5 block line-clamp-1 text-xs text-slate-600 font-medium">{lead.contactName}</div>
+    <div className="mt-2.5 block border-t border-[#DCE3EC] pt-2 text-xs font-bold text-slate-900">
       {lead.dealValue === undefined ? 'Value not set' : formatMoney(lead.dealValue)}
-    </span>
-    <span className="mt-1 flex items-center justify-between gap-2 text-[10px] text-slate-500">
+    </div>
+    <div className="mt-1.5 flex items-center justify-between gap-2 text-xs text-slate-500 font-medium">
       <span className="truncate">{lead.assignedToName || 'Unassigned'}</span>
-      <span className="truncate">{lead.source}</span>
-    </span>
+      <span className="truncate px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium text-xs">{lead.source}</span>
+    </div>
   </button>
 );

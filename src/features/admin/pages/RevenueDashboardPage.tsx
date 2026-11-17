@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   DollarSign, TrendingUp, Building, ArrowUpRight, 
-  RefreshCw, Landmark, CreditCard, Calendar, CheckCircle2, AlertCircle, FileText
+  RefreshCw, Landmark, CreditCard, Calendar, CheckCircle2, AlertCircle, FileText,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { adminApi, RevenueSummaryDto, RevenueTransactionDto } from '../api/admin.api';
 import { Card } from '@/shared/ui';
@@ -13,6 +14,8 @@ export const RevenueDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'ALL_TIME' | 'YTD' | 'LAST_90D' | 'LAST_30D'>('ALL_TIME');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(5);
 
   const fetchRevenue = useCallback(async () => {
     try {
@@ -41,9 +44,11 @@ export const RevenueDashboardPage: React.FC = () => {
       }
 
       setTransactions(Array.isArray(txnsRes) ? txnsRes : []);
+      setCurrentPage(1);
     } catch (err: any) {
       setError(err?.message || 'Failed to retrieve authoritative revenue ledger from API.');
       setTransactions([]);
+      setCurrentPage(1);
     } finally {
       setLoading(false);
     }
@@ -56,6 +61,19 @@ export const RevenueDashboardPage: React.FC = () => {
   // Derived calculations directly from API data
   const totalRealisedRevenue = summary?.totalRevenue ?? transactions.reduce((acc, t) => acc + (t.contractValue || 0), 0);
   const activeContractsCount = summary?.activeContractsCount ?? transactions.length;
+
+  // Pagination for Confirmed Contracts & Realised Payment Ledger
+  const totalPages = Math.max(1, Math.ceil(transactions.length / pageSize));
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return transactions.slice(start, start + pageSize);
+  }, [transactions, currentPage, pageSize]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Breakdown by Payment Method
   const paymentMethodTotals: Record<string, number> = summary?.breakdownByPaymentMethod && Object.keys(summary.breakdownByPaymentMethod).length > 0
@@ -365,7 +383,7 @@ export const RevenueDashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#DCE3EC]">
-                {transactions.map((t) => (
+                {paginatedTransactions.map((t) => (
                   <tr key={t.id} className="hover:bg-[#F8FAFC] transition-colors">
                     <td className="py-3 px-4 font-mono font-semibold text-[#17263A]">
                       {t.id}
@@ -407,6 +425,59 @@ export const RevenueDashboardPage: React.FC = () => {
             </table>
           )}
         </div>
+
+        {/* Pagination Bar */}
+        {!loading && transactions.length > 0 && (
+          <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
+            <div className="flex items-center gap-2">
+              <span>
+                Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+                <strong>{Math.min(currentPage * pageSize, transactions.length)}</strong> of{' '}
+                <strong>{transactions.length}</strong> transactions
+              </span>
+              <span className="text-slate-300">|</span>
+              <div className="flex items-center gap-1">
+                <span>Per page:</span>
+                <select
+                  aria-label="Per page"
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(parseInt(e.target.value) || 5);
+                    setCurrentPage(1);
+                  }}
+                  className="px-2 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] text-xs outline-none cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="font-semibold text-[#17263A]">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="p-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F8FAFC] transition-colors cursor-pointer"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
