@@ -251,7 +251,7 @@ export const BankAccountDetailModal: React.FC<BankAccountDetailModalProps> = ({
                 onClick={handleReveal}
                 disabled={isRevealing}
               >
-                <Eye className="w-3.5 h-3.5 mr-1" /> Reveal Account to Display QR
+                <Eye className="w-3.5 h-3.5 shrink-0" /> <span>Reveal Account to Display QR</span>
               </Button>
             )}
           </div>

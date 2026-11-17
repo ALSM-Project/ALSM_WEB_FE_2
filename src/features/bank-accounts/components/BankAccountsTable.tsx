@@ -94,7 +94,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
         <div className="flex flex-1 items-center flex-wrap gap-2.5">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[240px] max-w-xl">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
             <input
               type="text"
               value={queryParams.search || ''}
@@ -227,7 +227,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
                             size="sm"
                             onClick={onAddAccount}
                           >
-                            <Plus className="w-4 h-4 mr-1.5" /> Add Bank Account
+                            <Plus className="w-4 h-4 shrink-0" /> <span>Add Bank Account</span>
                           </Button>
                         )}
                       </>
