@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { UserRolesPage } from '../pages/UserRolesPage';
+import { OnboardUserPage } from '@/features/users/pages/OnboardUserPage';
 import { TemporaryRolesPage } from '../pages/TemporaryRolesPage';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
 import { OffboardingWizardModal } from '@/features/users/components/OffboardingWizardModal';
@@ -127,10 +128,13 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
   });
 
   describe('2.A & 2.B User Lifecycle (Onboarding & 4-Step Offboarding Wizard)', () => {
-    it('opens Onboard User modal with role preview, account status, and confirmation checkbox', async () => {
+    it('opens Onboard User page with role preview, account status, and confirmation checkbox', async () => {
       render(
-        <MemoryRouter>
-          <UserRolesPage />
+        <MemoryRouter initialEntries={['/admin/users']}>
+          <Routes>
+            <Route path="/admin/users" element={<UserRolesPage />} />
+            <Route path="/admin/users/onboard" element={<OnboardUserPage />} />
+          </Routes>
         </MemoryRouter>
       );
 
@@ -141,8 +145,10 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
       const onboardBtn = screen.getByRole('button', { name: /Onboard User/i });
       fireEvent.click(onboardBtn);
 
-      // Verify Onboarding Modal fields exist
-      expect(screen.getByText('Onboard Staff Account')).toBeInTheDocument();
+      // Verify Onboarding Page fields exist
+      await waitFor(() => {
+        expect(screen.getByText('Onboard Staff Account')).toBeInTheDocument();
+      });
       expect(screen.getByPlaceholderText('Alex Vance')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('alex.vance@acmecorp.com')).toBeInTheDocument();
       expect(screen.getByText(/Account Status \*/i)).toBeInTheDocument();
