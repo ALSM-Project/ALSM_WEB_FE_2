@@ -183,9 +183,6 @@ export const UserOffboardingApprovalPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
             Offboarding Approvals
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            Manage employee departure requests, project handovers, and credential revocations.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -320,13 +317,13 @@ export const UserOffboardingApprovalPage: React.FC = () => {
 
           {/* Search Bar */}
           <div className="relative w-full sm:w-72">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search staff, team, requester..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#244A70] focus:border-transparent"
+              className="w-full h-8 pl-9 pr-3 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#244A70] focus:border-transparent"
             />
           </div>
         </div>

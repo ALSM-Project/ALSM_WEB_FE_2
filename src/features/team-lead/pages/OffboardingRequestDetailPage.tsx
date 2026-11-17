@@ -305,16 +305,16 @@ export const OffboardingRequestDetailPage: React.FC = () => {
                 onClick={() => setShowRejectModal(true)}
                 className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200"
               >
-                <X className="w-4 h-4 mr-1.5" />
-                Reject
+                <X className="w-4 h-4 shrink-0" />
+                <span>Reject</span>
               </Button>
               <Button
                 type="button"
                 onClick={() => setShowApproveModal(true)}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
               >
-                <Check className="w-4 h-4 mr-1.5" />
-                Approve & Execute
+                <Check className="w-4 h-4 shrink-0" />
+                <span>Approve & Execute</span>
               </Button>
             </>
           )}

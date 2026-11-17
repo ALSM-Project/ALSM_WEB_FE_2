@@ -170,15 +170,15 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             disabled={loading}
             className="text-xs h-9"
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            <RefreshCw className={`w-3.5 h-3.5 shrink-0 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </Button>
           <Link
             to="/team-lead/resource-transfers/new"
             className="inline-flex items-center justify-center font-medium rounded-md transition-colors bg-[#244A70] hover:bg-[#244A70] text-white text-xs h-9 px-3.5 shadow-xs"
           >
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            New Transfer Request
+            <Plus className="w-3.5 h-3.5 shrink-0" />
+            <span>New Transfer Request</span>
           </Link>
           <Link
             to="/team-lead/projects"
@@ -292,7 +292,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
           <input
             type="text"
             placeholder="Search projects, staff, reason..."

@@ -255,7 +255,7 @@ export const TeamLeadProjectsPage: React.FC = () => {
       )}
 
       {/* KPI Metric Cards - Clickable to filter & inspect */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           role="button"
           tabIndex={0}
@@ -264,19 +264,21 @@ export const TeamLeadProjectsPage: React.FC = () => {
             setViewScope('ALL');
             setSearchTerm('');
           }}
-          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-slate-300 group ${
-            staffFilter === 'ALL' && viewScope === 'ALL' ? 'border-[#244A70] ring-1 ring-[#244A70] bg-blue-50/20' : 'border-slate-200'
+          className={`bg-white rounded-2xl border p-5 shadow-2xs cursor-pointer transition-all hover:border-[#244A70] group ${
+            staffFilter === 'ALL' && viewScope === 'ALL' ? 'border-[#244A70] ring-1 ring-[#244A70] bg-blue-50/20' : 'border-[#DCE3EC]'
           }`}
           title="Click to view all supervised managed projects"
         >
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-slate-600 group-hover:text-[#244A70] transition-colors">Supervised Projects</span>
+            <span className="font-bold text-xs uppercase tracking-wider text-[#8491A3] group-hover:text-[#244A70] transition-colors">
+              Supervised Projects
+            </span>
             <FolderKanban className="w-4 h-4 text-slate-400 group-hover:text-[#244A70] transition-colors" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight mt-1">{totalAssignedProjects}</div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+          <div className="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">{totalAssignedProjects}</div>
+          <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
             <span>Managed Modernization</span>
-            <span className="text-[#244A70] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
+            <span className="text-[#244A70] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all &rarr;</span>
           </div>
         </div>
 
@@ -286,19 +288,21 @@ export const TeamLeadProjectsPage: React.FC = () => {
           onClick={() => {
             setStaffFilter('UNALLOCATED');
           }}
-          className={`rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-amber-400 group bg-white ${
-            staffFilter === 'UNALLOCATED' ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-50/20' : 'border-slate-200'
+          className={`rounded-2xl border p-5 shadow-2xs cursor-pointer transition-all hover:border-amber-400 group bg-white ${
+            staffFilter === 'UNALLOCATED' ? 'border-amber-500 ring-1 ring-amber-500 bg-amber-50/20' : 'border-[#DCE3EC]'
           }`}
           title="Click to view projects awaiting staff allocation"
         >
           <div className="flex items-center justify-between text-xs text-amber-800">
-            <span className="font-semibold text-amber-800">Awaiting Staff Allocation</span>
+            <span className="font-bold text-xs uppercase tracking-wider text-amber-800">
+              Awaiting Staff Allocation
+            </span>
             <UserPlus className="w-4 h-4 text-amber-600" />
           </div>
-          <div className="text-2xl font-bold text-amber-700 tracking-tight mt-1">{unallocatedStaffCount}</div>
-          <div className="flex items-center justify-between text-[11px] text-amber-700/80 mt-1">
+          <div className="text-2xl font-extrabold text-amber-700 tracking-tight mt-2">{unallocatedStaffCount}</div>
+          <div className="flex items-center justify-between text-xs text-amber-700/90 mt-2 pt-2 border-t border-amber-100/60">
             <span>Ready to be assigned to engineers</span>
-            <span className="font-semibold text-amber-800 opacity-0 group-hover:opacity-100 transition-opacity">Assign staff →</span>
+            <span className="font-semibold text-amber-800 opacity-0 group-hover:opacity-100 transition-opacity">Assign staff &rarr;</span>
           </div>
         </div>
 
@@ -308,19 +312,21 @@ export const TeamLeadProjectsPage: React.FC = () => {
           onClick={() => {
             setStaffFilter('ALLOCATED');
           }}
-          className={`bg-white rounded-lg border p-4 shadow-xs cursor-pointer transition-all hover:border-emerald-400 group ${
-            staffFilter === 'ALLOCATED' ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/20' : 'border-slate-200'
+          className={`bg-white rounded-2xl border p-5 shadow-2xs cursor-pointer transition-all hover:border-emerald-400 group ${
+            staffFilter === 'ALLOCATED' ? 'border-emerald-500 ring-1 ring-emerald-500 bg-emerald-50/20' : 'border-[#DCE3EC]'
           }`}
           title="Click to view projects with staff assigned"
         >
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-slate-600 group-hover:text-emerald-700 transition-colors">Conversion Staff Assigned</span>
+            <span className="font-bold text-xs uppercase tracking-wider text-[#8491A3] group-hover:text-emerald-700 transition-colors">
+              Conversion Staff Assigned
+            </span>
             <Users className="w-4 h-4 text-emerald-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight mt-1">{allocatedStaffCount}</div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+          <div className="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">{allocatedStaffCount}</div>
+          <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
             <span>Currently in conversion queues</span>
-            <span className="text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View assigned →</span>
+            <span className="text-emerald-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View assigned &rarr;</span>
           </div>
         </div>
 
@@ -330,17 +336,19 @@ export const TeamLeadProjectsPage: React.FC = () => {
           onClick={() => {
             setSearchTerm('READY');
           }}
-          className="bg-white rounded-lg border border-slate-200 p-4 shadow-xs cursor-pointer transition-all hover:border-indigo-400 group"
+          className="bg-white rounded-2xl border border-[#DCE3EC] p-5 shadow-2xs cursor-pointer transition-all hover:border-indigo-400 group"
           title="Click to view projects ready for review"
         >
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <span className="font-semibold text-slate-600 group-hover:text-indigo-700 transition-colors">Ready for Final Review</span>
+            <span className="font-bold text-xs uppercase tracking-wider text-[#8491A3] group-hover:text-indigo-700 transition-colors">
+              Ready for Final Review
+            </span>
             <Sparkles className="w-4 h-4 text-indigo-600" />
           </div>
-          <div className="text-2xl font-bold text-slate-900 tracking-tight mt-1">{readyForReviewCount}</div>
-          <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-            <span>Conversions complete & validated</span>
-            <span className="text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Review →</span>
+          <div className="text-2xl font-extrabold text-slate-900 tracking-tight mt-2">{readyForReviewCount}</div>
+          <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
+            <span>Conversions complete &amp; validated</span>
+            <span className="text-indigo-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">Review &rarr;</span>
           </div>
         </div>
       </div>
@@ -349,21 +357,21 @@ export const TeamLeadProjectsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Search */}
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             placeholder="Search by project name, partner, or staff member..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70] focus:border-transparent transition-all shadow-xs"
+            className="w-full pl-9 pr-3.5 py-2 text-xs bg-white border border-[#DCE3EC] rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70] focus:border-transparent transition-all shadow-xs"
           />
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200 text-xs self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs self-start sm:self-auto">
           <button
             onClick={() => setStaffFilter('ALL')}
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
               staffFilter === 'ALL' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -371,18 +379,18 @@ export const TeamLeadProjectsPage: React.FC = () => {
           </button>
           <button
             onClick={() => setStaffFilter('UNALLOCATED')}
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors flex items-center gap-1.5 cursor-pointer ${
               staffFilter === 'UNALLOCATED' ? 'bg-white text-amber-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <span>Needs Staff</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
               {unallocatedStaffCount}
             </span>
           </button>
           <button
             onClick={() => setStaffFilter('ALLOCATED')}
-            className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
               staffFilter === 'ALLOCATED' ? 'bg-white text-emerald-800 shadow-xs' : 'text-slate-600 hover:text-slate-900'
             }`}
           >

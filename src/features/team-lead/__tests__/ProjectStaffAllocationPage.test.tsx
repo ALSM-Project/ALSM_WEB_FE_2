@@ -83,11 +83,11 @@ describe('ProjectStaffAllocationPage - Detailed Staff Allocation', () => {
     expect(screen.getByText('David Chen')).toBeInTheDocument();
     expect(screen.getByText('Elena Rostova')).toBeInTheDocument();
 
-    // Workload pills
-    expect(screen.getByRole('button', { name: /All \(3\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Available \(1\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Optimal \(1\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /High \(1\)/i })).toBeInTheDocument();
+    // Workload select options
+    expect(screen.getByRole('option', { name: /All Workloads \(3\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Available \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /Optimal \(1\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: /High \(1\)/i })).toBeInTheDocument();
   });
 
   it('filters staff roster by workload capacity', async () => {
@@ -95,9 +95,10 @@ describe('ProjectStaffAllocationPage - Detailed Staff Allocation', () => {
 
     expect(await screen.findByText('Alex Mercer')).toBeInTheDocument();
 
+    const workloadSelect = screen.getByLabelText(/filter by workload capacity/i);
+
     // Filter to Available only (workload <= 1)
-    const availableBtn = screen.getByRole('button', { name: /Available \(1\)/i });
-    fireEvent.click(availableBtn);
+    fireEvent.change(workloadSelect, { target: { value: 'LIGHT' } });
 
     // David Chen (load 1) should be visible; Alex (load 2) and Elena (load 4) should be hidden
     expect(screen.getByText('David Chen')).toBeInTheDocument();
@@ -105,8 +106,7 @@ describe('ProjectStaffAllocationPage - Detailed Staff Allocation', () => {
     expect(screen.queryByText('Elena Rostova')).not.toBeInTheDocument();
 
     // Filter to High only (workload > 3)
-    const highBtn = screen.getByRole('button', { name: /High \(1\)/i });
-    fireEvent.click(highBtn);
+    fireEvent.change(workloadSelect, { target: { value: 'OVERLOADED' } });
 
     expect(screen.getByText('Elena Rostova')).toBeInTheDocument();
     expect(screen.queryByText('David Chen')).not.toBeInTheDocument();

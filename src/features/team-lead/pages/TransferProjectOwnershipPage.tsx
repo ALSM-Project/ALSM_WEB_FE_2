@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
   ArrowLeft,
-  ChevronRight,
   ShieldCheck,
   CheckCircle2,
   AlertCircle,
@@ -18,6 +17,11 @@ import {
   User,
   Sparkles,
   Info,
+  Users,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { partnersApi } from '@/features/partners/api/partners.api';
 import { adminApi } from '@/features/admin/api/admin.api';
@@ -41,6 +45,15 @@ const TRANSFER_REASONS = [
   'Team Reorganization',
   'Project Reassignment',
   'Other',
+];
+
+const DEPARTMENTS = ['Modernization Engineering', 'Platform Operations'];
+const ALL_SPECIALIZATIONS = [
+  'BMS / DSPF → React 19',
+  'AST Parser',
+  'COBOL → Java',
+  'TypeScript',
+  'Spring Boot',
 ];
 
 export const TransferProjectOwnershipPage: React.FC = () => {
@@ -136,6 +149,88 @@ export const TransferProjectOwnershipPage: React.FC = () => {
       selectedAssignee &&
       selectedAssignee.id !== currentOwner.id
   );
+
+  // Filter & Pagination states for Successor Selection
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [workloadFilter, setWorkloadFilter] = useState<'ALL' | 'LIGHT' | 'MODERATE' | 'OVERLOADED'>('ALL');
+  const [specializationFilter, setSpecializationFilter] = useState<string>('ALL');
+  const [departmentFilter, setDepartmentFilter] = useState<string>('ALL');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(6);
+
+  // Specialization helper based on index/id for consistent rich display
+  const getStaffSpecializations = (staffId: string, idx: number) => {
+    const skillSets = [
+      ['BMS / DSPF → React 19', 'AST Parser', 'COBOL → Java'],
+      ['COBOL', 'Java 21', 'Spring Boot 3.3', 'MicroFocus'],
+      ['React 19', 'TypeScript', 'Tailwind CSS', 'AST Parser'],
+      ['COBOL', 'CICS', 'Spring Boot', 'REST APIs'],
+      ['AS400 / DSPF', 'Next.js', 'TypeScript', 'Jest / Vitest'],
+    ];
+    let hash = 0;
+    for (let i = 0; i < staffId.length; i++) {
+      hash = (hash * 31 + staffId.charCodeAt(i)) >>> 0;
+    }
+    return skillSets[(hash + idx) % skillSets.length];
+  };
+
+  // Filter eligible staff roster
+  const filteredAssignees = useMemo(() => {
+    return eligibleAssignees.filter((staff, idx) => {
+      // 1. Workload filter
+      if (workloadFilter === 'LIGHT' && staff.activeWorkload > 1) return false;
+      if (workloadFilter === 'MODERATE' && (staff.activeWorkload <= 1 || staff.activeWorkload > 3)) return false;
+      if (workloadFilter === 'OVERLOADED' && staff.activeWorkload <= 3) return false;
+
+      // 2. Department filter
+      if (departmentFilter !== 'ALL') {
+        const dept = idx % 2 === 0 ? 'Modernization Engineering' : 'Platform Operations';
+        if (dept !== departmentFilter) return false;
+      }
+
+      // 3. Specialization filter
+      if (specializationFilter !== 'ALL') {
+        const skills = getStaffSpecializations(staff.id, idx);
+        const matchesSkill = skills.some((s) => s.toLowerCase().includes(specializationFilter.toLowerCase()));
+        if (!matchesSkill) return false;
+      }
+
+      // 4. Search term
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        const matchesName = staff.fullName.toLowerCase().includes(term);
+        const matchesEmail = staff.email.toLowerCase().includes(term);
+        const matchesRole = staff.role.toLowerCase().includes(term);
+        const employeeId = `EMP-${staff.id.slice(-6).toUpperCase()}`.toLowerCase();
+        const matchesEmpId = employeeId.includes(term);
+        const skills = getStaffSpecializations(staff.id, idx);
+        const matchesSkills = skills.some((s) => s.toLowerCase().includes(term));
+
+        if (!matchesName && !matchesEmail && !matchesRole && !matchesEmpId && !matchesSkills) return false;
+      }
+
+      return true;
+    });
+  }, [eligibleAssignees, workloadFilter, departmentFilter, specializationFilter, searchTerm]);
+
+  // Workload statistics for select dropdown
+  const workloadStats = useMemo(() => {
+    const light = eligibleAssignees.filter((s) => s.activeWorkload <= 1).length;
+    const moderate = eligibleAssignees.filter((s) => s.activeWorkload > 1 && s.activeWorkload <= 3).length;
+    const overloaded = eligibleAssignees.filter((s) => s.activeWorkload > 3).length;
+    return { total: eligibleAssignees.length, light, moderate, overloaded };
+  }, [eligibleAssignees]);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, workloadFilter, specializationFilter, departmentFilter, pageSize]);
+
+  // Pagination calculations
+  const totalPages = Math.max(1, Math.ceil(filteredAssignees.length / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredAssignees.length);
+  const paginatedAssignees = filteredAssignees.slice(startIndex, endIndex);
 
   // Review step handler
   const handleReviewTransfer = () => {
@@ -233,19 +328,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
-      {/* ── Breadcrumb Navigation ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-        <Link to="/team-lead/projects" className="hover:text-[#244A70] font-medium flex items-center gap-1">
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Employee Allocation</span>
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        <span className="font-medium text-slate-600">Transfer</span>
-        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-[#244A70] font-bold">Transfer Ownership</span>
-      </div>
-
+    <div className="w-full space-y-6 pb-12">
       {/* ── Page Header ────────────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>
@@ -258,18 +341,6 @@ export const TransferProjectOwnershipPage: React.FC = () => {
           <p className="text-xs text-slate-500 mt-1">
             Transfer project responsibility to another eligible internal employee with impact validation and audit logging.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/team-lead/projects')}
-            className="text-xs h-9"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Back to Employee Allocation
-          </Button>
         </div>
       </div>
 
@@ -392,166 +463,491 @@ export const TransferProjectOwnershipPage: React.FC = () => {
 
       {/* ── 2. Transfer Assignment Form ──────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-6">
-        <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-          <ArrowRightLeft className="w-5 h-5 text-[#244A70]" />
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Transfer Assignment Details
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column: Ownership Source & Successor Target */}
-          <div className="space-y-4">
-            {/* Current Owner (Read-Only) */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-6 h-6 rounded-full bg-[#244A70] text-white flex items-center justify-center font-bold text-xs">
+              1
+            </span>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                Current Owner (Read-Only)
-              </label>
-              <div className="p-3 bg-slate-100/80 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
-                    {currentOwner.name.charAt(0)}
-                  </div>
-                  <div>
-                    <strong className="text-slate-900 block">{currentOwner.name}</strong>
-                    <span className="text-slate-500 text-[11px]">Assigned Internal Employee</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
-                  CURRENT
-                </span>
-              </div>
-            </div>
-
-            {/* New Assignee Selection */}
-            <div>
-              <label htmlFor="new-assignee-select" className="block text-xs font-bold text-slate-900 mb-1.5 uppercase tracking-wider text-[11px]">
-                New Assignee (Eligible Internal Employee) *
-              </label>
-              <select
-                id="new-assignee-select"
-                aria-label="New Assignee"
-                required
-                value={selectedAssigneeId}
-                onChange={(e) => {
-                  setSelectedAssigneeId(e.target.value);
-                  setIsReviewed(false);
-                }}
-                className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70] font-medium"
-              >
-                <option value="">-- Choose Eligible Successor Employee --</option>
-                {eligibleAssignees.map((staff) => {
-                  const wl = workloadLevel(staff.activeWorkload);
-                  return (
-                    <option key={staff.id} value={staff.id}>
-                      {staff.fullName} ({staff.email}) • {staff.role || 'Conversion Staff'} • Workload: {staff.activeWorkload} projects ({wl.label})
-                    </option>
-                  );
-                })}
-              </select>
-
-              {/* Selected Assignee Profile Card */}
-              {selectedAssignee && (
-                <div className={`mt-3 p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
-                  isAtCapacity
-                    ? 'bg-amber-50/80 border-amber-200 text-amber-900'
-                    : 'bg-blue-50/60 border-blue-200 text-slate-900'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-[#244A70] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-                      {selectedAssignee.fullName.charAt(0)}
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                        <span>{selectedAssignee.fullName}</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-white border border-slate-200 text-slate-700">
-                          {selectedAssignee.role || 'Conversion Engineer'}
-                        </span>
-                      </div>
-                      <span className="text-slate-500 text-[11px] block">{selectedAssignee.email}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold border ${workloadLevel(selectedAssignee.activeWorkload).className}`}>
-                      Workload: {selectedAssignee.activeWorkload} projects • {workloadLevel(selectedAssignee.activeWorkload).label}
-                    </span>
-                    {isAtCapacity && (
-                      <span className="text-amber-700 text-[11px] font-bold flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5" /> High Load
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Target Internal Staff Member *
+              </h2>
             </div>
           </div>
+          {selectedAssignee && (
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-600" />
+              Assignee Selected: {selectedAssignee.fullName}
+            </span>
+          )}
+        </div>
 
-          {/* Right Column: Scope & Reason */}
-          <div className="space-y-4">
-            {/* Transfer Scope */}
-            <div>
-              <label htmlFor="transfer-scope-select" className="block text-xs font-bold text-slate-900 mb-1.5 uppercase tracking-wider text-[11px]">
-                Transfer Scope *
-              </label>
-              <select
-                id="transfer-scope-select"
-                aria-label="Transfer Scope"
-                value={transferScope}
-                onChange={(e) => {
-                  setTransferScope(e.target.value as TransferScope);
-                  setIsReviewed(false);
-                }}
-                className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70] font-medium"
-              >
-                <option value="FULL_HANDOVER">
-                  Full Project Handover (Leadership, Review & Active Tasks)
+        {/* Accessible Select / Combobox for Quick Pick & Test Automation */}
+        <div>
+          <label htmlFor="new-assignee-select" className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5">
+            New Assignee (Eligible Internal Employee) *
+          </label>
+          <select
+            id="new-assignee-select"
+            aria-label="New Assignee"
+            required
+            value={selectedAssigneeId}
+            onChange={(e) => {
+              setSelectedAssigneeId(e.target.value);
+              setIsReviewed(false);
+            }}
+            className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] text-[#17263A]"
+          >
+            <option value="">Select an eligible staff member...</option>
+            {eligibleAssignees.map((staff) => {
+              const wl = workloadLevel(staff.activeWorkload);
+              return (
+                <option key={staff.id} value={staff.id}>
+                  {staff.fullName} ({staff.email}) • {staff.role || 'Conversion Staff'} • Workload: {staff.activeWorkload} projects ({wl.label})
                 </option>
-                <option value="OWNERSHIP_ONLY">
-                  Project Ownership & Review Only (Keep Active Tasks with Current Staff)
-                </option>
-                <option value="OWNERSHIP_WITH_TRIAGE">
-                  Project Ownership with Task Triage (Pending Manual Reassignment)
-                </option>
-              </select>
-              <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                {transferScope === 'FULL_HANDOVER' && 'Transfers project ownership and reassigns all active conversion queues to the new assignee.'}
-                {transferScope === 'OWNERSHIP_ONLY' && 'Transfers project lead & approval responsibility while keeping currently allocated engineers on tasks.'}
-                {transferScope === 'OWNERSHIP_WITH_TRIAGE' && 'Transfers ownership and places active work items in a triage queue for the new assignee to redistribute.'}
-              </p>
+              );
+            })}
+          </select>
+        </div>
+
+        {/* Filter Toolbar for Directory */}
+        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+            {/* Search Box */}
+            <div className="sm:col-span-2 relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search staff by name, email, or employee ID..."
+                className="w-full h-8 pl-9 pr-8 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Reason for Transfer */}
+            {/* Department Filter */}
             <div>
-              <label className="block text-xs font-bold text-slate-900 mb-1.5 uppercase tracking-wider text-[11px]">
-                Reason for Transfer *
-              </label>
               <select
-                value={transferReason}
-                onChange={(e) => {
-                  setTransferReason(e.target.value);
-                  setIsReviewed(false);
-                }}
-                className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70] font-medium"
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
               >
-                {TRANSFER_REASONS.map((r) => (
-                  <option key={r} value={r}>{r}</option>
+                <option value="ALL">All Departments</option>
+                {DEPARTMENTS.map((dep) => (
+                  <option key={dep} value={dep}>{dep}</option>
                 ))}
               </select>
             </div>
 
-            {/* Reference / Note */}
+            {/* Specialization Filter */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
-                Reference / Administrative Note (Optional)
-              </label>
-              <textarea
-                rows={2}
-                value={referenceNote}
-                onChange={(e) => setReferenceNote(e.target.value)}
-                placeholder="e.g. Q4 workload rebalancing, reassigned per HR ticket #1042..."
-                className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70]"
-              />
+              <select
+                value={specializationFilter}
+                onChange={(e) => setSpecializationFilter(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+              >
+                <option value="ALL">All Specializations</option>
+                {ALL_SPECIALIZATIONS.map((spec) => (
+                  <option key={spec} value={spec}>{spec}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Workload Capacity Filter */}
+            <div>
+              <select
+                id="workload-filter-select"
+                aria-label="Filter by workload capacity"
+                value={workloadFilter}
+                onChange={(e: any) => setWorkloadFilter(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
+              >
+                <option value="ALL">All Workloads ({workloadStats.total})</option>
+                <option value="LIGHT">Available ({workloadStats.light})</option>
+                <option value="MODERATE">Optimal ({workloadStats.moderate})</option>
+                <option value="OVERLOADED">High ({workloadStats.overloaded})</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Directory Table and Dossier Panel Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Table (8 cols on lg) */}
+          <div className="lg:col-span-8 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+              <span className="font-bold text-[#17263A] flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-[#244A70]" />
+                <span>Eligible Conversion Staff Roster</span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
+                  {filteredAssignees.length} Engineers
+                </span>
+              </span>
+              <span className="text-[11px] text-slate-500">Click a staff member below to inspect and select</span>
+            </div>
+
+            {filteredAssignees.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 text-xs space-y-1">
+                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700">No staff members match the selected criteria.</p>
+                <p className="text-[11px]">Try clearing your search query or adjusting your capacity filter.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold text-[10px] uppercase tracking-wider border-b border-[#DCE3EC]">
+                    <tr>
+                      <th className="py-2.5 px-3">Staff Member</th>
+                      <th className="py-2.5 px-2">Department</th>
+                      <th className="py-2.5 px-2">Specialization</th>
+                      <th className="py-2.5 px-2">Status & Workload</th>
+                      <th className="py-2.5 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DCE3EC]">
+                    {paginatedAssignees.map((staff, idx) => {
+                      const isSelected = selectedAssigneeId === staff.id;
+                      const activeLoadInfo = workloadLevel(staff.activeWorkload);
+                      const skills = getStaffSpecializations(staff.id, idx);
+                      const department = idx % 2 === 0 ? 'Modernization Engineering' : 'Platform Operations';
+
+                      return (
+                        <tr
+                          key={staff.id}
+                          data-testid={`assignee-card-${staff.id}`}
+                          onClick={() => {
+                            setSelectedAssigneeId(staff.id);
+                            setIsReviewed(false);
+                          }}
+                          className={`cursor-pointer transition-colors ${
+                            isSelected
+                              ? 'bg-blue-50/70 border-l-4 border-l-[#244A70]'
+                              : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          {/* Staff Member Identity */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex items-center gap-2.5">
+                              <div
+                                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] uppercase shrink-0 ${
+                                  isSelected
+                                    ? 'bg-[#244A70] text-white'
+                                    : 'bg-slate-200 text-slate-700'
+                                }`}
+                              >
+                                {staff.fullName ? staff.fullName.charAt(0) : 'S'}
+                              </div>
+                              <div>
+                                <div className="font-bold text-[#17263A] text-xs">{staff.fullName}</div>
+                                <div className="text-[10px] text-[#8491A3] font-mono">{staff.email}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Department */}
+                          <td className="py-2.5 px-2 text-[#17263A] text-[11px]">{department}</td>
+
+                          {/* Specialization Tags */}
+                          <td className="py-2.5 px-2">
+                            <div className="flex flex-wrap gap-1 max-w-[200px]">
+                              {skills.slice(0, 2).map((sk) => (
+                                <span
+                                  key={sk}
+                                  className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium"
+                                >
+                                  {sk}
+                                </span>
+                              ))}
+                              {skills.length > 2 && (
+                                <span className="text-[9px] text-slate-400 font-mono">+{skills.length - 2}</span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Workload Status */}
+                          <td className="py-2.5 px-2">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${activeLoadInfo.className}`}
+                            >
+                              {staff.activeWorkload} Active • {activeLoadInfo.label}
+                            </span>
+                          </td>
+
+                          {/* Action Button */}
+                          <td className="py-2.5 px-3 text-right">
+                            {isSelected ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#244A70] text-white rounded text-[11px] font-semibold">
+                                <Check className="w-3 h-3 stroke-[3]" />
+                                Selected
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAssigneeId(staff.id);
+                                  setIsReviewed(false);
+                                }}
+                                className="px-2.5 py-1 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-[11px] font-medium transition-colors cursor-pointer"
+                              >
+                                Select
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pagination Bar */}
+            {filteredAssignees.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-2 border-t border-[#DCE3EC] bg-[#F8FAFC] text-xs">
+                <div className="flex items-center gap-2 text-[11px] text-[#8491A3]">
+                  <span>Rows per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 outline-none"
+                  >
+                    <option value={5}>5</option>
+                    <option value={6}>6</option>
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                  </select>
+                  <span>|</span>
+                  <span>
+                    Showing {startIndex + 1} to {endIndex} of {filteredAssignees.length} engineers
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] text-[#8491A3] mr-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="h-7 text-xs px-2"
+                  >
+                    <ChevronLeft className="w-3 h-3 shrink-0" />
+                    <span>Prev</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="h-7 text-xs px-2"
+                  >
+                    <span>Next</span>
+                    <ChevronRight className="w-3 h-3 shrink-0" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Dossier Card: Selected Staff Profile (4 cols on lg) */}
+          <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 shadow-2xs">
+            <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
+              <UserCheck className="w-4 h-4 text-[#244A70]" />
+              <span>Selected Staff Profile</span>
+            </div>
+
+            {selectedAssignee ? (
+              <div className="space-y-3 text-xs">
+                {/* Avatar & Identifiers */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#244A70] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                    {selectedAssignee.fullName.charAt(0)}
+                  </div>
+                  <div>
+                    <div className="font-bold text-[#17263A] text-sm">{selectedAssignee.fullName}</div>
+                    <div className="text-[11px] text-[#8491A3] font-mono">{selectedAssignee.email}</div>
+                    <div className="text-[10px] font-mono text-[#244A70] font-bold mt-0.5">
+                      EMP-{selectedAssignee.id.slice(-6).toUpperCase()}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Attributes breakdown */}
+                <div className="space-y-1.5 pt-2 border-t border-slate-200 text-[11px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Department:</span>
+                    <span className="font-medium text-[#17263A]">Modernization Engineering</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Baseline Role:</span>
+                    <span className="font-semibold text-slate-800">{selectedAssignee.role || 'Conversion Staff'}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">Workload Capacity:</span>
+                    <span
+                      data-testid="selected-assignee-badge"
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${workloadLevel(selectedAssignee.activeWorkload).className}`}
+                    >
+                      {workloadLevel(selectedAssignee.activeWorkload).label}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[#244A70]">
+                    <span className="font-medium">Capacity Impact:</span>
+                    <span className="font-bold">
+                      {selectedAssignee.activeWorkload} → {selectedAssignee.activeWorkload + 1} projects
+                    </span>
+                  </div>
+                </div>
+
+                {/* Specialization Tags */}
+                <div className="pt-2 border-t border-slate-200">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                    Technical Specializations:
+                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {getStaffSpecializations(selectedAssignee.id, 0).map((sk) => (
+                      <span
+                        key={sk}
+                        className="px-2 py-0.5 rounded bg-blue-50 text-[#244A70] border border-blue-200 text-[10px] font-medium"
+                      >
+                        {sk}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {isAtCapacity && (
+                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <span>This engineer has 4+ active projects. Additional assignments may affect delivery timelines.</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-slate-400 space-y-2">
+                <Users className="w-8 h-8 mx-auto text-slate-300 stroke-[1.5]" />
+                <p className="text-xs font-semibold text-slate-600">No staff member selected</p>
+                <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+                  Select a staff member from the directory or dropdown to view their profile.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Transfer Parameters Sub-section */}
+        <div className="pt-4 border-t border-slate-200 space-y-4">
+          <div className="flex items-center gap-2">
+            <ArrowRightLeft className="w-4 h-4 text-[#244A70]" />
+            <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+              Transfer Parameters & Scope
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Current Owner (Read-Only) */}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Current Owner (Read-Only)
+                </label>
+                <div className="p-3 bg-slate-100/80 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                      {currentOwner.name.charAt(0)}
+                    </div>
+                    <div>
+                      <strong className="text-slate-900 block">{currentOwner.name}</strong>
+                      <span className="text-slate-500 text-[11px]">Assigned Internal Employee</span>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">
+                    CURRENT
+                  </span>
+                </div>
+              </div>
+
+              {/* Reference / Note */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Reference / Administrative Note (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={referenceNote}
+                  onChange={(e) => setReferenceNote(e.target.value)}
+                  placeholder="e.g. Q4 workload rebalancing, reassigned per HR ticket #1042..."
+                  className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70]"
+                />
+              </div>
+            </div>
+
+            {/* Scope & Reason */}
+            <div className="space-y-4">
+              {/* Transfer Scope */}
+              <div>
+                <label htmlFor="transfer-scope-select" className="block text-xs font-bold text-slate-900 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Transfer Scope *
+                </label>
+                <select
+                  id="transfer-scope-select"
+                  aria-label="Transfer Scope"
+                  value={transferScope}
+                  onChange={(e) => {
+                    setTransferScope(e.target.value as TransferScope);
+                    setIsReviewed(false);
+                  }}
+                  className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70] font-medium"
+                >
+                  <option value="FULL_HANDOVER">
+                    Full Project Handover (Leadership, Review & Active Tasks)
+                  </option>
+                  <option value="OWNERSHIP_ONLY">
+                    Project Ownership & Review Only (Keep Active Tasks with Current Staff)
+                  </option>
+                  <option value="OWNERSHIP_WITH_TRIAGE">
+                    Project Ownership with Task Triage (Pending Manual Reassignment)
+                  </option>
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                  {transferScope === 'FULL_HANDOVER' && 'Transfers project ownership and reassigns all active conversion queues to the new assignee.'}
+                  {transferScope === 'OWNERSHIP_ONLY' && 'Transfers project lead & approval responsibility while keeping currently allocated engineers on tasks.'}
+                  {transferScope === 'OWNERSHIP_WITH_TRIAGE' && 'Transfers ownership and places active work items in a triage queue for the new assignee to redistribute.'}
+                </p>
+              </div>
+
+              {/* Reason for Transfer */}
+              <div>
+                <label className="block text-xs font-bold text-slate-900 mb-1.5 uppercase tracking-wider text-[11px]">
+                  Reason for Transfer *
+                </label>
+                <select
+                  value={transferReason}
+                  onChange={(e) => {
+                    setTransferReason(e.target.value);
+                    setIsReviewed(false);
+                  }}
+                  className="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#244A70] font-medium"
+                >
+                  {TRANSFER_REASONS.map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -744,7 +1140,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
               disabled={!isFormValid || isExecuting}
               className={`text-xs h-9 ${isReviewed ? 'border-emerald-300 text-emerald-700 bg-emerald-50' : 'text-[#244A70] border-blue-200'}`}
             >
-              {isReviewed ? <Check className="w-3.5 h-3.5 mr-1 text-emerald-600" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
+              {isReviewed ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <Sparkles className="w-3.5 h-3.5 shrink-0" />}
               <span>{isReviewed ? 'Impact Reviewed' : 'Review Transfer'}</span>
             </Button>
 
