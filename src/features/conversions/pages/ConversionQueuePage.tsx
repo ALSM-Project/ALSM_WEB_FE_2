@@ -130,7 +130,6 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
             Contract 1: Platform-Based Modernization
           </span>
         }
-        subtitle="Operational monitoring and BullMQ pipeline queue management across active customer projects"
       />
 
       {/* Top Tab Bar: Queue Monitor vs Troubleshooting */}
@@ -185,9 +184,9 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                 placeholder="Filter failed items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] shadow-xs"
+                className="w-full h-8 pl-8 pr-3 text-xs bg-white border border-slate-200 rounded-md outline-none focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] shadow-xs"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             </div>
           </div>
 
@@ -325,7 +324,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   }}
                   className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 mr-1" />
+                  <RefreshCw className="w-3.5 h-3.5 shrink-0" />
                   <span>Refresh</span>
                 </button>
               </div>
@@ -339,9 +338,9 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   placeholder="Search by job ID, screen name, or program name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] outline-none shadow-xs"
+                  className="w-full h-8 pl-9 pr-3 bg-white border border-slate-200 rounded-md text-xs focus:ring-1 focus:ring-[#244A70] focus:border-[#244A70] outline-none shadow-xs"
                 />
-                <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2 pointer-events-none" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               </div>
             </div>
 

@@ -246,7 +246,7 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
               </label>
               <Button type="submit" variant="outline" size="sm"
                 disabled={!draft.sourceField.trim() || !draft.targetProperty.trim()}>
-                <Plus className="w-3.5 h-3.5 mr-1" />Add rule
+                <Plus className="w-3.5 h-3.5 shrink-0" /><span>Add rule</span>
               </Button>
             </form>
           )}
@@ -320,8 +320,7 @@ export function SupportPatchPanel({ job, onApplied }: SupportPatchPanelProps) {
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={apply.isPending}>Cancel</Button>
             <Button size="sm" onClick={() => apply.mutate()} disabled={apply.isPending}>
-              {apply.isPending && <RefreshCw className="w-3.5 h-3.5 mr-1 animate-spin" />}
-              Confirm &amp; Apply
+              {apply.isPending && <RefreshCw className="w-3.5 h-3.5 shrink-0 animate-spin" />}<span>Confirm &amp; Apply</span>
             </Button>
           </div>
         </div>
