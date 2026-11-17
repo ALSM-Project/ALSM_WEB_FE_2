@@ -273,13 +273,13 @@ export const MeetingsListPage: React.FC = () => {
 
         {/* Search Input */}
         <div className="relative max-w-xs w-full">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search meetings by title, host..."
-            className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+            className="w-full h-8 text-xs pl-8 pr-3 rounded-lg border border-[#DCE3EC] bg-white text-[#17263A] placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
           />
         </div>
       </div>

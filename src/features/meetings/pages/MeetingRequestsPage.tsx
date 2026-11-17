@@ -644,13 +644,13 @@ export const MeetingRequestsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* 1. Search */}
           <div className="relative md:col-span-2">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
               placeholder="Search customer, lead, organization, email..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
+              className="w-full h-8 pl-8 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
             />
           </div>
 
@@ -659,7 +659,7 @@ export const MeetingRequestsPage: React.FC = () => {
             <select
               value={consultationType}
               onChange={(e) => { setConsultationType(e.target.value); setPage(1); }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Meeting Types</option>
               {Array.isArray(consultationTypes) && consultationTypes.map((t) => (
@@ -677,7 +677,7 @@ export const MeetingRequestsPage: React.FC = () => {
               value={salesRepFilter}
               onChange={(e) => { setSalesRepFilter(e.target.value); setPage(1); }}
               placeholder="Sales representative..."
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             />
           </div>
 
@@ -686,7 +686,7 @@ export const MeetingRequestsPage: React.FC = () => {
             <select
               value={priority}
               onChange={(e) => { setPriority(e.target.value as MeetingPriority | ''); setPage(1); }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Priorities</option>
               <option value="URGENT">Urgent</option>
@@ -706,7 +706,7 @@ export const MeetingRequestsPage: React.FC = () => {
                 setSortOrder(so as 'asc' | 'desc');
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="createdAt-desc">Newest Created</option>
               <option value="createdAt-asc">Oldest Created</option>
@@ -780,8 +780,8 @@ export const MeetingRequestsPage: React.FC = () => {
               onClick={() => navigate('/sales/meeting-requests/new')}
               className="mt-2 text-xs bg-[#244A70]"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Create Meeting
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>Create Meeting</span>
             </Button>
           </div>
         </Card>
@@ -961,8 +961,8 @@ export const MeetingRequestsPage: React.FC = () => {
                 disabled={page <= 1}
                 className="text-xs px-2.5 py-1 bg-white"
               >
-                <ChevronLeft className="w-3.5 h-3.5 mr-1" />
-                Previous
+                <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                <span>Previous</span>
               </Button>
               <span className="px-2 font-semibold text-slate-700">
                 Page {page} of {data?.totalPages || 1}
@@ -974,8 +974,8 @@ export const MeetingRequestsPage: React.FC = () => {
                 disabled={page >= (data?.totalPages || 1)}
                 className="text-xs px-2.5 py-1 bg-white"
               >
-                Next
-                <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5 shrink-0" />
               </Button>
             </div>
           </div>
