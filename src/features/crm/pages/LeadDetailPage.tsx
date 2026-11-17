@@ -118,6 +118,35 @@ export const LeadDetailPage: React.FC = () => {
     );
   }
 
+  const handleScheduleMeeting = () => {
+    if (!lead) return;
+    const compName = lead.companyName || lead.company || '';
+    const cName = lead.contactName || '';
+    const params = new URLSearchParams();
+    if (lead.id) params.set('leadId', lead.id);
+    if (compName) params.set('companyName', compName);
+    if (cName) params.set('fullName', cName);
+    if (lead.email) params.set('email', lead.email);
+    if (lead.phone) params.set('phone', lead.phone);
+    const cType = lead.stage === 'WON' ? 'EXISTING_CUSTOMER' : 'PROSPECT';
+    params.set('customerType', cType);
+    const meetingTopic = `Modernization Consultation & Technical Assessment - ${compName || cName}`;
+    params.set('topic', meetingTopic);
+
+    navigate(`/sales/meeting-requests/new?${params.toString()}`, {
+      state: {
+        leadId: lead.id,
+        companyName: compName,
+        fullName: cName,
+        email: lead.email || '',
+        phone: lead.phone || '',
+        customerType: cType,
+        topic: meetingTopic,
+        businessRequirements: lead.notes || (lead as any).description || '',
+      },
+    });
+  };
+
   const companyCandidate = [lead.company, lead.companyName].find(
     (value) => typeof value === 'string' && value.trim().length > 0,
   );
@@ -306,19 +335,12 @@ export const LeadDetailPage: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setShowLogCallModal(true)}
+            onClick={handleScheduleMeeting}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
+            title="Schedule Consultation & Meeting"
           >
-            <Phone className="w-4 h-4 text-[#0652CC]" />
-            Log Call / Note
-          </button>
-
-          <button
-            onClick={() => setShowDemoModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
-          >
-            <Video className="w-4 h-4 text-indigo-600" />
-            Schedule Demo
+            <Calendar className="w-4 h-4 text-indigo-600" />
+            Schedule
           </button>
 
           <button
@@ -346,20 +368,6 @@ export const LeadDetailPage: React.FC = () => {
             className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
           >
             Update Stage
-          </button>
-
-          <button
-            onClick={() => setShowActivationModal(true)}
-            disabled={!isWon && !providerVerifiedContract}
-            title={isWon ? 'View provisioned tenant' : providerVerifiedContract ? 'Launch Customer Activation' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-white rounded-xl text-xs font-semibold shadow-xs ${
-              isWon || providerVerifiedContract
-                ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
-                : 'bg-slate-400 cursor-not-allowed opacity-70'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-blue-200" />
-            {isWon ? 'View Provisioned Tenant' : 'Customer Activation'}
           </button>
         </div>
       </div>
@@ -560,9 +568,19 @@ export const LeadDetailPage: React.FC = () => {
       {activeTab === 'demos' && (
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
           {!lead.demos || lead.demos.length === 0 ? (
-            <p className="text-xs text-[#6B778C] py-8 text-center">
-              No product demos scheduled. Click "Schedule Demo" to create one.
-            </p>
+            <div className="py-8 text-center space-y-3">
+              <p className="text-xs text-[#6B778C]">
+                No meetings scheduled. Click "Schedule" to create one.
+              </p>
+              <button
+                type="button"
+                onClick={handleScheduleMeeting}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#244A70] text-white hover:bg-[#1B3654] transition-colors cursor-pointer shadow-xs"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                Schedule Consultation & Meeting
+              </button>
+            </div>
           ) : (
             <div className="space-y-3">
               {lead.demos.map((d) => (
@@ -754,12 +772,12 @@ export const LeadDetailPage: React.FC = () => {
                           {['READY_FOR_SIGNATURE', 'SENT_TO_CUSTOMER', 'CUSTOMER_VIEWED'].includes(item.contract.lifecycleStatus) && item.contract.reviewStatus === 'APPROVED' && (
                             <>
                             <Button variant="outline" size="sm" className="mr-2 text-xs" disabled={reviewPdfDownloadId !== null} onClick={() => void downloadCanonicalPdf(item.contract.id, item.contract.contractNumber)}>
-                              <Download className="mr-1 h-3.5 w-3.5" />
-                              {reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download unsigned PDF'}
+                              <Download className="h-3.5 w-3.5 shrink-0" />
+                              <span>{reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download unsigned PDF'}</span>
                             </Button>
                             <Button variant="outline" size="sm" className="mr-2 text-xs" disabled={reviewPdfDownloadId !== null} onClick={() => void downloadReviewPdf(item.contract.id, item.contract.contractNumber)}>
-                              <Download className="mr-1 h-3.5 w-3.5" />
-                              {reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download review PDF'}
+                              <Download className="h-3.5 w-3.5 shrink-0" />
+                              <span>{reviewPdfDownloadId === item.contract.id ? 'Preparing PDF…' : 'Download review PDF'}</span>
                             </Button>
                             </>
                           )}

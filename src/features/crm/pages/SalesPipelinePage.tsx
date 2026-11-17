@@ -149,14 +149,14 @@ export const SalesPipelinePage: React.FC = () => {
           <div className="flex flex-col gap-3 rounded-2xl border border-[#DCE3EC] bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
             <label className="relative block w-full sm:max-w-lg">
               <span className="sr-only">Search sales pipeline</span>
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#8491A3]" aria-hidden="true" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8491A3] shrink-0" aria-hidden="true" />
               <input
                 type="search"
                 aria-label="Search sales pipeline"
                 placeholder="Search by company, contact, source, or salesperson..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-full rounded-xl border border-[#DCE3EC] bg-white py-2 pl-9 pr-4 text-xs outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
+                className="w-full h-8 rounded-xl border border-[#DCE3EC] bg-white pl-9 pr-4 text-xs outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
               />
             </label>
             <p className="text-xs text-[#8491A3]" aria-live="polite">

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { leadsApi } from '@/features/leads/api/leads.api';
 import type { Lead } from '@/features/leads/types/lead';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -14,6 +14,8 @@ export const ContractLaunchPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [busyLeadId, setBusyLeadId] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   useEffect(() => {
     let active = true;
@@ -33,6 +35,20 @@ export const ContractLaunchPage: React.FC = () => {
     return leads.filter((lead) => [lead.companyName, lead.contactName, lead.contactEmail]
       .some((value) => value?.toLowerCase().includes(query)));
   }, [leads, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, filteredLeads.length);
+
+  const paginatedLeads = useMemo(() => {
+    return filteredLeads.slice(startIndex, endIndex);
+  }, [filteredLeads, startIndex, endIndex]);
+
   const needsSalesTeam = error.toLowerCase().includes('sales team');
 
   const openContract = async (lead: Lead) => {
@@ -54,7 +70,6 @@ export const ContractLaunchPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">Create a contract</h1>
-            <p className="mt-1 text-sm text-[#64748B]">Choose a Lead to open its contract workspace and create a draft.</p>
           </div>
         </div>
       </div>
@@ -62,14 +77,14 @@ export const ContractLaunchPage: React.FC = () => {
       <div className="flex flex-col gap-3 rounded-2xl border border-[#DCE3EC] bg-white p-3 sm:flex-row sm:items-center sm:justify-between shadow-xs">
         <label className="relative block w-full sm:max-w-lg">
           <span className="sr-only">Search company, contact, or email</span>
-          <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-[#8491A3]" aria-hidden="true" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8491A3] shrink-0" aria-hidden="true" />
           <input
             type="search"
             aria-label="Search company, contact, or email"
             placeholder="Search company, contact, or email..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            className="w-full rounded-xl border border-[#DCE3EC] bg-white py-2 pl-9 pr-4 text-xs outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
+            className="w-full h-8 rounded-xl border border-[#DCE3EC] bg-white pl-9 pr-4 text-xs outline-none focus:border-[#244A70] focus:ring-2 focus:ring-[#244A70]/20"
           />
         </label>
         <p className="text-xs text-[#8491A3]" aria-live="polite">
@@ -94,7 +109,7 @@ export const ContractLaunchPage: React.FC = () => {
                   {needsSalesTeam && <Link to="/organisations/teams/manage" className="mt-2 inline-flex font-semibold text-blue-800 underline">{hasPermission('teams.manage') ? 'Open Sales Team Management' : 'How to get Sales Team access'}</Link>}
                 </div>}
                 <ul className="divide-y divide-[#E2E8F0]">
-                  {filteredLeads.map((lead, index) => (
+                  {paginatedLeads.map((lead, index) => (
                     <li key={`${lead.id}-${index}`} className="flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6 hover:bg-[#F8FAFC] transition-colors">
                       <div>
                         <h2 className="font-semibold text-[#17263A]">{lead.companyName || lead.contactName}</h2>
@@ -112,6 +127,56 @@ export const ContractLaunchPage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
+
+                {/* Pagination Controls */}
+                {filteredLeads.length > 0 && (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3 border-t border-[#DCE3EC] bg-[#F8FAFC] text-xs">
+                    <div className="flex items-center gap-2 text-xs text-[#8491A3]">
+                      <span>Rows per page:</span>
+                      <select
+                        value={pageSize}
+                        onChange={(e) => {
+                          setPageSize(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        className="bg-white border border-[#DCE3EC] rounded-lg px-2 py-1 text-xs text-[#17263A] outline-none focus:border-[#244A70] cursor-pointer"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={20}>20</option>
+                        <option value={50}>50</option>
+                      </select>
+                      <span className="mx-1 text-slate-300">|</span>
+                      <span>
+                        Showing {startIndex + 1} to {endIndex} of {filteredLeads.length} leads
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[#8491A3] mr-2">
+                        {safeCurrentPage} / {totalPages}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={safeCurrentPage <= 1}
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-2.5 py-1 text-xs font-medium text-[#17263A] shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
+                        Previous
+                      </button>
+                      <button
+                        type="button"
+                        disabled={safeCurrentPage >= totalPages}
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-2.5 py-1 text-xs font-medium text-[#17263A] shadow-2xs hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        Next
+                        <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
       </section>
