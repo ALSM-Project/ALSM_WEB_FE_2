@@ -317,12 +317,12 @@ export const PartnerProjectsPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 min-w-64 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
             <Input
               placeholder="Search by project name, partner, target stack..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs h-9 border-slate-200 rounded-md shadow-xs"
+              className="h-8 py-0 pl-9 text-xs border-slate-200 rounded-md shadow-xs"
             />
           </div>
 

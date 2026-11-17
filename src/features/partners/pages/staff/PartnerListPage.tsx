@@ -258,13 +258,13 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       {/* Filter and Search Bar */}
       <div className="p-3 rounded-lg bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by name, domain, email..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-[#244A70] transition-colors"
+            className="w-full h-8 pl-9 pr-3 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md text-slate-900 placeholder-slate-400 outline-none focus:ring-1 focus:ring-[#244A70] transition-colors"
           />
         </div>
 
@@ -275,7 +275,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md px-2.5 py-1.5 text-slate-700 outline-none focus:ring-1 focus:ring-[#244A70] font-medium transition-colors"
+            className="h-8 text-xs bg-slate-50/60 focus:bg-white border border-slate-200 focus:border-[#244A70] rounded-md px-2.5 text-slate-700 outline-none focus:ring-1 focus:ring-[#244A70] font-medium transition-colors"
           >
             <option value="ALL">All Statuses</option>
             <option value="ACTIVE">Active</option>

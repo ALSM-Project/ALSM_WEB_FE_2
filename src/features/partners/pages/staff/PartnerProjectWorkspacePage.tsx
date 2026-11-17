@@ -781,13 +781,13 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           {/* Filter & Search Toolbar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-2xs">
             <div className="relative flex-1 w-full sm:w-auto">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8491A3]" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
               <input
                 type="text"
                 placeholder={`Search ${isCobol ? 'programs' : 'screens'} by name or source...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#244A70] text-[#17263A] placeholder-[#8491A3]"
+                className="w-full h-8 pl-9 pr-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#244A70] text-[#17263A] placeholder-[#8491A3]"
               />
             </div>
 
@@ -795,7 +795,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="bg-[#F8FAFC] border border-[#DCE3EC] text-[#17263A] text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#244A70] w-full sm:w-auto"
+                className="h-8 bg-[#F8FAFC] border border-[#DCE3EC] text-[#17263A] text-xs font-semibold rounded-xl px-3 focus:outline-none focus:ring-2 focus:ring-[#244A70] w-full sm:w-auto"
               >
                 <option value="ALL">Status: All</option>
                 <option value="READY">Ready / Pending</option>

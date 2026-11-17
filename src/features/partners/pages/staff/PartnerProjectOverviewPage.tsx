@@ -93,9 +93,14 @@ export const PartnerProjectOverviewPage: React.FC = () => {
         <FolderKanban className="w-8 h-8 text-gray-300 mx-auto mb-2" />
         <h3 className="text-sm font-bold text-[#17263A]">Project Not Found</h3>
         <p className="text-xs text-[#8491A3] mt-1">The specified project could not be located.</p>
-        <Button variant="outline" size="sm" onClick={() => navigate('/partners')} className="mt-4">
-          Return to Partners
-        </Button>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate('/team-lead/projects')}>
+            Back to Employee Allocation
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/partners')}>
+            Return to Partners
+          </Button>
+        </div>
       </div>
     );
   }
@@ -322,13 +327,13 @@ export const PartnerProjectOverviewPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
                 {/* Search Input */}
                 <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
                   <input
                     type="text"
                     placeholder="Search file name, program, screen..."
                     value={itemSearch}
                     onChange={(e) => setItemSearch(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#244A70] focus:bg-white"
+                    className="w-full h-8 pl-8 pr-3 bg-slate-50 border border-slate-200 rounded-md text-xs placeholder:text-slate-400 focus:outline-none focus:border-[#244A70] focus:bg-white"
                   />
                 </div>
 
