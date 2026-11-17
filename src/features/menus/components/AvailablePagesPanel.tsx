@@ -91,9 +91,9 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
               placeholder="Search pages..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 text-xs py-1.5"
+              className="h-8 py-0 pl-8 text-xs"
             />
-            <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-2.5 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#8491A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div>
@@ -101,7 +101,7 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
               value={selectedModule}
               onChange={(e) => setSelectedModule(e.target.value)}
               options={MODULE_OPTIONS}
-              className="text-xs py-1.5"
+              size="sm" className="text-xs"
             />
           </div>
         </div>
