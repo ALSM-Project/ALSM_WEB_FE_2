@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  Globe, Mail, ArrowLeft, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, AlertCircle, RefreshCw, FolderGit2, Trash2
+  Globe, Mail, Edit3, Cpu, CheckCircle2, Users, Receipt, BarChart3, Eye, AlertCircle, RefreshCw, FolderGit2, Trash2
 } from 'lucide-react';
 import { adminApi, OrganizationDto } from '../api/admin.api';
 import { Button, Input, Modal } from '@/shared/ui';
@@ -235,19 +235,10 @@ export const OrganizationDetailPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <p id="support-view-unavailable" role="status" className="text-xs text-[#8491A3]">
-        {SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
-      </p>
+
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#DCE3EC]">
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/admin/organizations')}
-            className="p-2 rounded-xl border border-[#DCE3EC] hover:bg-[#F8FAFC] text-[#8491A3] transition-colors cursor-pointer"
-            title="Back to Directory"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-[#17263A]">{org.name}</h1>
@@ -281,8 +272,8 @@ export const OrganizationDetailPage: React.FC = () => {
               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
               className="text-xs border-[#DCE3EC] text-[#17263A]"
             >
-              <Eye className="w-3.5 h-3.5 mr-1 text-[#244A70]" />
-              Support View
+              <Eye className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+              <span>Support View</span>
             </Button>
           )}
 
@@ -329,8 +320,8 @@ export const OrganizationDetailPage: React.FC = () => {
                     : 'Delete this organisation'
                 }
               >
-                <Trash2 className="w-3.5 h-3.5 mr-1" />
-                Delete
+                <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                <span>Delete</span>
               </Button>
             </>
           )}

@@ -781,17 +781,17 @@ export const AdminProjectsPage: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           {/* Search Input */}
           <div className="relative flex-1 min-w-64 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
             <Input
               placeholder="Search by project name, ID, partner, org, or lead..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs h-9"
+              className="pl-9 text-xs h-8"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 inline-flex items-center justify-center cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1631,13 +1631,13 @@ export const AdminProjectsPage: React.FC = () => {
 
             {/* Quick search inside lead list */}
             <div className="relative mb-2">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
               <input
                 type="text"
                 placeholder="Search team lead by name or email..."
                 value={leadSearchQuery}
                 onChange={(e) => setLeadSearchQuery(e.target.value)}
-                className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#244A70]"
+                className="w-full h-8 text-xs pl-8 pr-3 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#244A70]"
               />
             </div>
 
@@ -1808,8 +1808,8 @@ export const AdminProjectsPage: React.FC = () => {
                 }}
                 className="bg-[#244A70] text-white text-xs"
               >
-                <ExternalLink className="w-3.5 h-3.5 mr-1" />
-                Open Conversion Workspace
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                <span>Open Conversion Workspace</span>
               </Button>
             </div>
           </div>

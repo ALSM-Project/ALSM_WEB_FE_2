@@ -317,9 +317,9 @@ export const OrganizationsPage: React.FC = () => {
               maxLength={100}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
+              className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
@@ -329,7 +329,7 @@ export const OrganizationsPage: React.FC = () => {
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="ALL">All Types</option>
                 <option value="ENTERPRISE">Enterprise</option>
@@ -345,7 +345,7 @@ export const OrganizationsPage: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
+                className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
@@ -477,14 +477,14 @@ export const OrganizationsPage: React.FC = () => {
                               aria-describedby="support-view-unavailable"
                               title={SUPPORT_VIEW_UNAVAILABLE_MESSAGE}
                             >
-                              <Eye className="w-3 h-3 mr-1" />
-                              Support View
+                              <Eye className="w-3 h-3 shrink-0" />
+                              <span>Support View</span>
                             </Button>
                           )}
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC] py-1"
+                            className="text-xs border-[#DCE3EC] text-[#17263A] hover:bg-[#F8FAFC]"
                             onClick={() => navigate(`/admin/organizations/${org.id}`)}
                           >
                             Details

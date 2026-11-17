@@ -273,7 +273,7 @@ export const OrganizationUsageDetailPage: React.FC = () => {
               onClick={handleContractAction}
               className="text-[#17263A] font-semibold text-xs border-[#DCE3EC] hover:bg-slate-50 cursor-pointer"
             >
-              <FileText className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+              <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{hasActiveContract ? 'View Contract' : 'Create Contract'}</span>
             </Button>
 

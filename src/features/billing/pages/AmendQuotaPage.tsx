@@ -516,8 +516,8 @@ export const AmendQuotaPage: React.FC = () => {
               disabled={amendMutation.isPending}
               className="bg-[#244A70] hover:bg-[#244A70] text-white font-bold text-xs shadow-xs"
             >
-              <CheckCircle2 className="w-4 h-4 mr-1.5" />
-              {amendMutation.isPending ? 'Applying Changes...' : 'Confirm & Apply Quota Amendment'}
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{amendMutation.isPending ? 'Applying Changes...' : 'Confirm & Apply Quota Amendment'}</span>
             </Button>
           </div>
         </div>

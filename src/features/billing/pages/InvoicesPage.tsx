@@ -178,12 +178,12 @@ export const InvoicesPage: React.FC = () => {
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white border border-[#DCE3EC] rounded-xl shadow-xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-[#8491A3]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by invoice #, company, or email..."
-            className="pl-9 text-xs"
+            className="h-8 pl-9 text-xs"
           />
         </div>
 
@@ -192,7 +192,7 @@ export const InvoicesPage: React.FC = () => {
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer whitespace-nowrap ${
+              className={`h-8 px-3 rounded-lg transition-colors cursor-pointer whitespace-nowrap inline-flex items-center justify-center ${
                 statusFilter === status
                   ? 'bg-[#244A70] text-white shadow-xs'
                   : 'bg-[#F8FAFC] text-[#8491A3] hover:bg-[#EEF1F6] hover:text-[#244A70]'
@@ -265,7 +265,7 @@ export const InvoicesPage: React.FC = () => {
                           className="h-7 px-2 text-xs"
                           title="View Invoice Details"
                         >
-                          <Eye className="w-3.5 h-3.5 mr-1 text-[#8491A3]" />
+                          <Eye className="w-3.5 h-3.5 text-[#8491A3] shrink-0" />
                           <span>View</span>
                         </Button>
                         <Button
@@ -276,7 +276,7 @@ export const InvoicesPage: React.FC = () => {
                           className="h-7 px-2 text-xs text-[#244A70] border-[#244A70]/30 hover:bg-[#EEF1F6]"
                           title="Download Receipt PDF"
                         >
-                          <Download className="w-3.5 h-3.5 mr-1" />
+                          <Download className="w-3.5 h-3.5 shrink-0" />
                           <span>{downloadingId === inv.id ? 'Saving...' : 'PDF'}</span>
                         </Button>
                       </div>
@@ -402,7 +402,7 @@ export const InvoicesPage: React.FC = () => {
                 onClick={() => handleDownloadPdf(selectedInvoice)}
                 className="bg-[#244A70] hover:bg-[#244A70] text-white"
               >
-                <Download className="w-3.5 h-3.5 mr-1.5" />
+                <Download className="w-3.5 h-3.5 shrink-0" />
                 <span>Download Receipt PDF</span>
               </Button>
             </div>

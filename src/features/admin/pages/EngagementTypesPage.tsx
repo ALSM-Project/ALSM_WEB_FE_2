@@ -314,8 +314,8 @@ export const EngagementTypesPage: React.FC = () => {
               onClick={openCreateModal}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#244A70] px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#244A70] transition-colors cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Create Engagement Type
+              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <span>Create Engagement Type</span>
             </button>
           )}
         </div>
@@ -347,9 +347,9 @@ export const EngagementTypesPage: React.FC = () => {
               placeholder="Search engagement plans by name, code or feature..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
+              className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div className="flex items-center gap-2">

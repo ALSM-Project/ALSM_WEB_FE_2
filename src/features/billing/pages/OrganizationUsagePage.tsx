@@ -759,7 +759,7 @@ export const OrganizationUsagePage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {/* 1. Search */}
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               value={searchTerm}
@@ -768,7 +768,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setPage(1);
               }}
               placeholder="Search organization, company, Org ID, domain..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
+              className="w-full h-8 pl-8 pr-3 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:bg-white"
             />
           </div>
 
@@ -780,7 +780,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setOrgScopeFilter(e.target.value as any);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-semibold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="ORGANIZATIONS_ONLY">Enterprise &amp; Partners</option>
               <option value="ENTERPRISE">Enterprise Only</option>
@@ -798,7 +798,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setServiceMode(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Service Modes</option>
               <option value="CUSTOMER_SELF_SERVICE">Platform-Based Modernization</option>
@@ -815,7 +815,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setSubscriptionPlanFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Subscription Plans</option>
               <option value="Trial">Trial / Evaluation</option>
@@ -833,7 +833,7 @@ export const OrganizationUsagePage: React.FC = () => {
                 setContractStatus(e.target.value);
                 setPage(1);
               }}
-              className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+              className="w-full h-8 px-2.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
             >
               <option value="">All Contract States</option>
               <option value="ACTIVE">Active</option>
