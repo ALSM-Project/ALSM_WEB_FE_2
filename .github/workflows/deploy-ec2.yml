@@ -2,7 +2,7 @@ name: Deploy ALSM Staff Portal to AWS EC2
 
 on:
   push:
-    branches: [develop, feat/ci-aws-ec2-auto-deploy]
+    branches: [develop]
   pull_request:
     branches: [develop]
   workflow_dispatch:
@@ -61,7 +61,9 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Test
-        run: npm run test
+        # The existing suite currently reports failures and can then hang; fail the deployment gate promptly.
+        timeout-minutes: 10
+        run: npm run test -- --bail=1
       - name: TypeScript check
         run: npx --no-install tsc -b
       - name: Validate verified public production origins
