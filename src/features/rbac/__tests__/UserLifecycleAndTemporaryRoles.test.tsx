@@ -5,7 +5,6 @@ import { UserRolesPage } from '../pages/UserRolesPage';
 import { OnboardUserPage } from '@/features/users/pages/OnboardUserPage';
 import { TemporaryRolesPage } from '../pages/TemporaryRolesPage';
 import { ResourceTransferModal, CandidateAssignee } from '@/features/admin/components/ResourceTransferModal';
-import { OffboardingWizardModal } from '@/features/users/components/OffboardingWizardModal';
 import { rbacApi } from '../api/rbac.api';
 import { temporaryRolesApi } from '../api/temporary-roles.api';
 
@@ -155,30 +154,27 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
       expect(screen.getByText(/I confirm the creation of this staff account/i)).toBeInTheDocument();
     });
 
-    it('opens Offboarding Wizard with Step 1 Review and advances to Step 2', async () => {
+    it('navigates to dedicated Controlled Offboarding page when clicking Offboard', async () => {
       render(
-        <OffboardingWizardModal
-          isOpen={true}
-          onClose={vi.fn()}
-          userToOffboard={mockUsers[0] as any}
-          activeStaffMembers={mockUsers as any}
-          onSuccess={vi.fn()}
-        />
+        <MemoryRouter initialEntries={['/admin/users']}>
+          <Routes>
+            <Route path="/admin/users" element={<UserRolesPage />} />
+            <Route path="/admin/users/:userId/offboard" element={<div>Controlled Offboarding Page Loaded</div>} />
+          </Routes>
+        </MemoryRouter>
       );
 
-      // Step 1: Review User & Resources
-      expect(screen.getByText(/Controlled Staff Offboarding Wizard/i)).toBeInTheDocument();
-      expect(screen.getByText('Departing Staff Dossier')).toBeInTheDocument();
-      expect(screen.getByText(/Transferable Work Resources/i)).toBeInTheDocument();
-
-      // Click Next to Step 2
-      const nextBtn = screen.getByRole('button', { name: /Next: Select Successor/i });
-      fireEvent.click(nextBtn);
-
-      // Step 2: Select Resource Transfers
       await waitFor(() => {
-        expect(screen.getByText(/Controlled Staff Offboarding Wizard \(Step 2 of 4\)/i)).toBeInTheDocument();
-        expect(screen.getByText(/Choose eligible internal staff member/i)).toBeInTheDocument();
+        expect(screen.getByText('Sarah Jenkins')).toBeInTheDocument();
+      });
+
+      // Find Offboard button for non-admin user
+      const offboardBtns = screen.getAllByRole('button', { name: /Offboard/i });
+      expect(offboardBtns.length).toBeGreaterThan(0);
+      fireEvent.click(offboardBtns[0]);
+
+      await waitFor(() => {
+        expect(screen.getByText('Controlled Offboarding Page Loaded')).toBeInTheDocument();
       });
     });
   });
@@ -217,7 +213,7 @@ describe('User Lifecycle, Resource Transfer & Temporary Role Management (Section
             type: 'Modernization Project',
             currentOwnerId: 'owner-prev',
             currentOwnerName: 'Departing Lead',
-            details: 'COBOL to Java 21',
+            details: 'COBOL to Java 17',
           }}
           candidates={candidates}
           onTransferConfirm={onTransferConfirm}
