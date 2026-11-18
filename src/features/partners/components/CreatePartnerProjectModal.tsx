@@ -73,7 +73,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
     if (type === 'BMS_DSPF_TO_FRONTEND' || type === 'BMS_DSPF_TO_REACT') {
       setTargetFramework('React 19 + Tailwind CSS');
     } else {
-      setTargetFramework('Spring Boot 3.3 / Java 21');
+      setTargetFramework('Spring Boot 3.3 / Java 17');
     }
   };
 
@@ -274,7 +274,7 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
               </div>
               <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-[#DCE3EC]/60">
                 <span className="text-[#8491A3]">Source: COBOL / CBL</span>
-                <span className="font-semibold text-purple-700">Spring Boot 3 + Java 21</span>
+                <span className="font-semibold text-purple-700">Spring Boot 3 + Java 17</span>
               </div>
             </div>
           </div>
@@ -298,9 +298,9 @@ export const CreatePartnerProjectModal: React.FC<CreatePartnerProjectModalProps>
               </>
             ) : (
               <>
-                <option value="Spring Boot 3.3 / Java 21">Spring Boot 3.3 / Java 21 (Virtual Threads)</option>
-                <option value="Quarkus 3 / Java 21">Quarkus 3 / Java 21 (GraalVM Native)</option>
-                <option value="Micronaut 4 / Java 21">Micronaut 4 / Java 21</option>
+                <option value="Spring Boot 3.3 / Java 17">Spring Boot 3.3 / Java 17 (Virtual Threads)</option>
+                <option value="Quarkus 3 / Java 17">Quarkus 3 / Java 17 (GraalVM Native)</option>
+                <option value="Micronaut 4 / Java 17">Micronaut 4 / Java 17</option>
               </>
             )}
           </select>
