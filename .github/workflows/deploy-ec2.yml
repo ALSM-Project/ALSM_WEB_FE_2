@@ -1,0 +1,104 @@
+name: Deploy ALSM Staff Portal to AWS EC2
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alsm-ec2-staff
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Validate public production URLs
+        env:
+          USER_URL: ${{ vars.ALSM_USER_URL }}
+          STAFF_URL: ${{ vars.ALSM_STAFF_URL }}
+          WEB3_URL: ${{ vars.ALSM_WEB3_URL }}
+        run: |
+          set -euo pipefail
+          for value in "$USER_URL" "$STAFF_URL" "$WEB3_URL"; do
+            if [[ "$value" != https://* ]]; then
+              echo "::error::Configure ALSM_USER_URL, ALSM_STAFF_URL and ALSM_WEB3_URL (HTTPS) in repository Variables."
+              exit 1
+            fi
+          done
+
+      - name: Lint, test and build production
+        env:
+          VITE_API_BASE_URL: ${{ vars.ALSM_STAFF_URL }}
+          VITE_USER_PORTAL_URL: ${{ vars.ALSM_USER_URL }}
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npm run lint
+          npm run build
+          test -s dist/index.html
+
+      - name: Configure verified SSH connection
+        env:
+          DEPLOY_KEY: ${{ secrets.ALSM_DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.ALSM_DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.ALSM_DEPLOY_HOST }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$DEPLOY_KEY" || -z "$KNOWN_HOSTS" || -z "$DEPLOY_HOST" ]]; then
+            echo "::error::Missing ALSM_DEPLOY_SSH_KEY / ALSM_DEPLOY_KNOWN_HOSTS secrets or ALSM_DEPLOY_HOST variable."
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload immutable release and activate
+        id: deploy
+        env:
+          DEPLOY_HOST: ${{ vars.ALSM_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.ALSM_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          TARGET="${DEPLOY_USER:-ubuntu}@${DEPLOY_HOST}"
+          BASE="/var/www/alsm/releases/staff"
+          RELEASE="$BASE/$GITHUB_SHA"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$TARGET" "test -L '$BASE/current' && test -d '$BASE'"
+          PREVIOUS="$(ssh "$TARGET" "readlink '$BASE/current'")"
+          echo "previous=$PREVIOUS" >> "$GITHUB_OUTPUT"
+          ssh "$TARGET" "mkdir -p '$RELEASE'"
+          rsync -az --delete --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+            -e 'ssh -o BatchMode=yes -o StrictHostKeyChecking=yes' \
+            dist/ "$TARGET:$RELEASE/"
+          ssh "$TARGET" "test -s '$RELEASE/index.html' && ln -sfn '$RELEASE' '$BASE/.current-next' && mv -Tf '$BASE/.current-next' '$BASE/current'"
+
+      - name: Verify public HTTPS and roll back on failure
+        env:
+          DEPLOY_HOST: ${{ vars.ALSM_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.ALSM_DEPLOY_USER }}
+          SITE_URL: ${{ vars.ALSM_STAFF_URL }}
+          PREVIOUS: ${{ steps.deploy.outputs.previous }}
+        run: |
+          set -euo pipefail
+          if ! curl --fail --silent --show-error --location --max-time 20 "$SITE_URL/" -o /dev/null; then
+            echo "::error::HTTPS smoke test failed, restoring previous release"
+            TARGET="${DEPLOY_USER:-ubuntu}@${DEPLOY_HOST}"
+            BASE="/var/www/alsm/releases/staff"
+            ssh "$TARGET" "ln -sfn '$PREVIOUS' '$BASE/.current-next' && mv -Tf '$BASE/.current-next' '$BASE/current'"
+            exit 1
+          fi
+          echo "ALSM staff portal deployment verified: $GITHUB_SHA"
