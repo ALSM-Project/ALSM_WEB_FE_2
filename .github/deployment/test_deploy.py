@@ -96,6 +96,13 @@ class DeploymentTests(unittest.TestCase):
             self.tool.deploy(artifact, A, new_sha)
         self.assertEqual(self.tool.target().name, A)
 
+    def test_wrong_production_origin_cannot_deploy(self):
+        artifact, sha = self.artifact()
+        self.tool.expected_origins = {"user": "https://verified.example.org"}
+        with self.assertRaisesRegex(RuntimeError, "origins"):
+            self.tool.deploy(artifact, A, sha)
+        self.assertEqual(self.tool.target(), self.initial)
+
     def test_crash_journal_recovers_previous(self):
         candidate = self.base / A
         self.make_artifact(candidate, A)
@@ -113,6 +120,16 @@ class DeploymentTests(unittest.TestCase):
             self.tool.deploy(artifact, A, sha)
         self.assertEqual(self.tool.target(), self.initial)
         self.assertFalse(self.tool.journal.exists())
+
+    def test_crash_recovery_restores_even_a_corrupt_candidate(self):
+        candidate = self.base / A
+        self.make_artifact(candidate, A)
+        d.atomic_json(self.tool.journal, {"previous": "initial", "candidate": A})
+        d.switch(self.base, candidate)
+        (candidate / "index.html").write_text("incomplete after power loss", encoding="utf-8")
+        with self.tool.lock():
+            self.tool.recover()
+        self.assertEqual(self.tool.target(), self.initial)
 
     def test_artifact_symlink_and_hidden_secret_rejected(self):
         artifact, sha = self.artifact()

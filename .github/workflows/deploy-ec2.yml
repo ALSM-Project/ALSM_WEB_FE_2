@@ -90,6 +90,9 @@ jobs:
         id: manifest
         env:
           REVISION: ${{ github.sha }}
+          ALSM_USER_URL: ${{ vars.ALSM_USER_URL }}
+          ALSM_STAFF_URL: ${{ vars.ALSM_STAFF_URL }}
+          ALSM_WEB3_URL: ${{ vars.ALSM_WEB3_URL }}
         run: |
           set -euo pipefail
           python3 .github/deployment/deploy.py stamp --portal staff --revision "$REVISION" --artifact dist >> "$GITHUB_OUTPUT"
@@ -154,4 +157,3 @@ jobs:
           [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
           [[ -n "$RUNNER_TEMP" && "$target" == "$RUNNER_TEMP"/alsm-* ]]
           rm -rf -- "$target"
-

@@ -61,14 +61,15 @@ def file_map(root):
     return result
 
 
-def stamp(root, portal, revision):
+def stamp(root, portal, revision, origins=None):
     require(portal in PORTALS and (SHA.fullmatch(revision) or revision == "initial"), "Invalid release identity")
     root = Path(root)
     require(not (root / MARKER).exists(), "Refusing to overwrite release marker")
     files = file_map(root)
     marker = root / MARKER
     marker.parent.mkdir(exist_ok=True)
-    marker.write_text(json.dumps({"schema": 1, "portal": portal, "revision": revision, "files": files},
+    marker.write_text(json.dumps({"schema": 1, "portal": portal, "revision": revision, "files": files,
+                                  "origins": origins},
                                  sort_keys=True, separators=(",", ":")) + "\n", encoding="utf-8")
     return digest(marker.read_bytes())
 
@@ -161,12 +162,13 @@ def remove_release(path):
 
 
 class Deployer:
-    def __init__(self, base, portal, url, checker=check_https, keep=5):
+    def __init__(self, base, portal, url, checker=check_https, keep=5, expected_origins=None):
         self.base = Path(base).resolve(strict=True)
         self.portal = portal
         self.url = origin(url)
         self.checker = checker
         self.keep = keep
+        self.expected_origins = expected_origins
         self.journal = self.base / ".transaction.json"
 
     @contextlib.contextmanager
@@ -193,8 +195,12 @@ class Deployer:
             return
         data = json.loads(self.journal.read_text(encoding="utf-8"))
         previous = self.checked_target(self.base / data["previous"])
-        candidate = self.checked_target(self.base / data["candidate"])
-        current = self.target()
+        require(SHA.fullmatch(data["candidate"]) or data["candidate"] == "initial", "Invalid interrupted candidate")
+        candidate = self.base / data["candidate"]
+        # A power loss may have damaged the NEW release. Never require it to be healthy to restore the old one.
+        current_link = self.base / "current"
+        require(current_link.is_symlink(), "Missing current link during recovery")
+        current = current_link.resolve()
         require(current in (candidate, previous), "Unrecognized current release; inspect transaction manually")
         if current == candidate:
             switch(self.base, previous)
@@ -229,7 +235,9 @@ class Deployer:
     def deploy(self, artifact, revision, expected):
         require(SHA.fullmatch(revision), "Expected full commit SHA")
         require(re.fullmatch(r"[0-9a-f]{64}", expected), "Expected SHA256 manifest digest")
-        verify(artifact, self.portal, revision, expected)
+        manifest = verify(artifact, self.portal, revision, expected)
+        require(self.expected_origins is None or manifest.get("origins") == self.expected_origins,
+                "Artifact production origins differ from administrator-verified config")
         with self.lock():
             self.recover()
             candidate = self.base / revision
@@ -296,12 +304,14 @@ def main():
     parser.add_argument("--manifest-sha")
     args = parser.parse_args()
     if args.command == "stamp":
-        print("manifest-sha=" + stamp(args.artifact, args.portal, args.revision))
+        urls = {p: origin(os.environ["ALSM_" + p.upper() + "_URL"]) for p in PORTALS}
+        print("manifest-sha=" + stamp(args.artifact, args.portal, args.revision, urls))
         return
     config = load_config("/etc/alsm-deploy/portals.json")
     portals = [args.portal] if args.portal else list(PORTALS)
     for portal in portals:
-        tool = Deployer(Path("/var/www/alsm/releases") / portal, portal, config["urls"][portal])
+        tool = Deployer(Path("/var/www/alsm/releases") / portal, portal, config["urls"][portal],
+                        expected_origins=config["urls"])
         if args.command == "recover":
             try:
                 with tool.lock(blocking=False):
