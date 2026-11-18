@@ -117,7 +117,27 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
   };
 
   const buildFallbackStaff = () => {
-    const fallbackItems: EligibleStaffItem[] = existingUsers.map((u) => {
+    const INTERNAL_ROLES = new Set([
+      'ADMIN',
+      'PLATFORM_ADMIN',
+      'TEAM_LEAD',
+      'STAFF',
+      'CONVERSION_STAFF',
+      'ENGINEER',
+      'SUPPORT',
+      'INTERNAL_SALES',
+      'INTERNAL_SUPPORT',
+      'SALES_MANAGER',
+      'VP_OF_SALES',
+      'SYSTEM_ADMIN',
+    ]);
+    const eligibleExistingUsers = existingUsers.filter((u) => {
+      if ((u as any).isPlatformAdmin) return true;
+      const roles = (u.roles || []).map((r) => r.toUpperCase());
+      return roles.some((r) => INTERNAL_ROLES.has(r));
+    });
+
+    const fallbackItems: EligibleStaffItem[] = (eligibleExistingUsers.length > 0 ? eligibleExistingUsers : existingUsers).map((u) => {
       const hasActive = activeElevations.some((ae) => ae.userId === u.id) || u.id === 'usr-02';
       return {
         id: u.id,
