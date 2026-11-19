@@ -60,6 +60,14 @@ export const CreateContractWizardPage: React.FC = () => {
   const [, setTemplateList] = useState<any[]>([]);
   const [clauseLibrary, setClauseLibrary] = useState<ContractClause[]>([]);
 
+  // Helper to detect if a name string resembles a raw username / email handle
+  const isUsernameLike = (val?: string) => {
+    if (!val) return false;
+    const trimmed = val.trim();
+    if (trimmed.includes(' ')) return false;
+    return /^[a-z0-9_.-]{3,25}$/i.test(trimmed) && (/\d{2,}/.test(trimmed) || trimmed.length <= 12);
+  };
+
   // Helper to generate a valid MongoDB ObjectId for prospective new organizations
   const [newOrgTenantId] = useState<string>(() => {
     const timestamp = Math.floor(Date.now() / 1000).toString(16).padStart(8, '0');
@@ -80,6 +88,7 @@ export const CreateContractWizardPage: React.FC = () => {
     representativeTitle: '',
     contactEmail: paramEmail || '',
     contactPhone: '',
+    contactPerson: '',
     powerOfAttorneyRef: '',
   });
 
@@ -210,14 +219,22 @@ export const CreateContractWizardPage: React.FC = () => {
             setSelectedLeadId(targetLead.id || targetLead._id);
             const comp = targetLead.company || targetLead.companyName || targetLead.contactName || paramCompany || 'Enterprise Customer';
             setTitle(`Enterprise Modernization Agreement - ${comp}`);
+
+            const rawContact = (targetLead.contactName || '').trim();
+            const isUser = isUsernameLike(rawContact);
+            const resolvedRepName = targetLead.representativeName?.trim()
+              ? targetLead.representativeName.trim()
+              : (!isUser ? rawContact : '');
+
             setCustomer({
               companyName: comp,
               taxId: targetLead.taxId || '0108849201',
               businessAddress: targetLead.address || 'Hanoi, Vietnam',
-              representativeName: targetLead.contactName || 'Enterprise Representative',
-              representativeTitle: targetLead.contactTitle || 'Director',
-              contactEmail: targetLead.email || targetLead.contactEmail || paramEmail || 'contact@client.com',
+              representativeName: resolvedRepName,
+              representativeTitle: targetLead.representativeTitle || targetLead.contactTitle || 'Director',
+              contactEmail: targetLead.signatoryEmail || targetLead.email || targetLead.contactEmail || paramEmail || 'contact@client.com',
               contactPhone: targetLead.phone || '',
+              contactPerson: rawContact,
               powerOfAttorneyRef: 'POA-2026-ALSM-01',
             });
 
@@ -379,16 +396,24 @@ export const CreateContractWizardPage: React.FC = () => {
     if (found) {
       const comp = found.company || found.companyName || 'Enterprise Customer';
       setTitle(`Enterprise Modernization Agreement - ${comp}`);
-      setCustomer({
+
+      const rawContact = (found.contactName || '').trim();
+      const isUser = isUsernameLike(rawContact);
+      const resolvedRepName = found.representativeName?.trim()
+        ? found.representativeName.trim()
+        : (!isUser ? rawContact : '');
+
+      setCustomer((prev) => ({
+        ...prev,
         companyName: comp,
-        taxId: found.taxId || '0108849201',
-        businessAddress: found.address || 'Hanoi, Vietnam',
-        representativeName: found.contactName || 'Enterprise Representative',
-        representativeTitle: found.contactTitle || 'Director',
-        contactEmail: found.email || found.contactEmail || 'contact@client.com',
-        contactPhone: found.phone || '',
-        powerOfAttorneyRef: 'POA-2026-ALSM-01',
-      });
+        taxId: found.taxId || prev.taxId,
+        businessAddress: found.address || prev.businessAddress,
+        representativeName: resolvedRepName || prev.representativeName,
+        representativeTitle: found.representativeTitle || found.contactTitle || prev.representativeTitle || 'Director',
+        contactEmail: found.signatoryEmail || found.email || found.contactEmail || prev.contactEmail,
+        contactPhone: found.phone || prev.contactPhone,
+        contactPerson: rawContact || prev.contactPerson,
+      }));
       if (found.estimatedValue) {
         setSubtotal(found.estimatedValue);
       }
@@ -430,11 +455,16 @@ export const CreateContractWizardPage: React.FC = () => {
         setSubmitting(false);
         return;
       }
+      if (!customer.representativeName.trim()) {
+        setErrorMsg('Please enter the customer authorized legal representative name (as per Business Registration).');
+        setSubmitting(false);
+        return;
+      }
       if (
-        !customer.representativeName.trim() ||
-        (/^[a-z0-9_]{3,25}$/i.test(customer.representativeName.trim()) && /\d{3,}/.test(customer.representativeName.trim()))
+        isUsernameLike(customer.representativeName.trim()) &&
+        !customer.representativeName.trim().includes(' ')
       ) {
-        setErrorMsg('Representative name cannot be a username (e.g. hoangndhde180637). Please enter the full legal name.');
+        setErrorMsg(`Representative name ("${customer.representativeName}") resembles a system username. Please enter the full legal name (e.g. Nguyen Van Hoang).`);
         setSubmitting(false);
         return;
       }
@@ -609,7 +639,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-slate-600 leading-relaxed text-[11px]">
-                    Thông tin pháp lý của khách hàng đã được đồng bộ từ CRM Lead. Hợp đồng sẽ được gắn với <strong>Organization Tenant</strong> bên dưới để quản lý quyền sở hữu, hạn mức quota và tài khoản Web 3 khi hợp đồng hoàn tất.
+                    Customer legal entity details have been synchronized from CRM Lead. The contract will be linked to the <strong>Organization Tenant</strong> below to manage ownership, service quotas, and Web 3 account provisioning upon execution.
                   </p>
                 </div>
               </div>
@@ -621,7 +651,7 @@ export const CreateContractWizardPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-700">
                     Organization Tenant *
                   </label>
-                  <span className="text-[10px] text-[#244A70] font-medium">Bắt buộc liên kết</span>
+                  <span className="text-[10px] text-[#244A70] font-medium">Required Link</span>
                 </div>
                 <select
                   value={selectedOrgId || '__NEW_ORGANIZATION__'}
@@ -629,10 +659,10 @@ export const CreateContractWizardPage: React.FC = () => {
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                 >
                   <option value="__NEW_ORGANIZATION__">
-                    ➕ Khách hàng mới (Nhập tên tổ chức mới ở bên dưới)
+                    + New Customer Organization (Enter new organization name below)
                   </option>
                   {orgList.length > 0 && (
-                    <optgroup label="Tổ chức đã có trên hệ thống ALSM (Tái ký / Gia hạn)">
+                    <optgroup label="Existing Organizations on ALSM (Renewal / Extension)">
                       {orgList.map((org) => (
                         <option key={org.id} value={org.id}>
                           {org.name} ({org.taxId || 'No Tax ID'})
@@ -703,16 +733,28 @@ export const CreateContractWizardPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">
-                    Legal Representative *
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-slate-700">
+                      Legal Representative *
+                    </label>
+                    <span className="text-[10px] text-slate-400">Statutory Signatory</span>
+                  </div>
                   <input
                     type="text"
                     value={customer.representativeName}
                     onChange={(e) => setCustomer({ ...customer, representativeName: e.target.value })}
-                    placeholder="e.g. Marcus Vance"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                    placeholder="e.g. Nguyen Van Hoang (Full legal name)"
+                    className={`w-full px-3 py-2 bg-slate-50 border rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70] ${
+                      isUsernameLike(customer.representativeName)
+                        ? 'border-amber-400 bg-amber-50/40'
+                        : 'border-slate-200'
+                    }`}
                   />
+                  {isUsernameLike(customer.representativeName) && (
+                    <span className="text-[10px] text-amber-600 block mt-1">
+                      Note: Please enter the official full legal name, not a system username.
+                    </span>
+                  )}
                 </div>
 
                 <div>
@@ -723,7 +765,23 @@ export const CreateContractWizardPage: React.FC = () => {
                     type="text"
                     value={customer.representativeTitle}
                     onChange={(e) => setCustomer({ ...customer, representativeTitle: e.target.value })}
-                    placeholder="e.g. Managing Director"
+                    placeholder="e.g. Managing Director / CEO"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block font-semibold text-slate-700">
+                      CRM Point of Contact
+                    </label>
+                    <span className="text-[10px] text-slate-400">Sales Reference</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={customer.contactPerson || ''}
+                    onChange={(e) => setCustomer({ ...customer, contactPerson: e.target.value })}
+                    placeholder="e.g. Lead contact person"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                   />
                 </div>
