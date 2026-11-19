@@ -187,7 +187,7 @@ export const PartnerDetailsPage: React.FC = () => {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-mono font-semibold uppercase px-2 py-0.5 rounded bg-gray-100 text-[#8491A3]">
-                        {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL to Java 21' : 'BMS/DSPF to React'}
+                        {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL to Java 17' : 'BMS/DSPF to React'}
                       </span>
                       <PartnerStatusBadge status={project.status} type="project" />
                     </div>

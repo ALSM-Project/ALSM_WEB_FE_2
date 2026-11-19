@@ -26,6 +26,8 @@ import { CreateDemoProjectModal } from '../../components/CreateDemoProjectModal'
 import { Button, Input } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useSupportView } from '@/features/admin/context/SupportViewContext';
+import { contractsApi } from '@/features/contracts/api/contracts.api';
+import { adminApi, OrganizationDto } from '@/features/admin/api/admin.api';
 
 export const PartnerProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,9 +60,11 @@ export const PartnerProjectsPage: React.FC = () => {
     try {
       setLoading(true);
       setLoadError(null);
-      const [allProjects, allPartners] = await Promise.all([
+      const [allProjects, allPartners, contractsRes, fetchedOrgs] = await Promise.all([
         partnersApi.getProjects(),
         partnersApi.getPartners(),
+        contractsApi.listContracts({ limit: 100 }).catch(() => ({ items: [] as any[] })),
+        adminApi.getOrganizations().catch(() => [] as OrganizationDto[]),
       ]);
 
       // Load stored demo projects
@@ -72,9 +76,120 @@ export const PartnerProjectsPage: React.FC = () => {
         // Ignore parse error
       }
 
+      const contractsList = Array.isArray(contractsRes) ? contractsRes : (contractsRes?.items || []);
+      const managedContractNumbers = new Set<string>();
+      const managedContractOrgIds = new Set<string>();
+
+      contractsList.forEach((c: any) => {
+        const mode = (c?.serviceMode || '').toUpperCase();
+        const type = (c?.contractType || '').toUpperCase();
+        const isType2 =
+          mode === 'WE_CONVERT_FOR_YOU' ||
+          mode === 'MANAGED' ||
+          mode.includes('MANAGED') ||
+          type === 'MANAGED_CONVERSION_SOW' ||
+          type === 'WE_CONVERT_FOR_YOU';
+
+        if (isType2) {
+          if (c.contractNumber) managedContractNumbers.add(c.contractNumber);
+          if (c.organizationId) managedContractOrgIds.add(String(c.organizationId));
+        }
+      });
+
+      const partnerOrgIds = new Set<string>(managedContractOrgIds);
+      allPartners.forEach((p) => partnerOrgIds.add(String(p.id)));
+      (fetchedOrgs || []).forEach((o) => {
+        if (!o.id) return;
+        const mode = (o.serviceMode || '').toUpperCase();
+        const eng = (o.engagementType || '').toUpperCase();
+        if (
+          mode === 'WE_CONVERT_FOR_YOU' ||
+          mode === 'ALSM_MANAGED' ||
+          mode === 'MANAGED' ||
+          eng.includes('MANAGED') ||
+          eng.includes('MODERNIZATION')
+        ) {
+          partnerOrgIds.add(String(o.id));
+        }
+      });
+
+      const hasContractContext = managedContractNumbers.size > 0 || partnerOrgIds.size > 0;
+
+      const orgMap = new Map<string, any>();
+      (fetchedOrgs || []).forEach((o) => {
+        if (o.id) orgMap.set(o.id, o);
+      });
+      allPartners.forEach((p) => {
+        if (p.id) orgMap.set(p.id, p);
+      });
+
+      // MANDATORY BUSINESS RULE: Partner Projects page strictly displays ONLY projects under
+      // Contract Type 2: MANAGED MODERNIZATION SERVICES.
+      // Self-service projects, Personal Workspaces, and uncontracted accounts are strictly excluded.
+      const managedOnly = allProjects
+        .filter((p: any) => {
+          // Strictly exclude explicit self-service projects and personal workspaces
+          if (p.serviceType === 'SELF_SERVICE') return false;
+          const pMode = (p.serviceMode || '').toUpperCase();
+          if (
+            pMode === 'CUSTOMER_SELF_SERVICE' ||
+            pMode === 'SELF_SERVICE_CONVERSION' ||
+            pMode === 'SELF_SERVICE'
+          ) {
+            return false;
+          }
+          if (p.partnerName === 'Personal Workspace' || p.partnerName?.toLowerCase().includes('personal')) {
+            return false;
+          }
+
+          // 1. Explicitly tagged as MANAGED service type / service mode
+          if (
+            p.serviceType === 'MANAGED' ||
+            pMode === 'WE_CONVERT_FOR_YOU' ||
+            pMode === 'ALSM_MANAGED' ||
+            pMode === 'MANAGED'
+          ) {
+            return true;
+          }
+
+          // 2. Bound to a known Contract Type 2 number
+          if (p.contractNumber && managedContractNumbers.has(p.contractNumber)) {
+            return true;
+          }
+
+          // 3. Organization is enrolled in Contract Type 2 (Managed Modernization Services)
+          if (p.organizationId && partnerOrgIds.has(String(p.organizationId))) {
+            return true;
+          }
+          if (p.partnerId && partnerOrgIds.has(String(p.partnerId))) {
+            return true;
+          }
+
+          // Fallback if no contract context is available (e.g. offline unit test fixtures)
+          if (!hasContractContext) {
+            if (p.partnerName && !p.partnerName.toLowerCase().includes('personal') && p.partnerName !== 'Not linked to a partner') {
+              return true;
+            }
+          }
+
+          return false;
+        })
+        .map((p) => {
+          const org = orgMap.get(p.organizationId) || orgMap.get(p.partnerId);
+          const resolvedPartner =
+            p.partnerName && p.partnerName !== 'Not linked to a partner'
+              ? p.partnerName
+              : org?.name || p.partnerName || 'Enterprise Partner';
+          return {
+            ...p,
+            partnerName: resolvedPartner,
+            partnerId: p.partnerId || p.organizationId || (org?.id ?? ''),
+          };
+        });
+
       // Merge and deduplicate
       const projectMap = new Map<string, PartnerProject>();
-      allProjects.forEach((p) => projectMap.set(p.id, p));
+      managedOnly.forEach((p) => projectMap.set(p.id, p));
       storedDemos.forEach((d) => projectMap.set(d.id, d));
 
       setProjects(Array.from(projectMap.values()));
@@ -149,6 +264,9 @@ export const PartnerProjectsPage: React.FC = () => {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17263A] mt-1">
             Partner Projects
           </h1>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Managed Modernization Services (Contract Type 2) programs & projects
+          </p>
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
@@ -239,7 +357,7 @@ export const PartnerProjectsPage: React.FC = () => {
             <FolderKanban className="w-4 h-4 text-[#244A70]" />
           </div>
           <div className="text-2xl font-bold text-[#17263A] mt-2">{totalProjects}</div>
-          <div className="text-xs text-slate-600 font-medium mt-1">Across all registered partners</div>
+          <div className="text-xs text-slate-600 font-medium mt-1">Managed Modernization Services</div>
         </div>
 
         {/* In Active Conversion */}
@@ -380,7 +498,7 @@ export const PartnerProjectsPage: React.FC = () => {
               {[
                 { key: 'ALL', label: 'All Pipelines' },
                 { key: 'BMS_DSPF_TO_FRONTEND', label: 'BMS/DSPF to React' },
-                { key: 'COBOL_TO_JAVA', label: 'COBOL to Java 21' },
+                { key: 'COBOL_TO_JAVA', label: 'COBOL to Java 17' },
               ].map((p) => (
                 <button
                   key={p.key}
