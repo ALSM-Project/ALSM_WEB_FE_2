@@ -224,23 +224,23 @@ export const TeamLeadProjectsPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <Link
             to="/team-lead/resource-transfers"
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all h-9"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5 text-[#244A70]" />
+            <ArrowRightLeft className="w-4 h-4 text-[#244A70]" />
             Transfer Approvals
           </Link>
           <Link
             to="/admin/projects"
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all h-9"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#244A70]" />
+            <ShieldCheck className="w-4 h-4 text-[#244A70]" />
             Admin Allocation
           </Link>
           <button
             onClick={fetchData}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors h-8"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:border-slate-300 transition-all h-9 cursor-pointer"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#244A70]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#244A70]' : ''}`} />
             Refresh
           </button>
         </div>
@@ -437,17 +437,17 @@ export const TeamLeadProjectsPage: React.FC = () => {
       </div>
 
       {/* Projects Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden">
-        <table className="w-full text-left border-collapse text-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-x-auto">
+        <table className="w-full min-w-[1050px] text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-[#DCE3EC] bg-[#F8FAFC] text-xs font-bold text-[#8491A3] uppercase tracking-wider">
-              <th className="py-3.5 px-4">Modernization Project</th>
-              <th className="py-3.5 px-4">Partner Client</th>
-              <th className="py-3.5 px-4">Conversion Target</th>
-              <th className="py-3.5 px-4">Progress &amp; Status</th>
-              <th className="py-3.5 px-4">Assigned Team Lead</th>
-              <th className="py-3.5 px-4">Assigned Conversion Staff</th>
-              <th className="py-3.5 px-4 text-right">Engineering Actions</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Modernization Project</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Partner Client</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Conversion Target</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Progress &amp; Status</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Assigned Team Lead</th>
+              <th className="py-3.5 px-4 whitespace-nowrap">Assigned Conversion Staff</th>
+              <th className="py-3.5 px-4 text-right whitespace-nowrap min-w-[300px]">Engineering Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -591,40 +591,40 @@ export const TeamLeadProjectsPage: React.FC = () => {
                     </td>
 
                     {/* Actions */}
-                    <td className="py-3.5 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap min-w-[300px]">
                       <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                         {/* Allocate Staff -> directly navigates to /team-lead/projects/:projectId/allocate */}
                         <Link
                           to={`/team-lead/projects/${p.id}/allocate`}
                           title={hasStaff ? 'Reallocate Conversion Staff (Detailed Page)' : 'Allocate Conversion Staff (Detailed Page)'}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors h-8 ${
+                          className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all h-8 shadow-xs ${
                             hasStaff
-                              ? 'border border-[#DCE3EC] bg-white text-slate-700 hover:bg-slate-50'
-                              : 'bg-[#244A70] text-white hover:bg-[#1B3856] shadow-xs'
+                              ? 'border border-[#DCE3EC] bg-white text-slate-800 hover:bg-slate-50'
+                              : 'bg-[#244A70] text-white hover:bg-[#1B3856]'
                           }`}
                         >
-                          <Users className="w-3.5 h-3.5" />
-                          <span>{hasStaff ? 'Reallocate Staff' : 'Allocate Staff'}</span>
+                          <Users className="w-3.5 h-3.5 shrink-0" />
+                          <span className="whitespace-nowrap">{hasStaff ? 'Reallocate Staff' : 'Allocate Staff'}</span>
                         </Link>
 
                         {/* Project Details -> navigates to /partners/projects/:projectId */}
                         <Link
                           to={`/partners/projects/${p.id}`}
                           title="View Project Specifications, Files & Deliverables"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-blue-200 bg-blue-50 text-[#244A70] hover:bg-blue-100 transition-colors h-8"
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 border border-blue-200 bg-blue-50 text-[#244A70] hover:bg-blue-100 transition-all h-8 shadow-xs"
                         >
-                          <FolderKanban className="w-3.5 h-3.5" />
-                          <span>Detail</span>
+                          <FolderKanban className="w-3.5 h-3.5 shrink-0" />
+                          <span className="whitespace-nowrap">Detail</span>
                         </Link>
 
                         {/* Transfer Ownership -> navigates to /team-lead/projects/:projectId/transfer */}
                         <Link
                           to={`/team-lead/projects/${p.id}/transfer`}
                           title="Transfer Project Responsibility"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#DCE3EC] bg-white text-slate-700 hover:bg-slate-50 hover:text-[#244A70] transition-colors h-8"
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 border border-[#DCE3EC] bg-white text-slate-800 hover:bg-slate-50 hover:text-[#244A70] transition-all h-8 shadow-xs"
                         >
-                          <ArrowRightLeft className="w-3.5 h-3.5 text-[#244A70]" />
-                          <span>Transfer</span>
+                          <ArrowRightLeft className="w-3.5 h-3.5 shrink-0 text-[#244A70]" />
+                          <span className="whitespace-nowrap">Transfer</span>
                         </Link>
                       </div>
                     </td>

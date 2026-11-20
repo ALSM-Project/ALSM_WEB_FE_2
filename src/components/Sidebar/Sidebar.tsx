@@ -32,21 +32,16 @@ export const SYSTEM_ROLE_DISPLAY_MAP: Record<string, string> = {
 };
 
 export const ROLE_PRIORITY_ORDER: string[] = [
-  'SYSTEM_ADMIN',
   'ADMIN',
+  'SYSTEM_ADMIN',
   'PLATFORM_ADMIN',
   'TEAM_LEAD',
   'SALES_MANAGER',
-  'SALES_VP',
   'INTERNAL_SALES',
-  'SALES_REP',
   'INTERNAL_SUPPORT',
-  'SUPPORT',
   'CONVERSION_STAFF',
-  'STAFF',
   'ENTERPRISE_MEMBER',
   'PARTNER',
-  'PARTNER_USER',
 ];
 
 /**

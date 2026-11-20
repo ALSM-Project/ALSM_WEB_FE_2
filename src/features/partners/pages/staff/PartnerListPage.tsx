@@ -102,7 +102,9 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
               {partners.length} Total
             </span>
           </div>
-          
+          <p className="text-xs text-slate-500 mt-1">
+            Enterprise partners with active Managed Modernization Services (Contract Type 2) agreements
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -171,7 +173,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
           </div>
           <div className="text-2xl font-bold text-slate-900 tracking-tight">{totalPartners}</div>
           <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-            <span>Registered enterprise accounts</span>
+            <span>Managed Modernization accounts</span>
             <span className="text-[#244A70] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">View all →</span>
           </div>
         </div>

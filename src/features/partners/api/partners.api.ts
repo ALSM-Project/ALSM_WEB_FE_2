@@ -355,7 +355,7 @@ interface ProjectDto {
 const TARGET_FRAMEWORK: Record<ConversionType, string> = {
   BMS_DSPF_TO_FRONTEND: 'React 19 + Tailwind CSS',
   BMS_DSPF_TO_REACT: 'React 19 + Tailwind CSS',
-  COBOL_TO_JAVA: 'Spring Boot 3.3 / Java 21',
+  COBOL_TO_JAVA: 'Spring Boot 3.3 / Java 17',
 };
 
 function resolveConversionType(dto: any): ConversionType {
@@ -441,60 +441,210 @@ export function withItemCounts(project: PartnerProject, items: PartnerConversion
 }
 
 export const partnersApi = {
-  // 1. Get Partners List - the partner profiles stored by the backend (UC-44).
+  // 1. Get Partners List - Partner organizations with Contract Type 2: MANAGED MODERNIZATION SERVICES
   async getPartners(): Promise<Partner[]> {
-    let records: PartnerRecordDto[];
+    let records: PartnerRecordDto[] = [];
+    let partnersError: unknown = null;
     try {
       records = await apiClient.get<PartnerRecordDto[]>('/partners');
     } catch (err) {
-      throw toPartnerApiError(err, 'load');
+      partnersError = err;
+      records = [];
     }
+
     const projects = await this.listProjectsWithoutCounts().catch(() => [] as PartnerProject[]);
 
-    let orgs: Array<{ id: string; name: string; contactEmail?: string; primaryDomain?: string }> = [];
+    let orgs: Array<{
+      id: string;
+      name: string;
+      domain?: string;
+      primaryDomain?: string;
+      contactEmail?: string;
+      serviceMode?: string;
+      engagementType?: string;
+      status?: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
+      activeContractNumber?: string;
+      type?: string;
+      tier?: string;
+      createdAt?: string;
+      updatedAt?: string;
+    }> = [];
+    let orgsError: unknown = null;
     try {
-      orgs = await apiClient.get<Array<{ id: string; name: string; contactEmail?: string; primaryDomain?: string }>>('/admin/organizations').catch(() => []);
-    } catch {
-      // ignore
+      orgs = await apiClient
+        .get<
+          Array<{
+            id: string;
+            name: string;
+            domain?: string;
+            primaryDomain?: string;
+            contactEmail?: string;
+            serviceMode?: string;
+            engagementType?: string;
+            status?: 'ACTIVE' | 'TRIAL' | 'SUSPENDED';
+            activeContractNumber?: string;
+            type?: string;
+            tier?: string;
+            createdAt?: string;
+            updatedAt?: string;
+          }>
+        >('/admin/organizations');
+    } catch (err) {
+      orgsError = err;
+      orgs = [];
     }
 
-    const partnerList = records.map((r) => {
-      const own = projects.filter(
-        (p) =>
-          p.partnerId === r.id ||
-          p.organizationId === r.id ||
-          (p.partnerName && r.name && p.partnerName.toLowerCase().trim() === r.name.toLowerCase().trim())
-      );
-      return toPartner(r, {
-        projectCount: own.length,
-        activeConversionCount: own.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
-      });
+    // If both /partners and /admin/organizations failed (e.g. offline/network failure), throw user-safe error
+    if (records.length === 0 && orgs.length === 0 && (partnersError || orgsError)) {
+      throw toPartnerApiError(partnersError || orgsError, 'load');
+    }
+
+    let contractsList: any[] = [];
+    try {
+      const contractsRes = await apiClient.get<any>('/crm/contracts?limit=100').catch(() => ({ items: [] }));
+      contractsList = Array.isArray(contractsRes) ? contractsRes : (contractsRes?.items || []);
+    } catch {
+      contractsList = [];
+    }
+
+    // Identify Contract Type 2: Managed Modernization Services (WE_CONVERT_FOR_YOU / MANAGED_CONVERSION_SOW / MANAGED)
+    const managedContractNumbers = new Set<string>();
+    const managedContractOrgIds = new Set<string>();
+
+    contractsList.forEach((c: any) => {
+      const mode = (c?.serviceMode || '').toUpperCase();
+      const type = (c?.contractType || '').toUpperCase();
+      const isType2 =
+        mode === 'WE_CONVERT_FOR_YOU' ||
+        mode === 'MANAGED' ||
+        mode.includes('MANAGED') ||
+        type === 'MANAGED_CONVERSION_SOW' ||
+        type === 'WE_CONVERT_FOR_YOU';
+
+      if (isType2) {
+        if (c.contractNumber) managedContractNumbers.add(c.contractNumber);
+        if (c.organizationId) managedContractOrgIds.add(String(c.organizationId));
+      }
     });
 
+    // Managed projects: only projects matching Contract Type 2
+    const managedProjects = projects.filter((p: any) => {
+      if (p.serviceType === 'SELF_SERVICE') return false;
+      const pMode = (p.serviceMode || '').toUpperCase();
+      if (
+        pMode === 'CUSTOMER_SELF_SERVICE' ||
+        pMode === 'SELF_SERVICE_CONVERSION' ||
+        pMode === 'SELF_SERVICE'
+      ) {
+        return false;
+      }
+      if (p.partnerName === 'Personal Workspace' || p.partnerName?.toLowerCase().includes('personal')) {
+        return false;
+      }
+
+      if (
+        p.serviceType === 'MANAGED' ||
+        pMode === 'WE_CONVERT_FOR_YOU' ||
+        pMode === 'ALSM_MANAGED' ||
+        pMode === 'MANAGED'
+      ) {
+        return true;
+      }
+
+      if (p.contractNumber && managedContractNumbers.has(p.contractNumber)) {
+        return true;
+      }
+
+      if (p.organizationId && managedContractOrgIds.has(String(p.organizationId))) {
+        return true;
+      }
+
+      return false;
+    });
+
+    const partnerList: Partner[] = [];
+
+    // Map any valid partner records from /partners (if mocked in test fixtures or created via UC-44)
+    if (Array.isArray(records)) {
+      records.forEach((r) => {
+        const eng = (r.engagementType || '').toUpperCase();
+        if (eng.includes('SELF') || r.name === 'Personal Workspace' || r.name?.toLowerCase().includes('personal')) {
+          return;
+        }
+        const own = (managedProjects.length > 0 ? managedProjects : projects).filter(
+          (p) =>
+            p.partnerId === r.id ||
+            p.organizationId === r.id ||
+            (p.partnerName && r.name && p.partnerName.toLowerCase().trim() === r.name.toLowerCase().trim())
+        );
+        partnerList.push(
+          toPartner(r, {
+            projectCount: own.length,
+            activeConversionCount: own.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
+          })
+        );
+      });
+    }
+
+    // Now strictly populate organizations with Contract Type 2: MANAGED MODERNIZATION SERVICES
     if (Array.isArray(orgs)) {
       orgs.forEach((org) => {
+        if (!org.id) return;
+        const name = org.name || '';
+        if (name === 'Personal Workspace' || name.toLowerCase().includes('personal')) return;
+        if (org.type === 'SELF_SERVICE') return;
+
+        const mode = (org.serviceMode || '').toUpperCase();
+        const eng = (org.engagementType || '').toUpperCase();
+
+        const isManagedMode =
+          mode === 'WE_CONVERT_FOR_YOU' ||
+          mode === 'ALSM_MANAGED' ||
+          mode === 'MANAGED' ||
+          eng.includes('MANAGED') ||
+          eng.includes('MODERNIZATION');
+
+        const hasManagedContract =
+          managedContractOrgIds.has(String(org.id)) ||
+          (org.activeContractNumber && managedContractNumbers.has(org.activeContractNumber));
+
+        // Skip if org is explicitly customer self-service and lacks a managed contract
+        if (org.serviceMode === 'CUSTOMER_SELF_SERVICE' && !hasManagedContract) {
+          return;
+        }
+
+        // STRICT REQUIREMENT: Only show organizations that have Contract Type 2 (MANAGED MODERNIZATION SERVICES)
+        if (!isManagedMode && !hasManagedContract) {
+          return;
+        }
+
         const alreadyInList = partnerList.some(
           (pl) => pl.id === org.id || pl.name.toLowerCase().trim() === org.name.toLowerCase().trim()
         );
+
         if (!alreadyInList) {
-          const orgProjects = projects.filter((p) => p.organizationId === org.id);
-          if (orgProjects.length > 0) {
-            partnerList.push({
-              id: org.id,
-              name: org.name,
-              companyName: org.name,
-              domain: org.primaryDomain || `${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-              contactEmail: org.contactEmail || `contact@${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-              contactName: org.name,
-              status: 'ACTIVE',
-              completedExportCount: orgProjects.filter((p) => p.isExported || p.status === 'COMPLETED').length,
-              projectCount: orgProjects.length,
-              activeConversionCount: orgProjects.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
-              engagementType: 'Managed Modernization',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            });
-          }
+          const orgProjects = (managedProjects.length > 0 ? managedProjects : projects).filter(
+            (p) =>
+              p.organizationId === org.id ||
+              p.partnerId === org.id ||
+              (p.partnerName && p.partnerName.toLowerCase().trim() === org.name.toLowerCase().trim())
+          );
+
+          partnerList.push({
+            id: org.id,
+            name: org.name,
+            companyName: org.name,
+            domain: org.primaryDomain || org.domain || `${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+            contactEmail: org.contactEmail || `contact@${org.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+            contactName: org.name,
+            status: org.status === 'SUSPENDED' ? 'SUSPENDED' : org.status === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
+            completedExportCount: orgProjects.filter((p) => p.isExported || p.status === 'COMPLETED').length,
+            projectCount: orgProjects.length,
+            activeConversionCount: orgProjects.filter((p) => !p.isExported && p.status !== 'COMPLETED').length,
+            engagementType: 'Managed Modernization Services',
+            createdAt: org.createdAt || new Date().toISOString(),
+            updatedAt: org.updatedAt || new Date().toISOString(),
+          });
         }
       });
     }

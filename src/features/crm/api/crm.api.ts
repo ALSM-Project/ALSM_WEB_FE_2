@@ -47,7 +47,7 @@ export const crmApi = {
 
   sendLeadEmail: async (
     leadId: string,
-    data: { to?: string; subject: string; content: string }
+    data: { to?: string; subject: string; content: string; html?: string }
   ): Promise<{ success: boolean; recipient: string; deliveryStatus: string }> => {
     try {
       return await apiClient.post('/sales/crm/leads/' + leadId + '/send-email', data);

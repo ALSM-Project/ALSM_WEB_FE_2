@@ -41,7 +41,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
     setActionSuccess(null);
     try {
       const res = await crmApi.initiateOnlineSigning(leadId, contract.id);
-      setActionSuccess(`Đã gửi envelope ký điện tử lên VNPT (mã: ${res.envelopeReference}).`);
+      setActionSuccess(`E-signing envelope dispatched to provider (Reference: ${res.envelopeReference}).`);
       if (onContractUpdated) {
         onContractUpdated({
           ...contract,
@@ -49,7 +49,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
         });
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Không thể khởi tạo luồng ký online.';
+      const msg = err?.response?.data?.message || err?.message || 'Unable to initiate online signing workflow.';
       setActionError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setActionLoading(false);
@@ -62,8 +62,8 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
     setActionError(null);
     setActionSuccess(null);
     try {
-      await crmApi.cancelOnlineSigning(leadId, contract.id, 'Nhân viên hủy lượt ký từ CRM');
-      setActionSuccess('Đã hủy lượt ký hợp đồng thành công.');
+      await crmApi.cancelOnlineSigning(leadId, contract.id, 'Staff cancelled signing from CRM');
+      setActionSuccess('Contract signing session cancelled successfully.');
       if (onContractUpdated) {
         onContractUpdated({
           ...contract,
@@ -71,7 +71,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
         });
       }
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Không thể hủy lượt ký.';
+      const msg = err?.response?.data?.message || err?.message || 'Unable to cancel signing session.';
       setActionError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
       setActionLoading(false);
@@ -164,7 +164,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
                 onClick={handleInitiateSigning}
                 disabled={actionLoading}
               >
-                <Send className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Đang gửi...' : 'Gửi ký điện tử (VNPT)'}
+                <Send className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Dispatching...' : 'Dispatch E-Signing'}
               </Button>
             )}
             {['SENT_TO_CUSTOMER', 'CUSTOMER_VIEWED', 'CUSTOMER_SIGNING_IN_PROGRESS', 'CUSTOMER_PARTIALLY_SIGNED'].includes(contract.workflowStatus || '') && (
@@ -176,7 +176,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
                 disabled={actionLoading}
                 className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
               >
-                <XCircle className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Đang xử lý...' : 'Hủy lượt ký'}
+                <XCircle className="mr-1 h-3.5 w-3.5" /> {actionLoading ? 'Processing...' : 'Cancel Signing Session'}
               </Button>
             )}
           </div>

@@ -225,7 +225,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
     });
     if (set.size === 0) {
       set.add('React 19 + Tailwind CSS');
-      set.add('Spring Boot 3.3 / Java 21');
+      set.add('Spring Boot 3.3 / Java 17');
     }
     return Array.from(set);
   }, [myAssignedProjects]);

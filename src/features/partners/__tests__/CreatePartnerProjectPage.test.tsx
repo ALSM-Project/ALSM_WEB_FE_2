@@ -108,7 +108,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
     fireEvent.click(cobolCard);
 
     expect(cobolCard).toHaveAttribute('aria-checked', 'true');
-    expect(screen.getByText('Spring Boot 3.3 / Java 21 (Gradle)')).toBeInTheDocument();
+    expect(screen.getByText('Spring Boot 3.3 / Java 17 (Gradle)')).toBeInTheDocument();
 
     const screensCard = screen.getByText('BMS / DSPF Screens to Web').closest('[role="radio"]')!;
     fireEvent.click(screensCard);
@@ -127,7 +127,7 @@ describe('CreatePartnerProjectPage (Web 1 Redesign)', () => {
     fireEvent.keyDown(cobolCard, { key: 'Enter' });
 
     expect(cobolCard).toHaveAttribute('aria-checked', 'true');
-    expect(screen.getByText('Spring Boot 3.3 / Java 21 (Gradle)')).toBeInTheDocument();
+    expect(screen.getByText('Spring Boot 3.3 / Java 17 (Gradle)')).toBeInTheDocument();
   });
 
   it('validates required fields before submitting', async () => {

@@ -48,7 +48,7 @@ const mockProjects: PartnerProject[] = [
     partnerName: 'Fintech Nexus International',
     organizationId: 'org-fnx-prod',
     conversionType: 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.3 + Java 21',
+    targetFramework: 'Spring Boot 3.3 + Java 17',
     status: 'READY_FOR_EXPORT',
     screensTotal: 0,
     screensCompleted: 0,
@@ -140,8 +140,8 @@ describe('PartnerProjectsPage - Partner Modernization Projects', () => {
       expect(screen.getByText('Core Banking BMS to React Migration')).toBeInTheDocument();
     });
 
-    // Click COBOL to Java 21 filter button
-    const cobolFilterBtn = screen.getByRole('button', { name: /COBOL to Java 21/i });
+    // Click COBOL to Java 17 filter button
+    const cobolFilterBtn = screen.getByRole('button', { name: /COBOL to Java 17/i });
     fireEvent.click(cobolFilterBtn);
 
     expect(screen.getByText('General Ledger COBOL to Java Batch')).toBeInTheDocument();
@@ -163,5 +163,61 @@ describe('PartnerProjectsPage - Partner Modernization Projects', () => {
     fireEvent.click(newProjectBtn);
 
     expect(screen.getByText('Create Partner Modernization Project')).toBeInTheDocument();
+  });
+
+  it('strictly displays ONLY Contract Type 2 (MANAGED MODERNIZATION SERVICES) projects, excluding self-service and personal workspaces', async () => {
+    const mixedProjects: PartnerProject[] = [
+      ...mockProjects,
+      {
+        id: 'proj-self-01',
+        name: 'Self Service Internal Tool',
+        partnerId: 'org-self-01',
+        partnerName: 'Self Service Org',
+        organizationId: 'org-self-01',
+        conversionType: 'BMS_DSPF_TO_FRONTEND',
+        targetFramework: 'React 19 + Tailwind CSS',
+        status: 'IN_PROGRESS',
+        screensTotal: 5,
+        screensCompleted: 1,
+        programsTotal: 0,
+        programsCompleted: 0,
+        serviceType: 'SELF_SERVICE',
+        createdAt: '2026-10-10T10:00:00Z',
+        lastUpdated: '2026-10-18T14:00:00Z',
+      },
+      {
+        id: 'proj-personal-02',
+        name: 'Personal Sandbox Project',
+        partnerId: 'org-personal',
+        partnerName: 'Personal Workspace',
+        organizationId: 'org-personal',
+        conversionType: 'COBOL_TO_JAVA',
+        targetFramework: 'Spring Boot 3.3 + Java 17',
+        status: 'DRAFT',
+        screensTotal: 0,
+        screensCompleted: 0,
+        programsTotal: 2,
+        programsCompleted: 0,
+        createdAt: '2026-10-10T10:00:00Z',
+        lastUpdated: '2026-10-18T14:00:00Z',
+      },
+    ];
+
+    vi.mocked(partnersApi.getProjects).mockResolvedValue(mixedProjects);
+
+    render(
+      <MemoryRouter>
+        <PartnerProjectsPage />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Core Banking BMS to React Migration')).toBeInTheDocument();
+      expect(screen.getByText('General Ledger COBOL to Java Batch')).toBeInTheDocument();
+    });
+
+    // Self-service and Personal Workspace must be strictly excluded
+    expect(screen.queryByText('Self Service Internal Tool')).not.toBeInTheDocument();
+    expect(screen.queryByText('Personal Sandbox Project')).not.toBeInTheDocument();
   });
 });

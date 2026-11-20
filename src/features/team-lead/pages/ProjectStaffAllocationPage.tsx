@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   FolderKanban,
   Users,
@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Building2,
-  ArrowRight,
   Check,
   UserCheck,
   ArrowLeft,
@@ -132,7 +131,7 @@ export const ProjectStaffAllocationPage: React.FC = () => {
   const getStaffSpecializations = (staffId: string, idx: number) => {
     const skillSets = [
       ['BMS / DSPF → React 19', 'AST Parser', 'COBOL → Java'],
-      ['COBOL', 'Java 21', 'Spring Boot 3.3', 'MicroFocus'],
+      ['COBOL', 'Java 17', 'Spring Boot 3.3', 'MicroFocus'],
       ['React 19', 'TypeScript', 'Tailwind CSS', 'AST Parser'],
       ['COBOL', 'CICS', 'Spring Boot', 'REST APIs'],
       ['AS400 / DSPF', 'Next.js', 'TypeScript', 'Jest / Vitest'],
@@ -271,30 +270,11 @@ export const ProjectStaffAllocationPage: React.FC = () => {
               Allocate Conversion Staff to Project
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
-            Dispatch modernization tasks to qualified engineers with clear capacity and specialization metrics.
-          </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/team-lead/projects')}
-            className="text-xs h-9"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Back to Projects
-          </Button>
-          {project && (
-            <Link
-              to={`/partners/projects/${project.id}/workspace`}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#244A70] text-white hover:bg-[#1B3654] text-xs font-semibold shadow-xs transition-colors h-9"
-            >
-              <span>Open Workspace</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          )}
+        
+        
         </div>
       </div>
 

@@ -82,7 +82,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [projectName, setProjectName] = useState('Demo Core Banking Showcase');
   const [description, setDescription] = useState('Interactive sandbox project demonstrating BMS 3270 screen and COBOL batch modernization');
-  const [targetFramework, setTargetFramework] = useState('React 19 + Java 21 / Spring Boot');
+  const [targetFramework, setTargetFramework] = useState('React 19 + Java 17 / Spring Boot');
   const [files, setFiles] = useState<SampleFile[]>(DEFAULT_SAMPLE_FILES);
   const [createdProject, setCreatedProject] = useState<PartnerProject | null>(null);
 
@@ -90,7 +90,7 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
     setStep(1);
     setProjectName('Demo Core Banking Showcase');
     setDescription('Interactive sandbox project demonstrating BMS 3270 screen and COBOL batch modernization');
-    setTargetFramework('React 19 + Java 21 / Spring Boot');
+    setTargetFramework('React 19 + Java 17 / Spring Boot');
     setFiles(DEFAULT_SAMPLE_FILES);
     setCreatedProject(null);
   };
@@ -292,9 +292,9 @@ export const CreateDemoProjectModal: React.FC<CreateDemoProjectModalProps> = ({
                   onChange={(e) => setTargetFramework(e.target.value)}
                   className="w-full px-3 py-2 border border-[#DCE3EC] rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]"
                 >
-                  <option value="React 19 + Java 21 / Spring Boot">Full Stack (React 19 Frontend + Spring Boot 3.3 Backend)</option>
+                  <option value="React 19 + Java 17 / Spring Boot">Full Stack (React 19 Frontend + Spring Boot 3.3 Backend)</option>
                   <option value="React 19 + Tailwind CSS">Frontend Only (BMS/DSPF to Modern React)</option>
-                  <option value="Spring Boot 3.3 + Java 21">Backend Only (COBOL to Java 21 Services)</option>
+                  <option value="Spring Boot 3.3 + Java 17">Backend Only (COBOL to Java 17 Services)</option>
                 </select>
               </div>
 

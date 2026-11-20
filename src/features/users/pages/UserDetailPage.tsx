@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { rbacApi, UserRbacDto, RoleDto } from '../../rbac/api/rbac.api';
 import { usersApi } from '../api/users.api';
-import { OffboardingWizardModal } from '../components/OffboardingWizardModal';
 import { Modal, Input, Button } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useBreadcrumbEntity } from '@/hooks/useBreadcrumb';
@@ -58,26 +57,20 @@ export const UserDetailPage: React.FC = () => {
   const [confirmLock, setConfirmLock] = useState<boolean>(false);
   const [isLocking, setIsLocking] = useState<boolean>(false);
 
-  // Offboarding Modal State
-  const [showOffboardModal, setShowOffboardModal] = useState<boolean>(false);
-  const [allUsersList, setAllUsersList] = useState<UserRbacDto[]>([]);
-
   const loadUserData = async () => {
     if (!id) return;
     try {
       setIsLoading(true);
       setErrorMsg(null);
-      const [userData, allRoles, allUsers, projects] = await Promise.all([
+      const [userData, allRoles, projects] = await Promise.all([
         rbacApi.getUserById(id),
         rbacApi.getRoles(),
-        rbacApi.getAllUsers().catch(() => []),
         partnersApi.getProjects().catch(() => []),
       ]);
 
       setTargetUser(userData);
       setSelectedRoleIds(userData.roles || []);
       setRoles(allRoles || []);
-      setAllUsersList(allUsers || []);
 
       const userProjects = (projects || []).filter(
         (p) => p.assignedStaffId === id || (p as any).assignedTo === id
@@ -279,7 +272,7 @@ export const UserDetailPage: React.FC = () => {
           {canOffboard && !targetUser.isPlatformAdmin && (targetUser.isActive ?? true) && targetUser.id !== actor?.id && (
             <button
               type="button"
-              onClick={() => setShowOffboardModal(true)}
+              onClick={() => navigate(`/admin/users/${targetUser.id}/offboard`)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 shadow-2xs transition-colors cursor-pointer"
             >
               <UserMinus className="w-3.5 h-3.5" />
@@ -593,19 +586,6 @@ export const UserDetailPage: React.FC = () => {
           </div>
         </form>
       </Modal>
-
-      {/* Offboarding Wizard Modal */}
-      <OffboardingWizardModal
-        isOpen={showOffboardModal}
-        onClose={() => setShowOffboardModal(false)}
-        userToOffboard={targetUser as any}
-        activeStaffMembers={allUsersList as any}
-        onSuccess={() => {
-          setSuccessMsg(`User ${targetUser.email} successfully offboarded and resources transferred.`);
-          loadUserData();
-          setTimeout(() => setSuccessMsg(null), 4000);
-        }}
-      />
     </div>
   );
 };

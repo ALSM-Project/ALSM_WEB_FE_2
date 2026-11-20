@@ -18,6 +18,7 @@ export interface CustomerDetails {
   representativeTitle: string;
   contactEmail: string;
   contactPhone?: string;
+  contactPerson?: string;
   powerOfAttorneyRef?: string;
 }
 

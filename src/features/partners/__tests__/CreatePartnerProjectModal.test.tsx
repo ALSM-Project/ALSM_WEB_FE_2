@@ -85,8 +85,8 @@ describe('CreatePartnerProjectModal', () => {
     const cobolCard = screen.getByText('COBOL to Java Microservices');
     fireEvent.click(cobolCard);
 
-    // Target framework options switch to Spring Boot / Java 21
-    expect(screen.getByText(/Spring Boot 3\.3 \/ Java 21/i)).toBeInTheDocument();
+    // Target framework options switch to Spring Boot / Java 17
+    expect(screen.getByText(/Spring Boot 3\.3 \/ Java 17/i)).toBeInTheDocument();
   });
 
   it('submits valid project and calls onSuccess callback', async () => {

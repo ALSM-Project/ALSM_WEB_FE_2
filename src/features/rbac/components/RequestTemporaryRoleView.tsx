@@ -10,16 +10,27 @@ import {
 } from 'lucide-react';
 import { Button, Badge } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { partnersApi } from '@/features/partners/api/partners.api';
 import {
   temporaryRolesApi,
   TemporaryRoleDto,
   ElevationRoleCatalogItem,
 } from '../api/temporary-roles.api';
 
+export interface ProjectOptionItem {
+  id: string;
+  name: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  status?: string;
+  targetFramework?: string;
+  partnerName?: string;
+}
+
 export interface RequestTemporaryRoleViewProps {
   onBack: () => void;
   onSuccess: (message?: string) => void;
-  projectOptions?: Array<{ id: string; name: string }>;
+  projectOptions?: ProjectOptionItem[];
   myActiveRole?: TemporaryRoleDto | null;
   userHasPendingRequest?: boolean;
 }
@@ -36,6 +47,61 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
 }) => {
   const { user } = useAuth();
 
+  // Projects list management
+  const [projectsList, setProjectsList] = useState<ProjectOptionItem[]>(projectOptions);
+
+  useEffect(() => {
+    if (projectOptions && projectOptions.length > 0) {
+      setProjectsList(projectOptions);
+    } else {
+      let active = true;
+      partnersApi
+        .getProjects()
+        .then((projs) => {
+          if (active && Array.isArray(projs)) {
+            setProjectsList(
+              projs.map((p) => ({
+                id: p.id,
+                name: p.name,
+                assignedStaffId: p.assignedStaffId,
+                assignedStaffName: p.assignedStaffName,
+                status: p.status,
+                targetFramework: p.targetFramework,
+                partnerName: p.partnerName,
+              })),
+            );
+          }
+        })
+        .catch(() => {});
+      return () => {
+        active = false;
+      };
+    }
+  }, [projectOptions]);
+
+  const currentUserId = String(user?.id || '');
+  const currentUserFullName = (user?.fullName || '').toLowerCase().trim();
+  const currentUserEmail = (user?.email || '').toLowerCase().trim();
+
+  // All projects specifically assigned to this staff member
+  const assignedProjects = useMemo(() => {
+    if (!user) return [];
+    return projectsList.filter((p) => {
+      const matchId = p.assignedStaffId && String(p.assignedStaffId) === currentUserId;
+      const matchName =
+        p.assignedStaffName &&
+        (p.assignedStaffName.toLowerCase().trim() === currentUserFullName ||
+          p.assignedStaffName.toLowerCase().trim() === currentUserEmail);
+      return Boolean(matchId || matchName);
+    });
+  }, [projectsList, user, currentUserId, currentUserFullName, currentUserEmail]);
+
+  // Other system projects not assigned to this staff member
+  const otherProjects = useMemo(() => {
+    const assignedIds = new Set(assignedProjects.map((p) => p.id));
+    return projectsList.filter((p) => !assignedIds.has(p.id));
+  }, [projectsList, assignedProjects]);
+
   // Role Catalog Data
   const [roleCatalog, setRoleCatalog] = useState<ElevationRoleCatalogItem[]>([]);
   const [selectedRoleCode, setSelectedRoleCode] = useState<string>('team_lead');
@@ -43,6 +109,30 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
   const [targetProjectId, setTargetProjectId] = useState<string>('');
   const [targetWorkflow, setTargetWorkflow] = useState<string>('');
   const [justification, setJustification] = useState<string>('');
+
+  // Auto-select assigned project if available and not yet set
+  useEffect(() => {
+    if (assignedProjects.length > 0 && !targetProjectId) {
+      setTargetProjectId(assignedProjects[0].id);
+      setTargetWorkflow(assignedProjects[0].name);
+    }
+  }, [assignedProjects, targetProjectId]);
+
+  const handleProjectSelect = (val: string) => {
+    if (val === '__CUSTOM__' || val === '') {
+      setTargetProjectId('');
+      const isPresetName = projectsList.some((p) => p.name === targetWorkflow);
+      if (isPresetName) {
+        setTargetWorkflow('');
+      }
+    } else {
+      setTargetProjectId(val);
+      const found = projectsList.find((p) => p.id === val);
+      if (found) {
+        setTargetWorkflow(found.name);
+      }
+    }
+  };
 
   // Confirmation & State
   const [confirmCheckbox, setConfirmCheckbox] = useState<boolean>(false);
@@ -142,9 +232,9 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
   // Target project name if selected
   const selectedProjectName = useMemo(() => {
     if (!targetProjectId) return targetWorkflow || 'General Operational Workflow';
-    const found = projectOptions.find((p) => p.id === targetProjectId);
+    const found = projectsList.find((p) => p.id === targetProjectId);
     return found ? found.name : targetWorkflow || 'Modernization Project';
-  }, [targetProjectId, targetWorkflow, projectOptions]);
+  }, [targetProjectId, targetWorkflow, projectsList]);
 
   // Form submission handler
   const handleFinalSubmit = async (e: React.FormEvent) => {
@@ -163,11 +253,12 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
     try {
       setIsSubmitting(true);
       setSubmitError(null);
+      const roleToSend = (activeRoleDetails.code || selectedRoleCode).toUpperCase();
       await temporaryRolesApi.requestRole({
-        role: selectedRoleCode,
+        role: roleToSend,
         durationHours,
         reason: justification.trim(),
-        ...(targetProjectId ? { projectId: targetProjectId } : {}),
+        ...(targetProjectId && targetProjectId !== '__CUSTOM__' ? { projectId: targetProjectId } : {}),
       });
       onSuccess('Temporary elevation request dispatched for Team Lead & Administrator approval.');
     } catch (err: any) {
@@ -334,6 +425,11 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Pending Request in Review</span>
                   </div>
+                ) : user?.isPlatformAdmin ? (
+                  <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-[11px] flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="font-semibold">Platform Administrator (Global Access Active)</span>
+                  </div>
                 ) : (
                   <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -346,36 +442,81 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
             {/* Target Project or Workflow Inputs (7 cols on lg) */}
             <div className="lg:col-span-7 space-y-4">
               <div>
-                <label
-                  htmlFor="target-project-select"
-                  className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5"
-                >
-                  Target Project (Optional Linkage)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label
+                    htmlFor="target-project-select"
+                    className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider"
+                  >
+                    Target Project (Assigned & Queue Scope) *
+                  </label>
+                  {assignedProjects.length > 0 && (
+                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      ⭐ {assignedProjects.length} Assigned Project{assignedProjects.length > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+
                 <div className="relative">
                   <FolderGit2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
                   <select
                     id="target-project-select"
-                    value={targetProjectId}
-                    onChange={(e) => {
-                      const pId = e.target.value;
-                      setTargetProjectId(pId);
-                      const found = projectOptions.find((p) => p.id === pId);
-                      if (found && !targetWorkflow) {
-                        setTargetWorkflow(found.name);
-                      }
-                    }}
+                    value={targetProjectId || (targetWorkflow ? '__CUSTOM__' : '')}
+                    onChange={(e) => handleProjectSelect(e.target.value)}
                     disabled={!!myActiveRole || userHasPendingRequest}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] text-[#17263A]"
+                    className="w-full pl-9 pr-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] text-[#17263A] font-medium"
                   >
-                    <option value="">Global / Workspace Operational Queue (No specific project)</option>
-                    {projectOptions.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        Project: {p.name}
-                      </option>
-                    ))}
+                    {assignedProjects.length > 0 && (
+                      <optgroup label="⭐ Projects Assigned To Me (Dự án được phân công)">
+                        {assignedProjects.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            ⭐ {p.name} {p.targetFramework ? `[${p.targetFramework}]` : ''} {p.partnerName ? `— ${p.partnerName}` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    {otherProjects.length > 0 && (
+                      <optgroup label="📁 Other Available Modernization Projects (Dự án khác)">
+                        {otherProjects.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            📁 {p.name} {p.targetFramework ? `[${p.targetFramework}]` : ''} {p.partnerName ? `— ${p.partnerName}` : ''}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    <optgroup label="🌐 General Operational Tasks">
+                      <option value="__CUSTOM__">🌐 Custom / General Pipeline Operational Queue (No specific project)</option>
+                    </optgroup>
                   </select>
                 </div>
+
+                {/* Quick Assigned Projects Pill Buttons */}
+                {assignedProjects.length > 0 && (
+                  <div className="space-y-1.5 pt-2">
+                    <span className="text-[11px] font-medium text-slate-500">Quick select your assigned project:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {assignedProjects.map((p) => {
+                        const isSelected = targetProjectId === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => handleProjectSelect(p.id)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#244A70] text-white shadow-xs ring-2 ring-[#244A70]/20'
+                                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                          >
+                            <span>⭐ {p.name}</span>
+                            {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -395,7 +536,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                   className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] text-[#17263A]"
                 />
                 <p className="text-[11px] text-[#8491A3] mt-1.5">
-                  Specify the target modernization project, pipeline queue, or operational task that requires elevated privileges.
+                  Confirm the modernization project or operational sprint that requires elevated privileges.
                 </p>
               </div>
             </div>

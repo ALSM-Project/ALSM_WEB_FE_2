@@ -36,27 +36,47 @@ interface TeamLeadCandidate {
 
 const DEPARTMENTS = [
   'Modernization Engineering',
+  'Conversion Operations',
+  'Executive & Administration',
+  'Platform Operations',
   'Core Banking Modernization',
   'Legacy Systems Transformation',
   'Distributed Systems & Microservices',
-  'Platform Operations',
   'Cloud Architecture',
 ];
 
-const getLeadSpecializations = (leadId: string, idx: number): string[] => {
+const getLeadSpecializations = (leadId: string, idx: number, leadCandidate?: TeamLeadCandidate): string[] => {
   const specMap: Record<string, string[]> = {
     'lead-01': ['React 19', 'Tailwind CSS', 'Architecture Design'],
-    'lead-02': ['IBM COBOL', 'Spring Boot 3.3', 'Java 21'],
+    'lead-02': ['IBM COBOL', 'Spring Boot 3.3', 'Java 17'],
     'lead-03': ['Distributed Systems', 'Microservices', 'Spring Cloud'],
     'lead-04': ['AS400 / DSPF', 'AST Parser', 'Next.js'],
     'lead-05': ['AST Parser', 'BMS Screens', 'React 19'],
     'lead-06': ['BMS / DSPF', 'React 19', 'AST Parser'],
-    'lead-07': ['COBOL', 'CICS', 'Java 21'],
+    'lead-07': ['COBOL', 'CICS', 'Java 17'],
     'lead-08': ['React 19', 'TypeScript', 'Node.js'],
     'lead-09': ['React 19', 'TypeScript', 'Tailwind CSS'],
     'lead-10': ['Cloud Architecture', 'AWS / GCP', 'Microservices'],
   };
-  return specMap[leadId] || (idx % 2 === 0 ? ['React 19', 'Tailwind CSS'] : ['Spring Boot 3.3', 'Java 21']);
+  if (specMap[leadId]) return specMap[leadId];
+
+  const roles = leadCandidate?.roles || [];
+  const dept = leadCandidate?.department || '';
+
+  if (roles.some((r) => r.toLowerCase().includes('lead') || r.toUpperCase() === 'TEAM_LEAD')) {
+    return ['Architecture Design', 'Modernization Engineering', 'AST Review'];
+  }
+  if (roles.some((r) => r.toLowerCase().includes('admin') || r.toUpperCase() === 'ADMIN')) {
+    return ['Platform Operations', 'Security Governance', 'System Administration'];
+  }
+  if (roles.some((r) => r.toLowerCase().includes('conversion') || r.toUpperCase() === 'CONVERSION_STAFF')) {
+    return ['BMS / DSPF', 'React 19', 'AST Parser'];
+  }
+  if (dept.toLowerCase().includes('banking')) {
+    return ['Core Banking Modernization', 'COBOL', 'Spring Boot 3.3'];
+  }
+
+  return idx % 2 === 0 ? ['React 19', 'Tailwind CSS'] : ['Spring Boot 3.3', 'Java 17'];
 };
 
 const getWorkloadStatus = (activeWorkload: number) => {
@@ -114,7 +134,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
       setErrorMsg(null);
 
       // Fetch projects, workforce leads, and organizations in parallel
-      const [fetchedProjects, workforceRes, orgList] = await Promise.all([
+      const [fetchedProjects, workforceRes, internalStaffRes, assignableLeadsRes, orgList] = await Promise.all([
         partnersApi.getProjects().catch(() => []),
         workforceApi
           .searchWorkforce({
@@ -124,6 +144,8 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
             limit: 100,
           })
           .catch(() => ({ items: [] as WorkforceEmployee[] })),
+        workforceApi.getInternalStaff().catch(() => [] as WorkforceEmployee[]),
+        adminApi.getAssignableTeamLeads().catch(() => [] as any[]),
         adminApi.getOrganizations().catch(() => []),
       ]);
 
@@ -151,21 +173,54 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
         setErrorMsg(`Managed Modernization Project with ID "${projectId}" was not found.`);
       }
 
-      // Map internal workforce team leads
-      const staffItems: WorkforceEmployee[] = workforceRes?.items || [];
+      // Map internal workforce team leads from authoritative Web 2 sources
+      const combinedStaff = new Map<string, any>();
+      (workforceRes?.items || []).forEach((item) => {
+        const key = item.userId || item.id;
+        if (key) combinedStaff.set(key, item);
+      });
+      (Array.isArray(internalStaffRes) ? internalStaffRes : []).forEach((item) => {
+        const key = item.userId || item.id;
+        if (key && !combinedStaff.has(key)) combinedStaff.set(key, item);
+      });
+      (Array.isArray(assignableLeadsRes) ? assignableLeadsRes : []).forEach((item) => {
+        const key = item.id || item.userId;
+        if (key && !combinedStaff.has(key)) {
+          combinedStaff.set(key, {
+            id: key,
+            userId: key,
+            fullName: item.fullName,
+            email: item.email,
+            role: item.role,
+            roles: item.roles || [item.role],
+            status: 'ACTIVE',
+            activeWorkload: item.activeWorkload,
+          });
+        }
+      });
+
+      const staffItems = Array.from(combinedStaff.values());
       const mappedLeads: TeamLeadCandidate[] = staffItems
-        .filter((emp: WorkforceEmployee) => emp.status === 'ACTIVE')
-        .map((emp: WorkforceEmployee) => {
-          const activeProjCount = projectsList.filter(
-            (p) => p.assignedTeamLeadId === emp.userId || p.assignedTeamLeadId === emp.id
-          ).length;
+        .filter((emp: any) => emp.status === 'ACTIVE' || !emp.status)
+        .map((emp: any) => {
+          const uId = emp.userId || emp.id;
+          const activeProjCount =
+            typeof emp.activeWorkload === 'number'
+              ? emp.activeWorkload
+              : projectsList.filter(
+                  (p) => p.assignedTeamLeadId === uId || p.assignedTeamLeadId === emp.id
+                ).length;
 
           return {
-            id: emp.userId || emp.id,
-            fullName: emp.fullName,
-            email: emp.email,
-            department: emp.department || 'Modernization Engineering',
-            employeeCode: emp.employeeCode,
+            id: uId,
+            fullName: emp.fullName || emp.email || 'Team Lead',
+            email: emp.email || '',
+            department:
+              emp.department ||
+              (emp.role === 'Team Lead' || emp.roles?.includes('TEAM_LEAD')
+                ? 'Modernization Engineering'
+                : 'Platform Operations'),
+            employeeCode: emp.employeeCode || `TL-${String(uId).slice(-4).toUpperCase()}`,
             activeWorkload: activeProjCount,
             maxCapacity: emp.maxCapacity || 5,
             roles: emp.roles && emp.roles.length > 0 ? emp.roles : [emp.role || 'Authorized Team Lead'],
@@ -277,15 +332,12 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
         },
       ];
 
-      // Merge mapped leads with authorized roster, avoiding duplicates
-      const mergedList = [...mappedLeads];
-      for (const al of authorizedLeads) {
-        if (!mergedList.some((m) => m.id === al.id || m.email.toLowerCase() === al.email.toLowerCase())) {
-          mergedList.push(al);
-        }
+      // Use authoritative Web 2 internal members if available; otherwise use fallback roster for isolated testing
+      if (mappedLeads.length > 0) {
+        setTeamLeads(mappedLeads);
+      } else {
+        setTeamLeads(authorizedLeads);
       }
-
-      setTeamLeads(mergedList);
     } catch (err: any) {
       console.error('Failed to load project details for team lead assignment:', err);
       setErrorMsg(err.message || 'Failed to load project information');
@@ -470,7 +522,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
             </div>
           </div>
           <span className="bg-blue-50 text-[#244A70] border border-blue-200 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
-            {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 21' : 'BMS/DSPF → React 19'}
+            {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 17' : 'BMS/DSPF → React 19'}
           </span>
         </div>
 
@@ -498,7 +550,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
             <div className="flex items-center space-x-1.5 font-semibold text-slate-800">
               <Code2 className="w-3.5 h-3.5 text-emerald-600" />
               <span className="truncate">
-                {project?.targetFramework || (project?.conversionType === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 21' : 'React 19 + Tailwind CSS')}
+                {project?.targetFramework || (project?.conversionType === 'COBOL_TO_JAVA' ? 'Spring Boot 3.3 / Java 17' : 'React 19 + Tailwind CSS')}
               </span>
             </div>
           </div>
@@ -720,7 +772,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                         const isSelected = selectedLeadId === lead.id;
                         const isCurrent = project?.assignedTeamLeadId === lead.id;
                         const wl = getWorkloadStatus(lead.activeWorkload);
-                        const skills = getLeadSpecializations(lead.id, idx);
+                        const skills = getLeadSpecializations(lead.id, idx, lead);
 
                         return (
                           <tr
@@ -934,7 +986,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       Core Competencies & Stack:
                     </span>
                     <div className="flex flex-wrap gap-1">
-                      {getLeadSpecializations(selectedLead.id, 0).map((skill) => (
+                      {getLeadSpecializations(selectedLead.id, 0, selectedLead).map((skill) => (
                         <span key={skill} className="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] text-slate-700 font-medium shadow-2xs">
                           {skill}
                         </span>

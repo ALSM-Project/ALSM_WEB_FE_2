@@ -58,7 +58,7 @@ export const CreatePartnerProjectPage: React.FC = () => {
     if (type === 'BMS_DSPF_TO_FRONTEND') {
       setTargetFramework('React 19 + Tailwind CSS');
     } else {
-      setTargetFramework('Spring Boot 3.3 / Java 21');
+      setTargetFramework('Spring Boot 3.3 / Java 17');
     }
   };
 
@@ -363,7 +363,7 @@ export const CreatePartnerProjectPage: React.FC = () => {
                   <div className="mt-3 flex items-center justify-between text-[11px] pt-2.5 border-t border-[#DCE3EC]/60">
                     <span className="text-[#8491A3]">Source: COBOL / CBL</span>
                     <span className="font-semibold px-2 py-0.5 rounded-full bg-purple-100/70 text-purple-700">
-                      Spring Boot 3 + Java 21
+                      Spring Boot 3 + Java 17
                     </span>
                   </div>
                 </div>
@@ -394,9 +394,9 @@ export const CreatePartnerProjectPage: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <option value="Spring Boot 3.3 / Java 21">Spring Boot 3.3 / Java 21 (Gradle)</option>
-                        <option value="Quarkus 3 / Java 21">Quarkus 3 / Java 21 (GraalVM Native)</option>
-                        <option value="Micronaut 4 / Java 21">Micronaut 4 / Java 21</option>
+                        <option value="Spring Boot 3.3 / Java 17">Spring Boot 3.3 / Java 17 (Gradle)</option>
+                        <option value="Quarkus 3 / Java 17">Quarkus 3 / Java 17 (GraalVM Native)</option>
+                        <option value="Micronaut 4 / Java 17">Micronaut 4 / Java 17</option>
                       </>
                     )}
                   </select>

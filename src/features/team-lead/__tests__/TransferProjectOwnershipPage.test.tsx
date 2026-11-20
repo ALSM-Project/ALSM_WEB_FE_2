@@ -13,7 +13,7 @@ const mockProjects = [
     partnerId: 'partner-fintech',
     partnerName: 'FinTech Global Corp',
     conversionType: 'COBOL_TO_JAVA',
-    targetFramework: 'Spring Boot 3.0 / Java 21',
+    targetFramework: 'Spring Boot 3.0 / Java 17',
     status: 'ACTIVE',
     screensTotal: 4,
     screensCompleted: 2,
@@ -162,5 +162,31 @@ describe('TransferProjectOwnershipPage - Dedicated Transfer Workflow', () => {
 
     // Should display success feedback
     expect(await screen.findByText(/has been successfully transferred to David Chen/i)).toBeInTheDocument();
+  });
+
+  it('supports admin route and navigates to admin projects upon clicking return', async () => {
+    const adminWrapper = ({ children }: { children?: React.ReactNode }) => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false, gcTime: 0 } },
+      });
+      return (
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={['/admin/projects/proj-transfer-101/transfer']}>
+            <Routes>
+              <Route path="/admin/projects/:projectId/transfer" element={children} />
+              <Route path="/admin/projects" element={<div>Admin Projects Page</div>} />
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      );
+    };
+
+    render(<TransferProjectOwnershipPage />, { wrapper: adminWrapper });
+
+    expect(await screen.findByText('Core Banking Modernization Suite')).toBeInTheDocument();
+    expect(screen.getByText('Return to Team Lead Assignment')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Return to Team Lead Assignment'));
+    expect(await screen.findByText('Admin Projects Page')).toBeInTheDocument();
   });
 });

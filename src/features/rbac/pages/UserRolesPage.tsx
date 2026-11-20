@@ -6,7 +6,6 @@ import {
 } from 'lucide-react';
 import { rbacApi, UserRbacDto, RoleDto } from '../api/rbac.api';
 import { usersApi } from '../../users/api/users.api';
-import { OffboardingWizardModal } from '../../users/components/OffboardingWizardModal';
 import { Modal, Input, Button } from '@/shared/ui';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
@@ -32,9 +31,6 @@ export const UserRolesPage: React.FC = () => {
   const [lockDuration, setLockDuration] = useState('24_HOURS');
   const [confirmLock, setConfirmLock] = useState<boolean>(false);
   const [isLocking, setIsLocking] = useState<boolean>(false);
-
-  // Offboarding Modal State
-  const [offboardTargetUser, setOffboardTargetUser] = useState<UserRbacDto | null>(null);
 
   const loadData = async () => {
     try {
@@ -358,8 +354,8 @@ export const UserRolesPage: React.FC = () => {
                       {/* Controlled Offboard (SRS 3.14.2) */}
                       {canOffboard && !user.isPlatformAdmin && (user.isActive ?? true) && user.id !== actor?.id && (
                         <button
-                          onClick={() => setOffboardTargetUser(user)}
-                          className="px-2 py-1 rounded-lg text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 flex items-center gap-1"
+                          onClick={() => navigate(`/admin/users/${user.id}/offboard`)}
+                          className="px-2 py-1 rounded-lg text-xs font-semibold border border-rose-200 bg-white text-rose-600 hover:bg-rose-50 flex items-center gap-1 cursor-pointer"
                           title="Offboard user and transfer resources"
                         >
                           <UserMinus className="w-3.5 h-3.5" />
@@ -508,19 +504,6 @@ export const UserRolesPage: React.FC = () => {
           </div>
         </form>
       </Modal>
-
-      {/* Offboarding Wizard Modal (SRS 3.14.2) */}
-      <OffboardingWizardModal
-        isOpen={!!offboardTargetUser}
-        onClose={() => setOffboardTargetUser(null)}
-        userToOffboard={offboardTargetUser as any}
-        activeStaffMembers={users as any}
-        onSuccess={() => {
-          setSuccessMsg(`User ${offboardTargetUser?.email} successfully offboarded and resources transferred.`);
-          loadData();
-          setTimeout(() => setSuccessMsg(null), 4000);
-        }}
-      />
 
       {/* Manage User Roles Modal */}
       {selectedUser && (

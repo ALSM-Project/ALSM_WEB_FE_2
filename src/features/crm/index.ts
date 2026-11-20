@@ -16,7 +16,6 @@ export * from './components/ScheduleDemoModal';
 export * from './components/CreateQuoteModal';
 export * from './components/EnterpriseQuoteWizardModal';
 export * from './components/QuotePreviewModal';
-export * from './components/CreateContractModal';
 export * from './components/ContractPreviewModal';
 export * from './components/ManageStageModal';
 export * from './components/CustomerActivationModal';

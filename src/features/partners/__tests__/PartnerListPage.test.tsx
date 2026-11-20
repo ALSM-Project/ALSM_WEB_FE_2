@@ -156,4 +156,64 @@ describe('PartnerListPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(/cannot reach the server/i);
     expect(screen.queryByText('Fintech Nexus International')).not.toBeInTheDocument();
   });
+
+  it('displays ONLY organizations with Contract Type 2 (MANAGED MODERNIZATION SERVICES)', async () => {
+    vi.mocked(apiClient.get).mockImplementation(async (url: string) => {
+      if (url === '/partners') return [];
+      if (url === '/projects') return [];
+      if (url === '/crm/contracts?limit=100') {
+        return {
+          items: [
+            {
+              contractNumber: 'CTR-MNG-001',
+              serviceMode: 'WE_CONVERT_FOR_YOU',
+              contractType: 'MANAGED_CONVERSION_SOW',
+              organizationId: 'org-mng-01',
+            },
+          ],
+        };
+      }
+      if (url === '/admin/organizations') {
+        return [
+          {
+            id: 'org-mng-01',
+            name: 'Managed Enterprise Corp',
+            domain: 'managedcorp.com',
+            contactEmail: 'contact@managedcorp.com',
+            serviceMode: 'WE_CONVERT_FOR_YOU',
+            engagementType: 'Managed Modernization',
+            status: 'ACTIVE',
+          },
+          {
+            id: 'org-self-02',
+            name: 'Self Service Organization',
+            domain: 'selfservice.com',
+            contactEmail: 'contact@selfservice.com',
+            serviceMode: 'CUSTOMER_SELF_SERVICE',
+            engagementType: 'Trial',
+            status: 'ACTIVE',
+          },
+          {
+            id: 'org-personal-03',
+            name: 'Personal Workspace',
+            domain: 'personal.com',
+            contactEmail: 'contact@personal.com',
+            serviceMode: 'CUSTOMER_SELF_SERVICE',
+            engagementType: 'Trial',
+            status: 'ACTIVE',
+          },
+        ];
+      }
+      return [];
+    });
+
+    render(<PartnerListPage />, { wrapper: createWrapper() });
+
+    // Managed organization must be displayed
+    expect(await screen.findByText('Managed Enterprise Corp')).toBeInTheDocument();
+
+    // Self-service organization and Personal Workspace must NOT be displayed
+    expect(screen.queryByText('Self Service Organization')).not.toBeInTheDocument();
+    expect(screen.queryByText('Personal Workspace')).not.toBeInTheDocument();
+  });
 });

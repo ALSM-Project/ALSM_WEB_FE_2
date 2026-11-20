@@ -17,10 +17,6 @@ vi.mock('../api/rbac.api', () => ({
   },
 }));
 
-vi.mock('../../users/components/OffboardingWizardModal', () => ({
-  OffboardingWizardModal: () => null,
-}));
-
 describe('UserRolesPage Navigation & Directory Suite', () => {
   const mockUsers = [
     {
