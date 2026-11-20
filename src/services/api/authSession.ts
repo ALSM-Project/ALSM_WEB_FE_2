@@ -132,9 +132,7 @@ export const tokenStore = {
     publish(tokens, epoch);
   },
   async acceptTokens(tokens: AuthTokens): Promise<void> {
-    const epoch = tokenStore.epoch();
     await lock(async () => {
-      if (epoch !== tokenStore.epoch()) throw new Error('Authentication was superseded');
       tokenStore.setTokens(tokens);
     });
   },

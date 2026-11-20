@@ -8,128 +8,7 @@ import { Button } from '@/shared/ui';
 import { AuditDetailModal } from '../components/AuditDetailModal';
 import { formatIpAddress } from '@/shared/utils/network';
 
-const MOCK_AUDIT_LOGS: AuditLogDto[] = [
-  {
-    id: 'audit-001',
-    timestamp: '2026-10-21T15:30:00Z',
-    actor: 'Alex Mercer (Sales Manager)',
-    action: 'DISCOUNT_APPROVED',
-    resourceType: 'QUOTE',
-    resourceId: 'Q-2026-FNX-01',
-    ipAddress: '192.168.1.42',
-    metadata: { discountPercent: 20, leadCompany: 'Fintech Nexus International', value: 54000 },
-  },
-  {
-    id: 'audit-002',
-    timestamp: '2026-10-21T14:15:00Z',
-    actor: 'System Administrator',
-    action: 'IMPERSONATE',
-    resourceType: 'ORGANIZATION',
-    resourceId: 'org-acme-corp',
-    ipAddress: '10.0.4.18',
-    metadata: { reason: 'Customer support request for BMS screen review', readOnly: true },
-  },
-  {
-    id: 'audit-003',
-    timestamp: '2026-10-21T12:00:00Z',
-    actor: 'System Administrator',
-    action: 'USER_LOCKED',
-    resourceType: 'USER',
-    resourceId: 'usr-inactive-staff',
-    ipAddress: '10.0.4.18',
-    metadata: { reason: 'Security hold / 24 Hours duration', lockDuration: '24_HOURS' },
-  },
-  {
-    id: 'audit-004',
-    timestamp: '2026-10-21T10:45:00Z',
-    actor: 'System Administrator',
-    action: 'ROLE_GRANTED',
-    resourceType: 'ROLE',
-    resourceId: 'SALES_MANAGER',
-    ipAddress: '10.0.4.18',
-    metadata: { permissionKey: 'sales.discounts.reject', grantedToRole: 'SALES_MANAGER' },
-  },
-  {
-    id: 'audit-005',
-    timestamp: '2026-10-21T09:20:00Z',
-    actor: 'Sarah Jenkins (Team Lead)',
-    action: 'PROJECT_ASSIGNED',
-    resourceType: 'PROJECT',
-    resourceId: 'proj-acme-bms-01',
-    ipAddress: '172.16.0.24',
-    metadata: { assignedStaff: 'David Nguyen', teamLead: 'Sarah Jenkins' },
-  },
-  {
-    id: 'audit-006',
-    timestamp: '2026-10-20T16:10:00Z',
-    actor: 'Alex Mercer (Sales Manager)',
-    action: 'CONTRACT_SIGNED',
-    resourceType: 'ORGANIZATION',
-    resourceId: 'org-gtl',
-    ipAddress: '192.168.1.88',
-    metadata: { annualValue: 150000, company: 'Global Transit Logistics' },
-  },
-  {
-    id: 'audit-007',
-    timestamp: '2026-10-20T13:40:00Z',
-    actor: 'System Administrator',
-    action: 'ENGAGEMENT_UPDATED',
-    resourceType: 'ORGANIZATION',
-    resourceId: 'org-fnx-prod',
-    ipAddress: '10.0.4.18',
-    metadata: { previousPlan: 'ENTERPRISE_T1', newPlan: 'ENTERPRISE_T2' },
-  },
-  {
-    id: 'audit-008',
-    timestamp: '2026-10-20T11:05:00Z',
-    actor: 'David Nguyen (Conversion Staff)',
-    action: 'CONVERSION_EXPORT',
-    resourceType: 'CONVERSION',
-    resourceId: 'conv-job-901',
-    ipAddress: '172.16.0.88',
-    metadata: { bundleTarget: 'React-NestJS-Production.zip', screens: 12 },
-  },
-  {
-    id: 'audit-009',
-    timestamp: '2026-10-19T17:50:00Z',
-    actor: 'System Administrator',
-    action: 'LOGIN',
-    resourceType: 'USER',
-    resourceId: 'admin@alsm.io',
-    ipAddress: '10.0.4.18',
-    metadata: { authMethod: 'Password + TOTP 2FA', status: 'SUCCESS' },
-  },
-  {
-    id: 'audit-010',
-    timestamp: '2026-10-19T14:22:00Z',
-    actor: 'System Administrator',
-    action: 'USER_OFFBOARDED',
-    resourceType: 'USER',
-    resourceId: 'usr-contractor-99',
-    ipAddress: '10.0.4.18',
-    metadata: { transferTo: 'Sarah Jenkins', resourcesTransferred: 4 },
-  },
-  {
-    id: 'audit-011',
-    timestamp: '2026-10-18T10:15:00Z',
-    actor: 'Sarah Jenkins (Team Lead)',
-    action: 'LOGIN',
-    resourceType: 'USER',
-    resourceId: 'teamlead@alsm.io',
-    ipAddress: '172.16.0.24',
-    metadata: { authMethod: 'Password + Email Code' },
-  },
-  {
-    id: 'audit-012',
-    timestamp: '2026-10-17T09:30:00Z',
-    actor: 'System Administrator',
-    action: 'ROLE_REVOKED',
-    resourceType: 'ROLE',
-    resourceId: 'CONVERSION_STAFF',
-    ipAddress: '10.0.4.18',
-    metadata: { revokedPermission: 'billing.quotes.manage' },
-  },
-];
+
 
 export const AuditLogsPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditLogDto[]>([]);
@@ -163,13 +42,8 @@ export const AuditLogsPage: React.FC = () => {
         limit: 100,
       });
 
-      if (Array.isArray(data) && data.length > 0) {
-        setLogs(data);
-        setIsUsingMock(false);
-      } else {
-        setLogs(MOCK_AUDIT_LOGS);
-        setIsUsingMock(true);
-      }
+      setLogs(Array.isArray(data) ? data : []);
+      setIsUsingMock(false);
     } catch (err: any) {
       console.error('Failed to load audit logs:', err);
       const msg = err?.response?.data?.message || err?.message;
@@ -178,8 +52,8 @@ export const AuditLogsPage: React.FC = () => {
       } else {
         setErrorMsg(msg || 'Failed to connect to audit log service');
       }
-      setLogs(MOCK_AUDIT_LOGS);
-      setIsUsingMock(true);
+      setLogs([]);
+      setIsUsingMock(false);
     } finally {
       setLoading(false);
     }

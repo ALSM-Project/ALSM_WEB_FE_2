@@ -668,6 +668,32 @@ export function resolveNavigationContext(
       currentItem: null,
     };
   }
+  const adminAssignLeadMatch = cleanPath.match(/^\/admin\/projects\/([^/]+)\/assign-lead$/);
+  if (adminAssignLeadMatch) {
+    return {
+      sectionTitle: 'Administration',
+      pageTitle: 'Team Lead Assignment',
+      breadcrumbs: [
+        { label: 'Team Lead Assignment', path: '/admin/projects' },
+        { label: 'Allocate Team Lead' },
+      ],
+      currentItem: null,
+    };
+  }
+
+  const adminTransferMatch = cleanPath.match(/^\/admin\/projects\/([^/]+)\/transfer$/);
+  if (adminTransferMatch) {
+    return {
+      sectionTitle: 'Administration',
+      pageTitle: 'Transfer Project Ownership',
+      breadcrumbs: [
+        { label: 'Team Lead Assignment', path: '/admin/projects' },
+        { label: 'Transfer Ownership' },
+      ],
+      currentItem: null,
+    };
+  }
+
   if (cleanPath === '/admin/projects') {
     return {
       sectionTitle: 'Administration',
@@ -699,6 +725,34 @@ export function resolveNavigationContext(
       breadcrumbs: [
         { label: 'User Management', path: '/admin/users' },
         { label: 'Onboard Staff Account' },
+      ],
+      currentItem: null,
+    };
+  }
+  const adminUserOffboardMatch = cleanPath.match(/^\/admin\/users\/([^/]+)\/offboard$/);
+  if (adminUserOffboardMatch) {
+    const userId = adminUserOffboardMatch[1];
+    const userName = getDynamic(userId, dynamicLabels['offboardUser'] || dynamicLabels[userId] || 'Staff Member');
+    return {
+      sectionTitle: 'Administration',
+      pageTitle: `Offboard: ${userName}`,
+      breadcrumbs: [
+        { label: 'User Management', path: '/admin/users' },
+        { label: `Offboard: ${userName}` },
+      ],
+      currentItem: null,
+    };
+  }
+  const teamLeadUserOffboardMatch = cleanPath.match(/^\/team-lead\/users\/([^/]+)\/offboard$/);
+  if (teamLeadUserOffboardMatch) {
+    const userId = teamLeadUserOffboardMatch[1];
+    const userName = getDynamic(userId, dynamicLabels['offboardUser'] || dynamicLabels[userId] || 'Staff Member');
+    return {
+      sectionTitle: 'Team Lead',
+      pageTitle: `Offboard: ${userName}`,
+      breadcrumbs: [
+        { label: 'Offboarding Approvals', path: '/team-lead/offboarding-approvals' },
+        { label: `Offboard: ${userName}` },
       ],
       currentItem: null,
     };

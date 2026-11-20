@@ -6,6 +6,7 @@ import RolesPage from '@/features/rbac/pages/RolesPage';
 import UserRolesPage from '@/features/rbac/pages/UserRolesPage';
 import UserDetailPage from '@/features/users/pages/UserDetailPage';
 import { OnboardUserPage } from '@/features/users/pages/OnboardUserPage';
+import { UserOffboardPage } from '@/features/users/pages/UserOffboardPage';
 import { TemporaryRolesPage } from '@/features/rbac';
 import { AdminQualityReviewPage } from '@/features/conversions/pages/AdminQualityReviewPage';
 import ConversionQueuePage from '@/features/conversions/pages/ConversionQueuePage';
@@ -149,6 +150,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="users.manage">
             <UserDetailPage />
+          </PermissionGuard>
+        ) 
+      },
+      { 
+        path: '/admin/users/:userId/offboard', 
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <UserOffboardPage />
           </PermissionGuard>
         ) 
       },
@@ -329,6 +338,14 @@ export const router = createBrowserRouter([
           </PermissionGuard>
         ),
       },
+      {
+        path: '/team-lead/users/:userId/offboard',
+        element: (
+          <PermissionGuard permission="users.offboard">
+            <UserOffboardPage />
+          </PermissionGuard>
+        ),
+      },
       { path: '/validation', element: <StaffDashboardPage /> },
       { path: '/review', element: <PermissionGuard permission="quality-review.manage"><ConversionQueuePage reviewOnly /></PermissionGuard> },
       
@@ -460,6 +477,14 @@ export const router = createBrowserRouter([
         element: (
           <PermissionGuard permission="organizations.manage" platformAdminOnly>
             <AdminProjectAssignLeadPage />
+          </PermissionGuard>
+        ),
+      },
+      {
+        path: '/admin/projects/:projectId/transfer',
+        element: (
+          <PermissionGuard permission="organizations.manage" platformAdminOnly>
+            <TransferProjectOwnershipPage />
           </PermissionGuard>
         ),
       },

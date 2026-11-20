@@ -15,13 +15,19 @@ export const AuthCallbackPage = () => {
     const refreshToken = searchParams.get('refresh_token') || hashParams.get('refresh_token');
 
     if (accessToken && refreshToken) {
+      console.log('[FE2 AuthCallbackPage] Received tokens, accepting tokens...');
       void tokenStore.acceptTokens({ accessToken, refreshToken })
-        .then(() => { window.location.href = '/dashboard'; })
-        .catch(() => {
+        .then(() => {
+          console.log('[FE2 AuthCallbackPage] Tokens accepted successfully! Navigating to /dashboard');
+          window.location.href = '/dashboard';
+        })
+        .catch((err) => {
+          console.error('[FE2 AuthCallbackPage] tokenStore.acceptTokens failed:', err);
           const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
           window.location.href = `${loginUrl}/login`;
         });
     } else {
+      console.warn('[FE2 AuthCallbackPage] Missing accessToken or refreshToken in URL, bouncing back to FE1 login');
       const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
       window.location.href = `${loginUrl}/login`;
     }
@@ -35,7 +41,7 @@ export const AuthCallbackPage = () => {
 };
 
 export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, error } = useAuth();
   
   if (isLoading) {
     return (
@@ -46,6 +52,7 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
   }
 
   if (!user) {
+    console.warn('[FE2 ProtectedRoute] No user found (error:', error, '), redirecting to login');
     const loginUrl = import.meta.env.VITE_USER_PORTAL_URL || 'http://localhost:5173';
     const staffUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002';
     window.location.href = `${loginUrl}/login?returnTo=${encodeURIComponent(`${staffUrl}/auth/callback`)}`;
