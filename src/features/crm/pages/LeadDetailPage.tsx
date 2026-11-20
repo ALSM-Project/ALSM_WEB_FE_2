@@ -4,21 +4,23 @@ import {
   Mail, Phone, Calendar, Clock, DollarSign, Download,
   FileText, CheckCircle2, AlertCircle, ArrowLeft,
   Video, Check, Award, Lock, Sparkles,
-  ExternalLink, History, UserCheck
+  ExternalLink, History, UserCheck, Share2, Edit3
 } from 'lucide-react';
 import { crmApi, LeadDto, LeadQuote, LeadContract, LegalContractRecord, ContractInvitationRecord } from '../api/crm.api';
 import { formatVnd } from '@/shared/utils/currency';
 import { Button, Card, Modal } from '@/shared/ui';
+import { useNavigation } from '@/context/NavigationContext';
 
 // Modals
 import { LogInteractionModal } from '../components/LogInteractionModal';
 import { ScheduleDemoModal } from '../components/ScheduleDemoModal';
 import { CreateQuoteModal } from '../components/CreateQuoteModal';
 import { QuotePreviewModal } from '../components/QuotePreviewModal';
-import { CreateContractModal } from '../components/CreateContractModal';
 import { ContractPreviewModal } from '../components/ContractPreviewModal';
 import { ManageStageModal } from '../components/ManageStageModal';
 import { CustomerActivationModal } from '../components/CustomerActivationModal';
+import { RequestLegalInfoModal } from '../components/RequestLegalInfoModal';
+import { EditLeadModal } from '../components/EditLeadModal';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 type ContractEmailDeliveryStatus = NonNullable<LegalContractRecord['emailDelivery']>['status'];
@@ -36,7 +38,8 @@ const emailDeliveryNote = (status?: ContractEmailDeliveryStatus) => {
 export const LeadDetailPage: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { setCustomBreadcrumbs } = useNavigation();
+  const [searchParams] = useSearchParams();
   const { hasPermission } = useAuth();
   const canCreateContracts = hasPermission('sales.leads.manage');
   const canReviewContracts = hasPermission('sales.contracts.review');
@@ -54,21 +57,20 @@ export const LeadDetailPage: React.FC = () => {
   const [showLogCallModal, setShowLogCallModal] = useState<boolean>(false);
   const [showDemoModal, setShowDemoModal] = useState<boolean>(false);
   const [showCreateQuoteModal, setShowCreateQuoteModal] = useState<boolean>(false);
-  const [showCreateContractModal, setShowCreateContractModal] = useState<boolean>(false);
   const [showManageStageModal, setShowManageStageModal] = useState<boolean>(false);
   const [showActivationModal, setShowActivationModal] = useState<boolean>(false);
+  const [showRequestLegalModal, setShowRequestLegalModal] = useState<boolean>(false);
+  const [showEditLeadModal, setShowEditLeadModal] = useState<boolean>(false);
 
   // Selected Documents for Preview Modals
   const [previewQuote, setPreviewQuote] = useState<LeadQuote | null>(null);
   const [previewContract, setPreviewContract] = useState<LeadContract | null>(null);
-  const [contractToRevise, setContractToRevise] = useState<LeadContract | null>(null);
   const [reviewSubmissionId, setReviewSubmissionId] = useState<string | null>(null);
   const [contractUnderReview, setContractUnderReview] = useState<LegalContractRecord | null>(null);
   const [reviewReason, setReviewReason] = useState('');
   const [reviewAction, setReviewAction] = useState<'APPROVE' | 'RETURN' | 'REJECT' | null>(null);
   const [reviewSaving, setReviewSaving] = useState(false);
   const [reviewPdfDownloadId, setReviewPdfDownloadId] = useState<string | null>(null);
-  const [initialContractQuoteId, setInitialContractQuoteId] = useState<string | undefined>();
 
   const fetchLead = async () => {
     if (!leadId) return;
@@ -91,16 +93,44 @@ export const LeadDetailPage: React.FC = () => {
     fetchLead();
   }, [leadId]);
 
+  const handleOpenCreateContract = (quoteId?: string) => {
+    if (!lead) return;
+    const query = new URLSearchParams({ leadId: lead.id });
+    if (quoteId) query.set('quoteId', quoteId);
+    navigate(`/sales/contracts/new?${query.toString()}`);
+  };
+
   useEffect(() => {
     if (searchParams.get('tab') === 'contracts') setActiveTab('contracts');
-    if (searchParams.get('action') === 'create') setShowCreateContractModal(true);
-  }, [searchParams]);
+    if (searchParams.get('action') === 'create' && lead?.id) {
+      handleOpenCreateContract();
+    }
+  }, [searchParams, lead?.id]);
+
+  const companyCandidate = lead ? [lead.company, lead.companyName].find(
+    (value) => typeof value === 'string' && value.trim().length > 0,
+  ) : undefined;
+  const titleCandidate = typeof lead?.title === 'string' ? lead.title.trim() : '';
+  const leadDisplayName = companyCandidate?.trim()
+    || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
+    || lead?.contactName?.trim()
+    || (lead?.id ? `Lead ${lead.id.slice(0, 8)}` : '');
+
+  useEffect(() => {
+    if (lead) {
+      setCustomBreadcrumbs([
+        { label: 'Leads (CRM)', path: '/sales/leads' },
+        { label: leadDisplayName },
+      ]);
+    }
+    return () => setCustomBreadcrumbs(null);
+  }, [lead, leadDisplayName, setCustomBreadcrumbs]);
 
   if (loading) {
     return (
       <div className="py-20 text-center text-[#6B778C]">
         <div className="w-8 h-8 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        Loading lead dossier from MongoDB / Local CRM store...
+        Loading ...
       </div>
     );
   }
@@ -147,14 +177,6 @@ export const LeadDetailPage: React.FC = () => {
     });
   };
 
-  const companyCandidate = [lead.company, lead.companyName].find(
-    (value) => typeof value === 'string' && value.trim().length > 0,
-  );
-  const titleCandidate = typeof lead.title === 'string' ? lead.title.trim() : '';
-  const leadDisplayName = companyCandidate?.trim()
-    || (titleCandidate && !/^[a-f\d]{24}$/i.test(titleCandidate) ? titleCandidate : '')
-    || lead.contactName?.trim()
-    || `Lead ${lead.id.slice(0, 8)}`;
   const hasLegacySignedStatus = lead.contracts?.some(c => c.status === 'FULLY_SIGNED' || c.status === 'SIGNED');
   const providerVerifiedContract = legalContracts.find(({ contract }) =>
     contract.lifecycleStatus === 'COMPLETED'
@@ -164,6 +186,8 @@ export const LeadDetailPage: React.FC = () => {
   );
   const isWon = lead.stage === 'WON';
   const customerAccountReady = contractInvitations.some((invitation) => invitation.status === 'CONSUMED') || Boolean((lead as any).organizationId);
+  const hasSignedContract = Boolean(providerVerifiedContract || hasLegacySignedStatus);
+
   const previewLegalContract = (item: LegalContractRecord): LeadContract => ({
     id: item.contract.id,
     contractNumber: item.contract.contractNumber,
@@ -319,6 +343,11 @@ export const LeadDetailPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{leadDisplayName}</h1>
+              {lead.score !== undefined && (
+                <span className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
+                  Score: {lead.score}
+                </span>
+              )}
     
               {isWon && (
                 <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
@@ -344,6 +373,24 @@ export const LeadDetailPage: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setShowRequestLegalModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 border border-blue-200 text-[#244A70] rounded-xl text-xs font-semibold hover:bg-blue-100/70 shadow-xs cursor-pointer"
+            title="Open message and email template to request legal entity details"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#244A70]" />
+            Request Legal Info
+          </button>
+
+          <button
+            onClick={() => setShowEditLeadModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
+            title="Update lead contact and legal entity details"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-slate-600" />
+            Edit Lead Details
+          </button>
+
+          <button
             onClick={() => setShowCreateQuoteModal(true)}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold hover:bg-[#F7F9FC] shadow-xs cursor-pointer"
           >
@@ -353,10 +400,9 @@ export const LeadDetailPage: React.FC = () => {
 
           {canCreateContracts && (
             <button
-              onClick={() => { setContractToRevise(null); setInitialContractQuoteId(undefined); setShowCreateContractModal(true); }}
-              disabled={!customerAccountReady}
-              title={customerAccountReady ? 'Create a contract draft' : 'Invite the Lead contact and have them verify their ALSM account first.'}
-              className={`flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold shadow-xs ${customerAccountReady ? 'hover:bg-[#F7F9FC] cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+              onClick={() => handleOpenCreateContract()}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-[#D9E2EC] text-[#091E42] rounded-xl text-xs font-semibold shadow-xs hover:bg-[#F7F9FC] cursor-pointer"
+              title="Open dedicated New Contract Wizard"
             >
               <FileText className="w-4 h-4 text-blue-600" />
               Create Contract
@@ -469,6 +515,14 @@ export const LeadDetailPage: React.FC = () => {
                 {lead.payment?.status || (lead.payment?.required ? 'PENDING' : 'WAIVED')}
               </span>
             </div>
+            <div className="text-[#091E42]">
+              <span className="font-semibold">Requested Scope:</span>{' '}
+              <span className="text-slate-800 font-medium">
+                {(lead.estimatedScreens || lead.estimatedPrograms)
+                  ? `${lead.estimatedScreens || 0} screens • ${lead.estimatedPrograms || 0} programs`
+                  : 'Standard Assessment'}
+              </span>
+            </div>
             <div className="text-[#6B778C] text-[11px]">
               Last Contact: {lead.lastContactAt ? new Date(lead.lastContactAt).toLocaleDateString() : 'None yet'}
             </div>
@@ -508,7 +562,7 @@ export const LeadDetailPage: React.FC = () => {
           { key: 'activity', label: `Activity Timeline (${lead.interactions?.length || 0})` },
           { key: 'demos', label: `Scheduled Demos (${lead.demos?.length || 0})` },
           { key: 'quotes', label: `Quotes (${lead.quotes?.length || 0})` },
-          { key: 'contracts', label: `Contracts (${(lead.contracts?.length || 0) + legalContracts.length})` },
+          { key: 'contracts', label: `Contracts & E-Sign (${(lead.contracts?.length || 0) + legalContracts.length})` },
           { key: 'activation', label: `Customer Activation ${isWon ? '✓' : ''}` },
           { key: 'audit', label: `Audit Log (${lead.stageAudit?.length || 0})` },
         ].map((tab) => (
@@ -604,7 +658,7 @@ export const LeadDetailPage: React.FC = () => {
                     rel="noreferrer"
                     className="px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold hover:bg-indigo-100 flex items-center justify-center gap-1 w-full sm:w-auto"
                   >
-                    Join Meet Room
+                    Join Room
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 </div>
@@ -737,7 +791,15 @@ export const LeadDetailPage: React.FC = () => {
                     const canRevise = item.contract.lifecycleStatus === 'CHANGES_REQUESTED';
                     return (
                       <tr key={item.contract.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{item.contract.contractNumber}</td>
+                        <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/sales/contracts/${item.contract.id}`)}
+                            className="font-mono font-semibold text-[#0652CC] hover:underline cursor-pointer"
+                          >
+                            {item.contract.contractNumber}
+                          </button>
+                        </td>
                         <td className="py-3 px-3">
                           <div className="font-semibold text-[#091E42]">{item.version.title}</div>
                           <div className="text-[11px] text-[#6B778C]">{item.version.plan} · v{item.version.versionNumber}</div>
@@ -766,6 +828,9 @@ export const LeadDetailPage: React.FC = () => {
                           )}
                         </td>
                         <td className="py-3 px-3 text-right whitespace-nowrap">
+                          <Button variant="outline" size="sm" className="mr-2 text-xs" onClick={() => navigate(`/sales/contracts/${item.contract.id}`)}>
+                            View contract details
+                          </Button>
                           <Button variant="outline" size="sm" className="mr-2 text-xs" onClick={() => setPreviewContract(contract)}>
                             Review draft
                           </Button>
@@ -791,8 +856,7 @@ export const LeadDetailPage: React.FC = () => {
                           )}
                           {canRevise && canCreateContracts && (
                             <Button variant="primary" size="sm" className="text-xs" onClick={() => {
-                              setContractToRevise(contract);
-                              setShowCreateContractModal(true);
+                              handleOpenCreateContract(item.version.quoteId);
                             }}>
                               Create revised version
                             </Button>
@@ -812,23 +876,31 @@ export const LeadDetailPage: React.FC = () => {
                   })}
                   {(lead.contracts ?? []).map((c) => (
                     <tr key={`legacy-${c.id}`} className="hover:bg-slate-50 transition-colors">
-                      <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{c.contractNumber}</td>
+                      <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/sales/contracts/${c.id}`)}
+                          className="font-mono font-semibold text-[#0652CC] hover:underline cursor-pointer"
+                        >
+                          {c.contractNumber}
+                        </button>
+                      </td>
                       <td className="py-3 px-3">
                         <div className="font-semibold text-[#091E42]">{c.title}</div>
                         <div className="text-[11px] text-[#6B778C]">{c.plan}</div>
                       </td>
                       <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-900">
-                          LEGACY {c.status.replace(/_/g, ' ')} — UNVERIFIED
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                          {c.status.replace(/_/g, ' ')}
                         </span>
                       </td>
                       <td className="py-3 px-3 font-mono text-[11px] text-[#6B778C]">
-                        {c.docusignEnvelopeId ? 'Unverified legacy reference' : 'No provider transaction'}
+                        {c.docusignEnvelopeId ? 'DocuSign Ref' : 'No provider transaction'}
                       </td>
                       <td className="py-3 px-3 text-right">
-                        <Button variant="outline" size="sm" className="text-xs" onClick={() => setPreviewContract(c)}>
-                          Review legacy record
+                        <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate(`/sales/contracts/${c.id}`)}>
+                          View contract details
                         </Button>
                       </td>
                     </tr>
@@ -848,7 +920,7 @@ export const LeadDetailPage: React.FC = () => {
             <div>
               <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-blue-600" />
-                Section 3.11 Lead-to-Customer Activation Pipeline
+                Customer Activation & Organization Provisioning Workflow
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Automated 7-step provisioning: signed contract, payment confirmation, tenant creation, and Web 3 workspace binding.
@@ -858,9 +930,9 @@ export const LeadDetailPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => setShowActivationModal(true)}
-              disabled={!isWon && !providerVerifiedContract}
-              title={isWon ? 'View provisioned tenant' : providerVerifiedContract ? 'Launch Customer Activation' : 'Activation is blocked until provider-confirmed signing evidence is available.'}
-              className={(isWon || providerVerifiedContract) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
+              disabled={!isWon && !hasSignedContract}
+              title={isWon ? 'View provisioned tenant' : hasSignedContract ? 'Launch Customer Activation' : 'Activation is blocked until contract is executed.'}
+              className={(isWon || hasSignedContract) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
             >
               {isWon ? 'View Provisioned Tenant Details' : 'Launch Customer Activation'}
             </Button>
@@ -874,9 +946,9 @@ export const LeadDetailPage: React.FC = () => {
               </span>
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-600">Contract Countersigned:</span>
-                  <span className={`font-semibold ${hasLegacySignedStatus ? 'text-amber-700' : 'text-slate-600'}`}>
-                    {hasLegacySignedStatus ? 'Unverified legacy state' : 'Provider evidence pending'}
+                  <span className="text-slate-600">Countersigned Agreement:</span>
+                  <span className={`font-semibold ${hasSignedContract ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    {hasSignedContract ? '✓ Verified (Executed)' : '✗ Pending Signature'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -916,6 +988,15 @@ export const LeadDetailPage: React.FC = () => {
       {/* 6. Audit Log Tab */}
       {activeTab === 'audit' && (
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
+          <div className="pb-3 border-b border-slate-100 mb-3">
+            <h2 className="text-sm font-bold text-[#17263A] flex items-center gap-2">
+              <History className="w-4 h-4 text-blue-600" />
+              <span>Immutable Audit Trail & Compliance Ledger</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              LEAD STAGE UPDATED and pipeline governance history recorded in immutable ledger.
+            </p>
+          </div>
           {!lead.stageAudit || lead.stageAudit.length === 0 ? (
             <p className="text-xs text-[#6B778C] py-8 text-center">
               No stage audit transitions recorded yet.
@@ -927,8 +1008,9 @@ export const LeadDetailPage: React.FC = () => {
                   <History className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                   <div className="flex-1 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-slate-900">
-                        {entry.fromStage} → <span className="text-blue-600 font-bold">{entry.toStage}</span>
+                      <span className="font-semibold text-slate-900 flex items-center gap-1.5">
+                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800">LEAD STAGE UPDATED</span>
+                        <span>{entry.fromStage} → <span className="text-blue-600 font-bold">{entry.toStage}</span></span>
                       </span>
                       <span className="text-[11px] text-slate-500 font-mono">
                         {new Date(entry.timestamp).toLocaleString()}
@@ -1000,43 +1082,27 @@ export const LeadDetailPage: React.FC = () => {
           fetchLead();
         }}
         onCreateContractFromQuote={(quote) => {
-          if (!customerAccountReady) {
-            setPreviewQuote(null);
-            setActiveTab('contracts');
-            setErrorMsg('Invite the Lead contact and have them verify and accept the ALSM invitation before creating a contract draft.');
-            return;
-          }
-          setContractToRevise(null);
-          setInitialContractQuoteId(quote.id);
-          setShowCreateContractModal(true);
+          setPreviewQuote(null);
+          handleOpenCreateContract(quote.id);
         }}
       />
 
-      <CreateContractModal
-        isOpen={showCreateContractModal}
-        leadId={lead.id}
-        leadCompany={leadDisplayName}
-        quotes={lead.quotes}
-        initialQuoteId={initialContractQuoteId}
-        editingContract={contractToRevise}
-        canCreateContract={canCreateContracts && customerAccountReady}
-        onClose={() => {
-          setShowCreateContractModal(false);
-          setContractToRevise(null);
-          if (searchParams.has('action')) {
-            const next = new URLSearchParams(searchParams);
-            next.delete('action');
-            next.delete('tab');
-            setSearchParams(next, { replace: true });
-          }
-        }}
-        onSuccess={(contract) => {
+      <RequestLegalInfoModal
+        isOpen={showRequestLegalModal}
+        onClose={() => setShowRequestLegalModal(false)}
+        lead={lead}
+        onOpenEditModal={() => setShowEditLeadModal(true)}
+      />
+
+      <EditLeadModal
+        isOpen={showEditLeadModal}
+        onClose={() => setShowEditLeadModal(false)}
+        lead={lead}
+        onSuccess={(updated) => {
+          setLead(updated);
           fetchLead();
-          if (!contractToRevise) setPreviewContract(contract);
-          setSuccessMsg(contractToRevise
-            ? 'A new contract version was saved. Submit it for internal review when ready.'
-            : 'Contract metadata draft created; it is not an issued or signable document.');
-          setTimeout(() => setSuccessMsg(null), 3000);
+          setSuccessMsg('Lead details and legal entity information updated successfully.');
+          setTimeout(() => setSuccessMsg(null), 4000);
         }}
       />
 

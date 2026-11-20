@@ -24,7 +24,7 @@ const getActivationError = (error: any): string => {
     return 'Activation requires a provider-confirmed contract and verified archived signature evidence.';
   }
   if (code === 'DEMO_EVIDENCE_NOT_ACTIVATABLE') {
-    return 'Hợp đồng được ký trong chế độ DEMO không thể dùng để kích hoạt tổ chức khách hàng doanh nghiệp trong môi trường thật.';
+    return 'Contracts signed in DEMO mode cannot be used to activate enterprise customer organizations in production environments.';
   }
   if (code === 'LEAD_NOT_CONVERTIBLE') return 'A lead marked Lost cannot be converted.';
   if (code === 'LEAD_ALREADY_CONVERTED' || code === 'LEAD_CONVERSION_CONFLICT') {
