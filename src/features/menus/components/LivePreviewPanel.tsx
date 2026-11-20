@@ -210,6 +210,7 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'sales.discounts.view',
     'sales.discounts.approve',
     'sales.discounts.reject',
+    'sales.discounts.executive.review',
     'meetings.create',
     'meetings.view',
     'partner.view',

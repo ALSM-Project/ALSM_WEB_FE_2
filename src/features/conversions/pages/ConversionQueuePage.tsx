@@ -307,7 +307,7 @@ function ScopedConversionQueue({ identity, reviewOnly }: { identity: string; rev
                   >
                     <option value="ALL">All Types</option>
                     <option value="BMS_DSPF_TO_FRONTEND">BMS / DSPF to React</option>
-                    <option value="COBOL_TO_JAVA">COBOL to Java 21</option>
+                    <option value="COBOL_TO_JAVA">COBOL to Java 17</option>
                     <option value="COBOL_TO_NESTJS">COBOL to NestJS</option>
                   </select>
                 </label>
