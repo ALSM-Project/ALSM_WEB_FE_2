@@ -58,7 +58,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         {error ? (
           <span className="text-xs text-rose-700 font-medium">{error}</span>
         ) : helperText ? (
-          <span className="text-xs text-[#8491A3]">{helperText}</span>
+          <span className="text-xs text-slate-600">{helperText}</span>
         ) : null}
       </div>
     );

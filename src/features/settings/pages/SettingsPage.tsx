@@ -217,7 +217,7 @@ export const SettingsPage: React.FC = () => {
             onClick={handleFetchVersions}
             className="h-10 px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold text-[#17263A] bg-white border border-[#DCE3EC] hover:bg-[#F4F7FB] hover:border-[#B8C7D9] rounded-lg shadow-2xs transition-colors cursor-pointer"
           >
-            <History className="w-3.5 h-3.5 text-[#8491A3]" />
+            <History className="w-3.5 h-3.5 text-[#526071]" />
             <span>Version History</span>
           </button>
 
@@ -260,7 +260,7 @@ export const SettingsPage: React.FC = () => {
       {/* 2. Main Content Form — 2-Column Balanced Layout */}
       <form id="company-profile-form" onSubmit={handleSave}>
         {profileLoading ? (
-          <div className="p-12 text-center bg-white border border-[#DCE3EC] rounded-xl text-xs text-[#8491A3] flex flex-col items-center justify-center gap-3">
+          <div className="p-12 text-center bg-white border border-[#DCE3EC] rounded-xl text-xs text-[#526071] flex flex-col items-center justify-center gap-3">
             <Loader2 className="w-7 h-7 animate-spin text-[#244A70]" />
             <span className="font-medium">Loading company legal profile from database...</span>
           </div>
@@ -276,22 +276,22 @@ export const SettingsPage: React.FC = () => {
                       <Building className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#17263A]">
+                      <h2 className="text-sm font-bold text-[#17263A]">
                         Legal & Corporate Identification
-                      </h3>
-                      <p className="text-[11px] text-[#8491A3] mt-0.5">
+                      </h2>
+                      <p className="text-xs text-slate-600 max-w-[65ch] mt-0.5">
                         Authoritative legal entity information snapshot into customer contracts and commercial invoices.
                       </p>
                     </div>
                   </div>
-                  <span className="shrink-0 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-[#EEF1F6] text-[#244A70] border border-[#244A70]/20">
+                  <span className="shrink-0 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-[#EEF1F6] text-[#244A70] border border-[#244A70]/20">
                     Version {currentVersion} (Active)
                   </span>
                 </div>
 
                 <div className="space-y-4 text-xs">
                   <div>
-                    <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                       Legal Company Name <span className="text-red-500">*</span>
                     </label>
                     <Input
@@ -305,7 +305,7 @@ export const SettingsPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Tax ID (MST) <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -318,7 +318,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Business Registration Number
                       </label>
                       <Input
@@ -331,7 +331,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                       Registered Headquarters Address <span className="text-red-500">*</span>
                     </label>
                     <Input
@@ -344,7 +344,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                       Company Logo URI / Asset Path
                     </label>
                     <Input
@@ -365,10 +365,10 @@ export const SettingsPage: React.FC = () => {
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#17263A]">
+                      <h2 className="text-sm font-bold text-[#17263A]">
                         Settlement Bank Accounts
-                      </h3>
-                      <p className="text-[11px] text-[#8491A3] mt-0.5">
+                      </h2>
+                      <p className="text-xs text-slate-600 max-w-[65ch] mt-0.5">
                         Enterprise bank accounts for customer invoice receipts & contract settlements.
                       </p>
                     </div>
@@ -376,15 +376,15 @@ export const SettingsPage: React.FC = () => {
                 </div>
 
                 {isLoadingBankAccounts ? (
-                  <div className="py-6 flex items-center justify-center gap-2 text-xs text-[#8491A3]">
+                  <div className="py-6 flex items-center justify-center gap-2 text-xs text-slate-600">
                     <Loader2 className="w-4 h-4 animate-spin text-[#244A70]" />
                     <span>Loading bank account specifications...</span>
                   </div>
                 ) : defaultAccount ? (
                   <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="py-2 border-b border-[#F4F7FB] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-white border border-[#DCE3EC] flex items-center justify-center text-[#244A70] shadow-2xs shrink-0">
+                        <div className="w-10 h-10 rounded-lg bg-[#EEF1F6] flex items-center justify-center text-[#244A70] shrink-0">
                           <Landmark className="w-5 h-5" />
                         </div>
                         <div>
@@ -393,12 +393,12 @@ export const SettingsPage: React.FC = () => {
                               {defaultAccount.bankName}
                             </span>
                             {defaultAccount.bin && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#EEF1F6] text-[#8491A3]">
+                              <span className="px-1.5 py-0.5 rounded text-xs font-mono bg-[#EEF1F6] text-slate-700">
                                 BIN: {defaultAccount.bin}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-[#8491A3] mt-0.5">
+                          <p className="text-xs text-slate-600 mt-0.5">
                             {defaultAccount.accountHolderName}
                           </p>
                           <p className="text-xs font-mono font-semibold text-[#17263A] mt-0.5">
@@ -408,16 +408,16 @@ export const SettingsPage: React.FC = () => {
                       </div>
 
                       <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1.5 shrink-0">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                           Default Receiving
                         </span>
-                        <span className="text-[11px] font-semibold text-[#8491A3]">
+                        <span className="text-xs font-semibold text-slate-600">
                           {defaultAccount.currency || 'VND'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-[#8491A3] px-1">
+                    <div className="flex items-center justify-between text-xs text-slate-600">
                       <span>
                         Configured: <strong className="text-[#17263A]">{totalBankAccounts}</strong> bank accounts
                       </span>
@@ -431,7 +431,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="py-6 text-center text-xs text-[#8491A3] space-y-2">
+                  <div className="py-6 text-center text-xs text-slate-600 space-y-2">
                     <p>No beneficiary bank accounts configured yet.</p>
                     <Link
                       to="/admin/bank-accounts"
@@ -454,10 +454,10 @@ export const SettingsPage: React.FC = () => {
                     <FileCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#17263A]">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Legal Representation & Official Notices
-                    </h3>
-                    <p className="text-[11px] text-[#8491A3] mt-0.5">
+                    </h2>
+                    <p className="text-xs text-slate-600 max-w-[65ch] mt-0.5">
                       Statutory representative and formal contractual notice contact channel.
                     </p>
                   </div>
@@ -466,7 +466,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="space-y-4 text-xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Legal Representative Full Name <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -479,7 +479,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Representative Title / Position <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -494,7 +494,7 @@ export const SettingsPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Official Contract Notice Email <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -508,7 +508,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Contact Phone Number
                       </label>
                       <Input
@@ -529,10 +529,10 @@ export const SettingsPage: React.FC = () => {
                     <FileSignature className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-[#17263A]">
+                    <h2 className="text-sm font-bold text-[#17263A]">
                       Contract Signatory & Cryptographic Assurance
-                    </h3>
-                    <p className="text-[11px] text-[#8491A3] mt-0.5">
+                    </h2>
+                    <p className="text-xs text-slate-600 max-w-[65ch] mt-0.5">
                       Authorized digital certificate parameters for automated counter-signature stamping.
                     </p>
                   </div>
@@ -541,7 +541,7 @@ export const SettingsPage: React.FC = () => {
                 <div className="space-y-4 text-xs">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Designated Signer Full Name <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -554,7 +554,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Signer Title <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -569,7 +569,7 @@ export const SettingsPage: React.FC = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         Signer Email <span className="text-red-500">*</span>
                       </label>
                       <Input
@@ -583,7 +583,7 @@ export const SettingsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                      <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                         CA Provider
                       </label>
                       <Input
@@ -596,7 +596,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                       Certificate Serial Number
                     </label>
                     <Input
@@ -607,7 +607,7 @@ export const SettingsPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="p-3 bg-[#F8FAFC] border border-[#DCE3EC] rounded-lg">
+                  <div className="pt-3 border-t border-[#F4F7FB]">
                     <label className="flex items-center gap-3 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -619,7 +619,7 @@ export const SettingsPage: React.FC = () => {
                         <span className="font-semibold text-[#17263A] block">
                           Automatic Digital Counter-Signature
                         </span>
-                        <span className="text-[11px] text-[#8491A3] block">
+                        <span className="text-xs text-slate-600 block">
                           Automatically seal and countersign executed agreements upon customer digital sign-off.
                         </span>
                       </div>
@@ -627,7 +627,7 @@ export const SettingsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1.5">
+                    <label className="block text-xs font-semibold text-[#17263A] mb-1.5">
                       Audit Change Reason
                     </label>
                     <Input
@@ -681,7 +681,7 @@ export const SettingsPage: React.FC = () => {
                   <h4 className="text-sm font-bold text-[#17263A]">
                     Company Legal Profile Version Trail
                   </h4>
-                  <p className="text-[11px] text-[#8491A3]">
+                  <p className="text-[11px] text-[#526071]">
                     Immutable audit records preserved in database for legal non-repudiation.
                   </p>
                 </div>
@@ -689,7 +689,7 @@ export const SettingsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowVersionHistory(false)}
-                className="p-1 rounded-md text-[#8491A3] hover:text-[#17263A] hover:bg-[#DCE3EC] transition-colors cursor-pointer"
+                className="p-1 rounded-md text-[#526071] hover:text-[#17263A] hover:bg-[#DCE3EC] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -697,7 +697,7 @@ export const SettingsPage: React.FC = () => {
 
             <div className="p-6 max-h-[60vh] overflow-y-auto space-y-3">
               {versions.length === 0 ? (
-                <div className="py-8 text-center text-xs text-[#8491A3]">
+                <div className="py-8 text-center text-xs text-[#526071]">
                   No historical revisions recorded in the database.
                 </div>
               ) : (
@@ -721,19 +721,19 @@ export const SettingsPage: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <span className="text-[11px] text-[#8491A3] font-mono">
+                      <span className="text-[11px] text-[#526071] font-mono">
                         {ver.updatedAt ? new Date(ver.updatedAt).toLocaleString() : 'Canonical'}
                       </span>
                     </div>
                     <p className="text-xs text-[#17263A] font-medium">{ver.legalName}</p>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#8491A3] mt-1">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-[#526071] mt-1">
                       <span>MST: <strong className="text-[#17263A]">{ver.taxId}</strong></span>
                       <span>Representative: <strong className="text-[#17263A]">{ver.representativeName}</strong></span>
                       {ver.signatoryConfig?.signerName && (
                         <span>Signer: <strong className="text-[#17263A]">{ver.signatoryConfig.signerName}</strong></span>
                       )}
                     </div>
-                    <p className="text-[11px] text-[#8491A3] mt-2 pt-2 border-t border-[#DCE3EC]/60 italic">
+                    <p className="text-[11px] text-[#526071] mt-2 pt-2 border-t border-[#DCE3EC]/60 italic">
                       Change Reason: {ver.changeReason || 'System default configuration'}
                     </p>
                   </div>

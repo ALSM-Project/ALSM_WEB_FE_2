@@ -14,8 +14,8 @@ const STAGES: Array<{
 }> = [
   { key: 'NEW', label: 'New inbound', description: 'New opportunities', tone: 'text-slate-700', surface: 'bg-slate-200/70' },
   { key: 'CONTACTED', label: 'Contacted', description: 'Initial dialogue', tone: 'text-sky-800', surface: 'bg-sky-100' },
-  { key: 'QUALIFIED', label: 'Qualified', description: 'Needs confirmed', tone: 'text-indigo-800', surface: 'bg-indigo-100' },
-  { key: 'PROPOSAL', label: 'Proposal', description: 'Quote or proposal sent', tone: 'text-purple-800', surface: 'bg-purple-100' },
+  { key: 'QUALIFIED', label: 'Qualified', description: 'Needs confirmed', tone: 'text-[#244A70]', surface: 'bg-[#EEF1F6]' },
+  { key: 'PROPOSAL', label: 'Proposal', description: 'Quote or proposal sent', tone: 'text-amber-800', surface: 'bg-amber-100' },
   { key: 'NEGOTIATION', label: 'Negotiation', description: 'Commercial discussion', tone: 'text-blue-900', surface: 'bg-blue-100' },
   { key: 'WON', label: 'Closed won', description: 'Successfully closed', tone: 'text-emerald-800', surface: 'bg-emerald-100' },
   { key: 'LOST', label: 'Closed lost', description: 'Closed opportunities', tone: 'text-rose-800', surface: 'bg-rose-100' },
@@ -205,24 +205,24 @@ export const SalesPipelinePage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="overflow-x-auto px-1 pt-1 pb-4 -mx-1" aria-label="Sales pipeline board">
-          <div className="grid min-h-[500px] gap-3.5" style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(260px, 1fr))` }}>
+        <div className="overflow-x-auto px-2 py-2" aria-label="Sales pipeline board">
+          <div className="grid min-h-[500px] gap-4" style={{ gridTemplateColumns: `repeat(${STAGES.length}, minmax(260px, 1fr))` }}>
             {STAGES.map((stage) => {
               const leads = groupedLeads.get(stage.key) ?? [];
               return (
-                <section key={stage.key} aria-labelledby={`pipeline-stage-${stage.key}`} className={`flex min-h-[460px] flex-col rounded-2xl border border-[#DCE3EC] ${stage.key === 'WON' ? 'bg-emerald-50/30' : 'bg-[#F8FAFC]'}`}>
-                  <header className="border-b border-[#DCE3EC] p-3.5 bg-white/70 rounded-t-2xl">
+                <section key={stage.key} aria-labelledby={`pipeline-stage-${stage.key}`} className={`flex min-h-[460px] flex-col rounded-xl p-3 ${stage.key === 'WON' ? 'bg-emerald-50/50' : 'bg-[#F4F7FB]'}`}>
+                  <header className="border-b border-[#DCE3EC] pb-3 px-1">
                     <div className="flex items-center justify-between gap-2">
                       <h2 id={`pipeline-stage-${stage.key}`} className={`text-xs font-bold uppercase tracking-wider ${stage.tone}`}>{stage.label}</h2>
                       <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${stage.surface} ${stage.tone}`} aria-label={`${leads.length} opportunities`}>
                         {leads.length}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500 font-medium">{stage.description}</p>
+                    <p className="mt-1 text-xs text-slate-600 font-medium">{stage.description}</p>
                   </header>
-                  <div className="flex-1 space-y-3 overflow-y-auto p-3">
+                  <div className="flex-1 space-y-3 overflow-y-auto pt-3">
                     {leads.length === 0 ? (
-                      <p className="py-12 text-center text-xs italic text-slate-500 font-medium">No opportunities in this stage.</p>
+                      <p className="py-12 text-center text-xs italic text-slate-600 font-medium">No opportunities in this stage.</p>
                     ) : leads.map((lead) => (
                       <PipelineLeadCard key={lead.id} lead={lead} onOpen={() => navigate(`/crm/leads/${encodeURIComponent(lead.id)}`)} />
                     ))}

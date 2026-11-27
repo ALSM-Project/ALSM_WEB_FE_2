@@ -517,27 +517,27 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
               <FolderKanban className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#17263A]">Project Dossier & Modernization Scope</h3>
-              <span className="text-[11px] text-slate-500 font-mono">ID: {project?.id}</span>
+              <h2 className="text-sm font-bold text-[#17263A]">Project Dossier & Modernization Scope</h2>
+              <span className="text-xs text-slate-600 font-mono">ID: {project?.id}</span>
             </div>
           </div>
-          <span className="bg-blue-50 text-[#244A70] border border-blue-200 text-[11px] px-2.5 py-0.5 rounded-full font-bold">
+          <span className="bg-blue-50 text-[#244A70] border border-blue-200 text-xs px-2.5 py-0.5 rounded-full font-bold">
             {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 17' : 'BMS/DSPF → React 19'}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           {/* Project Name */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Project Name</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Project Name</span>
             <strong className="text-slate-900 text-sm font-bold block truncate" title={project?.name}>
               {project?.name}
             </strong>
           </div>
 
           {/* Client Organization */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Client Organization</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Client Organization</span>
             <div className="flex items-center space-x-1.5 font-semibold text-slate-800">
               <Building2 className="w-3.5 h-3.5 text-[#244A70]" />
               <span className="truncate">{organization?.name || project?.partnerName || 'Fintech Nexus Ltd.'}</span>
@@ -545,8 +545,8 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
           </div>
 
           {/* Target Architecture */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Target Architecture</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Target Architecture</span>
             <div className="flex items-center space-x-1.5 font-semibold text-slate-800">
               <Code2 className="w-3.5 h-3.5 text-emerald-600" />
               <span className="truncate">
@@ -556,12 +556,12 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
           </div>
 
           {/* Supervision Status */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Supervision Status</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Supervision Status</span>
             <div className="flex items-center gap-2">
               <StatusBadge status={project?.assignedTeamLeadId ? 'ACTIVE' : 'PENDING'} />
               {project?.assignedTeamLeadName && (
-                <span className="text-slate-700 font-semibold truncate text-[11px]">
+                <span className="text-slate-700 font-semibold truncate text-xs">
                   ({project.assignedTeamLeadName})
                 </span>
               )}
@@ -570,22 +570,22 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
         </div>
 
         {/* Scope Metrics Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-center">
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-            <span className="text-[10px] uppercase text-slate-500 font-semibold block">Total Assets</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100 text-center">
+          <div className="py-1">
+            <span className="text-xs uppercase text-slate-600 font-semibold block">Total Assets</span>
             <strong className="text-base font-extrabold text-[#17263A]">
               {(project?.screensTotal || 0) + (project?.programsTotal || 0) || '31'}
             </strong>
           </div>
-          <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-            <span className="text-[10px] uppercase text-emerald-700 font-semibold block">Screens</span>
+          <div className="py-1">
+            <span className="text-xs uppercase text-emerald-700 font-semibold block">Screens</span>
             <strong className="text-base font-extrabold text-emerald-800">
               {project?.screensTotal || '0'}
             </strong>
           </div>
-          <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200">
-            <span className="text-[10px] uppercase text-indigo-700 font-semibold block">Programs</span>
-            <strong className="text-base font-extrabold text-indigo-800">
+          <div className="py-1">
+            <span className="text-xs uppercase text-[#244A70] font-semibold block">Programs</span>
+            <strong className="text-base font-extrabold text-[#17263A]">
               {project?.programsTotal || '31'}
             </strong>
           </div>
@@ -609,7 +609,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
               </div>
             </div>
             {selectedLead && (
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 border border-emerald-200">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 border border-emerald-200">
                 <Check className="w-3 h-3 text-emerald-600" />
                 Team Lead Selected: {selectedLead.fullName}
               </span>
@@ -618,7 +618,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
 
           {/* Accessible Select / Combobox for Fast Access & Automated Testing */}
           <div>
-            <label htmlFor="primary-team-lead-select" className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5">
+            <label htmlFor="primary-team-lead-select" className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
               <span>Quick Dropdown Selection</span>
               <span className="text-rose-500 ml-1">*</span>
             </label>
@@ -640,7 +640,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
           </div>
 
           {/* Filter Toolbar */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+          <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               {/* Search Box */}
               <div className="sm:col-span-2 relative">
@@ -737,8 +737,8 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
           {/* Directory Table and Selected Profile Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             {/* Table (8 cols on lg) */}
-            <div className="lg:col-span-8 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+            <div className="lg:col-span-8 bg-white">
+              <div className="px-1 py-2 border-b border-slate-200 flex items-center justify-between text-xs">
                 <span className="font-bold text-[#17263A] flex items-center gap-1.5">
                   <Users className="w-3.5 h-3.5 text-[#244A70]" />
                   <span>Authorized Team Lead Directory</span>
@@ -746,19 +746,19 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                     {filteredLeads.length} Team Leads
                   </span>
                 </span>
-                <span className="text-[11px] text-slate-500">Click a team lead below to inspect and select</span>
+                <span className="text-xs text-slate-600">Click a team lead below to inspect and select</span>
               </div>
 
               {filteredLeads.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs space-y-1">
-                  <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <div className="p-8 text-center text-slate-600 text-xs space-y-1">
+                  <Users className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                   <p className="font-semibold text-slate-700">No team leads match the selected criteria.</p>
-                  <p className="text-[11px]">Try clearing your search query or adjusting your capacity filter.</p>
+                  <p className="text-xs">Try clearing your search query or adjusting your capacity filter.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold text-[10px] uppercase tracking-wider border-b border-[#DCE3EC]">
+                    <thead className="bg-white text-slate-600 font-bold text-xs uppercase tracking-wider border-b border-[#DCE3EC]">
                       <tr>
                         <th className="py-2.5 px-3">Team Lead</th>
                         <th className="py-2.5 px-2">Department</th>
@@ -789,7 +789,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2.5">
                                 <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] uppercase shrink-0 ${
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs uppercase shrink-0 ${
                                     isSelected
                                       ? 'bg-[#244A70] text-white shadow-xs'
                                       : 'bg-slate-200 text-slate-700'
@@ -801,18 +801,18 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                                   <div className="flex items-center gap-1.5">
                                     <span className="font-bold text-[#17263A] text-xs truncate">{lead.fullName}</span>
                                     {isCurrent && (
-                                      <span className="bg-emerald-100 text-emerald-800 text-[9px] px-1.5 py-0.2 rounded font-semibold">
+                                      <span className="bg-emerald-100 text-emerald-800 text-xs px-1.5 py-0.5 rounded font-semibold">
                                         Current
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-[10px] text-[#8491A3] font-mono truncate">{lead.email}</div>
+                                  <div className="text-xs text-slate-600 font-mono truncate">{lead.email}</div>
                                 </div>
                               </div>
                             </td>
 
                             {/* Department */}
-                            <td className="py-2.5 px-2 text-[#17263A] text-[11px]">
+                            <td className="py-2.5 px-2 text-[#17263A] text-xs">
                               {lead.department || 'Modernization Engineering'}
                             </td>
 
@@ -822,13 +822,13 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                                 {skills.slice(0, 2).map((sk) => (
                                   <span
                                     key={sk}
-                                    className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium"
+                                    className="text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium"
                                   >
                                     {sk}
                                   </span>
                                 ))}
                                 {skills.length > 2 && (
-                                  <span className="text-[9px] text-slate-400 font-mono">+{skills.length - 2}</span>
+                                  <span className="text-xs text-slate-600 font-mono">+{skills.length - 2}</span>
                                 )}
                               </div>
                             </td>
@@ -836,7 +836,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                             {/* Workload Status */}
                             <td className="py-2.5 px-2">
                               <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${wl.pillClass}`}
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${wl.pillClass}`}
                               >
                                 {wl.label}
                               </span>
@@ -850,7 +850,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                                   e.stopPropagation();
                                   setSelectedLeadId(lead.id);
                                 }}
-                                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                className={`px-2.5 py-1 rounded text-xs font-semibold transition-colors cursor-pointer ${
                                   isSelected
                                     ? 'bg-[#244A70] text-white'
                                     : 'bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70]'
@@ -869,15 +869,15 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
 
               {/* Pagination Bar */}
               {filteredLeads.length > 0 && (
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-3 py-2 border-t border-[#DCE3EC] bg-[#F8FAFC] text-xs">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#8491A3]">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-1 pt-3 border-t border-[#DCE3EC] bg-white text-xs">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
                     <span>Rows:</span>
                     {[5, 10, 20].map((sz) => (
                       <button
                         key={sz}
                         type="button"
                         onClick={() => setPageSize(sz)}
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-semibold cursor-pointer ${
+                        className={`px-2 py-0.5 rounded text-xs font-semibold cursor-pointer ${
                           pageSize === sz
                             ? 'bg-[#244A70] text-white'
                             : 'bg-white border border-slate-200 text-slate-700 hover:border-[#244A70]'
@@ -893,7 +893,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-1">
-                    <span className="text-[11px] text-[#8491A3] mr-1.5">
+                    <span className="text-xs text-slate-600 mr-1.5">
                       Page {currentPage} of {totalLeadPages}
                     </span>
                     <Button
@@ -902,7 +902,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       size="sm"
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="h-6 text-[11px] px-1.5 gap-0.5"
+                      className="h-7 text-xs px-2 gap-0.5"
                     >
                       <ChevronLeft className="w-3 h-3 shrink-0" />
                       <span>Prev</span>
@@ -913,7 +913,7 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       size="sm"
                       disabled={currentPage >= totalLeadPages}
                       onClick={() => setCurrentPage((p) => Math.min(totalLeadPages, p + 1))}
-                      className="h-6 text-[11px] px-1.5 gap-0.5"
+                      className="h-7 text-xs px-2 gap-0.5"
                     >
                       <span>Next</span>
                       <ChevronRight className="w-3 h-3 shrink-0" />
@@ -924,14 +924,14 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
             </div>
 
             {/* Dossier Card: Selected Team Lead Profile (4 cols on lg) */}
-            <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 shadow-2xs">
+            <div className="lg:col-span-4 lg:border-l lg:border-slate-200 lg:pl-5 space-y-3">
               <div className="font-bold text-xs text-[#17263A] flex items-center justify-between pb-2.5 border-b border-slate-200">
                 <div className="flex items-center gap-1.5">
                   <UserCheck className="w-4 h-4 text-[#244A70]" />
                   <span>Selected Team Lead Profile</span>
                 </div>
                 {selectedLead && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                     Ready to Allocate
                   </span>
                 )}
@@ -944,37 +944,37 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                       {selectedLead.fullName.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="font-bold text-slate-900 text-sm leading-snug truncate">
+                      <h3 className="font-bold text-slate-900 text-sm leading-snug truncate">
                         {selectedLead.fullName}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 font-mono truncate">{selectedLead.email}</p>
+                      </h3>
+                      <p className="text-xs text-slate-600 font-mono truncate">{selectedLead.email}</p>
                       <div className="flex items-center gap-1.5 mt-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-[#244A70]">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-[#244A70]">
                           {selectedLead.roles?.[0] || 'Authorized Team Lead'}
                         </span>
                         {selectedLead.employeeCode && (
-                          <span className="text-[10px] text-slate-400 font-mono">{selectedLead.employeeCode}</span>
+                          <span className="text-xs text-slate-600 font-mono">{selectedLead.employeeCode}</span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-2.5 border-t border-slate-200 text-[11px]">
+                  <div className="space-y-2 pt-2.5 border-t border-slate-200 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Department:</span>
+                      <span className="text-slate-600">Department:</span>
                       <span className="font-medium text-slate-800 truncate max-w-[170px]">
                         {selectedLead.department || 'Modernization Engineering'}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Supervised Projects:</span>
+                      <span className="text-slate-600">Supervised Projects:</span>
                       <span className="font-bold text-slate-900">
                         {selectedLead.activeWorkload} active projects
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-500">Workload Status:</span>
-                      <span className={`px-2 py-0.2 rounded text-[10px] font-bold border ${getWorkloadStatus(selectedLead.activeWorkload).pillClass}`}>
+                      <span className="text-slate-600">Workload Status:</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getWorkloadStatus(selectedLead.activeWorkload).pillClass}`}>
                         {getWorkloadStatus(selectedLead.activeWorkload).label}
                       </span>
                     </div>
@@ -982,12 +982,12 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
 
                   {/* Specialization Tags */}
                   <div className="pt-2.5 border-t border-slate-200">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block mb-1.5">
                       Core Competencies & Stack:
                     </span>
                     <div className="flex flex-wrap gap-1">
                       {getLeadSpecializations(selectedLead.id, 0, selectedLead).map((skill) => (
-                        <span key={skill} className="px-2 py-0.5 rounded bg-white border border-slate-200 text-[10px] text-slate-700 font-medium shadow-2xs">
+                        <span key={skill} className="px-2 py-0.5 rounded bg-slate-50 border border-slate-200 text-xs text-slate-700 font-medium">
                           {skill}
                         </span>
                       ))}
@@ -996,10 +996,10 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
 
                   {/* Governance & Authority */}
                   <div className="pt-2.5 border-t border-slate-200 space-y-1.5">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
                       Supervisory Authority:
                     </span>
-                    <div className="space-y-1 text-[10px] text-slate-600">
+                    <div className="space-y-1 text-xs text-slate-600">
                       <div className="flex items-center gap-1.5 text-emerald-700">
                         <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
                         <span>Authorized to assign conversion engineers</span>
@@ -1012,10 +1012,10 @@ export const AdminProjectAssignLeadPage: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-8 text-center text-slate-400 space-y-2">
-                  <Users className="w-8 h-8 text-slate-300 mx-auto" />
-                  <p className="text-xs font-semibold text-slate-600">No team lead selected</p>
-                  <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+                <div className="p-8 text-center text-slate-600 space-y-2">
+                  <Users className="w-8 h-8 text-slate-400 mx-auto" />
+                  <p className="text-xs font-semibold text-slate-700">No team lead selected</p>
+                  <p className="text-xs text-slate-600 max-w-[200px] mx-auto">
                     Select a team lead from the directory table or dropdown above to view their supervisory profile.
                   </p>
                 </div>

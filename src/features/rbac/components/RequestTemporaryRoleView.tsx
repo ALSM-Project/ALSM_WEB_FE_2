@@ -286,7 +286,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
           <h1 className="text-2xl font-bold text-[#17263A] tracking-tight">
             Request Temporary Role Elevation
           </h1>
-          <p className="text-xs text-[#8491A3]">
+          <p className="text-xs text-slate-600 max-w-prose leading-relaxed">
             Submit a temporary role delegation request for review by your Team Lead or Platform Administrator. Requests are strictly capped at 24 hours.
           </p>
         </div>
@@ -361,14 +361,14 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                 </h2>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-[#244A70] border border-blue-200">
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#244A70] border border-blue-200">
               Requester: {user?.fullName || user?.email || 'Self-Service'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Requester Dossier Card (5 cols on lg) */}
-            <div className="lg:col-span-5 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            {/* Requester Dossier Panel (5 cols on lg) */}
+            <div className="lg:col-span-5 border-l-2 border-[#244A70] pl-4 py-1 space-y-3">
               <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
                 <UserCheck className="w-4 h-4 text-[#244A70]" />
                 <span>Requester Security Dossier</span>
@@ -379,60 +379,60 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                   <div className="font-bold text-[#17263A] text-sm">
                     {user?.fullName || 'Internal Specialist'}
                   </div>
-                  <div className="text-[11px] text-[#8491A3]">{user?.email}</div>
-                  <div className="text-[10px] font-mono text-[#244A70] font-bold mt-0.5">
+                  <div className="text-xs text-slate-600">{user?.email}</div>
+                  <div className="text-xs font-mono text-[#244A70] font-bold mt-0.5">
                     {user?.id ? `EMP-${user.id.slice(-6).toUpperCase()}` : 'EMP-ALSM-01'}
                   </div>
                 </div>
 
-                <div className="space-y-2 pt-2 border-t border-slate-200 text-[11px]">
+                <div className="space-y-2 pt-2 border-t border-slate-200 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Department:</span>
+                    <span className="text-slate-600">Department:</span>
                     <span className="font-medium text-[#17263A]">Modernization Operations</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Baseline Roles:</span>
+                    <span className="text-slate-600">Baseline Roles:</span>
                     <div className="flex flex-wrap gap-1 justify-end">
                       {user?.roles && user.roles.length > 0 ? (
                         user.roles.map((r: string) => (
                           <span
                             key={r}
-                            className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-medium"
+                            className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium"
                           >
                             {r}
                           </span>
                         ))
                       ) : (
-                        <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-medium">
+                        <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">
                           CONVERSION_STAFF
                         </span>
                       )}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Account Standing:</span>
+                    <span className="text-slate-600">Account Standing:</span>
                     <Badge variant="success">ACTIVE</Badge>
                   </div>
                 </div>
 
                 {myActiveRole ? (
-                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="border-l-2 border-amber-500 pl-2.5 py-1 text-amber-900 text-xs font-semibold flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                     <span>Has Active Elevation: {myActiveRole.role}</span>
                   </div>
                 ) : userHasPendingRequest ? (
-                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-semibold flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="border-l-2 border-amber-500 pl-2.5 py-1 text-amber-900 text-xs font-semibold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
                     <span>Pending Request in Review</span>
                   </div>
                 ) : user?.isPlatformAdmin ? (
-                  <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-[11px] flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                  <div className="border-l-2 border-blue-600 pl-2.5 py-1 text-blue-800 text-xs flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-blue-700 shrink-0" />
                     <span className="font-semibold">Platform Administrator (Global Access Active)</span>
                   </div>
                 ) : (
-                  <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div className="border-l-2 border-emerald-600 pl-2.5 py-1 text-emerald-800 text-xs flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                     <span className="font-semibold">Eligible to request temporary role elevation</span>
                   </div>
                 )}
@@ -445,9 +445,9 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                 <div className="flex items-center justify-between mb-1.5">
                   <label
                     htmlFor="target-project-select"
-                    className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider"
+                    className="text-xs font-semibold text-[#17263A]"
                   >
-                    Target Project (Assigned & Queue Scope) *
+                    Target Project (Assigned &amp; Queue Scope) *
                   </label>
                   {assignedProjects.length > 0 && (
                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
@@ -522,7 +522,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
               <div>
                 <label
                   htmlFor="target-workflow-input"
-                  className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5"
+                  className="text-xs font-semibold text-[#17263A] block mb-1.5"
                 >
                   Target Project or Workflow *
                 </label>
@@ -535,7 +535,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                   placeholder="e.g. Core Banking Modernization AST Inspection"
                   className="w-full px-3.5 py-2.5 text-xs bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl outline-none focus:bg-white focus:border-[#244A70] focus:ring-1 focus:ring-[#244A70] text-[#17263A]"
                 />
-                <p className="text-[11px] text-[#8491A3] mt-1.5">
+                <p className="text-xs text-slate-600 mt-1.5 max-w-prose leading-relaxed">
                   Confirm the modernization project or operational sprint that requires elevated privileges.
                 </p>
               </div>
@@ -562,7 +562,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
           <div className="space-y-3">
             <label
               htmlFor="elevation-role-select"
-              className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block"
+              className="text-xs font-semibold text-[#17263A] block"
             >
               Requested Role *
             </label>
@@ -582,7 +582,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
               ))}
             </select>
 
-            {/* Visual Cards Grid */}
+            {/* Visual Options Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               {safeCatalog.map((role) => {
                 const isSelected =
@@ -596,28 +596,28 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                         setSelectedRoleCode(role.code.toLowerCase());
                       }
                     }}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-lg border-l-4 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50/70 border-[#244A70] ring-2 ring-[#244A70]/20 shadow-xs'
-                        : 'bg-white border-[#DCE3EC] hover:border-slate-300 hover:bg-slate-50/50'
+                        ? 'bg-blue-50/70 border-l-[#244A70]'
+                        : 'bg-[#F8FAFC] border-l-slate-300 hover:bg-slate-100/70'
                     } ${myActiveRole || userHasPendingRequest ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <span className="font-bold text-xs text-[#17263A]">{role.name}</span>
                       <span
-                        className={`font-mono text-[9px] px-1.5 py-0.5 rounded font-bold ${
-                          isSelected ? 'bg-[#244A70] text-white' : 'bg-slate-100 text-slate-700'
+                        className={`font-mono text-xs px-2 py-0.5 rounded font-bold ${
+                          isSelected ? 'bg-[#244A70] text-white' : 'bg-slate-200/80 text-slate-700'
                         }`}
                       >
                         {role.code}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#8491A3] line-clamp-2 leading-relaxed mb-2">
+                    <p className="text-xs text-slate-700 line-clamp-2 leading-relaxed mb-2 max-w-prose">
                       {role.description}
                     </p>
-                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-slate-200/70">
                       {role.modules.map((m) => (
-                        <span key={m} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
+                        <span key={m} className="text-xs bg-slate-200/70 text-slate-700 px-2 py-0.5 rounded">
                           {m}
                         </span>
                       ))}
@@ -631,10 +631,10 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
           {/* Duration Selector */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-[#17263A] block">
                 Requested Duration (Max 24h Ceiling) *
               </label>
-              <span className="text-xs text-indigo-700 font-semibold">
+              <span className="text-xs text-[#244A70] font-semibold">
                 Estimated Expiry: {expirationDate.toLocaleString()}
               </span>
             </div>
@@ -656,8 +656,8 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
                   >
                     <div className="text-sm">{hrs} Hours</div>
                     <div
-                      className={`text-[10px] font-medium mt-0.5 ${
-                        isSelected ? 'text-white/80' : 'text-[#8491A3]'
+                      className={`text-xs font-medium mt-0.5 ${
+                        isSelected ? 'text-white/90' : 'text-slate-600'
                       }`}
                     >
                       {hrs === 1
@@ -681,13 +681,13 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
             <div className="flex items-center justify-between">
               <label
                 htmlFor="request-justification-textarea"
-                className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block"
+                className="text-xs font-semibold text-[#17263A] block"
               >
-                Business Need & Justification (Minimum 10 characters) *
+                Business Need &amp; Justification (Minimum 10 characters) *
               </label>
               <span
-                className={`text-[11px] font-mono font-bold ${
-                  justification.trim().length >= 10 ? 'text-emerald-700' : 'text-amber-600'
+                className={`text-xs font-mono font-bold ${
+                  justification.trim().length >= 10 ? 'text-emerald-700' : 'text-amber-700'
                 }`}
               >
                 {justification.trim().length >= 10
@@ -724,43 +724,43 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
           </div>
 
           {/* Summary Preview Box */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-3 border-t border-slate-200 text-xs">
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Requester Staff</span>
+              <span className="text-xs text-slate-600 font-semibold block">Requester Staff</span>
               <span className="font-bold text-[#17263A] truncate block">
                 {user?.fullName || user?.email || 'Current Specialist'}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Requested Privilege</span>
+              <span className="text-xs text-slate-600 font-semibold block">Requested Privilege</span>
               <span className="font-bold text-[#244A70] font-mono">{activeRoleDetails.code}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Target Scope</span>
+              <span className="text-xs text-slate-600 font-semibold block">Target Scope</span>
               <span className="font-bold text-[#17263A] truncate block" title={selectedProjectName}>
                 {selectedProjectName}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Duration Requested</span>
+              <span className="text-xs text-slate-600 font-semibold block">Duration Requested</span>
               <span className="font-bold text-[#17263A]">{durationHours} hours (ceiling)</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Estimated Expiration</span>
-              <span className="font-bold text-indigo-700">{expirationDate.toLocaleString()}</span>
+              <span className="text-xs text-slate-600 font-semibold block">Estimated Expiration</span>
+              <span className="font-bold text-[#244A70]">{expirationDate.toLocaleString()}</span>
             </div>
           </div>
 
           {/* Compliance Alert */}
-          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
+          <div className="border-l-2 border-amber-500 bg-amber-50/60 pl-3.5 pr-3 py-2.5 text-amber-950 flex items-start gap-2.5 text-xs">
+            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <p className="leading-relaxed max-w-prose">
               This delegation request requires formal approval from your Team Lead or Platform Administrator before permissions take effect. All actions undertaken with elevated credentials are logged to the immutable audit trail.
             </p>
           </div>
 
           {/* Confirmation Checkbox */}
-          <div className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div className="flex items-start gap-3 pt-2">
             <input
               type="checkbox"
               id="confirm-elevation-checkbox"
@@ -770,7 +770,7 @@ export const RequestTemporaryRoleView: React.FC<RequestTemporaryRoleViewProps> =
             />
             <label
               htmlFor="confirm-elevation-checkbox"
-              className="text-xs text-[#17263A] font-semibold cursor-pointer select-none leading-relaxed"
+              className="text-xs text-[#17263A] font-semibold cursor-pointer select-none leading-relaxed max-w-prose"
             >
               I confirm submitting this temporary role delegation request for review by my Team Lead or Platform Administrator. I certify that elevated permissions will be used strictly for the stated business need.
             </label>

@@ -113,10 +113,10 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-2xl text-xs text-blue-900">
         <Shield className="w-5 h-5 text-[#244A70] shrink-0 mt-0.5" />
         <div>
-          <h4 className="font-bold text-blue-950">
+          <h2 className="font-bold text-blue-950">
             Manager Visibility Scope: {user?.fullName || (user as any)?.name || 'Alex Mercer'} (Sales Manager)
-          </h4>
-          <p className="text-slate-600 mt-0.5 leading-relaxed">
+          </h2>
+          <p className="text-slate-700 mt-0.5 leading-relaxed max-w-prose">
             Viewing aggregated output metrics across 3 sales regions. All representative activity is tracked against baseline performance thresholds.
           </p>
         </div>
@@ -126,14 +126,14 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-white rounded-2xl border border-[#DCE3EC] shadow-xs">
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#8491A3]" />
+          <Filter className="w-4 h-4 text-slate-600" />
           <span className="text-xs font-semibold text-[#17263A]">Filters:</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Date Range */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-[#8491A3]">Period:</span>
+            <span className="text-slate-600">Period:</span>
             <select
               aria-label="Period Filter"
               value={dateRange}
@@ -149,7 +149,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
 
           {/* Region */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-[#8491A3]">Region:</span>
+            <span className="text-slate-600">Region:</span>
             <select
               aria-label="Region Filter"
               value={region}
@@ -165,7 +165,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
 
           {/* Team Member */}
           <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-[#8491A3]">Representative:</span>
+            <span className="text-slate-600">Representative:</span>
             <select
               aria-label="Representative Filter"
               value={teamMember}
@@ -187,8 +187,8 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8491A3]">Total Team Revenue</span>
-            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total Team Revenue</span>
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -196,13 +196,13 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
             <div className="text-2xl font-bold text-[#17263A]">
               {formatVnd(data?.teamTotalRevenue || 0)}
             </div>
-            <p className="text-[11px] text-[#8491A3] mt-1">Closed won deals</p>
+            <p className="text-xs text-slate-600 mt-1">Closed won deals</p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8491A3]">Team Conversion Rate</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Team Conversion Rate</span>
             <div className="p-2 rounded-xl bg-blue-50 text-[#244A70]">
               <TrendingUp className="w-4 h-4" />
             </div>
@@ -211,14 +211,14 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
             <div className="text-2xl font-bold text-[#17263A]">
               {data?.teamConversionRate}%
             </div>
-            <p className="text-[11px] text-[#8491A3] mt-1">Team benchmark average</p>
+            <p className="text-xs text-slate-600 mt-1">Team benchmark average</p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8491A3]">Team Avg Deal Size</span>
-            <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Team Avg Deal Size</span>
+            <div className="p-2 rounded-xl bg-purple-50 text-purple-700">
               <Award className="w-4 h-4" />
             </div>
           </div>
@@ -226,14 +226,14 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
             <div className="text-2xl font-bold text-[#17263A]">
               {formatVnd(data?.teamAvgDealSize || 0)}
             </div>
-            <p className="text-[11px] text-[#8491A3] mt-1">Average contract size</p>
+            <p className="text-xs text-slate-600 mt-1">Average contract size</p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-[#DCE3EC] bg-white p-5 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8491A3]">Avg Response Time</span>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Avg Response Time</span>
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
               <Clock className="w-4 h-4" />
             </div>
           </div>
@@ -241,7 +241,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
             <div className="text-2xl font-bold text-[#17263A]">
               {data?.teamAvgResponseTimeHours} hrs
             </div>
-            <p className="text-[11px] text-[#8491A3] mt-1">First outreach latency</p>
+            <p className="text-xs text-slate-600 mt-1">First outreach latency</p>
           </div>
         </div>
       </div>
@@ -251,7 +251,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#DCE3EC]">
           <div className="flex items-center gap-2">
             <BarChart2 className="w-4 h-4 text-[#244A70]" />
-            <h3 className="text-sm font-bold text-[#17263A]">Representative Comparison Chart</h3>
+            <h2 className="text-sm font-bold text-[#17263A]">Representative Comparison Chart</h2>
           </div>
 
           <div className="flex items-center gap-1.5 bg-[#F8FAFC] p-1 rounded-xl text-xs">
@@ -260,7 +260,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
               className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 chartMetric === 'revenueGenerated'
                   ? 'bg-white text-[#17263A] shadow-xs font-semibold'
-                  : 'text-[#8491A3] hover:text-[#17263A]'
+                  : 'text-slate-600 hover:text-[#17263A]'
               }`}
             >
               Revenue
@@ -270,7 +270,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
               className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 chartMetric === 'wonDeals'
                   ? 'bg-white text-[#17263A] shadow-xs font-semibold'
-                  : 'text-[#8491A3] hover:text-[#17263A]'
+                  : 'text-slate-600 hover:text-[#17263A]'
               }`}
             >
               Deals Won
@@ -280,7 +280,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
               className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 chartMetric === 'conversionRate'
                   ? 'bg-white text-[#17263A] shadow-xs font-semibold'
-                  : 'text-[#8491A3] hover:text-[#17263A]'
+                  : 'text-slate-600 hover:text-[#17263A]'
               }`}
             >
               Conversion %
@@ -290,7 +290,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
               className={`px-3 py-1 rounded-lg font-medium transition-all ${
                 chartMetric === 'leadsAssigned'
                   ? 'bg-white text-[#17263A] shadow-xs font-semibold'
-                  : 'text-[#8491A3] hover:text-[#17263A]'
+                  : 'text-slate-600 hover:text-[#17263A]'
               }`}
             >
               Leads
@@ -300,7 +300,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
 
         <div className="mt-5 space-y-4">
           {members.length === 0 ? (
-            <p className="text-xs text-center py-6 text-[#8491A3]">No representatives match current filter selection.</p>
+            <p className="text-xs text-center py-6 text-slate-600">No representatives match current filter selection.</p>
           ) : (
             members.map((rep) => {
               const val = rep[chartMetric] as number;
@@ -317,7 +317,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-[#17263A]">{rep.repName}</span>
-                      <span className="text-[11px] text-[#8491A3]">({rep.region})</span>
+                      <span className="text-xs text-slate-600">({rep.region})</span>
                     </div>
                     <span className="font-mono font-bold text-[#244A70]">{formattedVal}</span>
                   </div>
@@ -335,18 +335,18 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
       </div>
 
       {/* Representatives Performance Table */}
-      <div className="rounded-2xl border border-[#DCE3EC] bg-white overflow-hidden shadow-xs">
+      <div className="rounded-2xl border border-[#DCE3EC] bg-white overflow-hidden">
         <div className="p-4 border-b border-[#DCE3EC] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#244A70]" />
-            <h3 className="text-sm font-bold text-[#17263A]">Representative Scorecard & Output</h3>
+            <h2 className="text-sm font-bold text-[#17263A]">Representative Scorecard & Output</h2>
           </div>
-          <span className="text-xs text-[#8491A3]">Click column header to sort</span>
+          <span className="text-xs text-slate-600">Click column header to sort</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] text-[#8491A3] font-semibold uppercase tracking-wider border-b border-[#DCE3EC]">
+            <thead className="bg-white text-slate-600 font-semibold uppercase tracking-wider border-b border-[#DCE3EC]">
               <tr>
                 <th className="px-4 py-3">Representative</th>
                 <th className="px-4 py-3">Region</th>
@@ -395,7 +395,7 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
             <tbody className="divide-y divide-[#DCE3EC]">
               {members.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-[#8491A3]">
+                  <td colSpan={10} className="px-4 py-8 text-center text-slate-600">
                     No sales representative records found matching filter criteria.
                   </td>
                 </tr>
@@ -410,15 +410,15 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
                     <tr key={rep.repId} className="hover:bg-[#F9FAFB] transition-colors">
                       <td className="px-4 py-3.5 font-medium text-[#17263A]">
                         <div className="font-semibold">{rep.repName}</div>
-                        <div className="text-[11px] text-[#8491A3] font-normal">{rep.repEmail}</div>
+                        <div className="text-xs text-slate-600 font-normal">{rep.repEmail}</div>
                       </td>
-                      <td className="px-4 py-3.5 text-[#8491A3]">
-                        <span className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700">
+                      <td className="px-4 py-3.5 text-slate-600">
+                        <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
                           {rep.region}
                         </span>
                       </td>
                       <td className="px-4 py-3.5 font-mono text-[#17263A]">{rep.leadsAssigned}</td>
-                      <td className="px-4 py-3.5 font-mono text-[#8491A3]">{rep.qualifiedLeads}</td>
+                      <td className="px-4 py-3.5 font-mono text-slate-600">{rep.qualifiedLeads}</td>
                       <td className="px-4 py-3.5 font-mono font-semibold text-emerald-700">{rep.wonDeals}</td>
                       <td className="px-4 py-3.5 font-mono font-semibold text-[#17263A]">
                         {rep.conversionRate}%
@@ -426,15 +426,15 @@ export const SalesTeamPerformanceView: React.FC<Props> = ({
                       <td className="px-4 py-3.5 font-mono font-bold text-[#17263A]">
                         {formatVnd(rep.revenueGenerated)}
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-[#8491A3]">
+                      <td className="px-4 py-3.5 font-mono text-slate-600">
                         {formatVnd(rep.averageDealSize)}
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-[#8491A3]">
+                      <td className="px-4 py-3.5 font-mono text-slate-600">
                         {avgHours} hrs
                       </td>
                       <td className="px-4 py-3.5">
                         <span
-                          className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full font-mono font-medium text-[11px] ${
+                          className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full font-mono font-medium text-xs ${
                             isPositive
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'

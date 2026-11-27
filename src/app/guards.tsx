@@ -62,11 +62,27 @@ export const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => 
   return children ? <>{children}</> : <Outlet />;
 };
 
-export const PermissionGuard = ({ permission, children, platformAdminOnly = false }: { permission: string; children?: React.ReactNode; platformAdminOnly?: boolean }) => {
+export const PermissionGuard = ({
+  permission,
+  anyPermissions,
+  children,
+  platformAdminOnly = false,
+}: {
+  permission?: string;
+  anyPermissions?: string[];
+  children?: React.ReactNode;
+  platformAdminOnly?: boolean;
+}) => {
   const { user, hasPermission } = useAuth();
 
+  const hasSingle = permission ? hasPermission(permission) : true;
+  const hasAny =
+    anyPermissions && anyPermissions.length > 0
+      ? anyPermissions.some((p) => hasPermission(p))
+      : true;
+
   // Presentation only: the backend independently checks persisted authority.
-  if ((platformAdminOnly && user?.isPlatformAdmin !== true) || !hasPermission(permission)) {
+  if ((platformAdminOnly && user?.isPlatformAdmin !== true) || !hasSingle || !hasAny) {
     return (
       <div className="flex flex-col items-center justify-center h-screen space-y-4">
         <div className="text-red-500 text-6xl">🔒</div>

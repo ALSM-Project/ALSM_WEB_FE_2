@@ -62,6 +62,7 @@ import {
 } from '@/features/partners';
 import { AuthCallbackPage, ProtectedRoute, PermissionGuard } from './guards';
 import { SupportPortalPage } from '@/features/support/pages/SupportPortalPage';
+import { SupportFeedbackPage } from '@/features/support/pages/SupportFeedbackPage';
 import { BankAccountsPage } from '@/features/bank-accounts';
 
 
@@ -391,9 +392,17 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: '/support/feedback',
+        element: (
+          <PermissionGuard anyPermissions={['feedback.view', 'conversations.view', 'organizations.impersonate', 'users.manage']}>
+            <SupportFeedbackPage />
+          </PermissionGuard>
+        ),
+      },
+      {
         path: '/crm/conversations',
         element: (
-          <PermissionGuard permission="sales.leads.view">
+          <PermissionGuard anyPermissions={['sales.leads.view', 'conversations.view', 'organizations.impersonate']}>
             <ConversationsPage />
           </PermissionGuard>
         ),
@@ -401,7 +410,7 @@ export const router = createBrowserRouter([
       {
         path: '/sales/conversations',
         element: (
-          <PermissionGuard permission="sales.leads.view">
+          <PermissionGuard anyPermissions={['sales.leads.view', 'conversations.view', 'organizations.impersonate']}>
             <ConversationsPage />
           </PermissionGuard>
         ),

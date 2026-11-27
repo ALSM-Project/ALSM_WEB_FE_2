@@ -8,9 +8,15 @@ import { SupportViewProvider, useSupportView } from '../context/SupportViewConte
 import { OrganizationDetailPage } from '../pages/OrganizationDetailPage';
 import { ImpersonationBanner } from '../components/ImpersonationBanner';
 import { apiClient } from '@/services/api/apiClient';
+import { tokenStore } from '@/services/api/tokenStore';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 const createWrapper = (permissions: string[] = ['organizations.impersonate'], path = '/', authenticated = true) => {
+  if (authenticated) {
+    tokenStore.setTokens({ accessToken: 'test-access-token', refreshToken: 'test-refresh-token' });
+  } else {
+    tokenStore.clear();
+  }
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
   });
@@ -249,8 +255,9 @@ describe('Support View cannot be activated by client storage', () => {
   });
 
   it('remains inactive when storage cleanup is denied', () => {
+    const wrapper = createWrapper();
     vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => { throw new Error('storage denied'); });
-    render(<StateProbe />, { wrapper: createWrapper() });
+    render(<StateProbe />, { wrapper });
     expect(screen.getByTestId('support-state')).toHaveTextContent('{"supportOrg":null,"isSupportReadOnly":false}');
     fireEvent.click(screen.getByRole('button', { name: 'Clear legacy view' }));
     expect(screen.queryByRole('banner')).not.toBeInTheDocument();

@@ -283,26 +283,26 @@ export const DiscountApprovalPage: React.FC = () => {
       </div>
 
       {/* Authority Policy Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/60 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs shadow-2xs">
-        <div className="flex items-start gap-3.5 max-w-3xl">
+      <div className="p-4 sm:p-5 rounded-xl bg-blue-50/60 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs shadow-2xs">
+        <div className="flex items-start gap-3.5">
           <div className="p-2.5 rounded-xl bg-blue-100 text-[#244A70] shrink-0 mt-0.5">
             <ShieldCheck className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-xs font-bold text-blue-950 uppercase tracking-wider">Active Manager Authorization Scope</h2>
-            <p className="text-slate-600 mt-1 leading-relaxed max-w-2xl text-xs font-medium">
+            <p className="text-slate-600 mt-1 leading-relaxed max-w-[65ch] text-xs font-medium">
               You are signed in as <strong className="text-slate-900">{user?.fullName || user?.email || 'Sales Manager'}</strong>. Your pre-authorized discount limit is <strong className="text-slate-900">20.0%</strong>.
               Requests above 20% are flagged as <em>Requires Higher Approval</em> and must be escalated to executive leadership.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="bg-white border border-blue-200 px-3.5 py-2 rounded-xl text-center shadow-2xs">
-            <span className="text-xs uppercase font-bold text-slate-500 block">Your Limit</span>
+        <div className="flex items-center gap-6 shrink-0 sm:border-l sm:border-blue-200 sm:pl-6">
+          <div>
+            <span className="text-xs uppercase font-bold text-slate-600 block">Your Limit</span>
             <span className="text-sm font-bold text-[#244A70]">20% Max</span>
           </div>
-          <div className="bg-white border border-blue-200 px-3.5 py-2 rounded-xl text-center shadow-2xs">
-            <span className="text-xs uppercase font-bold text-slate-500 block">VP Level</span>
+          <div>
+            <span className="text-xs uppercase font-bold text-slate-600 block">VP Level</span>
             <span className="text-sm font-bold text-indigo-700">&gt;20% Limit</span>
           </div>
         </div>
@@ -359,7 +359,7 @@ export const DiscountApprovalPage: React.FC = () => {
       )}
 
       {/* Discount Approvals Table */}
-      <div className="rounded-2xl border border-[#DCE3EC] bg-white shadow-2xs overflow-hidden">
+      <div className="rounded-xl border border-[#DCE3EC] bg-white shadow-2xs p-4 sm:p-5 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
@@ -805,9 +805,9 @@ export const DiscountApprovalPage: React.FC = () => {
             </div>
 
             {selectedLeadId === 'NEW' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#17263A] mb-1">Company Name *</label>
+                  <label className="block text-xs font-semibold text-[#17263A] mb-1">Company Name *</label>
                   <input
                     type="text"
                     required
@@ -818,7 +818,7 @@ export const DiscountApprovalPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#17263A] mb-1">Contact Email</label>
+                  <label className="block text-xs font-semibold text-[#17263A] mb-1">Contact Email</label>
                   <input
                     type="email"
                     value={newContactEmail}
@@ -904,8 +904,8 @@ export const DiscountApprovalPage: React.FC = () => {
               />
             </div>
 
-            {/* Price Preview Card */}
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 font-mono text-xs">
+            {/* Price Preview Summary (flat divider, no nested card) */}
+            <div className="pt-3 border-t border-slate-200 space-y-1.5 font-mono text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Baseline Price:</span>
                 <span>{formatVnd(createBasePrice)}</span>
@@ -914,19 +914,19 @@ export const DiscountApprovalPage: React.FC = () => {
                 <span>Discount ({createDiscountPercent}%):</span>
                 <span>-{formatVnd(Math.round(createBasePrice * (createDiscountPercent / 100)))}</span>
               </div>
-              <div className="flex justify-between text-[#17263A] font-bold border-t border-slate-200 pt-1">
+              <div className="flex justify-between text-[#17263A] font-bold border-t border-slate-200 pt-1.5">
                 <span>Proposed Client Fee:</span>
                 <span className="text-emerald-700 font-extrabold">{formatVnd(Math.round(createBasePrice * (1 - createDiscountPercent / 100)))}</span>
               </div>
             </div>
 
-            {/* Threshold Notice Banner */}
-            <div className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
+            {/* Threshold Notice Callout */}
+            <div className={`border-l-2 pl-3 py-1 text-xs leading-relaxed ${
               createDiscountPercent > MANAGER_LIMIT
-                ? 'bg-purple-50 border-purple-200 text-purple-900'
+                ? 'border-purple-500 text-purple-900'
                 : createDiscountPercent >= 15
-                ? 'bg-amber-50 border-amber-200 text-amber-900'
-                : 'bg-blue-50 border-blue-200 text-blue-900'
+                ? 'border-amber-500 text-amber-900'
+                : 'border-blue-500 text-blue-900'
             }`}>
               {createDiscountPercent > MANAGER_LIMIT ? (
                 <span><strong>Requires Executive VP Approval:</strong> Discounts above {MANAGER_LIMIT}% exceed Sales Manager authority and will route into the VP Review Queue.</span>

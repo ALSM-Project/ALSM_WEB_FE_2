@@ -473,12 +473,12 @@ export const OrganizationUsageDetailPage: React.FC = () => {
 
           {/* Entitlement Sync & Web 3 Gateway Info */}
           <div className="p-5 rounded-xl bg-white border border-[#DCE3EC] shadow-2xs space-y-3">
-            <h3 className="text-xs font-bold text-[#17263A] uppercase tracking-wide flex items-center gap-2">
+            <h2 className="text-xs font-bold text-[#17263A] uppercase tracking-wide flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#244A70]" />
               Source of Truth & Web 3 Entitlement Projection
-            </h3>
-            <p className="text-xs text-[#8491A3] leading-relaxed">
-              Quotas defined on this contract are projected in real-time to the customer Web 3 client portal. When conversions exceed limits, the compiler engine throttles new upload requests until capacity is increased via the <strong>Amend Quota</strong> workflow.
+            </h2>
+            <p className="text-xs text-slate-600 max-w-[65ch] leading-relaxed">
+              Quotas defined on this contract are projected in real-time to the customer Web 3 client portal. When conversions exceed limits, the compiler engine throttles new upload requests until capacity is increased via the <strong className="text-[#17263A] font-semibold">Amend Quota</strong> workflow.
             </p>
           </div>
         </div>

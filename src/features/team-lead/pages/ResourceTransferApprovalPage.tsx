@@ -236,7 +236,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
       {/* Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-white border border-[#DCE3EC] shadow-2xs">
-          <span className="text-xs font-bold text-[#8491A3] uppercase tracking-wider block">Total Requests</span>
+          <span className="text-xs font-bold text-[#526071] uppercase tracking-wider block">Total Requests</span>
           <div className="text-2xl font-extrabold text-[#17263A] mt-2">{totalCount}</div>
         </div>
         <div className="p-5 rounded-2xl bg-white border border-[#DCE3EC] shadow-2xs">
@@ -276,7 +276,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               statusFilter === 'ALL'
                 ? 'bg-white text-[#17263A] shadow-2xs'
-                : 'text-[#8491A3] hover:text-[#17263A]'
+                : 'text-[#526071] hover:text-[#17263A]'
             }`}
           >
             All Requests ({totalCount})
@@ -286,7 +286,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               statusFilter === 'PENDING'
                 ? 'bg-white text-amber-800 shadow-2xs'
-                : 'text-[#8491A3] hover:text-[#17263A]'
+                : 'text-[#526071] hover:text-[#17263A]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
@@ -297,7 +297,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               statusFilter === 'APPROVED'
                 ? 'bg-white text-emerald-800 shadow-2xs'
-                : 'text-[#8491A3] hover:text-[#17263A]'
+                : 'text-[#526071] hover:text-[#17263A]'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
@@ -308,7 +308,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
               statusFilter === 'REJECTED'
                 ? 'bg-white text-rose-800 shadow-2xs'
-                : 'text-[#8491A3] hover:text-[#17263A]'
+                : 'text-[#526071] hover:text-[#17263A]'
             }`}
           >
             Rejected ({rejectedCount})
@@ -316,7 +316,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
         </div>
 
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#526071] pointer-events-none shrink-0" />
           <input
             type="text"
             placeholder="Search projects, staff, reason..."
@@ -328,11 +328,11 @@ export const ResourceTransferApprovalPage: React.FC = () => {
       </div>
 
       {/* Main Requests Table */}
-      <div className="bg-white border border-[#DCE3EC] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#DCE3EC] rounded-2xl p-4 sm:p-5 shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <tr className="border-b border-[#DCE3EC] text-xs font-bold text-slate-600 uppercase tracking-wider">
                 <th className="py-3.5 px-4 sm:px-5">Resource / Project</th>
                 <th className="py-3.5 px-4 sm:px-5">Current Assignee</th>
                 <th className="py-3.5 px-4 sm:px-5">Proposed Successor</th>
@@ -345,7 +345,7 @@ export const ResourceTransferApprovalPage: React.FC = () => {
             <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={7} className="py-12 px-6 text-center text-sm text-[#526071]">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <RefreshCw className="w-5 h-5 text-[#244A70] animate-spin" />
                       <span>Loading transfer requests...</span>
@@ -354,10 +354,10 @@ export const ResourceTransferApprovalPage: React.FC = () => {
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8491A3]">
-                    <ArrowRightLeft className="w-8 h-8 mx-auto text-[#DCE3EC] mb-2" />
+                  <td colSpan={7} className="py-12 px-6 text-center text-[#526071]">
+                    <ArrowRightLeft className="w-8 h-8 mx-auto text-slate-400 mb-2" />
                     <p className="font-semibold text-[#17263A] text-sm">No transfer requests found</p>
-                    <p className="text-xs text-[#8491A3] mt-1">
+                    <p className="text-sm text-[#526071] mt-1">
                       {searchTerm
                         ? 'Try adjusting your search criteria.'
                         : 'There are no resource transfer requests matching this filter.'}

@@ -103,25 +103,25 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
             )}
           </div>
 
-          {/* Paginated Modernization Projects Table/Card List */}
-          <div className="border border-[#DCE3EC] rounded-xl overflow-hidden bg-white shadow-2xs">
-            <div className="px-4 py-2.5 bg-[#F8FAFC] border-b border-[#DCE3EC] flex items-center justify-between text-[11px] font-bold text-[#42526E] uppercase tracking-wider">
+          {/* Paginated Modernization Projects List */}
+          <div>
+            <div className="py-2 border-b border-[#DCE3EC] flex items-center justify-between text-xs font-semibold text-slate-600 uppercase tracking-wider">
               <span>Eligible Projects ({filteredProjects.length})</span>
-              <span className="text-slate-400 font-normal lowercase">click row or select to choose</span>
+              <span className="text-slate-600 font-normal normal-case">Click row or select to choose</span>
             </div>
 
             {filteredProjects.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">
-                <FolderKanban className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <div className="p-8 text-center text-xs text-slate-600 border-b border-[#DCE3EC]">
+                <FolderKanban className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                 <p className="font-semibold text-slate-700">No modernization projects found</p>
-                <p className="text-slate-400 mt-0.5">
+                <p className="text-slate-600 mt-0.5">
                   {query
                     ? `No project matches "${query}". Try searching with another name or ID.`
                     : 'No eligible modernization projects available.'}
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-[#E5EAF0]">
+              <div className="divide-y divide-[#E5EAF0] border-b border-[#DCE3EC]">
                 {paginatedProjects.map((p) => {
                   const isBms = p.conversionType === 'BMS_DSPF_TO_FRONTEND';
                   const hasAssignee = Boolean(p.assignedStaffName || p.assignedStaffId);
@@ -130,25 +130,25 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                     <div
                       key={p.id}
                       onClick={() => handleSelect(p)}
-                      className="p-3.5 hover:bg-[#F0F4F8] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
+                      className="py-3.5 px-2 hover:bg-[#F0F4F8] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
                     >
                       <div className="flex items-center space-x-3 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-[#EEF1F6] border border-[#DCE3EC] text-[#244A70] group-hover:bg-[#244A70] group-hover:text-white transition-colors flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                        <div className="w-10 h-10 rounded-xl bg-[#EEF1F6] border border-[#DCE3EC] text-[#244A70] group-hover:bg-[#244A70] group-hover:text-white transition-colors flex items-center justify-center font-bold text-xs shrink-0">
                           <FolderKanban className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center space-x-2 flex-wrap">
-                            <span className="font-bold text-xs text-[#17263A] group-hover:text-[#244A70] transition-colors truncate">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-[#17263A] group-hover:text-[#244A70] transition-colors truncate">
                               {p.name}
                             </span>
-                            <span className="font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200 shrink-0">
+                            <span className="font-mono text-xs text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shrink-0">
                               #{p.id.slice(-8).toUpperCase()}
                             </span>
-                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[10px] font-medium bg-slate-50 text-slate-600 border border-slate-200">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                               {p.status || 'ACTIVE'}
                             </span>
                           </div>
-                          <div className="flex items-center space-x-2 mt-1 text-[11px] text-slate-500 flex-wrap">
+                          <div className="flex items-center space-x-2 mt-1 text-xs text-slate-600 flex-wrap">
                             <span className="truncate max-w-[160px] sm:max-w-xs">{p.partnerName || 'Enterprise Workspace'}</span>
                             <span>•</span>
                             <span
@@ -164,14 +164,14 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
 
                       <div className="flex items-center space-x-3 shrink-0 justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                         <div className="flex flex-col sm:items-end text-left sm:text-right">
-                          <span className="text-[10px] text-slate-400 font-medium">Current Owner:</span>
+                          <span className="text-xs text-slate-600 font-medium">Current Owner:</span>
                           {hasAssignee ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5">
-                              <User className="w-2.5 h-2.5 mr-1" />
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 mt-0.5">
+                              <User className="w-3 h-3 mr-1" />
                               {p.assignedStaffName || 'Assigned'}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 mt-0.5">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 mt-0.5">
                               Unallocated
                             </span>
                           )}
@@ -183,7 +183,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                             e.stopPropagation();
                             handleSelect(p);
                           }}
-                          className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#DCE3EC] bg-white text-[#244A70] group-hover:bg-[#244A70] group-hover:text-white group-hover:border-[#244A70] transition-colors shadow-2xs cursor-pointer"
+                          className="px-3 py-1.5 text-xs font-bold rounded-lg border border-[#DCE3EC] bg-white text-[#244A70] group-hover:bg-[#244A70] group-hover:text-white group-hover:border-[#244A70] transition-colors cursor-pointer"
                         >
                           Select
                         </button>
@@ -196,7 +196,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
 
             {/* Pagination footer */}
             {filteredProjects.length > 0 && (
-              <div className="px-4 py-2.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B778C]">
+              <div className="pt-2.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                 <div>
                   Showing <strong className="text-[#17263A]">{startIndex + 1}</strong> to{' '}
                   <strong className="text-[#17263A]">{endIndex}</strong> of{' '}
@@ -209,7 +209,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer flex items-center space-x-1"
+                      className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center space-x-1"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
                       <span>Previous</span>
@@ -220,7 +220,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                         key={pageNum}
                         type="button"
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors shadow-2xs cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
                           currentPage === pageNum
                             ? 'bg-[#244A70] text-white'
                             : 'bg-white border border-[#DCE3EC] text-[#42526E] hover:bg-slate-50'
@@ -234,7 +234,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
                       type="button"
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors shadow-2xs cursor-pointer flex items-center space-x-1"
+                      className="px-2.5 py-1 rounded-lg border border-[#DCE3EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer flex items-center space-x-1"
                     >
                       <span>Next</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -245,7 +245,7 @@ export const ProjectSearchSelect: React.FC<ProjectSearchSelectProps> = ({
             )}
           </div>
 
-          {helperText && <p className="text-[11px] text-[#8491A3]">{helperText}</p>}
+          {helperText && <p className="text-xs text-slate-600 max-w-prose leading-relaxed">{helperText}</p>}
         </div>
       ) : (
         /* Selected Project Dossier Card */

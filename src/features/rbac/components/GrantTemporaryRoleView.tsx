@@ -448,7 +448,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           <div>
             <label
               htmlFor="target-staff-combobox"
-              className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5"
+              className="text-xs font-semibold text-[#17263A] block mb-1.5"
             >
               Target Internal Staff User *
             </label>
@@ -491,7 +491,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           </div>
 
           {/* Filter Toolbar for Directory */}
-          <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div className="pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
               <div className="sm:col-span-2 relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
@@ -585,16 +585,16 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           {/* Directory Table and Dossier Panel */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
             {/* Table (8 cols on lg) */}
-            <div className="lg:col-span-8 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-              <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+            <div className="lg:col-span-8 border-t border-b border-slate-200 overflow-hidden">
+              <div className="py-2.5 flex items-center justify-between text-xs border-b border-slate-200">
                 <span className="font-bold text-[#17263A]">Internal Staff Directory ({totalStaff})</span>
-                <span className="text-[11px] text-slate-500">Click a staff member below to inspect</span>
+                <span className="text-xs text-slate-600">Click a staff member below to inspect</span>
               </div>
 
               {loadingStaff ? (
                 <div className="p-8 text-center space-y-2">
                   <RefreshCw className="w-6 h-6 animate-spin text-[#244A70] mx-auto" />
-                  <p className="text-xs text-slate-500">Loading staff directory...</p>
+                  <p className="text-xs text-slate-600">Loading staff directory...</p>
                 </div>
               ) : staffError ? (
                 <div className="p-6 text-center space-y-2 text-rose-600">
@@ -605,13 +605,13 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                   </Button>
                 </div>
               ) : staffList.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 text-xs">
+                <div className="p-8 text-center text-slate-600 text-xs">
                   No staff members match the selected criteria.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
-                    <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold text-[10px] uppercase tracking-wider border-b border-[#DCE3EC]">
+                    <thead className="bg-[#F8FAFC] text-slate-600 font-semibold text-xs uppercase tracking-wider border-b border-[#DCE3EC]">
                       <tr>
                         <th className="py-2.5 px-3">Staff Member</th>
                         <th className="py-2.5 px-2">Department</th>
@@ -637,7 +637,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                             <td className="py-2.5 px-3">
                               <div className="flex items-center gap-2">
                                 <div
-                                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] uppercase shrink-0 ${
+                                  className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs uppercase shrink-0 ${
                                     isSelected
                                       ? 'bg-[#244A70] text-white'
                                       : 'bg-slate-200 text-slate-700'
@@ -649,7 +649,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                                   <div className="font-bold text-[#17263A] text-xs">
                                     {st.fullName}
                                   </div>
-                                  <div className="text-[10px] text-[#8491A3]">{st.email}</div>
+                                  <div className="text-xs text-slate-600">{st.email}</div>
                                 </div>
                               </div>
                             </td>
@@ -659,7 +659,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                                 {st.currentRoles.map((r) => (
                                   <span
                                     key={r}
-                                    className="font-mono text-[9px] bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-slate-700 font-semibold"
+                                    className="font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-semibold"
                                   >
                                     {r}
                                   </span>
@@ -679,27 +679,27 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                             </td>
                             <td className="py-2.5 px-2">
                               {st.isEligible ? (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
-                                  <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                                  <Check className="w-3 h-3 text-emerald-700" />
                                   Eligible
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
-                                  <AlertTriangle className="w-2.5 h-2.5 text-amber-600" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                  <AlertTriangle className="w-3 h-3 text-amber-700" />
                                   Ineligible
                                 </span>
                               )}
                             </td>
                             <td className="py-2.5 px-3 text-right">
                               {isSelected ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#244A70] text-white rounded text-[11px] font-semibold">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#244A70] text-white rounded text-xs font-semibold">
                                   <Check className="w-3 h-3" />
                                   Selected
                                 </span>
                               ) : (
                                 <button
                                   type="button"
-                                  className="px-2 py-0.5 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-[11px] font-medium transition-colors"
+                                  className="px-2.5 py-1 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-xs font-medium transition-colors"
                                 >
                                   Select
                                 </button>
@@ -715,8 +715,8 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-2 border-t border-[#DCE3EC] bg-[#F8FAFC]">
-                  <span className="text-[11px] text-[#8491A3]">
+                <div className="flex items-center justify-between py-2.5 border-t border-[#DCE3EC]">
+                  <span className="text-xs text-slate-600">
                     Page {page} of {totalPages}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -745,8 +745,8 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
               )}
             </div>
 
-            {/* Dossier Card (4 cols on lg) */}
-            <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            {/* Dossier Panel (4 cols on lg) */}
+            <div className="lg:col-span-4 border-l-2 border-[#244A70] pl-4 py-1 space-y-3">
               <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
                 <UserCheck className="w-4 h-4 text-[#244A70]" />
                 <span>Selected Staff Profile</span>
@@ -756,19 +756,19 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                 <div className="space-y-3 text-xs">
                   <div>
                     <div className="font-bold text-[#17263A] text-sm">{selectedStaff.fullName}</div>
-                    <div className="text-[11px] text-[#8491A3]">{selectedStaff.email}</div>
-                    <div className="text-[10px] font-mono text-[#244A70] font-bold">
+                    <div className="text-xs text-slate-600">{selectedStaff.email}</div>
+                    <div className="text-xs font-mono text-[#244A70] font-bold mt-0.5">
                       {selectedStaff.employeeId}
                     </div>
                   </div>
 
-                  <div className="space-y-1.5 pt-2 border-t border-slate-200 text-[11px]">
+                  <div className="space-y-1.5 pt-2 border-t border-slate-200 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Department:</span>
+                      <span className="text-slate-600">Department:</span>
                       <span className="font-medium text-[#17263A]">{selectedStaff.department}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Account:</span>
+                      <span className="text-slate-600">Account:</span>
                       <Badge variant={selectedStaff.accountStatus === 'ACTIVE' ? 'success' : 'danger'}>
                         {selectedStaff.accountStatus}
                       </Badge>
@@ -776,19 +776,19 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                   </div>
 
                   {selectedStaff.hasActiveTemporaryRole ? (
-                    <div className="p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <div className="border-l-2 border-amber-500 pl-2.5 py-1 text-amber-800 text-xs font-semibold flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                       <span>Has Active Role: {selectedStaff.activeTemporaryRole?.roleId || 'TEAM_LEAD'}</span>
                     </div>
                   ) : (
-                    <div className="p-2 rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <div className="border-l-2 border-emerald-600 pl-2.5 py-1 text-emerald-800 text-xs flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                       <span>Eligible for temporary delegation</span>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="py-6 text-center text-slate-500 text-xs">
+                <div className="py-6 text-center text-slate-600 text-xs max-w-prose">
                   Select a staff member from the table to view their authorization profile.
                 </div>
               )}
@@ -813,7 +813,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
 
           {/* Role Selection Dropdown + Cards */}
           <div className="space-y-3">
-            <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-[#17263A] block">
               Elevation Role *
             </label>
 
@@ -830,7 +830,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
               ))}
             </select>
 
-            {/* Visual Cards Grid */}
+            {/* Visual Options Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               {safeCatalog.map((role) => {
                 const isSelected =
@@ -840,28 +840,28 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                   <div
                     key={role.id}
                     onClick={() => setSelectedRoleCode(role.code.toLowerCase())}
-                    className={`p-3.5 rounded-xl border transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-lg border-l-4 transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50/70 border-[#244A70] ring-2 ring-[#244A70]/20 shadow-xs'
-                        : 'bg-white border-[#DCE3EC] hover:border-slate-300 hover:bg-slate-50/50'
+                        ? 'bg-blue-50/70 border-l-[#244A70]'
+                        : 'bg-[#F8FAFC] border-l-slate-300 hover:bg-slate-100/70'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <span className="font-bold text-xs text-[#17263A]">{role.name}</span>
                       <span
-                        className={`font-mono text-[9px] px-1.5 py-0.5 rounded font-bold ${
-                          isSelected ? 'bg-[#244A70] text-white' : 'bg-slate-100 text-slate-700'
+                        className={`font-mono text-xs px-2 py-0.5 rounded font-bold ${
+                          isSelected ? 'bg-[#244A70] text-white' : 'bg-slate-200/80 text-slate-700'
                         }`}
                       >
                         {role.code}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#8491A3] line-clamp-2 leading-relaxed mb-2">
+                    <p className="text-xs text-slate-700 line-clamp-2 leading-relaxed mb-2 max-w-prose">
                       {role.description}
                     </p>
-                    <div className="flex flex-wrap gap-1 pt-1.5 border-t border-slate-100">
+                    <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-slate-200/70">
                       {role.modules.map((m) => (
-                        <span key={m} className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">
+                        <span key={m} className="text-xs bg-slate-200/70 text-slate-700 px-2 py-0.5 rounded">
                           {m}
                         </span>
                       ))}
@@ -875,10 +875,10 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           {/* Duration Selector */}
           <div className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-[#17263A] block">
                 Duration (Max 24h Ceiling) *
               </label>
-              <span className="text-xs text-indigo-700 font-semibold">
+              <span className="text-xs text-[#244A70] font-semibold">
                 Expires: {expirationDate.toLocaleString()}
               </span>
             </div>
@@ -899,8 +899,8 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
                   >
                     <div className="text-sm">{hrs} Hours</div>
                     <div
-                      className={`text-[10px] font-medium mt-0.5 ${
-                        isSelected ? 'text-white/80' : 'text-[#8491A3]'
+                      className={`text-xs font-medium mt-0.5 ${
+                        isSelected ? 'text-white/90' : 'text-slate-600'
                       }`}
                     >
                       {hrs === 1
@@ -920,7 +920,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           {/* Context Scope & Business Justification */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
             <div>
-              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-semibold text-[#17263A] block mb-1.5">
                 Target Project or Context (Optional)
               </label>
               <select
@@ -938,10 +938,10 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
             </div>
 
             <div>
-              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5">
+              <label className="text-xs font-semibold text-[#17263A] block mb-1.5">
                 Authorizing Administrator
               </label>
-              <div className="px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl text-[#17263A] font-mono">
+              <div className="px-1 py-2.5 text-xs border-b border-slate-200 text-[#17263A] font-mono">
                 {currentAdminEmail}
               </div>
             </div>
@@ -950,12 +950,12 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           {/* Business Justification Input */}
           <div className="space-y-1.5 pt-2">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-[#17263A] block">
                 Business Justification (Minimum 10 characters) *
               </label>
               <span
-                className={`text-[11px] font-mono font-bold ${
-                  justification.trim().length >= 10 ? 'text-emerald-700' : 'text-amber-600'
+                className={`text-xs font-mono font-bold ${
+                  justification.trim().length >= 10 ? 'text-emerald-700' : 'text-amber-700'
                 }`}
               >
                 {justification.trim().length} / 10 min
@@ -988,37 +988,37 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
           </div>
 
           {/* Summary Preview Box */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3 border-t border-slate-200 text-xs">
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Designated Staff</span>
+              <span className="text-xs text-slate-600 font-semibold block">Designated Staff</span>
               <span className="font-bold text-[#17263A]">
                 {selectedStaff ? selectedStaff.fullName : 'Select user above...'}
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Temporary Privilege</span>
+              <span className="text-xs text-slate-600 font-semibold block">Temporary Privilege</span>
               <span className="font-bold text-[#244A70] font-mono">{activeRoleDetails.code}</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Duration Granted</span>
+              <span className="text-xs text-slate-600 font-semibold block">Duration Granted</span>
               <span className="font-bold text-[#17263A]">{durationHours} hours (enforced ceiling)</span>
             </div>
             <div>
-              <span className="text-[10px] text-slate-500 font-bold uppercase block">Calculated Expiration</span>
-              <span className="font-bold text-indigo-700">{expirationDate.toLocaleString()}</span>
+              <span className="text-xs text-slate-600 font-semibold block">Calculated Expiration</span>
+              <span className="font-bold text-[#244A70]">{expirationDate.toLocaleString()}</span>
             </div>
           </div>
 
           {/* Compliance Alert */}
-          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex items-start gap-2.5 text-xs">
-            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
+          <div className="border-l-2 border-amber-500 bg-amber-50/60 pl-3.5 pr-3 py-2.5 text-amber-950 flex items-start gap-2.5 text-xs">
+            <ShieldAlert className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <p className="leading-relaxed max-w-prose">
               This action delegates elevated authority with immediate effect. All operations are logged to the platform immutable security audit trail under your administrative credentials.
             </p>
           </div>
 
           {/* Confirmation Checkbox */}
-          <div className="flex items-start gap-3 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+          <div className="flex items-start gap-3 pt-2">
             <input
               type="checkbox"
               id="confirm-elevation-checkbox"
@@ -1028,7 +1028,7 @@ export const GrantTemporaryRoleView: React.FC<GrantTemporaryRoleViewProps> = ({
             />
             <label
               htmlFor="confirm-elevation-checkbox"
-              className="text-xs text-[#17263A] font-semibold cursor-pointer select-none leading-relaxed"
+              className="text-xs text-[#17263A] font-semibold cursor-pointer select-none leading-relaxed max-w-prose"
             >
               I confirm granting this temporary role elevation with immediate privilege delegation. The action is logged to the immutable audit trail.
             </label>

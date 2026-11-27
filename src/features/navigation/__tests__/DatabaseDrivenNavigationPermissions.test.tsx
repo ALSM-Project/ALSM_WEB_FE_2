@@ -8,6 +8,7 @@ import { PartnerProjectsPage } from '@/features/partners/pages/staff/PartnerProj
 import { SupportViewProvider } from '@/features/admin/context/SupportViewContext';
 import { adminApi } from '@/features/admin/api/admin.api';
 import { partnersApi } from '@/features/partners/api/partners.api';
+import { tokenStore } from '@/services/api/tokenStore';
 
 // Mock admin and partner APIs
 vi.mock('@/features/admin/api/admin.api', () => ({
@@ -44,6 +45,7 @@ const NavInspector: React.FC = () => {
 };
 
 const setupTestContext = (permissions: string[], isPlatformAdmin: boolean = false, roles: string[] = []) => {
+  tokenStore.setTokens({ accessToken: 'test-access-token', refreshToken: 'test-refresh-token' });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
@@ -383,30 +385,26 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.getByTestId('group-web2_group_support')).toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_operations')).toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_administration')).toBeInTheDocument();
-    expect(screen.getByTestId('group-web2_group_conversions')).toBeInTheDocument();
+    expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
     expect(screen.getByText('Demo Projects')).toBeInTheDocument();
   });
 
-  it('renders the Conversions group for CONVERSION_STAFF and hides My Assigned Work without conversions.view', () => {
-    // 1. Permitted user with conversions.view
+  it('excludes the legacy Conversions group from sidebar navigation', () => {
     const staffPermissions = ['conversions.view', 'partner.view'];
     const { unmount } = render(<NavInspector />, {
       wrapper: setupTestContext(staffPermissions),
     });
 
-    expect(screen.getByTestId('group-web2_group_conversions')).toBeInTheDocument();
-    expect(screen.getByText('My Assigned Work')).toBeInTheDocument();
-    // Quality Review requires quality-review.manage, so it is hidden
+    expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
+    expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
     expect(screen.queryByText('Quality Review')).not.toBeInTheDocument();
     unmount();
 
-    // 2. User lacking conversions.view (e.g. general guest or partner)
     render(<NavInspector />, {
       wrapper: setupTestContext(['partner.view']),
     });
 
-    // Entire Conversions group must be pruned because none of its children are authorized
     expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
     expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
   });
@@ -462,6 +460,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
 
   describe('Action-Level Permission Guards', () => {
     it('hides Support View button in OrganizationsPage when user lacks organizations.impersonate', async () => {
+      tokenStore.setTokens({ accessToken: 'test-access-token', refreshToken: 'test-refresh-token' });
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false, gcTime: 0 } },
       });
@@ -493,6 +492,7 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     });
 
     it('hides Create Demo Project button in PartnerProjectsPage when user lacks projects.demo.create', async () => {
+      tokenStore.setTokens({ accessToken: 'test-access-token', refreshToken: 'test-refresh-token' });
       const queryClient = new QueryClient({
         defaultOptions: { queries: { retry: false, gcTime: 0 } },
       });

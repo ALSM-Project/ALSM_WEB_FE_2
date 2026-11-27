@@ -176,7 +176,7 @@ export const BankAccountsSection: React.FC<BankAccountsSectionProps> = ({ showHe
             <h2 className="text-xl font-bold text-[#17263A] tracking-tight">
               Bank Accounts
             </h2>
-            <p className="text-xs text-[#8491A3] mt-0.5">
+            <p className="text-xs text-slate-600 max-w-[65ch] mt-0.5">
               Manage company bank accounts used to receive customer payments for signed contracts, conversion services, and invoices.
             </p>
           </div>

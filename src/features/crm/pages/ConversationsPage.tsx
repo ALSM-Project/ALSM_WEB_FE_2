@@ -12,11 +12,15 @@ import {
   Mail,
   Phone,
   CheckCircle2,
+  Paperclip,
+  FileText,
+  X,
 } from 'lucide-react';
 import {
   conversationsApi,
   CrmConversationItem,
   CrmConversationMessageItem,
+  ConversationAttachmentItem,
   CreateConversationPayload,
   ConvertToLeadResult,
 } from '../api/conversations.api';
@@ -47,6 +51,18 @@ export const ConversationsPage: React.FC = () => {
   // Composer state
   const [messageText, setMessageText] = useState('');
   const [isInternalNote, setIsInternalNote] = useState<boolean>(false);
+  const [pendingAttachments, setPendingAttachments] = useState<ConversationAttachmentItem[]>([]);
+  const [uploadingAttachment, setUploadingAttachment] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resolveAttachmentUrl = (url?: string) => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    const rawBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+    const cleanBase = rawBase.replace(/\/+$/, '');
+    const apiRoot = cleanBase.endsWith('/api/v1') ? cleanBase : `${cleanBase}/api/v1`;
+    return `${apiRoot}${url.startsWith('/') ? url : `/${url}`}`;
+  };
 
   // Convert to Lead Modal
   const [showConvertModal, setShowConvertModal] = useState<boolean>(false);
@@ -246,19 +262,37 @@ export const ConversationsPage: React.FC = () => {
     loadMessages(conv.id);
   };
 
+  const handleAttachmentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingAttachment(true);
+      const uploaded = await conversationsApi.uploadAttachment(file);
+      setPendingAttachments((prev) => [...prev, uploaded]);
+    } catch (err) {
+      console.error('Failed to upload attachment:', err);
+    } finally {
+      setUploadingAttachment(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!messageText.trim() || !activeConversation || sending) return;
+    if ((!messageText.trim() && pendingAttachments.length === 0) || !activeConversation || sending) return;
 
+    const content = messageText.trim() || `Sent ${pendingAttachments.length} attachment${pendingAttachments.length === 1 ? '' : 's'}`;
     try {
       setSending(true);
       const newMsg = await conversationsApi.postMessage(activeConversation.id, {
-        content: messageText.trim(),
+        content,
         isInternal: isInternalNote,
+        ...(pendingAttachments.length > 0 ? { attachments: pendingAttachments } : {}),
       });
 
       setMessages((prev) => [...prev, newMsg]);
       setMessageText('');
+      setPendingAttachments([]);
 
       // Refresh conversation item in list to update lastMessage
       setConversations((prev) =>
@@ -390,11 +424,11 @@ export const ConversationsPage: React.FC = () => {
       </div>
 
       {/* 3-Panel Communication Hub */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-2xs overflow-hidden flex flex-col lg:flex-row h-[740px]">
+      <div className="bg-white rounded-xl border border-[#DCE3EC] overflow-hidden flex flex-col lg:flex-row h-[740px]">
         {/* Left Panel: Conversation Thread List */}
         <div className="w-full lg:w-80 border-r border-[#DCE3EC] flex flex-col shrink-0 bg-white">
           {/* Search & Status Filters */}
-          <div className="p-3.5 border-b border-[#DCE3EC] space-y-2.5 bg-white">
+          <div className="p-3.5 border-b border-[#DCE3EC] space-y-2.5">
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
@@ -403,7 +437,7 @@ export const ConversationsPage: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && fetchConversations()}
                 placeholder="Search conversations..."
-                className="w-full pl-8 pr-3 py-2 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-xl text-[#17263A] placeholder:text-slate-500 outline-none transition-all"
+                className="w-full pl-8 pr-3 py-2 text-xs bg-[#F8FAFC] focus:bg-white border border-[#DCE3EC] focus:border-[#244A70] rounded-lg text-[#17263A] placeholder:text-slate-600 outline-none transition-all"
               />
             </div>
 
@@ -414,8 +448,8 @@ export const ConversationsPage: React.FC = () => {
                   onClick={() => setStatusFilter(st)}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer shrink-0 ${
                     statusFilter === st
-                      ? 'bg-[#244A70] text-white shadow-2xs'
-                      : 'bg-[#F8FAFC] text-slate-600 hover:bg-[#DCE3EC]'
+                      ? 'bg-[#244A70] text-white'
+                      : 'bg-[#F8FAFC] text-slate-700 hover:bg-[#DCE3EC]'
                   }`}
                 >
                   {st === 'ALL' ? 'All' : st === 'IN_PROGRESS' ? 'Active' : st.charAt(0) + st.slice(1).toLowerCase()}
@@ -427,13 +461,13 @@ export const ConversationsPage: React.FC = () => {
           {/* Conversation Cards List */}
           <div className="flex-1 overflow-y-auto divide-y divide-[#DCE3EC]">
             {loading && conversations.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">
+              <div className="p-8 text-center text-xs text-slate-600">
                 <RefreshCw className="w-5 h-5 mx-auto animate-spin text-[#244A70] mb-2" />
                 Loading conversations...
               </div>
             ) : conversations.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">
-                <MessageSquare className="w-6 h-6 mx-auto text-slate-300 mb-2" />
+              <div className="p-8 text-center text-xs text-slate-600">
+                <MessageSquare className="w-6 h-6 mx-auto text-slate-400 mb-2" />
                 No conversations found.
               </div>
             ) : (
@@ -456,8 +490,8 @@ export const ConversationsPage: React.FC = () => {
                       {getStatusBadge(conv.status)}
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
-                      <Building className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
+                      <Building className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                       <span className="truncate">{conv.companyName || 'Individual Contact'}</span>
                     </div>
 
@@ -465,7 +499,7 @@ export const ConversationsPage: React.FC = () => {
                       {cleanDisplayTitle(conv.title)}
                     </p>
 
-                    <p className="text-xs text-slate-500 line-clamp-1">
+                    <p className="text-xs text-slate-600 line-clamp-1">
                       {cleanDisplayTitle(conv.lastMessage || 'No messages yet')}
                     </p>
                   </button>
@@ -479,17 +513,16 @@ export const ConversationsPage: React.FC = () => {
         {activeConversation ? (
           <div className="flex-1 flex flex-col bg-white">
             {/* Conversation Header */}
-            <div className="px-5 py-3.5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F8FAFC]">
+            <div className="px-5 py-3.5 border-b border-[#DCE3EC] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-bold text-[#17263A] tracking-tight">
                     {activeConversation.title}
                   </h2>
-                  {getStatusBadge(activeConversation.status)}
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-[#64748B]">
+                <div className="flex items-center gap-3 mt-1 text-xs text-slate-600">
                   <span>{activeConversation.customerName} &bull; {activeConversation.customerEmail}</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] bg-[#EEF1F6] text-[#244A70] font-bold">
+                  <span className="px-2 py-0.5 rounded text-xs bg-[#EEF1F6] text-[#244A70] font-semibold">
                     {activeConversation.channel}
                   </span>
                 </div>
@@ -497,7 +530,7 @@ export const ConversationsPage: React.FC = () => {
 
               {/* Status Selector */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-[#64748B]">Status:</span>
+                <span className="text-xs font-medium text-slate-600">Status:</span>
                 <select
                   value={activeConversation.status}
                   onChange={(e) => handleStatusChange(e.target.value)}
@@ -514,12 +547,12 @@ export const ConversationsPage: React.FC = () => {
             {/* Message Thread History */}
             <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-[#F8FAFC]/40">
               {messagesLoading ? (
-                <div className="py-12 text-center text-xs text-slate-500">
+                <div className="py-12 text-center text-xs text-slate-600">
                   <RefreshCw className="w-5 h-5 mx-auto animate-spin text-[#244A70] mb-2" />
                   Loading message history...
                 </div>
               ) : messages.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-500">
+                <div className="py-12 text-center text-xs text-slate-600">
                   No messages recorded in this conversation yet.
                 </div>
               ) : (
@@ -568,6 +601,40 @@ export const ConversationsPage: React.FC = () => {
                         }`}
                       >
                         {cleanDisplayTitle(msg.content)}
+                        {msg.attachments && msg.attachments.length > 0 && (
+                          <div className="mt-2 space-y-1.5">
+                            {msg.attachments.map((att, idx) => {
+                              const isImage = att.mimeType?.startsWith('image/');
+                              const fullUrl = resolveAttachmentUrl(att.url);
+                              return isImage ? (
+                                <a
+                                  key={att.fileId || idx}
+                                  href={fullUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block overflow-hidden rounded-lg border border-black/10"
+                                >
+                                  <img src={fullUrl} alt={att.name} className="max-h-40 w-full object-cover" />
+                                </a>
+                              ) : (
+                                <a
+                                  key={att.fileId || idx}
+                                  href={fullUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs border ${
+                                    isMe
+                                      ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                      : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
+                                  }`}
+                                >
+                                  <FileText className="w-3.5 h-3.5 shrink-0" />
+                                  <span className="truncate max-w-[200px]">{att.name}</span>
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -623,12 +690,52 @@ export const ConversationsPage: React.FC = () => {
                 />
               </div>
 
+              {pendingAttachments.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {pendingAttachments.map((att, idx) => (
+                    <span
+                      key={att.fileId || idx}
+                      className="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-md px-2.5 py-1 text-xs text-slate-700"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#244A70]" />
+                      <span className="truncate max-w-[160px]">{att.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingAttachments((prev) => prev.filter((_, i) => i !== idx))}
+                        className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                        aria-label={`Remove ${att.name}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-xs text-slate-700 font-semibold">Ctrl + Enter</kbd> to send</span>
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleAttachmentSelect}
+                    accept="image/*,.pdf,.txt,.csv,.json,.doc,.docx,.xls,.xlsx,.zip"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAttachment || sending}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] hover:bg-slate-100 text-xs font-medium text-slate-700 cursor-pointer disabled:opacity-50"
+                  >
+                    <Paperclip className="w-3.5 h-3.5" />
+                    <span>{uploadingAttachment ? 'Uploading...' : 'Attach File'}</span>
+                  </button>
+                  <span>Press <kbd className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-xs text-slate-700 font-semibold">Ctrl + Enter</kbd> to send</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => handleSendMessage()}
-                  disabled={!messageText.trim() || sending}
+                  disabled={(!messageText.trim() && pendingAttachments.length === 0) || sending || uploadingAttachment}
                   className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl text-white transition-colors cursor-pointer disabled:opacity-50 shadow-2xs ${
                     isInternalNote ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[#244A70] hover:bg-[#1b3855]'
                   }`}
@@ -653,25 +760,25 @@ export const ConversationsPage: React.FC = () => {
         {activeConversation && (
           <div className="w-full lg:w-72 border-l border-[#DCE3EC] bg-white flex flex-col divide-y divide-[#DCE3EC] shrink-0">
             <div className="p-4 space-y-2.5">
-              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Lead Dossier
               </h2>
               <div className="space-y-1.5">
                 <p className="text-xs font-bold text-[#17263A]">
                   {activeConversation.companyName || 'Direct Prospect'}
                 </p>
-                <div className="text-xs text-slate-600 space-y-1.5">
+                <div className="text-xs text-slate-700 space-y-1.5">
                   <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <User className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                     <span>{activeConversation.customerName}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <Mail className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                     <span className="truncate">{activeConversation.customerEmail}</span>
                   </div>
                   {activeConversation.customerPhone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <Phone className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                       <span>{activeConversation.customerPhone}</span>
                     </div>
                   )}
@@ -680,7 +787,7 @@ export const ConversationsPage: React.FC = () => {
             </div>
 
             <div className="p-4 space-y-2.5">
-              <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h2 className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Assigned Specialist
               </h2>
               <div className="flex items-center gap-2.5">
@@ -699,8 +806,8 @@ export const ConversationsPage: React.FC = () => {
             </div>
 
             {activeConversation.leadId ? (
-              <div className="mt-auto p-4 space-y-2.5 bg-[#F8FAFC]">
-                <div className="flex items-center gap-2.5 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800">
+              <div className="mt-auto p-4 space-y-3 bg-white">
+                <div className="flex items-center gap-2.5 text-emerald-800">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold">Converted to CRM Lead</p>
@@ -710,20 +817,20 @@ export const ConversationsPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => navigate(`/sales/leads/${activeConversation.leadId}`)}
-                  className="w-full h-9 flex items-center justify-center gap-1.5 px-3.5 text-xs font-bold bg-[#244A70] hover:bg-[#1b3855] text-white rounded-xl transition-colors shadow-2xs cursor-pointer"
+                  className="w-full h-9 flex items-center justify-center gap-1.5 px-3.5 text-xs font-bold bg-[#244A70] hover:bg-[#1b3855] text-white rounded-xl transition-colors cursor-pointer"
                 >
                   <span>View Full Lead Details</span>
                 </button>
               </div>
             ) : (
-              <div className="mt-auto p-4 space-y-2.5 bg-[#F8FAFC]">
-                <div className="p-3 bg-blue-50/80 border border-blue-200/80 rounded-xl text-xs font-medium text-[#244A70] leading-relaxed">
+              <div className="mt-auto p-4 space-y-3 bg-white">
+                <p className="text-xs font-medium text-slate-600 leading-relaxed">
                   This customer inquiry is not yet linked to a CRM opportunity.
-                </div>
+                </p>
                 <button
                   type="button"
                   onClick={() => setShowConvertModal(true)}
-                  className="w-full h-9 flex items-center justify-center gap-1.5 px-3.5 text-xs font-bold bg-[#244A70] hover:bg-[#1b3855] text-white rounded-xl transition-all shadow-2xs cursor-pointer"
+                  className="w-full h-9 flex items-center justify-center gap-1.5 px-3.5 text-xs font-bold bg-[#244A70] hover:bg-[#1b3855] text-white rounded-xl transition-all cursor-pointer"
                 >
                   <span>Convert to Lead</span>
                 </button>

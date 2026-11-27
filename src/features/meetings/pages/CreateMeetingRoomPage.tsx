@@ -656,7 +656,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-[#17263A]">Meeting Details</h2>
-                      <p className="text-xs text-[#8491A3]">Basic topic and target project</p>
+                      <p className="text-xs text-slate-600">Basic topic and agenda</p>
                     </div>
                   </div>
                   <Badge variant="info">Required</Badge>
@@ -676,7 +676,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     <label className="text-xs font-semibold text-[#17263A] tracking-wide">
                       Description / Agenda *
                     </label>
-                    <span className="text-[11px] font-semibold text-rose-500">Required (min 5 chars)</span>
+                    <span className="text-xs font-semibold text-rose-600">Required (min 5 chars)</span>
                   </div>
                   <textarea
                     id="meeting-description-input"
@@ -696,15 +696,15 @@ export const CreateMeetingRoomPage: React.FC = () => {
                       errors.description
                         ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500'
                         : 'border-[#DCE3EC] focus:ring-[#244A70] focus:border-[#244A70]'
-                    } rounded-lg text-[#17263A] placeholder-[#8491A3] shadow-2xs transition-all focus:outline-none focus:ring-2 resize-none`}
+                    } rounded-lg text-[#17263A] placeholder-slate-500 shadow-2xs transition-all focus:outline-none focus:ring-2 resize-none`}
                   />
                   {errors.description && (
                     <p className="text-xs text-rose-600 mt-1 font-medium">{errors.description}</p>
                   )}
                 </div>
 
-                {isCrmLeadMeeting ? (
-                  <div className="p-3.5 rounded-xl bg-[#F4F7FB] border border-[#BFDBFE] flex items-center justify-between">
+                {isCrmLeadMeeting && (
+                  <div className="pt-3 border-t border-[#F4F7FB] flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-[#244A70] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                         {paramCompany.slice(0, 2).toUpperCase() || 'LD'}
@@ -712,370 +712,377 @@ export const CreateMeetingRoomPage: React.FC = () => {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-[#17263A]">{paramCompany || 'CRM Prospect'}</span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#EEF1F6] text-[#244A70]">
+                          <span className="px-2 py-0.5 rounded text-xs font-bold bg-[#EEF1F6] text-[#244A70]">
                             Target Client
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#8491A3]">{paramEmail || 'Client email'}</p>
+                        <p className="text-xs text-slate-600">{paramEmail || 'Client email'}</p>
                       </div>
                     </div>
                     <span className="text-xs text-[#244A70] font-semibold">CRM & Sales Deal</span>
-                  </div>
-                ) : (
-                  <div className="space-y-4 pt-2 border-t border-[#F4F7FB]">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <FolderKanban className="w-4 h-4 text-[#244A70]" />
-                        <label
-                          htmlFor="meeting-project-select"
-                          className="text-xs font-bold text-[#17263A] uppercase tracking-wider block"
-                        >
-                          Related Project *
-                        </label>
-                      </div>
-                      {selectedProject && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" />
-                          Project Selected: {selectedProject.name}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Quick Pick Combobox (Supports Test Automation & Quick Select) */}
-                    <div>
-                      <Select
-                        id="meeting-project-select"
-                        label="Quick Select Project"
-                        value={projectId}
-                        onChange={(e) => handleSelectProject(e.target.value)}
-                        options={projectOptions}
-                        error={errors.projectId}
-                        helperText="Select from dropdown or choose a project directly from the directory table below."
-                      />
-                    </div>
-
-                    {/* Filter Toolbar for Project Directory */}
-                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                        {/* Search Input */}
-                        <div className="relative flex-1">
-                          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none shrink-0" />
-                          <input
-                            type="text"
-                            value={projectSearchTerm}
-                            onChange={(e) => setProjectSearchTerm(e.target.value)}
-                            placeholder="Search project by name, code, partner, or framework..."
-                            className="w-full h-8 pl-9 pr-8 text-xs bg-white border border-slate-200 rounded-lg outline-none focus:border-[#244A70] text-[#17263A]"
-                          />
-                          {projectSearchTerm && (
-                            <button
-                              type="button"
-                              onClick={() => setProjectSearchTerm('')}
-                              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Framework Filter Dropdown Button */}
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setFrameworkMenuOpen(!frameworkMenuOpen)}
-                            className="w-full sm:w-auto px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none text-[#17263A] flex items-center justify-between gap-1.5 min-w-[140px] cursor-pointer"
-                          >
-                            <span className="truncate">{frameworkFilter === 'ALL' ? 'All Frameworks' : frameworkFilter}</span>
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                          </button>
-                          {frameworkMenuOpen && (
-                            <div className="absolute z-30 left-0 mt-1 w-52 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-xs">
-                              <button
-                                type="button"
-                                onClick={() => { setFrameworkFilter('ALL'); setFrameworkMenuOpen(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
-                              >
-                                All Frameworks
-                              </button>
-                              {allFrameworks.map((fw) => (
-                                <button
-                                  key={fw}
-                                  type="button"
-                                  onClick={() => { setFrameworkFilter(fw); setFrameworkMenuOpen(false); }}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
-                                >
-                                  {fw}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Status Filter Dropdown Button */}
-                        <div className="relative">
-                          <button
-                            type="button"
-                            onClick={() => setStatusMenuOpen(!statusMenuOpen)}
-                            className="w-full sm:w-auto px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg outline-none text-[#17263A] flex items-center justify-between gap-1.5 min-w-[110px] cursor-pointer"
-                          >
-                            <span className="truncate">{projectStatusFilter === 'ALL' ? 'All Statuses' : projectStatusFilter}</span>
-                            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                          </button>
-                          {statusMenuOpen && (
-                            <div className="absolute z-30 left-0 mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-xs">
-                              <button
-                                type="button"
-                                onClick={() => { setProjectStatusFilter('ALL'); setStatusMenuOpen(false); }}
-                                className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
-                              >
-                                All Statuses
-                              </button>
-                              {allStatuses.map((st) => (
-                                <button
-                                  key={st}
-                                  type="button"
-                                  onClick={() => { setProjectStatusFilter(st); setStatusMenuOpen(false); }}
-                                  className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
-                                >
-                                  {st}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Directory Table and Dossier Panel Grid */}
-                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 items-start">
-                      {/* Projects Table (8 cols on xl) */}
-                      <div className="xl:col-span-8 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-                        <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#17263A] flex items-center gap-1.5">
-                            <FolderKanban className="w-3.5 h-3.5 text-[#244A70]" />
-                            <span>Available Modernization Projects</span>
-                            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
-                              {filteredProjects.length} Projects
-                            </span>
-                          </span>
-                          <span className="text-[11px] text-slate-500">Click a project to link with meeting</span>
-                        </div>
-
-                        {filteredProjects.length === 0 ? (
-                          <div className="p-6 text-center text-slate-500 text-xs space-y-1">
-                            <FolderKanban className="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
-                            <p className="font-semibold text-slate-700">No projects match the selected criteria.</p>
-                            <p className="text-[11px]">Try clearing your search query or adjusting your filters.</p>
-                          </div>
-                        ) : (
-                          <div className="overflow-x-auto">
-                            <table className="w-full text-left text-xs border-collapse">
-                              <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold text-[10px] uppercase tracking-wider border-b border-[#DCE3EC]">
-                                <tr>
-                                  <th className="py-2.5 px-3">Project</th>
-                                  <th className="py-2.5 px-2">Partner Client</th>
-                                  <th className="py-2.5 px-2">Conversion Target</th>
-                                  <th className="py-2.5 px-2">Staff</th>
-                                  <th className="py-2.5 px-3 text-right">Action</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-[#DCE3EC]">
-                                {paginatedProjects.map((p) => {
-                                  const isSelected = projectId === p.id || projectId === p.name;
-                                  const framework = p.targetFramework || (p.conversionType ? p.conversionType.replace(/_/g, ' ') : 'React 19 + Tailwind CSS');
-                                  const partner = p.partnerName || 'Enterprise Partner Client';
-                                  const staff = p.assignedStaffName || 'Unallocated';
-
-                                  return (
-                                    <tr
-                                      key={p.id}
-                                      data-testid={`project-row-${p.id}`}
-                                      onClick={() => handleSelectProject(p.id)}
-                                      className={`cursor-pointer transition-colors ${
-                                        isSelected
-                                          ? 'bg-blue-50/70 border-l-4 border-l-[#244A70]'
-                                          : 'hover:bg-slate-50'
-                                      }`}
-                                    >
-                                      {/* Project Identity */}
-                                      <td className="py-2.5 px-3">
-                                        <div className="flex items-center gap-2">
-                                          <div
-                                            className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-[11px] uppercase shrink-0 ${
-                                              isSelected
-                                                ? 'bg-[#244A70] text-white'
-                                                : 'bg-slate-200 text-slate-700'
-                                            }`}
-                                          >
-                                            <FolderKanban className="w-3.5 h-3.5" />
-                                          </div>
-                                          <div>
-                                            <div className="font-bold text-[#17263A] text-xs leading-tight">{p.name}</div>
-                                            <div className="text-[10px] text-[#8491A3] font-mono">
-                                              {p.code || p.id.slice(-8).toUpperCase()}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </td>
-
-                                      {/* Partner Client */}
-                                      <td className="py-2.5 px-2 text-[#17263A] text-[11px]">
-                                        <span className="truncate block max-w-[130px]">{partner}</span>
-                                      </td>
-
-                                      {/* Conversion Target */}
-                                      <td className="py-2.5 px-2">
-                                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium truncate block max-w-[140px]">
-                                          {framework}
-                                        </span>
-                                      </td>
-
-                                      {/* Staff */}
-                                      <td className="py-2.5 px-2 text-[11px] text-slate-600">
-                                        <span className="truncate block max-w-[110px]">{staff}</span>
-                                      </td>
-
-                                      {/* Action Button */}
-                                      <td className="py-2.5 px-3 text-right">
-                                        {isSelected ? (
-                                          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#244A70] text-white rounded text-[10px] font-semibold">
-                                            <Check className="w-3 h-3 stroke-[3]" />
-                                            Selected
-                                          </span>
-                                        ) : (
-                                          <button
-                                            type="button"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleSelectProject(p.id);
-                                            }}
-                                            className="px-2 py-0.5 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-[10px] font-medium transition-colors cursor-pointer"
-                                          >
-                                            Select
-                                          </button>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-
-                        {/* Pagination Bar */}
-                        {filteredProjects.length > 0 && (
-                          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-3 py-2 border-t border-[#DCE3EC] bg-[#F8FAFC] text-xs">
-                            <div className="flex items-center gap-1.5 text-[11px] text-[#8491A3]">
-                              <span>
-                                Showing {projectStartIndex + 1} to {projectEndIndex} of {filteredProjects.length} projects
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-1">
-                              <span className="text-[11px] text-[#8491A3] mr-1.5">
-                                Page {projectPage} of {totalProjectPages}
-                              </span>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={projectPage <= 1}
-                                onClick={() => setProjectPage((p) => Math.max(1, p - 1))}
-                                className="h-6 text-[11px] px-1.5 gap-0.5"
-                              >
-                                <ChevronLeft className="w-3 h-3 shrink-0" />
-                                <span>Prev</span>
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={projectPage >= totalProjectPages}
-                                onClick={() => setProjectPage((p) => Math.min(totalProjectPages, p + 1))}
-                                className="h-6 text-[11px] px-1.5 gap-0.5"
-                              >
-                                <span>Next</span>
-                                <ChevronRight className="w-3 h-3 shrink-0" />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Dossier Card: Selected Project Profile (4 cols on xl) */}
-                      <div className="xl:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
-                        <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
-                          <FolderKanban className="w-4 h-4 text-[#244A70]" />
-                          <span>Selected Project Context</span>
-                        </div>
-
-                        {selectedProject ? (
-                          <div className="space-y-2.5 text-xs">
-                            <div className="flex items-start gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-[#244A70] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs mt-0.5">
-                                <FolderKanban className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="font-bold text-[#17263A] text-xs leading-snug truncate" title={selectedProject.name}>
-                                  {selectedProject.name}
-                                </div>
-                                <div className="text-[10px] font-mono text-[#244A70] font-bold mt-0.5">
-                                  {selectedProject.code || selectedProject.id.slice(-8).toUpperCase()}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5 pt-2 border-t border-slate-200 text-[11px]">
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-500">Partner:</span>
-                                <span className="font-medium text-[#17263A] truncate max-w-[130px]">
-                                  {selectedProject.partnerName || 'Enterprise Partner Client'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-500">Framework:</span>
-                                <span className="font-semibold text-slate-800 truncate max-w-[130px]">
-                                  {selectedProject.targetFramework || (selectedProject.conversionType ? selectedProject.conversionType.replace(/_/g, ' ') : 'React 19')}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-500">Assigned Lead:</span>
-                                <span className="font-medium text-slate-800 truncate max-w-[130px]">
-                                  {selectedProject.assignedTeamLeadName || user?.fullName || 'Assigned Lead'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between items-center">
-                                <span className="text-slate-500">Assigned Staff:</span>
-                                <span className="font-medium text-slate-800 truncate max-w-[130px]">
-                                  {selectedProject.assignedStaffName || 'Unallocated'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Meeting attendee sync hint */}
-                            <div className="p-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 text-[10px] flex items-start gap-1.5 leading-relaxed">
-                              <Users className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                              <span>Assigned engineers for this project are automatically added to meeting attendees.</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="py-6 text-center text-slate-400 space-y-1.5">
-                            <FolderKanban className="w-7 h-7 mx-auto text-slate-300 stroke-[1.5]" />
-                            <p className="text-xs font-semibold text-slate-600">No project selected</p>
-                            <p className="text-[10px] text-slate-400 max-w-[180px] mx-auto">
-                              Select a project from the directory or dropdown to view its profile.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
             </Card>
 
-            {/* Card 2: Schedule & Timing */}
+            {/* Card 2: Related Project */}
+            {!isCrmLeadMeeting && (
+              <Card className="border border-[#DCE3EC] bg-white shadow-2xs rounded-xl">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#F4F7FB]">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-[#EEF1F6] flex items-center justify-center text-[#244A70]">
+                        <FolderKanban className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="meeting-project-select"
+                          className="text-base font-bold text-[#17263A] block"
+                        >
+                          Related Project *
+                        </label>
+                        <p className="text-xs text-slate-600">Link a modernization project and sync assigned staff</p>
+                      </div>
+                    </div>
+                    {selectedProject && (
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        Project Selected: {selectedProject.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Quick Pick Combobox (Supports Test Automation & Quick Select) */}
+                  <div>
+                    <Select
+                      id="meeting-project-select"
+                      label="Quick Select Project"
+                      value={projectId}
+                      onChange={(e) => handleSelectProject(e.target.value)}
+                      options={projectOptions}
+                      error={errors.projectId}
+                      helperText="Select from dropdown or choose a project directly from the directory table below."
+                    />
+                  </div>
+
+                  {/* Filter Toolbar for Project Directory (flat, no nested card) */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                    {/* Search Input */}
+                    <div className="relative flex-1">
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none shrink-0" />
+                      <input
+                        type="text"
+                        value={projectSearchTerm}
+                        onChange={(e) => setProjectSearchTerm(e.target.value)}
+                        placeholder="Search project by name, code, partner, or framework..."
+                        className="w-full h-9 pl-9 pr-8 text-xs bg-white border border-[#DCE3EC] rounded-lg outline-none focus:border-[#244A70] text-[#17263A] placeholder-slate-500"
+                      />
+                      {projectSearchTerm && (
+                        <button
+                          type="button"
+                          onClick={() => setProjectSearchTerm('')}
+                          className="absolute right-2.5 top-2.5 text-slate-500 hover:text-slate-700 cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Framework Filter Dropdown Button */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setFrameworkMenuOpen(!frameworkMenuOpen)}
+                        className="w-full sm:w-auto h-9 px-3 text-xs bg-white border border-[#DCE3EC] rounded-lg outline-none text-[#17263A] flex items-center justify-between gap-1.5 min-w-[140px] cursor-pointer"
+                      >
+                        <span className="truncate">{frameworkFilter === 'ALL' ? 'All Frameworks' : frameworkFilter}</span>
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                      </button>
+                      {frameworkMenuOpen && (
+                        <div className="absolute z-30 left-0 mt-1 w-52 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => { setFrameworkFilter('ALL'); setFrameworkMenuOpen(false); }}
+                            className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
+                          >
+                            All Frameworks
+                          </button>
+                          {allFrameworks.map((fw) => (
+                            <button
+                              key={fw}
+                              type="button"
+                              onClick={() => { setFrameworkFilter(fw); setFrameworkMenuOpen(false); }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
+                            >
+                              {fw}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Filter Dropdown Button */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setStatusMenuOpen(!statusMenuOpen)}
+                        className="w-full sm:w-auto h-9 px-3 text-xs bg-white border border-[#DCE3EC] rounded-lg outline-none text-[#17263A] flex items-center justify-between gap-1.5 min-w-[110px] cursor-pointer"
+                      >
+                        <span className="truncate">{projectStatusFilter === 'ALL' ? 'All Statuses' : projectStatusFilter}</span>
+                        <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                      </button>
+                      {statusMenuOpen && (
+                        <div className="absolute z-30 left-0 mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-xs">
+                          <button
+                            type="button"
+                            onClick={() => { setProjectStatusFilter('ALL'); setStatusMenuOpen(false); }}
+                            className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
+                          >
+                            All Statuses
+                          </button>
+                          {allStatuses.map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => { setProjectStatusFilter(st); setStatusMenuOpen(false); }}
+                              className="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-[#17263A] cursor-pointer"
+                            >
+                              {st}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Directory Table and Dossier Panel Grid */}
+                  <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start pt-1">
+                    {/* Projects Table (8 cols on xl) */}
+                    <div className="xl:col-span-8 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-[#17263A] flex items-center gap-1.5">
+                          <span>Available Modernization Projects</span>
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
+                            {filteredProjects.length} Projects
+                          </span>
+                        </span>
+                        <span className="text-xs text-slate-600">Click a project to link with meeting</span>
+                      </div>
+
+                      {filteredProjects.length === 0 ? (
+                        <div className="py-6 text-center text-slate-600 text-xs space-y-1 border-y border-[#DCE3EC]">
+                          <FolderKanban className="w-7 h-7 text-slate-400 mx-auto mb-1.5" />
+                          <p className="font-semibold text-slate-700">No projects match the selected criteria.</p>
+                          <p className="text-xs text-slate-600">Try clearing your search query or adjusting your filters.</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto border-y border-[#DCE3EC]">
+                          <table className="w-full text-left text-xs border-collapse">
+                            <thead className="bg-[#F8FAFC] text-slate-600 font-bold text-xs uppercase tracking-wider border-b border-[#DCE3EC]">
+                              <tr>
+                                <th className="py-2.5 px-3">Project</th>
+                                <th className="py-2.5 px-2">Partner Client</th>
+                                <th className="py-2.5 px-2">Conversion Target</th>
+                                <th className="py-2.5 px-2">Staff</th>
+                                <th className="py-2.5 px-3 text-right">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#DCE3EC]">
+                              {paginatedProjects.map((p) => {
+                                const isSelected = projectId === p.id || projectId === p.name;
+                                const framework = p.targetFramework || (p.conversionType ? p.conversionType.replace(/_/g, ' ') : 'React 19 + Tailwind CSS');
+                                const partner = p.partnerName || 'Enterprise Partner Client';
+                                const staff = p.assignedStaffName || 'Unallocated';
+
+                                return (
+                                  <tr
+                                    key={p.id}
+                                    data-testid={`project-row-${p.id}`}
+                                    onClick={() => handleSelectProject(p.id)}
+                                    className={`cursor-pointer transition-colors ${
+                                      isSelected
+                                        ? 'bg-blue-50/70 border-l-4 border-l-[#244A70]'
+                                        : 'hover:bg-slate-50'
+                                    }`}
+                                  >
+                                    {/* Project Identity */}
+                                    <td className="py-2.5 px-3">
+                                      <div className="flex items-center gap-2">
+                                        <div
+                                          className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs uppercase shrink-0 ${
+                                            isSelected
+                                              ? 'bg-[#244A70] text-white'
+                                              : 'bg-slate-200 text-slate-700'
+                                          }`}
+                                        >
+                                          <FolderKanban className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div>
+                                          <div className="font-bold text-[#17263A] text-xs leading-tight">{p.name}</div>
+                                          <div className="text-xs text-slate-600 font-mono">
+                                            {p.code || p.id.slice(-8).toUpperCase()}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+
+                                    {/* Partner Client */}
+                                    <td className="py-2.5 px-2 text-[#17263A] text-xs">
+                                      <span className="truncate block max-w-[130px]">{partner}</span>
+                                    </td>
+
+                                    {/* Conversion Target */}
+                                    <td className="py-2.5 px-2">
+                                      <span className="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-700 font-medium truncate block max-w-[140px]">
+                                        {framework}
+                                      </span>
+                                    </td>
+
+                                    {/* Staff */}
+                                    <td className="py-2.5 px-2 text-xs text-slate-700">
+                                      <span className="truncate block max-w-[110px]">{staff}</span>
+                                    </td>
+
+                                    {/* Action Button */}
+                                    <td className="py-2.5 px-3 text-right">
+                                      {isSelected ? (
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#244A70] text-white rounded text-xs font-semibold">
+                                          <Check className="w-3 h-3 stroke-[3]" />
+                                          Selected
+                                        </span>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSelectProject(p.id);
+                                          }}
+                                          className="px-2.5 py-1 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-xs font-medium transition-colors cursor-pointer"
+                                        >
+                                          Select
+                                        </button>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {/* Pagination Bar */}
+                      {filteredProjects.length > 0 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 text-xs">
+                          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                            <span>
+                              Showing {projectStartIndex + 1} to {projectEndIndex} of {filteredProjects.length} projects
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs text-slate-600 mr-1">
+                              Page {projectPage} of {totalProjectPages}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={projectPage <= 1}
+                              onClick={() => setProjectPage((p) => Math.max(1, p - 1))}
+                              className="h-7 text-xs px-2 gap-0.5"
+                            >
+                              <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
+                              <span>Prev</span>
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={projectPage >= totalProjectPages}
+                              onClick={() => setProjectPage((p) => Math.min(totalProjectPages, p + 1))}
+                              className="h-7 text-xs px-2 gap-0.5"
+                            >
+                              <span>Next</span>
+                              <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Selected Project Context (4 cols on xl, flat side divider instead of nested card) */}
+                    <div className="xl:col-span-4 xl:border-l xl:border-[#DCE3EC] xl:pl-4 space-y-3">
+                      <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-[#F4F7FB]">
+                        <FolderKanban className="w-4 h-4 text-[#244A70]" />
+                        <span>Selected Project Context</span>
+                      </div>
+
+                      {selectedProject ? (
+                        <div className="space-y-3 text-xs">
+                          <div className="flex items-start gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-[#244A70] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs mt-0.5">
+                              <FolderKanban className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-[#17263A] text-xs leading-snug truncate" title={selectedProject.name}>
+                                {selectedProject.name}
+                              </div>
+                              <div className="text-xs font-mono text-[#244A70] font-bold mt-0.5">
+                                {selectedProject.code || selectedProject.id.slice(-8).toUpperCase()}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5 pt-2 border-t border-[#F4F7FB] text-xs">
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-600">Partner:</span>
+                              <span className="font-medium text-[#17263A] truncate max-w-[140px]">
+                                {selectedProject.partnerName || 'Enterprise Partner Client'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-600">Framework:</span>
+                              <span className="font-semibold text-slate-800 truncate max-w-[140px]">
+                                {selectedProject.targetFramework || (selectedProject.conversionType ? selectedProject.conversionType.replace(/_/g, ' ') : 'React 19')}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-600">Assigned Lead:</span>
+                              <span className="font-medium text-slate-800 truncate max-w-[140px]">
+                                {selectedProject.assignedTeamLeadName || user?.fullName || 'Assigned Lead'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-2">
+                              <span className="text-slate-600">Assigned Staff:</span>
+                              <span className="font-medium text-slate-800 truncate max-w-[140px]">
+                                {selectedProject.assignedStaffName || 'Unallocated'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Meeting attendee sync hint (flat inline note) */}
+                          <p className="text-xs text-slate-600 flex items-start gap-1.5 leading-relaxed pt-2 border-t border-[#F4F7FB]">
+                            <Users className="w-3.5 h-3.5 text-[#244A70] shrink-0 mt-0.5" />
+                            <span>Assigned engineers for this project are automatically added to meeting attendees.</span>
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="py-6 text-center text-slate-600 space-y-1.5">
+                          <FolderKanban className="w-7 h-7 mx-auto text-slate-400 stroke-[1.5]" />
+                          <p className="text-xs font-semibold text-slate-700">No project selected</p>
+                          <p className="text-xs text-slate-600 max-w-[200px] mx-auto">
+                            Select a project from the directory or dropdown to view its profile.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )}
+
+            {/* Card 3: Schedule & Timing */}
             <Card className="border border-[#DCE3EC] bg-white shadow-2xs rounded-xl">
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F4F7FB]">
@@ -1085,7 +1092,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-[#17263A]">Schedule & Timing</h2>
-                      <p className="text-xs text-[#8491A3]">Set start, finish time or quick durations</p>
+                      <p className="text-xs text-slate-600">Set start, finish time or quick durations</p>
                     </div>
                   </div>
                   {durationMins !== null && (
@@ -1096,8 +1103,8 @@ export const CreateMeetingRoomPage: React.FC = () => {
                 </div>
 
                 {/* Quick presets */}
-                <div className="flex items-center gap-2 flex-wrap bg-[#F8FAFC] p-3 rounded-lg border border-[#DCE3EC]">
-                  <span className="text-xs font-medium text-[#8491A3]">Quick start presets:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-medium text-slate-600">Quick start presets:</span>
                   {([30, 60] as QuickDuration[]).map((mins) => (
                     <button
                       key={mins}
@@ -1118,7 +1125,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                       setStartTime(toLocalDatetimeValue(tom));
                       setEndTime(toLocalDatetimeValue(addMinutes(tom, 60)));
                     }}
-                    className="px-3 py-1 text-xs font-semibold rounded-full bg-white border border-[#DCE3EC] text-[#8491A3] hover:bg-slate-100 hover:text-[#17263A] transition-colors cursor-pointer shadow-2xs"
+                    className="px-3 py-1 text-xs font-semibold rounded-full bg-white border border-[#DCE3EC] text-slate-600 hover:bg-slate-100 hover:text-[#17263A] transition-colors cursor-pointer shadow-2xs"
                   >
                     Tomorrow 9:00 AM
                   </button>
@@ -1145,7 +1152,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
               </div>
             </Card>
 
-            {/* Card 3: Google Meet configuration */}
+            {/* Card 4: Google Meet configuration */}
             <Card className="border border-[#DCE3EC] bg-white shadow-2xs rounded-xl">
               <div className="space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-[#F4F7FB]">
@@ -1155,7 +1162,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-[#17263A]">Google Meet Configuration</h2>
-                      <p className="text-xs text-[#8491A3]">Provisioning mode and link handling</p>
+                      <p className="text-xs text-slate-600">Provisioning mode and link handling</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-medium border border-emerald-200/80">
@@ -1177,17 +1184,17 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Wand2 className={`w-4 h-4 ${mode === 'auto' ? 'text-[#244A70]' : 'text-[#8491A3]'}`} />
+                      <Wand2 className={`w-4 h-4 ${mode === 'auto' ? 'text-[#244A70]' : 'text-slate-500'}`} />
                       <span className={`text-sm font-bold ${mode === 'auto' ? 'text-[#244A70]' : 'text-[#17263A]'}`}>
                         Auto-generate link
                       </span>
                       {mode === 'auto' && (
-                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#244A70] text-white">
+                        <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full bg-[#244A70] text-white">
                           Recommended
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#8491A3] leading-relaxed">
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       ALSM automatically provisions a unique Google Meet link code (format: 3-4-3 letters)
                     </p>
                   </button>
@@ -1204,19 +1211,19 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-2">
-                      <Link className={`w-4 h-4 ${mode === 'custom' ? 'text-[#244A70]' : 'text-[#8491A3]'}`} />
+                      <Link className={`w-4 h-4 ${mode === 'custom' ? 'text-[#244A70]' : 'text-slate-500'}`} />
                       <span className={`text-sm font-bold ${mode === 'custom' ? 'text-[#244A70]' : 'text-[#17263A]'}`}>
                         Use existing link
                       </span>
                     </div>
-                    <p className="text-xs text-[#8491A3] leading-relaxed">
+                    <p className="text-xs text-slate-600 leading-relaxed">
                       Paste an existing Google Meet link already scheduled in your Google Calendar
                     </p>
                   </button>
                 </div>
 
                 {mode === 'auto' && (
-                  <div className="p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl text-xs text-amber-900 flex items-start gap-2.5">
+                  <div className="border-l-2 border-amber-500 pl-3 py-1 text-xs text-amber-900 flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <p className="font-semibold text-amber-950">Note on Auto-generation:</p>
@@ -1229,7 +1236,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
 
                 {mode === 'custom' && (
                   <div className="pt-2 space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#EEF1F6] border border-[#BFDBFE] rounded-xl p-3.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                       <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-[#244A70] shrink-0" />
                         <span className="text-xs text-[#17263A] font-medium">
@@ -1240,7 +1247,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                         type="button"
                         id="open-google-meet-new-btn"
                         onClick={() => window.open('https://meet.google.com/new', '_blank', 'noopener,noreferrer')}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#244A70] transition-colors shadow-2xs shrink-0 cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#244A70] text-white hover:bg-[#1e3d5c] transition-colors shadow-2xs shrink-0 cursor-pointer"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         Launch New Google Meet
@@ -1266,36 +1273,34 @@ export const CreateMeetingRoomPage: React.FC = () => {
               RIGHT COLUMN: Live Preview, Attendees & Actions (5 cols on lg, 4 cols on xl)
               ══════════════════════════════════════════════════════════════════════════ */}
           <div className="lg:col-span-5 xl:col-span-4 space-y-6 lg:sticky lg:top-20">
-            {/* Live Invitation Preview Card (Web 2 Enterprise Style — No jarring gradient) */}
-            <Card className="border border-[#DCE3EC] bg-white shadow-2xs rounded-xl overflow-hidden p-0">
-              {/* Clean Enterprise Card Header */}
-              <div className="px-5 py-4 border-b border-[#DCE3EC] bg-[#F8FAFC] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded bg-[#EEF1F6] text-[#244A70] flex items-center justify-center">
-                    <Video className="w-3.5 h-3.5" />
+            {/* Live Invitation Preview Card */}
+            <Card className="border border-[#DCE3EC] bg-white shadow-2xs rounded-xl">
+              <div className="space-y-4">
+                <div className="pb-3 border-b border-[#F4F7FB] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded bg-[#EEF1F6] text-[#244A70] flex items-center justify-center">
+                      <Video className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
+                      Google Meet Invitation Preview
+                    </span>
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#17263A]">
-                    Google Meet Invitation Preview
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    Live Preview
                   </span>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] font-medium bg-white border border-[#DCE3EC] text-[#244A70] px-2 py-0.5 rounded-full shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Live Preview
-                </span>
-              </div>
 
-              {/* Preview Body */}
-              <div className="p-5 space-y-4">
                 <div>
                   <h3 className="text-lg font-bold text-[#17263A] break-words">
                     {title.trim() || 'Untitled Meeting'}
                   </h3>
-                  <p className="text-xs text-[#8491A3] mt-0.5">
+                  <p className="text-xs text-slate-600 mt-0.5">
                     {isCrmLeadMeeting ? `Client Deal: ${paramCompany || 'Prospective Customer'}` : (selectedProject ? `Project: ${selectedProject.name}` : 'No project linked yet')}
                   </p>
                 </div>
 
-                <div className="space-y-3 pt-2 text-xs text-[#8491A3] border-t border-[#F4F7FB]">
+                <div className="space-y-3 pt-2 text-xs text-slate-600 border-t border-[#F4F7FB]">
                   <div className="flex items-center gap-2.5">
                     <Calendar className="w-4 h-4 text-[#244A70] shrink-0" />
                     <span className="font-medium text-[#17263A]">
@@ -1305,7 +1310,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
 
                   <div className="flex items-center gap-2.5">
                     <Link className="w-4 h-4 text-[#244A70] shrink-0" />
-                    <span className="font-mono text-xs text-[#244A70] bg-[#F4F7FB] px-2 py-1 rounded border border-[#DCE3EC] truncate flex-1">
+                    <span className="font-mono text-xs text-[#244A70] truncate flex-1">
                       {mode === 'custom' && customMeetingUrl.trim()
                         ? customMeetingUrl.trim()
                         : 'https://meet.google.com/xxx-yyyy-zzz (Auto)'}
@@ -1314,7 +1319,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
 
                   {selectedProject && (
                     <div className="flex items-center gap-2.5">
-                      <FileText className="w-4 h-4 text-[#8491A3] shrink-0" />
+                      <FileText className="w-4 h-4 text-slate-500 shrink-0" />
                       <span className="font-medium text-[#17263A] truncate">
                         {selectedProject.name}
                       </span>
@@ -1322,7 +1327,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                   )}
 
                   <div className="flex items-center gap-2.5">
-                    <Users className="w-4 h-4 text-[#8491A3] shrink-0" />
+                    <Users className="w-4 h-4 text-slate-500 shrink-0" />
                     <span>
                       {attendeeEmails.length} {attendeeEmails.length === 1 ? 'attendee' : 'attendees'} invited
                     </span>
@@ -1330,7 +1335,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                 </div>
 
                 {description.trim() && (
-                  <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#DCE3EC] text-xs text-[#8491A3] line-clamp-3">
+                  <div className="pt-3 border-t border-[#F4F7FB] text-xs text-slate-600 line-clamp-3">
                     <span className="font-semibold text-[#17263A] block mb-1">Agenda:</span>
                     {description.trim()}
                   </div>
@@ -1351,9 +1356,9 @@ export const CreateMeetingRoomPage: React.FC = () => {
                   </Badge>
                 </div>
 
-                {/* Auto-assigned members notification */}
+                {/* Auto-assigned members notification (flat left-border callout) */}
                 {assignedMembers.length > 0 && (
-                  <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-xs text-emerald-800 flex items-start gap-2">
+                  <div className="border-l-2 border-emerald-500 pl-3 py-1 text-xs text-emerald-800 flex items-start gap-2">
                     <UserCheck className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
                     <span>
                       <strong>{assignedMembers.length} assigned member(s)</strong> for this project automatically added and will receive invitation emails.
@@ -1362,7 +1367,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                 )}
 
                 {errors.attendees && (
-                  <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium flex items-center gap-2">
+                  <div className="border-l-2 border-rose-500 pl-3 py-1 text-xs text-rose-700 font-medium flex items-center gap-2">
                     <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                     <span>{errors.attendees}</span>
                   </div>
@@ -1409,7 +1414,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                         >
                           {email}
                           {isAssigned && (
-                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.2 rounded">
+                            <span className="text-xs font-semibold text-emerald-700 bg-emerald-100/90 px-1.5 py-0.5 rounded">
                               Assigned Staff
                             </span>
                           )}
@@ -1426,7 +1431,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-[#8491A3] italic">
+                  <p className="text-xs text-slate-600 italic">
                     No attendees added yet. Select a project with assigned staff or type an email and press Enter.
                   </p>
                 )}
@@ -1442,7 +1447,7 @@ export const CreateMeetingRoomPage: React.FC = () => {
                 size="lg"
                 isLoading={isPending}
                 disabled={isPending}
-                className="w-full gap-2 bg-[#244A70] hover:bg-[#244A70] py-3 text-base font-semibold shadow-2xs cursor-pointer text-white"
+                className="w-full gap-2 bg-[#244A70] hover:bg-[#1e3d5c] py-3 text-base font-semibold shadow-2xs cursor-pointer text-white"
               >
                 <Video className="w-5 h-5 text-white" />
                 Create Meeting Room
@@ -1453,12 +1458,12 @@ export const CreateMeetingRoomPage: React.FC = () => {
                 type="button"
                 variant="ghost"
                 onClick={() => navigate(-1)}
-                className="w-full text-xs text-[#8491A3] hover:text-[#17263A]"
+                className="w-full text-xs text-slate-600 hover:text-[#17263A]"
               >
                 Cancel and return
               </Button>
 
-              <div className="pt-3 border-t border-[#F4F7FB] text-[11px] text-[#8491A3] space-y-1.5">
+              <div className="pt-3 border-t border-[#F4F7FB] text-xs text-slate-600 space-y-1.5">
                 <p className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   Supports up to 100 participants with screen sharing

@@ -4,12 +4,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EmployeeWorkQueuePage } from '../pages/EmployeeWorkQueuePage';
 import { mockServer, SERVER_PROJECT_ID } from '@/features/partners/__tests__/serverFixture';
+import { tokenStore } from '@/services/api/tokenStore';
 
 vi.mock('@/services/api/apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() },
 }));
 
 const createWrapper = () => {
+  tokenStore.setTokens({ accessToken: 'test-access-token', refreshToken: 'test-refresh-token' });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });

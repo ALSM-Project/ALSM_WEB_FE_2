@@ -201,14 +201,14 @@ export const AmendQuotaPage: React.FC = () => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#8491A3] mt-0.5">
-              Contract: <strong className="font-mono text-[#17263A]">{org.contractNumber || 'CTR-DEFAULT'}</strong> • Plan: <strong>{org.subscriptionPlan}</strong> • Mode: <strong>{org.serviceMode}</strong>
+            <p className="text-sm text-[#526071] mt-0.5">
+              Contract: <strong className="font-mono text-[#17263A]">{org.contractNumber || 'CTR-DEFAULT'}</strong> • Plan: <strong className="text-[#17263A]">{org.subscriptionPlan}</strong> • Mode: <strong className="text-[#17263A]">{org.serviceMode}</strong>
             </p>
           </div>
         </div>
 
         <div className="text-right text-xs">
-          <span className="text-slate-500 block">Authorized Expiry</span>
+          <span className="text-slate-600 block">Authorized Expiry</span>
           <span className="font-bold text-slate-800 font-mono">
             {org.contractExpiresAt ? new Date(org.contractExpiresAt).toLocaleDateString('en-US') : 'Evaluation (Permanent)'}
           </span>
@@ -224,7 +224,7 @@ export const AmendQuotaPage: React.FC = () => {
                 <Layers className="w-4 h-4 text-[#244A70]" />
                 Resource Quota Adjustment & Entitlement Comparison
               </h2>
-              <p className="text-xs text-[#8491A3]">
+              <p className="text-sm text-[#526071] mt-0.5">
                 Compare current consumption against authorized limits and set new contract entitlements.
               </p>
             </div>
@@ -233,9 +233,9 @@ export const AmendQuotaPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="overflow-x-auto border border-slate-200 rounded-xl">
+          <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#F8FAFC] border-b border-slate-200 text-slate-600 font-bold uppercase text-xs">
+              <thead className="border-b border-slate-200 text-slate-600 font-bold uppercase text-xs">
                 <tr>
                   <th className="py-3 px-4">Resource Dimension</th>
                   <th className="py-3 px-4">Current Authorized Quota</th>
@@ -277,7 +277,7 @@ export const AmendQuotaPage: React.FC = () => {
                         {screenDelta} screens
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-semibold">No change</span>
+                      <span className="text-slate-600 font-semibold">No change</span>
                     )}
                   </td>
                 </tr>
@@ -306,7 +306,7 @@ export const AmendQuotaPage: React.FC = () => {
                         +{projectDelta} slots
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-semibold">No change</span>
+                      <span className="text-slate-600 font-semibold">No change</span>
                     )}
                   </td>
                 </tr>
@@ -335,7 +335,7 @@ export const AmendQuotaPage: React.FC = () => {
                         +{storageDelta} GB
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-semibold">No change</span>
+                      <span className="text-slate-600 font-semibold">No change</span>
                     )}
                   </td>
                 </tr>
@@ -364,7 +364,7 @@ export const AmendQuotaPage: React.FC = () => {
                         +{jobDelta} workers
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-semibold">No change</span>
+                      <span className="text-slate-600 font-semibold">No change</span>
                     )}
                   </td>
                 </tr>
@@ -393,7 +393,7 @@ export const AmendQuotaPage: React.FC = () => {
                         +{memberDelta} seats
                       </span>
                     ) : (
-                      <span className="text-slate-400 font-semibold">No change</span>
+                      <span className="text-slate-600 font-semibold">No change</span>
                     )}
                   </td>
                 </tr>
@@ -492,7 +492,7 @@ export const AmendQuotaPage: React.FC = () => {
               <span className="font-bold text-[#17263A] block">
                 Audit Record & Instant Web 3 Entitlement Synchronization
               </span>
-              <span className="text-[#8491A3]">
+              <span className="text-[#526071]">
                 Saving this amendment will immediately unblock any throttled conversion jobs and persist an immutable record to the Audit Log.
               </span>
             </div>

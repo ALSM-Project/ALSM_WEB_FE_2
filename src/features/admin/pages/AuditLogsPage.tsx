@@ -238,7 +238,7 @@ export const AuditLogsPage: React.FC = () => {
               <strong>Simulated Audit Trail:</strong> The audit log entries presented below are generated test records representing platform activities, administrative interventions, and role adjustments. They do not constitute immutable production system logs.
             </span>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
+          <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-200 text-amber-900 shrink-0">
             Mock Audit Data
           </span>
         </div>
@@ -250,7 +250,7 @@ export const AuditLogsPage: React.FC = () => {
               <strong>Live Immutable Audit Trail:</strong> Displaying authoritative system audit records persisted in the database.
             </span>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-200 text-blue-900 shrink-0">
+          <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-200 text-blue-900 shrink-0">
             Live Records ({logs.length})
           </span>
         </div>
@@ -281,13 +281,13 @@ export const AuditLogsPage: React.FC = () => {
               }}
               className="w-full h-8 pl-9 pr-4 bg-white border border-[#DCE3EC] rounded-xl text-xs focus:ring-2 focus:ring-[#244A70] outline-none"
             />
-            <FileSearch className="w-4 h-4 text-[#8491A3] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
+            <FileSearch className="w-4 h-4 text-[#526071] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto justify-end">
             {/* Date Range Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#8491A3]">Date:</span>
+              <span className="text-xs font-semibold text-[#526071]">Date:</span>
               <select
                 value={dateRangeFilter}
                 onChange={(e) => {
@@ -305,7 +305,7 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Action Type Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#8491A3]">Action:</span>
+              <span className="text-xs font-semibold text-[#526071]">Action:</span>
               <select
                 className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={actionFilter}
@@ -330,7 +330,7 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Target Resource Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#8491A3]">Target:</span>
+              <span className="text-xs font-semibold text-[#526071]">Target:</span>
               <select
                 className="h-8 px-2.5 rounded-xl border border-[#DCE3EC] text-xs bg-white text-[#17263A] focus:ring-2 focus:ring-[#244A70] outline-none"
                 value={resourceFilter}
@@ -352,7 +352,7 @@ export const AuditLogsPage: React.FC = () => {
 
             {/* Sort Order */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#8491A3]">Sort:</span>
+              <span className="text-xs font-semibold text-[#526071]">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
@@ -368,11 +368,11 @@ export const AuditLogsPage: React.FC = () => {
       </div>
 
       {/* Audit Log Table (Requirement H) */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
+              <tr className="border-b border-[#DCE3EC] text-xs font-bold text-[#526071] uppercase tracking-wider">
                 <th className="py-3 px-4">Timestamp</th>
                 <th className="py-3 px-4">Actor</th>
                 <th className="py-3 px-4">Action</th>
@@ -384,7 +384,7 @@ export const AuditLogsPage: React.FC = () => {
             <tbody className="divide-y divide-[#DCE3EC]">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#8491A3]">
+                  <td colSpan={6} className="py-12 text-center text-[#526071]">
                     <div className="flex flex-col items-center justify-center space-y-2">
                       <div className="w-6 h-6 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
                       <span>Reading simulated audit records...</span>
@@ -393,8 +393,8 @@ export const AuditLogsPage: React.FC = () => {
                 </tr>
               ) : paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-[#8491A3]">
-                    <FileSearch className="w-8 h-8 mx-auto text-[#8491A3]/40 mb-2" />
+                  <td colSpan={6} className="py-12 text-center text-[#526071]">
+                    <FileSearch className="w-8 h-8 mx-auto text-[#526071]/40 mb-2" />
                     <div>No audit records match the selected parameters.</div>
                     <Button variant="outline" size="sm" onClick={resetFilters} className="mt-3 text-xs">
                       Reset Filters
@@ -409,7 +409,7 @@ export const AuditLogsPage: React.FC = () => {
                     className="hover:bg-[#F8FAFC] transition-colors cursor-pointer group"
                   >
                     {/* Timestamp */}
-                    <td className="py-3.5 px-4 font-mono text-[11px] text-[#8491A3] whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono text-xs text-[#526071] whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
                     </td>
 
@@ -423,7 +423,7 @@ export const AuditLogsPage: React.FC = () => {
 
                     {/* Action */}
                     <td className="py-3.5 px-4">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full font-bold bg-[#F8FAFC] border border-[#DCE3EC] text-[#17263A] group-hover:border-[#244A70]/30 transition-colors">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded-full font-bold bg-[#F8FAFC] border border-[#DCE3EC] text-[#17263A] group-hover:border-[#244A70]/30 transition-colors">
                         {log.action}
                       </span>
                     </td>
@@ -432,7 +432,7 @@ export const AuditLogsPage: React.FC = () => {
                     <td className="py-3.5 px-4 text-[#17263A]">
                       <div className="font-semibold text-xs">{log.resourceType?.toUpperCase()}</div>
                       {log.resourceId && (
-                        <div className="font-mono text-[10px] text-[#8491A3] truncate max-w-[160px]">
+                        <div className="font-mono text-xs text-[#526071] truncate max-w-[160px]">
                           {log.resourceId}
                         </div>
                       )}
@@ -444,7 +444,7 @@ export const AuditLogsPage: React.FC = () => {
                     </td>
 
                     {/* Context / Metadata */}
-                    <td className="py-3.5 px-4 text-[#8491A3] font-mono text-[11px]">
+                    <td className="py-3.5 px-4 text-[#526071] font-mono text-xs">
                       <div className="flex items-center justify-between gap-2 max-w-sm">
                         <span className="truncate text-slate-700">
                           {log.metadata && Object.keys(log.metadata).length > 0
@@ -475,7 +475,7 @@ export const AuditLogsPage: React.FC = () => {
 
         {/* Pagination Bar (Requirement H) */}
         {!loading && filteredLogs.length > 0 && (
-          <div className="p-3.5 bg-[#F8FAFC] border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8491A3]">
+          <div className="p-3.5 border-t border-[#DCE3EC] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-700">
             <div className="flex items-center gap-2">
               <span>
                 Showing <strong>{(currentPage - 1) * pageSize + 1}</strong> to{' '}

@@ -314,12 +314,11 @@ describe('LeadDetailPage - Redesigned Enterprise CRM Experience', () => {
     await waitFor(() => {
       expect(screen.getByText(/Request Legal Entity Information for Contract E-Signing/i)).toBeInTheDocument();
       expect(screen.getByText(/1-Click Copy Template/i)).toBeInTheDocument();
-      expect(screen.getByText(/Send Direct Email/i)).toBeInTheDocument();
-      expect(screen.getByText(/Open Web Gmail/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Fill Legal Entity Details/i })).toBeInTheDocument();
     });
 
     // 2. Open Edit Lead Modal from the button in request modal
-    fireEvent.click(screen.getByText(/Customer Replied\? Enter Legal Info Now/i));
+    fireEvent.click(screen.getByRole('button', { name: /Fill Legal Entity Details/i }));
     await waitFor(() => {
       expect(screen.getByText(/Edit Lead & Legal Entity Details/i)).toBeInTheDocument();
       expect(screen.getByText(/Enterprise Legal Entity/i)).toBeInTheDocument();

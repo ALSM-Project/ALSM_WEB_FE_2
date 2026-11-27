@@ -157,7 +157,7 @@ export const UserRolesPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-96 w-full items-center justify-center space-x-2 text-xs text-[#8491A3]">
+      <div className="flex h-96 w-full items-center justify-center space-x-2 text-xs text-[#526071]">
         <RefreshCw className="w-5 h-5 animate-spin text-[#244A70]" />
         <span>Loading registered users...</span>
       </div>
@@ -214,9 +214,10 @@ export const UserRolesPage: React.FC = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-2xl border border-[#DCE3EC] overflow-hidden shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#DCE3EC] shadow-xs">
+        <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[#8491A3] uppercase font-bold text-[10px]">
+          <thead className="border-b border-[#DCE3EC] text-[#526071] uppercase font-bold text-xs">
             <tr>
               <th className="py-3 px-4">User</th>
               <th className="py-3 px-4">Status & Security</th>
@@ -227,7 +228,7 @@ export const UserRolesPage: React.FC = () => {
           <tbody className="divide-y divide-[#DCE3EC]">
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={4} className="py-8 text-center text-xs text-[#8491A3]">
+                <td colSpan={4} className="py-8 text-center text-sm text-[#526071]">
                   No registered users match your search query in MongoDB.
                 </td>
               </tr>
@@ -245,43 +246,43 @@ export const UserRolesPage: React.FC = () => {
                         {user.fullName.split(' ').map((n) => n[0]).join('')}
                       </div>
                       <div>
-                        <div className="font-bold text-[#17263A] group-hover:text-[#244A70] transition-colors flex items-center gap-1.5">
+                        <div className="font-bold text-sm text-[#17263A] group-hover:text-[#244A70] transition-colors flex items-center gap-1.5">
                           <span>{user.fullName}</span>
                         </div>
-                        <div className="text-[11px] text-[#8491A3]">{user.email}</div>
+                        <div className="text-xs text-[#526071]">{user.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="py-3.5 px-4">
                     <div className="flex flex-col gap-1 items-start">
                       {user.isPlatformAdmin && (
-                        <span className="px-2 py-0.5 text-[10px] font-extrabold rounded-lg bg-[#17263A] text-white">
+                        <span className="px-2 py-0.5 text-xs font-bold rounded-lg bg-[#17263A] text-white">
                           PLATFORM ADMIN
                         </span>
                       )}
                       {user.isLocked ? (
                         <div className="space-y-1">
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 w-fit">
+                          <span className="px-2 py-0.5 text-xs font-bold rounded-lg bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 w-fit">
                             <Lock className="w-3 h-3 text-rose-700" />
                             ACCOUNT LOCKED
                           </span>
                           {user.lockReason && (
-                            <span className="text-[10px] text-rose-700 italic block line-clamp-1 max-w-[220px]" title={user.lockReason}>
+                            <span className="text-xs text-rose-800 italic block line-clamp-1 max-w-[220px]" title={user.lockReason}>
                               "{user.lockReason}"
                             </span>
                           )}
                           {user.lockDuration && (
-                            <span className="text-[9px] font-mono font-semibold text-slate-500 block">
+                            <span className="text-xs font-mono font-semibold text-slate-600 block">
                               Duration: {user.lockDuration.replace(/_/g, ' ')}
                             </span>
                           )}
                         </div>
                       ) : (user.isActive ?? true) ? (
-                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
                           Active User
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 text-[10px] font-semibold rounded-lg bg-gray-100 text-gray-700 border border-gray-300">
+                        <span className="px-2 py-0.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-800 border border-gray-300">
                           Deactivated
                         </span>
                       )}
@@ -294,7 +295,7 @@ export const UserRolesPage: React.FC = () => {
                         return (
                           <span
                             key={rId}
-                            className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#EEF1F6] text-[#244A70] border border-[#244A70]/20"
+                            className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#EEF1F6] text-[#244A70] border border-[#244A70]/20"
                           >
                             {matchedRole ? matchedRole.name : rId}
                           </span>
@@ -369,10 +370,11 @@ export const UserRolesPage: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
 
         {/* Pagination Bar */}
         {filteredUsers.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#F8FAFC] border-t border-[#DCE3EC] text-xs text-slate-600">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-[#DCE3EC] text-xs text-slate-700">
             <div className="flex items-center gap-2">
               <span>Rows per page:</span>
               <select
@@ -437,7 +439,7 @@ export const UserRolesPage: React.FC = () => {
         title="Lock Staff Account & Invalidate Sessions"
       >
         <form onSubmit={handleLockAccount} className="space-y-4 text-xs">
-          <p className="text-xs text-[#8491A3]">
+          <p className="text-xs text-[#526071]">
             Locking account for <strong className="text-[#17263A]">{lockTargetUser?.fullName}</strong> ({lockTargetUser?.email})
             will immediately invalidate all active web sessions and prevent authentication.
           </p>
@@ -512,7 +514,7 @@ export const UserRolesPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-[#DCE3EC] pb-3">
               <div>
                 <h3 className="text-base font-bold text-[#17263A]">Assign Roles for {selectedUser.fullName}</h3>
-                <p className="text-xs text-[#8491A3]">{selectedUser.email}</p>
+                <p className="text-xs text-[#526071]">{selectedUser.email}</p>
               </div>
               <UserCheck className="w-5 h-5 text-[#244A70]" />
             </div>
@@ -538,8 +540,8 @@ export const UserRolesPage: React.FC = () => {
                       />
                       <div>
                         <span className="font-bold text-[#17263A]">{role.name}</span>
-                        <span className="text-[10px] text-[#8491A3] ml-2 font-mono">({role.id})</span>
-                        <p className="text-[11px] text-[#8491A3] mt-0.5">{role.description}</p>
+                        <span className="text-[10px] text-[#526071] ml-2 font-mono">({role.id})</span>
+                        <p className="text-[11px] text-[#526071] mt-0.5">{role.description}</p>
                       </div>
                     </div>
                     {isAssigned && <Check className="w-4 h-4 text-[#244A70]" />}
@@ -549,7 +551,7 @@ export const UserRolesPage: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-[#DCE3EC]">
-              <span className="text-xs text-[#8491A3]">
+              <span className="text-xs text-[#526071]">
                 {isSaving ? 'Saving changes to MongoDB...' : 'Changes save automatically.'}
               </span>
               <button

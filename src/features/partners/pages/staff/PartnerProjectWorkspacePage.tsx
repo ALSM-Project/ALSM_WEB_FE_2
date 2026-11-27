@@ -472,7 +472,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
             </Link>
 
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#244A70] bg-[#E8F1FF] px-2.5 py-0.5 rounded-full border border-[#D4E3FC]">
+              <span className="text-xs font-semibold text-[#244A70] bg-[#E8F1FF] px-2.5 py-0.5 rounded-full border border-[#D4E3FC]">
                 Contract 1: Platform-Based Modernization
               </span>
               <h1 className="text-xl font-bold text-[#17263A] tracking-tight">{workspaceMeta.title}</h1>
@@ -489,7 +489,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#8491A3] mt-1">
+            <p className="text-sm text-[#526071] mt-1 max-w-[65ch]">
               {workspaceMeta.description} • Partner: <strong className="text-[#17263A]">{project.partnerName}</strong>
             </p>
           </div>
@@ -582,12 +582,12 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           className={`flex items-center gap-2 py-2 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             workspaceMode === 'CUSTOMER_INPUT_FILES'
               ? 'bg-[#244A70] text-white shadow-2xs'
-              : 'text-[#8491A3] hover:bg-[#F4F7FB]'
+              : 'text-[#526071] hover:bg-[#F4F7FB]'
           }`}
         >
           <Lock className="w-3.5 h-3.5 text-amber-500" />
           <span>Customer Input Files (Read-Only)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
             workspaceMode === 'CUSTOMER_INPUT_FILES' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
           }`}>
             {items.length}
@@ -600,12 +600,12 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           className={`flex items-center gap-2 py-2 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             workspaceMode === 'CONVERSION_ENGINE'
               ? 'bg-[#244A70] text-white shadow-2xs'
-              : 'text-[#8491A3] hover:bg-[#F4F7FB]'
+              : 'text-[#526071] hover:bg-[#F4F7FB]'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
           <span>Conversion Engine (AST Workbench)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
             workspaceMode === 'CONVERSION_ENGINE' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
           }`}>
             {items.length}
@@ -618,12 +618,12 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           className={`flex items-center gap-2 py-2 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             workspaceMode === 'STAFF_WORKING_FILES'
               ? 'bg-[#244A70] text-white shadow-2xs'
-              : 'text-[#8491A3] hover:bg-[#F4F7FB]'
+              : 'text-[#526071] hover:bg-[#F4F7FB]'
           }`}
         >
-          <FileText className="w-3.5 h-3.5 text-blue-500" />
+          <FileText className="w-3.5 h-3.5 text-blue-600" />
           <span>Staff Working Files (Internal)</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
             workspaceMode === 'STAFF_WORKING_FILES' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
           }`}>
             {workingFiles.length}
@@ -636,12 +636,12 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           className={`flex items-center gap-2 py-2 px-3.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             workspaceMode === 'DELIVERABLES_PIPELINE'
               ? 'bg-[#244A70] text-white shadow-2xs'
-              : 'text-[#8491A3] hover:bg-[#F4F7FB]'
+              : 'text-[#526071] hover:bg-[#F4F7FB]'
           }`}
         >
-          <Package className="w-3.5 h-3.5 text-emerald-500" />
+          <Package className="w-3.5 h-3.5 text-emerald-600" />
           <span>Deliverables & Approval Pipeline</span>
-          <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+          <span className={`px-2 py-0.5 rounded-full text-xs font-mono ${
             workspaceMode === 'DELIVERABLES_PIPELINE' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
           }`}>
             {deliverables.length}
@@ -710,7 +710,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-medium text-[#8491A3]">Total Assets</p>
+                <p className="text-xs font-medium text-[#526071]">Total Assets</p>
                 <p className="text-xl font-extrabold text-[#17263A] mt-0.5">{items.length} Assets</p>
               </div>
             </button>
@@ -726,7 +726,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-medium text-[#8491A3]">Converted</p>
+                <p className="text-xs font-medium text-[#526071]">Converted</p>
                 <p className="text-xl font-extrabold text-emerald-800 mt-0.5">{completedScreens + completedPrograms}</p>
               </div>
             </button>
@@ -742,7 +742,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-medium text-[#8491A3]">Review Required</p>
+                <p className="text-xs font-medium text-[#526071]">Review Required</p>
                 <p className="text-xl font-extrabold text-amber-800 mt-0.5">
                   {items.filter((i) => i.status === 'FAILED' || i.validationStatus === 'WARNINGS').length}
                 </p>
@@ -760,7 +760,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <XCircle className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-medium text-[#8491A3]">Failed (Diagnostics)</p>
+                <p className="text-xs font-medium text-[#526071]">Failed (Diagnostics)</p>
                 <p className="text-xl font-extrabold text-rose-800 mt-0.5">
                   {items.filter((i) => i.status === 'FAILED' || i.status === 'DEAD_LETTER').length}
                 </p>
@@ -781,13 +781,13 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           {/* Filter & Search Toolbar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-2xs">
             <div className="relative flex-1 w-full sm:w-auto">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8491A3] pointer-events-none shrink-0" />
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#526071] pointer-events-none shrink-0" />
               <input
                 type="text"
                 placeholder={`Search ${isCobol ? 'programs' : 'screens'} by name or source...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full h-8 pl-9 pr-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#244A70] text-[#17263A] placeholder-[#8491A3]"
+                className="w-full h-8 pl-9 pr-4 bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#244A70] text-[#17263A] placeholder-[#526071]"
               />
             </div>
 
@@ -819,7 +819,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                   <col className="w-[12%]" />
                   <col className="w-[18%]" />
                 </colgroup>
-                <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold uppercase tracking-wider text-[11px] border-b border-[#DCE3EC]">
+                <thead className="bg-white text-[#526071] font-bold uppercase tracking-wider text-xs border-b border-[#DCE3EC]">
                   <tr>
                     <th className="py-3.5 px-4">{isCobol ? 'PROGRAM NAME' : 'SCREEN MAP NAME'}</th>
                     <th className="py-3.5 px-4">LEGACY SOURCE</th>
@@ -832,13 +832,13 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <tbody className="divide-y divide-[#DCE3EC]">
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 px-6 text-center text-[#8491A3]">
+                      <td colSpan={6} className="py-12 px-6 text-center text-[#526071]">
                         <div className="max-w-md mx-auto space-y-3">
                           <div className="w-12 h-12 rounded-xl bg-[#EEF1F6] text-[#244A70] flex items-center justify-center mx-auto">
                             <UploadCloud className="w-6 h-6" />
                           </div>
-                          <h3 className="font-bold text-sm text-[#17263A]">Start Modernization Conversion Pipeline</h3>
-                          <p className="text-xs text-[#8491A3] leading-relaxed">
+                          <h2 className="font-bold text-sm text-[#17263A]">Start Modernization Conversion Pipeline</h2>
+                          <p className="text-xs text-[#526071] leading-relaxed">
                             No legacy source files have been uploaded yet. Upload your source files (BMS/DSPF screens or COBOL procedures) to start the deterministic conversion workflow.
                           </p>
                           <div className="flex items-center justify-center gap-2 pt-2">
@@ -863,7 +863,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 px-4 text-center text-[#8491A3]">
+                      <td colSpan={6} className="py-12 px-4 text-center text-[#526071]">
                         <FileCode className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                         <p className="font-semibold text-sm text-[#17263A]">No assets match your search or filter</p>
                         <p className="text-xs mt-1">Try resetting the status filter or search keyword.</p>
@@ -883,17 +883,17 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                               <span className="group-hover:text-[#244A70] group-hover:underline block truncate">
                                 {item.name}
                               </span>
-                              <span className="text-[10px] font-normal text-[#8491A3] block truncate">
+                              <span className="text-xs font-normal text-[#526071] block truncate">
                                 {item.sourceFile}
                               </span>
                               {item.lastSkipReason ? (
-                                <span className="mt-0.5 block whitespace-normal text-[10px] font-normal text-amber-700">
+                                <span className="mt-0.5 block whitespace-normal text-xs font-normal text-amber-700">
                                   {item.lastSkipReason}
                                 </span>
                               ) : (
                                 item.safeErrorMessage &&
                                 (item.status === 'FAILED' || item.status === 'DEAD_LETTER') && (
-                                  <span className="mt-0.5 block whitespace-normal text-[10px] font-normal text-rose-600">
+                                  <span className="mt-0.5 block whitespace-normal text-xs font-normal text-rose-600">
                                     {item.safeErrorMessage}
                                   </span>
                                 )
@@ -902,7 +902,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4 text-xs font-semibold text-[#8491A3] font-mono truncate">
+                        <td className="py-3.5 px-4 text-xs font-semibold text-[#526071] font-mono truncate">
                           {item.type === 'SCREEN' ? 'BMS/DSPF' : 'COBOL'}
                         </td>
 
@@ -914,7 +914,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           <StatusBadge status={item.validationStatus} />
                         </td>
 
-                        <td className="py-3.5 px-4 text-center text-[#8491A3]">
+                        <td className="py-3.5 px-4 text-center text-[#526071]">
                           {item.attemptCount || 0} / {item.maxAttempts || 3}
                         </td>
 
@@ -924,7 +924,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOpenMappingModal(item)}
-                                className="inline-flex items-center space-x-1 text-xs text-[#8491A3] font-semibold hover:text-[#244A70] bg-[#F8FAFC] px-2.5 py-1.5 rounded-lg border border-[#DCE3EC] transition-colors cursor-pointer"
+                                className="inline-flex items-center space-x-1 text-xs text-[#526071] font-semibold hover:text-[#244A70] bg-[#F8FAFC] px-2.5 py-1.5 rounded-lg border border-[#DCE3EC] transition-colors cursor-pointer"
                                 title="Inspect Field Mapping"
                               >
                                 <Code2 className="w-3.5 h-3.5" />
@@ -995,11 +995,11 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
             <div className="p-2 bg-amber-100 rounded-lg text-amber-800 shrink-0 mt-0.5">
               <Lock className="w-4 h-4" />
             </div>
-            <div className="space-y-1 text-xs text-amber-900 leading-relaxed">
+            <div className="space-y-1 text-sm text-amber-900 leading-relaxed">
               <strong className="block text-sm font-bold text-amber-950">
                 🔒 Customer Original Input Files (Read-Only Guarantee)
               </strong>
-              <p>
+              <p className="max-w-[68ch]">
                 ALSM staff (Staff, Team Lead, Admin) have permission to <strong>View content</strong> and <strong>Download</strong> for analysis and modernization.
                 Per ALSM security policy, internal staff <strong>strictly cannot edit, overwrite, or delete</strong> original files submitted by customers.
               </p>
@@ -1007,21 +1007,22 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           </div>
 
           {/* Customer Input Files Table */}
-          <div className="bg-white border border-[#DCE3EC] rounded-xl overflow-hidden shadow-2xs">
-            <div className="p-4 border-b border-[#DCE3EC] flex items-center justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-[#17263A]">
+                <h2 className="text-base font-bold text-[#17263A]">
                   Customer Uploaded Source Files & Dossier
-                </h3>
-                <p className="text-xs text-[#8491A3] mt-0.5">
+                </h2>
+                <p className="text-sm text-[#526071] mt-0.5">
                   Total: <strong className="text-[#17263A]">{items.length} input files</strong> recorded in project workspace
                 </p>
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="bg-white border border-[#DCE3EC] rounded-xl overflow-hidden shadow-2xs">
+              <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold uppercase tracking-wider text-[11px] border-b border-[#DCE3EC]">
+                <thead className="text-[#526071] font-bold uppercase tracking-wider text-xs border-b border-[#DCE3EC]">
                   <tr>
                     <th className="py-3 px-4">Input File Name</th>
                     <th className="py-3 px-4">Document / Source Type</th>
@@ -1032,27 +1033,27 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <tbody className="divide-y divide-[#DCE3EC]">
                   {items.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-10 text-center text-[#8491A3]">
+                      <td colSpan={4} className="py-10 text-center text-sm text-[#526071]">
                         Customer has not uploaded input files for this project yet.
                       </td>
                     </tr>
                   ) : (
                     items.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="py-3.5 px-4 font-mono font-bold text-[#17263A]">
+                        <td className="py-3.5 px-4 font-mono text-xs font-bold text-[#17263A]">
                           <div className="flex items-center gap-2">
                             <FileCode className="w-4 h-4 text-[#244A70] shrink-0" />
                             <span>{item.sourceFile || item.name}</span>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
+                          <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-[#244A70] border border-blue-200">
                             {item.type === 'SCREEN' ? 'BMS/DSPF Screen Map' : 'COBOL Procedure / Logic'}
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Valid Original
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" /> Valid Original
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
@@ -1070,7 +1071,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                               onClick={() => handleDownloadCustomerFile(item)}
                               className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold bg-white border border-[#DCE3EC] hover:bg-slate-50 text-[#17263A] rounded-lg transition-colors cursor-pointer"
                             >
-                              <Download className="w-3.5 h-3.5 text-slate-500" />
+                              <Download className="w-3.5 h-3.5 text-slate-600" />
                               <span>Download</span>
                             </button>
                           </div>
@@ -1080,6 +1081,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         </div>
@@ -1096,11 +1098,11 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               <div className="p-2 bg-blue-100 rounded-lg text-[#244A70] shrink-0 mt-0.5">
                 <ShieldCheck className="w-4 h-4" />
               </div>
-              <div className="space-y-1 text-xs text-blue-900 leading-relaxed">
+              <div className="space-y-1 text-sm text-blue-900 leading-relaxed">
                 <strong className="block text-sm font-bold text-blue-950">
                   🔒 ALSM Private Staff Workspace
                 </strong>
-                <p>
+                <p className="max-w-[68ch]">
                   Draft documents, intermediate scripts, temporary AST mappings, and technical notes circulate only among <strong>Staff, Team Lead, and Admin</strong>.
                   Web3 customers have no access to or visibility of these internal working files.
                 </p>
@@ -1122,7 +1124,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           <div className="bg-white border border-[#DCE3EC] rounded-xl overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold uppercase tracking-wider text-[11px] border-b border-[#DCE3EC]">
+                <thead className="bg-white text-[#526071] font-bold uppercase tracking-wider text-xs border-b border-[#DCE3EC]">
                   <tr>
                     <th className="py-3 px-4">Working File Name</th>
                     <th className="py-3 px-4">Internal Classification</th>
@@ -1135,16 +1137,16 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <tbody className="divide-y divide-[#DCE3EC]">
                   {loadingWorkingFiles ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#8491A3]">
+                      <td colSpan={6} className="py-8 text-center text-[#526071]">
                         Loading internal working files...
                       </td>
                     </tr>
                   ) : workingFiles.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-[#8491A3] space-y-2">
+                      <td colSpan={6} className="py-12 text-center text-[#526071] space-y-2">
                         <FileText className="w-8 h-8 text-slate-300 mx-auto" />
                         <p className="font-semibold text-sm text-[#17263A]">No internal working files yet</p>
-                        <p className="text-xs text-[#8491A3]">
+                        <p className="text-xs text-[#526071]">
                           Engineers can create drafts, technical analyses, or intermediate scripts to track progress.
                         </p>
                       </td>
@@ -1158,7 +1160,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                             <div>
                               <span>{wf.name}</span>
                               {wf.notes && (
-                                <span className="block text-[10px] font-normal text-[#8491A3] mt-0.5">
+                                <span className="block text-[10px] font-normal text-[#526071] mt-0.5">
                                   {wf.notes}
                                 </span>
                               )}
@@ -1178,16 +1180,16 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 font-mono text-[#8491A3]">
+                        <td className="py-3.5 px-4 font-mono text-[#526071]">
                           {Math.round((wf.sizeBytes || 1024) / 1024)} KB
                         </td>
 
-                        <td className="py-3.5 px-4 text-[#8491A3]">
+                        <td className="py-3.5 px-4 text-[#526071]">
                           <span className="font-semibold block">{wf.uploadedByName}</span>
-                          <span className="text-[10px] text-[#8491A3]">{wf.uploadedByRole}</span>
+                          <span className="text-[10px] text-[#526071]">{wf.uploadedByRole}</span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-[#8491A3]">
+                        <td className="py-3.5 px-4 text-[#526071]">
                           {new Date(wf.createdAt).toLocaleDateString()}
                         </td>
 
@@ -1223,7 +1225,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <h3 className="text-sm font-bold text-[#17263A]">
                   Deliverables Review & Publication Pipeline
                 </h3>
-                <p className="text-xs text-[#8491A3] mt-0.5">
+                <p className="text-xs text-[#526071] mt-0.5">
                   Strict 3-stage governance: Engineer creates candidate ➔ Team Lead reviews & approves ➔ Admin publishes to Web3 customer
                 </p>
               </div>
@@ -1246,19 +1248,19 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
               <div className="p-3 bg-blue-50/50 border border-blue-200 rounded-xl space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">Step 1 • Staff</span>
                 <h4 className="text-xs font-bold text-[#17263A]">Propose Deliverable (Draft / Candidate)</h4>
-                <p className="text-[11px] text-[#8491A3]">Engineer aggregates converted code, AST validation report, and creates candidate package.</p>
+                <p className="text-[11px] text-[#526071]">Engineer aggregates converted code, AST validation report, and creates candidate package.</p>
               </div>
 
               <div className="p-3 bg-amber-50/50 border border-amber-200 rounded-xl space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700">Step 2 • Team Lead</span>
                 <h4 className="text-xs font-bold text-[#17263A]">Technical Review & Sign-Off</h4>
-                <p className="text-[11px] text-[#8491A3]">Team Lead reviews verification rules, runs test suites, and approves or requests changes.</p>
+                <p className="text-[11px] text-[#526071]">Team Lead reviews verification rules, runs test suites, and approves or requests changes.</p>
               </div>
 
               <div className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Step 3 • Admin</span>
                 <h4 className="text-xs font-bold text-[#17263A]">Official Publication (Publish to Web3)</h4>
-                <p className="text-[11px] text-[#8491A3]">Admin triggers publication. The package appears instantly on the customers Web3 portal.</p>
+                <p className="text-[11px] text-[#526071]">Admin triggers publication. The package appears instantly on the customers Web3 portal.</p>
               </div>
             </div>
           </div>
@@ -1267,7 +1269,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
           <div className="bg-white border border-[#DCE3EC] rounded-xl overflow-hidden shadow-2xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold uppercase tracking-wider text-[11px] border-b border-[#DCE3EC]">
+                <thead className="bg-white text-[#526071] font-bold uppercase tracking-wider text-xs border-b border-[#DCE3EC]">
                   <tr>
                     <th className="py-3 px-4">Version & Package Name</th>
                     <th className="py-3 px-4">Deliverable Type</th>
@@ -1280,16 +1282,16 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <tbody className="divide-y divide-[#DCE3EC]">
                   {loadingDeliverables ? (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-[#8491A3]">
+                      <td colSpan={6} className="py-8 text-center text-[#526071]">
                         Loading deliverables list...
                       </td>
                     </tr>
                   ) : deliverables.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-[#8491A3] space-y-2">
+                      <td colSpan={6} className="py-12 text-center text-[#526071] space-y-2">
                         <Package className="w-8 h-8 text-slate-300 mx-auto" />
                         <p className="font-semibold text-sm text-[#17263A]">No deliverable packages yet</p>
-                        <p className="text-xs text-[#8491A3]">
+                        <p className="text-xs text-[#526071]">
                           Click "+ Create Deliverable Candidate" or publish code bundles from Export Code.
                         </p>
                       </td>
@@ -1304,7 +1306,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                             </span>
                             <span className="font-bold text-[#17263A]">{d.title}</span>
                           </div>
-                          <p className="text-[11px] text-[#8491A3] mt-1 line-clamp-2">{d.description}</p>
+                          <p className="text-[11px] text-[#526071] mt-1 line-clamp-2">{d.description}</p>
                         </td>
 
                         <td className="py-3.5 px-4">
@@ -1313,7 +1315,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 font-mono text-[#8491A3]">
+                        <td className="py-3.5 px-4 font-mono text-[#526071]">
                           <span className="font-bold text-[#17263A]">{d.fileCount} files</span> ({d.totalSizeFormatted})
                         </td>
 
@@ -1341,7 +1343,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-4 text-[11px] text-[#8491A3] space-y-0.5">
+                        <td className="py-3.5 px-4 text-[11px] text-[#526071] space-y-0.5">
                           {d.uploadedByName && (
                             <div>
                               <strong>Staff:</strong> {d.uploadedByName}
@@ -1421,7 +1423,7 @@ export const PartnerProjectWorkspacePage: React.FC = () => {
                 <FileCode className="w-5 h-5 text-[#244A70]" />
                 <div>
                   <h3 className="text-sm font-bold text-[#17263A]">{previewCustomerItem.sourceFile}</h3>
-                  <span className="text-[11px] text-[#8491A3]">Customer Original • Read-Only Inspection</span>
+                  <span className="text-[11px] text-[#526071]">Customer Original • Read-Only Inspection</span>
                 </div>
               </div>
               <button
@@ -1546,7 +1548,7 @@ PROCEDURE DIVISION.
                 <button
                   type="button"
                   onClick={() => setShowWorkingFileModal(false)}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-[#8491A3] hover:bg-slate-100 rounded-lg cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-[#526071] hover:bg-slate-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1642,7 +1644,7 @@ PROCEDURE DIVISION.
                 <button
                   type="button"
                   onClick={() => setShowDeliverableModal(false)}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-[#8491A3] hover:bg-slate-100 rounded-lg cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-[#526071] hover:bg-slate-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1670,7 +1672,7 @@ PROCEDURE DIVISION.
                 <h3 className="text-sm font-bold text-[#17263A]">
                   Team Lead Technical Review
                 </h3>
-                <p className="text-xs text-[#8491A3] mt-0.5">
+                <p className="text-xs text-[#526071] mt-0.5">
                   {reviewingDeliv.title} ({reviewingDeliv.version})
                 </p>
               </div>
@@ -1691,7 +1693,7 @@ PROCEDURE DIVISION.
                   className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                     leadDecision === 'APPROVED'
                       ? 'border-emerald-500 bg-emerald-50/50 text-emerald-800 ring-2 ring-emerald-100'
-                      : 'border-[#DCE3EC] text-[#8491A3] hover:bg-slate-50'
+                      : 'border-[#DCE3EC] text-[#526071] hover:bg-slate-50'
                   }`}
                 >
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
@@ -1704,7 +1706,7 @@ PROCEDURE DIVISION.
                   className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
                     leadDecision === 'REVISION_REQUESTED'
                       ? 'border-rose-500 bg-rose-50/50 text-rose-800 ring-2 ring-rose-100'
-                      : 'border-[#DCE3EC] text-[#8491A3] hover:bg-slate-50'
+                      : 'border-[#DCE3EC] text-[#526071] hover:bg-slate-50'
                   }`}
                 >
                   <AlertTriangle className="w-5 h-5 text-rose-600" />
@@ -1729,7 +1731,7 @@ PROCEDURE DIVISION.
                 <button
                   type="button"
                   onClick={() => setReviewingDeliv(null)}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-[#8491A3] hover:bg-slate-100 rounded-lg cursor-pointer"
+                  className="px-3.5 py-1.5 text-xs font-semibold text-[#526071] hover:bg-slate-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>

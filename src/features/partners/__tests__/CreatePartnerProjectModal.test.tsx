@@ -108,7 +108,7 @@ describe('CreatePartnerProjectModal', () => {
         partnerName: 'Fintech Nexus International',
         name: 'Customer Portal Modernization',
         description: '',
-        conversionType: 'BMS_DSPF_TO_FRONTEND',
+        conversionType: 'BMS_DSPF_TO_REACT',
         targetFramework: 'React 19 + Tailwind CSS',
       });
     });

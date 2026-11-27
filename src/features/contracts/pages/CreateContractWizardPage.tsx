@@ -569,12 +569,12 @@ export const CreateContractWizardPage: React.FC = () => {
               <div
                 key={s.id}
                 onClick={() => isCompleted && setCurrentStep(s.id)}
-                className={`flex items-start gap-2 p-2 rounded-lg transition-all ${
+                className={`flex items-start gap-2 px-2 py-2 border-b-2 transition-all ${
                   isCurrent
-                    ? 'bg-blue-50/70 border border-[#244A70]/30'
+                    ? 'border-[#244A70] bg-blue-50/40'
                     : isCompleted
-                    ? 'cursor-pointer hover:bg-slate-50 border border-transparent'
-                    : 'opacity-50 border border-transparent'
+                    ? 'cursor-pointer border-emerald-500/60 hover:bg-slate-50'
+                    : 'border-transparent'
                 }`}
               >
                 <div
@@ -582,17 +582,17 @@ export const CreateContractWizardPage: React.FC = () => {
                     isCompleted
                       ? 'bg-emerald-600 text-white'
                       : isCurrent
-                      ? 'bg-[#244A70] text-white shadow-2xs'
-                      : 'bg-slate-100 text-slate-500'
+                      ? 'bg-[#244A70] text-white'
+                      : 'bg-slate-200 text-slate-700'
                   }`}
                 >
                   {isCompleted ? <Check className="w-3.5 h-3.5" /> : s.id}
                 </div>
                 <div className="min-w-0">
-                  <div className={`text-xs font-bold truncate ${isCurrent ? 'text-[#244A70]' : 'text-slate-800'}`}>
+                  <div className={`text-xs font-bold truncate ${isCurrent ? 'text-[#244A70]' : isCompleted ? 'text-slate-800' : 'text-slate-700'}`}>
                     {s.title}
                   </div>
-                  <div className="text-[10px] text-slate-400 truncate">{s.subtitle}</div>
+                  <div className="text-xs text-slate-600 truncate">{s.subtitle}</div>
                 </div>
               </div>
             );
@@ -620,25 +620,25 @@ export const CreateContractWizardPage: React.FC = () => {
             <div>
               <h2 className="text-base font-bold text-[#17263A] flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-[#244A70]" />
-                Step 1: Select Enterprise Customer & Legal Entity
+                Step 1: Select Enterprise Customer &amp; Legal Entity
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Choose an existing Organization or active CRM Lead to prefill corporate identity, tax number, and signatory data.
               </p>
             </div>
 
             {/* Informative Guidance Banner for Sales */}
             {selectedLeadId ? (
-              <div className="p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-900 flex items-start gap-3">
+              <div className="border-l-2 border-[#244A70] bg-blue-50/50 pl-4 pr-3 py-2.5 text-blue-900 flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-[#244A70] shrink-0 mt-0.5" />
                 <div className="space-y-1 text-xs">
-                  <div className="font-bold text-[#244A70] flex items-center gap-1.5">
+                  <div className="font-bold text-[#244A70] flex items-center gap-2 flex-wrap">
                     <span>New Enterprise Contract from CRM Lead</span>
-                    <span className="px-2 py-0.2 bg-blue-100 text-[#244A70] text-[10px] font-semibold rounded-full border border-blue-200">
+                    <span className="px-2 py-0.5 bg-blue-100 text-[#244A70] text-xs font-semibold rounded-full">
                       CRM Sales Link
                     </span>
                   </div>
-                  <p className="text-slate-600 leading-relaxed text-[11px]">
+                  <p className="text-slate-700 leading-relaxed text-xs max-w-prose">
                     Customer legal entity details have been synchronized from CRM Lead. The contract will be linked to the <strong>Organization Tenant</strong> below to manage ownership, service quotas, and Web 3 account provisioning upon execution.
                   </p>
                 </div>
@@ -651,7 +651,7 @@ export const CreateContractWizardPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-700">
                     Organization Tenant *
                   </label>
-                  <span className="text-[10px] text-[#244A70] font-medium">Required Link</span>
+                  <span className="text-xs text-[#244A70] font-medium">Required Link</span>
                 </div>
                 <select
                   value={selectedOrgId || '__NEW_ORGANIZATION__'}
@@ -671,7 +671,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     </optgroup>
                   )}
                 </select>
-                <span className="text-[10px] text-slate-400 block mt-1">
+                <span className="text-xs text-slate-600 block mt-1 max-w-prose">
                   Select only if this enterprise already has an existing Organization on ALSM.
                 </span>
               </div>
@@ -681,7 +681,7 @@ export const CreateContractWizardPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-700">
                     Prefill from CRM Sales Lead
                   </label>
-                  <span className="text-[10px] text-[#244A70] font-bold">New Customer (Recommended)</span>
+                  <span className="text-xs text-[#244A70] font-bold">New Customer (Recommended)</span>
                 </div>
                 <select
                   value={selectedLeadId}
@@ -695,7 +695,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <span className="text-[10px] text-[#244A70] block mt-1">
+                <span className="text-xs text-[#244A70] block mt-1 max-w-prose">
                   Synchronizing legal entity details from selected Lead.
                 </span>
               </div>
@@ -737,7 +737,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     <label className="block font-semibold text-slate-700">
                       Legal Representative *
                     </label>
-                    <span className="text-[10px] text-slate-400">Statutory Signatory</span>
+                    <span className="text-xs text-slate-600">Statutory Signatory</span>
                   </div>
                   <input
                     type="text"
@@ -751,7 +751,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     }`}
                   />
                   {isUsernameLike(customer.representativeName) && (
-                    <span className="text-[10px] text-amber-600 block mt-1">
+                    <span className="text-xs text-amber-700 block mt-1">
                       Note: Please enter the official full legal name, not a system username.
                     </span>
                   )}
@@ -775,7 +775,7 @@ export const CreateContractWizardPage: React.FC = () => {
                     <label className="block font-semibold text-slate-700">
                       CRM Point of Contact
                     </label>
-                    <span className="text-[10px] text-slate-400">Sales Reference</span>
+                    <span className="text-xs text-slate-600">Sales Reference</span>
                   </div>
                   <input
                     type="text"
@@ -828,21 +828,21 @@ export const CreateContractWizardPage: React.FC = () => {
             </div>
 
             {/* Provider Legal Entity static details */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <span className="text-[11px] font-bold text-slate-600 uppercase tracking-wider block">
+            <div className="pt-4 border-t border-slate-200 space-y-2">
+              <span className="text-xs font-bold text-[#17263A] block">
                 Provider Legal Entity (Countersigning Party)
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Company Name</span>
+                  <span className="text-slate-600 block text-xs font-medium">Company Name</span>
                   <span className="font-bold">ALSM Technology Solutions JSC</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Enterprise Tax ID</span>
+                  <span className="text-slate-600 block text-xs font-medium">Enterprise Tax ID</span>
                   <span className="font-mono">0109988776</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Headquarters</span>
+                  <span className="text-slate-600 block text-xs font-medium">Headquarters</span>
                   <span>Keangnam Landmark 72, Hanoi, Vietnam</span>
                 </div>
               </div>
@@ -858,25 +858,25 @@ export const CreateContractWizardPage: React.FC = () => {
             <div>
               <h2 className="text-base font-bold text-[#17263A] flex items-center gap-2">
                 <FileCheck className="w-5 h-5 text-[#244A70]" />
-                Step 2: Choose Service Track & Contract Category
+                Step 2: Choose Service Track &amp; Contract Category
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Choose between Platform-Based Modernization or full turnkey Managed Modernization Services.
               </p>
             </div>
 
-            {/* Service Model Selection Cards */}
+            {/* Service Model Selection Options */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div
                 onClick={() => handleServiceModeChange('SELF_SERVICE_CONVERSION')}
-                className={`p-5 rounded-xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-lg border-l-4 cursor-pointer transition-all ${
                   serviceMode === 'SELF_SERVICE_CONVERSION' || serviceMode === 'SELF_SERVICE'
-                    ? 'border-[#244A70] bg-blue-50/40 ring-2 ring-[#244A70]/20'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    ? 'border-l-[#244A70] bg-blue-50/50'
+                    : 'border-l-slate-300 bg-[#F8FAFC] hover:bg-slate-100/70'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#17263A] flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-[#17263A] flex items-center gap-1.5">
                     <Zap className="w-4 h-4 text-[#244A70]" />
                     Platform-Based Modernization
                   </span>
@@ -884,35 +884,35 @@ export const CreateContractWizardPage: React.FC = () => {
                     <Badge variant="primary">Selected</Badge>
                   )}
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed max-w-prose">
                   Customer uploads source code directly, triggers automated compiler modernization, and manages React 19 / Spring Boot 3 deliverables.
                 </p>
-                <div className="mt-3 text-[11px] text-blue-700 font-semibold">
-                  ✓ Automatically provision quotas & API tokens via contract
+                <div className="mt-3 text-xs text-blue-700 font-semibold">
+                  ✓ Automatically provision quotas &amp; API tokens via contract
                 </div>
               </div>
 
               <div
                 onClick={() => handleServiceModeChange('WE_CONVERT_FOR_YOU')}
-                className={`p-5 rounded-xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-lg border-l-4 cursor-pointer transition-all ${
                   serviceMode === 'WE_CONVERT_FOR_YOU' || serviceMode === 'HYBRID'
-                    ? 'border-[#244A70] bg-blue-50/40 ring-2 ring-[#244A70]/20'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    ? 'border-l-[#244A70] bg-blue-50/50'
+                    : 'border-l-slate-300 bg-[#F8FAFC] hover:bg-slate-100/70'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#17263A] flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-bold text-[#17263A] flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-emerald-700" />
                     Managed Modernization Services
                   </span>
                   {(serviceMode === 'WE_CONVERT_FOR_YOU' || serviceMode === 'HYBRID') && (
                     <Badge variant="success">Selected</Badge>
                   )}
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-700 leading-relaxed max-w-prose">
                   Customer provides source files and specs. ALSM engineers modernize code on Web 2; customer tracks milestones and receives deliverables on Web 3.
                 </p>
-                <div className="mt-3 text-[11px] text-emerald-700 font-semibold">
+                <div className="mt-3 text-xs text-emerald-700 font-semibold">
                   ✓ Includes 99.9% AST SLA guarantee and 30-day warranty
                 </div>
               </div>
@@ -1001,9 +1001,9 @@ export const CreateContractWizardPage: React.FC = () => {
                 <div>
                   <h2 className="text-base font-bold text-[#17263A] flex items-center gap-2">
                     <Monitor className="w-5 h-5 text-[#244A70]" />
-                    Step 3: Configure Services & Screen Quotas
+                    Step 3: Configure Services &amp; Screen Quotas
                   </h2>
-                  <p className="text-xs text-[#8491A3] mt-1">
+                  <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                     Set resource limits allocated to this customer upon contract execution. Quotas are applied only when active.
                   </p>
                 </div>
@@ -1019,7 +1019,7 @@ export const CreateContractWizardPage: React.FC = () => {
                       onChange={(e) => setScope({ ...scope, screensQuota: Math.max(1, Number(e.target.value)) })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">Screens to convert</span>
+                    <span className="text-xs text-slate-600 mt-1 block">Screens to convert</span>
                   </div>
 
                   <div>
@@ -1032,7 +1032,7 @@ export const CreateContractWizardPage: React.FC = () => {
                       onChange={(e) => setScope({ ...scope, programsQuota: Math.max(1, Number(e.target.value)) })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">Backend logic programs</span>
+                    <span className="text-xs text-slate-600 mt-1 block">Backend logic programs</span>
                   </div>
 
                   <div>
@@ -1045,7 +1045,7 @@ export const CreateContractWizardPage: React.FC = () => {
                       onChange={(e) => setScope({ ...scope, storageGb: Math.max(1, Number(e.target.value)) })}
                       className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-[#244A70]"
                     />
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">Artifacts & logs pool</span>
+                    <span className="text-xs text-slate-600 mt-1 block">Artifacts &amp; logs pool</span>
                   </div>
                 </div>
 
@@ -1104,28 +1104,28 @@ export const CreateContractWizardPage: React.FC = () => {
             {/* Scope Summary Panel */}
             <div className="space-y-4">
               <Card variant="default" padding="md" className="bg-slate-50 border-slate-200 space-y-3">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
                   Quota Summary Panel
                 </span>
                 <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                    <span className="text-slate-600">Screen Quota:</span>
+                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-200">
+                    <span className="text-slate-600 shrink-0">Screen Quota:</span>
                     <span className="font-bold text-[#244A70]">{scope.screensQuota} screens</span>
                   </div>
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                    <span className="text-slate-600">Programs:</span>
+                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-200">
+                    <span className="text-slate-600 shrink-0">Programs:</span>
                     <span className="font-bold text-slate-800">{scope.programsQuota}</span>
                   </div>
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                    <span className="text-slate-600">Storage:</span>
+                  <div className="flex items-center justify-between gap-2 pb-1 border-b border-slate-200">
+                    <span className="text-slate-600 shrink-0">Storage:</span>
                     <span className="font-bold text-slate-800">{scope.storageGb} GB</span>
                   </div>
-                  <div className="flex items-center justify-between pb-1 border-b border-slate-200">
-                    <span className="text-slate-600">Plan:</span>
-                    <span className="font-semibold text-slate-800 truncate max-w-[140px]">{planTier}</span>
+                  <div className="flex items-start justify-between gap-3 pb-1 border-b border-slate-200">
+                    <span className="text-slate-600 shrink-0">Plan:</span>
+                    <span className="font-semibold text-slate-800 text-right break-words min-w-0">{planTier}</span>
                   </div>
                 </div>
-                <div className="p-3 bg-white rounded-lg border border-slate-200 text-[11px] text-slate-500">
+                <div className="border-l-2 border-amber-500 pl-3 py-1 text-xs text-slate-600 leading-relaxed max-w-prose">
                   ⚠️ Note: Quotas configured here will only be granted to the customer tenant once this contract reaches <span className="font-bold text-emerald-700">Active</span> status.
                 </div>
               </Card>
@@ -1143,7 +1143,7 @@ export const CreateContractWizardPage: React.FC = () => {
                 <DollarSign className="w-5 h-5 text-emerald-600" />
                 Step 4: Commercial Pricing & Payment Structure
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Configure base contract valuation, volume discount, VAT rate, and milestone billing disbursements.
               </p>
             </div>
@@ -1248,25 +1248,25 @@ export const CreateContractWizardPage: React.FC = () => {
             </div>
 
             {/* Live Calculation Panel */}
-            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+            <div className="pt-4 border-t border-slate-200 space-y-2">
+              <span className="text-xs font-bold text-[#17263A] block">
                 Financial Calculation Breakdown
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Subtotal</span>
+                  <span className="text-slate-600 block text-xs font-medium">Subtotal</span>
                   <span className="font-semibold text-slate-800">{formatVnd(subtotal)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Discount ({discountPercent}%)</span>
-                  <span className="font-semibold text-rose-600">-{formatVnd(discountAmount)}</span>
+                  <span className="text-slate-600 block text-xs font-medium">Discount ({discountPercent}%)</span>
+                  <span className="font-semibold text-rose-700">-{formatVnd(discountAmount)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">VAT ({vatRate}%)</span>
+                  <span className="text-slate-600 block text-xs font-medium">VAT ({vatRate}%)</span>
                   <span className="font-semibold text-slate-800">+{formatVnd(vatAmount)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block text-[10px]">Final Contract Value</span>
+                  <span className="text-slate-600 block text-xs font-medium">Final Contract Value</span>
                   <span className="font-extrabold text-emerald-700 text-sm">{formatVnd(finalTotal)}</span>
                 </div>
               </div>
@@ -1284,7 +1284,7 @@ export const CreateContractWizardPage: React.FC = () => {
                 <ShieldCheck className="w-5 h-5 text-[#244A70]" />
                 Step 5: Approved Legal Clauses & Compliance Terms
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Select legally reviewed clauses for intellectual property protection, confidentiality, data security, and governing law.
               </p>
             </div>
@@ -1304,13 +1304,13 @@ export const CreateContractWizardPage: React.FC = () => {
                         setSelectedClauses([...selectedClauses, clause]);
                       }
                     }}
-                    className={`p-4 rounded-xl border text-xs cursor-pointer transition-all ${
+                    className={`p-4 rounded-lg border-l-4 text-xs cursor-pointer transition-all ${
                       isSelected
-                        ? 'border-[#244A70] bg-blue-50/20 ring-1 ring-[#244A70]/20'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
+                        ? 'border-l-[#244A70] bg-blue-50/40'
+                        : 'border-l-slate-300 bg-[#F8FAFC] hover:bg-slate-100/70'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
@@ -1324,7 +1324,7 @@ export const CreateContractWizardPage: React.FC = () => {
                         {clause.category.replace(/_/g, ' ')}
                       </Badge>
                     </div>
-                    <p className="text-slate-600 mt-2 leading-relaxed pl-5">
+                    <p className="text-slate-700 mt-2 leading-relaxed pl-5 max-w-prose">
                       {clauseDesc}
                     </p>
                   </div>
@@ -1344,7 +1344,7 @@ export const CreateContractWizardPage: React.FC = () => {
                 <Lock className="w-5 h-5 text-[#244A70]" />
                 Step 6: Approval Workflow & E-Signatures
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Configure internal review approvers, customer signatory information, and countersignature routing.
               </p>
             </div>
@@ -1403,17 +1403,17 @@ export const CreateContractWizardPage: React.FC = () => {
             </div>
 
             {/* E-Signature Integration Status Banner */}
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  ALSM Corporate Digital Signature & Official Seal (e-Contract)
+            <div className="border-l-2 border-emerald-600 bg-emerald-50/60 pl-4 pr-3 py-3 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                  ALSM Corporate Digital Signature &amp; Official Seal (e-Contract)
                 </span>
-                <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                <span className="px-2 py-0.5 rounded font-mono text-xs font-bold bg-emerald-100 text-emerald-800">
                   VNPT-CA • Ready for Automated Signing
                 </span>
               </div>
-              <p className="text-xs text-emerald-800 leading-relaxed">
+              <p className="text-xs text-emerald-900 leading-relaxed max-w-prose">
                 The contract will be automatically stamped with corporate seal and ALSM digital signature ({providerSignatoryName || 'Nguyen Gia Khanh'} - General Director) from Company Profile upon initialization or customer execution.
               </p>
             </div>
@@ -1427,44 +1427,44 @@ export const CreateContractWizardPage: React.FC = () => {
           <Card variant="default" padding="lg" className="bg-white border-[#DCE3EC] space-y-6">
             <div>
               <h2 className="text-base font-bold text-[#17263A] flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-emerald-600" />
-                Step 7: Final Contract Review & Draft Generation
+                <FileCheck className="w-5 h-5 text-emerald-700" />
+                Step 7: Final Contract Review &amp; Draft Generation
               </h2>
-              <p className="text-xs text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">
                 Verify all contract terms before generating the legal draft document. Contracts are created in Draft status and will require review before activation.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="font-bold text-[#17263A] text-[11px] uppercase tracking-wider block">
-                  Customer & Agreement Track
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              <div className="border-l-2 border-[#244A70] pl-4 py-1 space-y-2">
+                <span className="font-bold text-[#17263A] text-xs block">
+                  Customer &amp; Agreement Track
                 </span>
                 <div className="space-y-1">
-                  <div><span className="text-slate-400">Customer Legal Name:</span> <span className="font-bold">{customer.companyName}</span></div>
-                  <div><span className="text-slate-400">Tax ID:</span> <span className="font-mono">{customer.taxId}</span></div>
-                  <div><span className="text-slate-400">Contract Agreement:</span> <span className="font-bold">{title}</span></div>
-                  <div><span className="text-slate-400">Service Mode:</span> <span className="font-semibold text-blue-700">{serviceMode.replace(/_/g, ' ')}</span></div>
+                  <div><span className="text-slate-600">Customer Legal Name:</span> <span className="font-bold">{customer.companyName}</span></div>
+                  <div><span className="text-slate-600">Tax ID:</span> <span className="font-mono">{customer.taxId}</span></div>
+                  <div><span className="text-slate-600">Contract Agreement:</span> <span className="font-bold">{title}</span></div>
+                  <div><span className="text-slate-600">Service Mode:</span> <span className="font-semibold text-blue-700">{serviceMode.replace(/_/g, ' ')}</span></div>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                <span className="font-bold text-[#17263A] text-[11px] uppercase tracking-wider block">
+              <div className="border-l-2 border-emerald-600 pl-4 py-1 space-y-2">
+                <span className="font-bold text-[#17263A] text-xs block">
                   Financial Terms
                 </span>
                 <div className="space-y-1">
-                  <div><span className="text-slate-400">Final Contract Value:</span> <span className="font-bold text-emerald-700 text-sm">{formatVnd(finalTotal)}</span></div>
-                  <div><span className="text-slate-400">Payment Terms:</span> <span>{paymentTermsDays} • {paymentStructure}</span></div>
-                  <div><span className="text-slate-400">Effective Dates:</span> <span>{effectiveDate} to {endDate}</span></div>
-                  <div><span className="text-slate-400">Selected Clauses:</span> <span>{selectedClauses.length} clauses attached</span></div>
+                  <div><span className="text-slate-600">Final Contract Value:</span> <span className="font-bold text-emerald-700 text-sm">{formatVnd(finalTotal)}</span></div>
+                  <div><span className="text-slate-600">Payment Terms:</span> <span>{paymentTermsDays} • {paymentStructure}</span></div>
+                  <div><span className="text-slate-600">Effective Dates:</span> <span>{effectiveDate} to {endDate}</span></div>
+                  <div><span className="text-slate-600">Selected Clauses:</span> <span>{selectedClauses.length} clauses attached</span></div>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-800">
+            <div className="border-l-2 border-emerald-600 bg-emerald-50/60 pl-4 pr-3 py-3 flex items-center text-xs text-emerald-900">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Ready to create contract draft. Draft will be queued for commercial review and signatory approval.</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span className="max-w-prose">Ready to create contract draft. Draft will be queued for commercial review and signatory approval.</span>
               </div>
             </div>
           </Card>
@@ -1506,7 +1506,7 @@ export const CreateContractWizardPage: React.FC = () => {
                 variant="primary"
                 onClick={() => handleCreateDraft(true)}
                 disabled={submitting}
-                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1.5 shadow-xs"
+                className="text-xs px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white inline-flex items-center gap-2 shadow-xs"
               >
                 <Send className="w-3.5 h-3.5" />
                 {submitting ? 'Submitting...' : 'Submit for Commercial Approval'}

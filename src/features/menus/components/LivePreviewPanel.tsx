@@ -868,13 +868,13 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         </div>
 
         {/* Role Scope Notice Bar */}
-        <div className="mb-2 px-2.5 py-1.5 rounded-lg bg-[#F4F7FB] border border-[#244A70]/20 flex items-center justify-between text-xs shrink-0">
+        <div className="mb-2 py-1 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center space-x-1.5 truncate">
             <Shield className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
             <span className="text-[#17263A] font-semibold truncate">
               Role: <span className="text-[#244A70]">{currentRoleInfo.label}</span>
             </span>
-            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-white text-[#244A70] border border-[#244A70]/20 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-blue-50 text-[#244A70] shrink-0">
               {currentRoleInfo.badge}
             </span>
           </div>
@@ -892,7 +892,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
         </div>
 
         {/* Miniature Shell Card matching actual web UI */}
-        <div className="border border-[#DCE3EC] rounded-xl overflow-hidden shadow-xs bg-[#F8FAFC] flex-1 min-h-0 flex flex-col">
+        <div className="border border-[#DCE3EC] rounded-lg overflow-hidden bg-white flex-1 min-h-0 flex flex-col">
           <div className="flex flex-1 min-h-0">
             {/* Sidebar Preview */}
             <div
@@ -950,8 +950,8 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
             {/* Page Workspace Preview Area */}
             <div className="flex-1 bg-white flex flex-col justify-start overflow-y-auto min-h-0">
               {/* Workspace Header & Breadcrumbs */}
-              <div className="px-3.5 py-2 border-b border-[#DCE3EC] bg-[#F8FAFC] flex items-center justify-between shrink-0">
-                <div className="flex items-center space-x-1 text-[9.5px] text-[#8491A3] truncate">
+              <div className="px-3.5 py-2 border-b border-[#DCE3EC] bg-white flex items-center justify-between shrink-0">
+                <div className="flex items-center space-x-1 text-xs text-slate-600 truncate">
                   {breadcrumbChain.map((crumb, idx) => (
                     <React.Fragment key={idx}>
                       {idx > 0 && <span className="text-[#CBD5E1]">&gt;</span>}
@@ -991,19 +991,19 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
       {/* Current Path Bar Below Preview */}
       <div className="mt-2.5 pt-2 border-t border-[#DCE3EC] shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-bold text-[#17263A] flex items-center space-x-1">
-            <DynamicIcon name="Compass" className="w-3 h-3 text-[#244A70]" />
+          <span className="text-xs font-bold text-[#17263A] flex items-center space-x-1">
+            <DynamicIcon name="Compass" className="w-3.5 h-3.5 text-[#244A70]" />
             <span>Current Path</span>
           </span>
-          <span className="text-[9.5px] text-[#8491A3]">
+          <span className="text-xs text-slate-600">
             Click any sidebar item to test view
           </span>
         </div>
         <div className="flex items-center flex-wrap gap-1">
           {breadcrumbChain.map((crumb, idx) => (
             <React.Fragment key={idx}>
-              {idx > 0 && <ChevronRight className="w-2.5 h-2.5 text-[#94A3B8]" />}
-              <span className="px-2 py-0.5 text-[10px] rounded-md bg-[#EEF1F6] text-[#244A70] font-semibold border border-[#244A70]/20 truncate">
+              {idx > 0 && <ChevronRight className="w-3 h-3 text-slate-500" />}
+              <span className="px-2 py-0.5 text-xs rounded-md bg-[#EEF1F6] text-[#244A70] font-semibold truncate">
                 {crumb}
               </span>
             </React.Fragment>
@@ -1651,30 +1651,30 @@ const MenuItemScreen: React.FC<{
       <div className="flex items-center justify-between border-b border-slate-100 pb-2">
         <div>
           <h3 className="text-xs font-bold text-[#17263A]">{item.label}</h3>
-          <p className="text-[8.5px] text-slate-500 font-mono mt-0.5">{item.path || '/overview'}</p>
+          <p className="text-xs text-slate-600 font-mono mt-0.5">{item.path || '/overview'}</p>
         </div>
-        <span className="px-2 py-0.5 rounded bg-[#EEF1F6] text-[#244A70] text-[8.5px] font-bold">
+        <span className="px-2 py-0.5 rounded bg-[#EEF1F6] text-[#244A70] text-xs font-bold">
           Active Page
         </span>
       </div>
 
-      <div className="space-y-2">
-        <div className="p-2.5 rounded-lg border border-[#DCE3EC] bg-[#F8FAFC] space-y-1.5">
-          <span className="text-[9px] font-bold text-[#17263A] block">{item.label} Configuration</span>
-          <p className="text-[8.5px] text-slate-600">
+      <div className="space-y-2.5">
+        <div className="py-1 space-y-1">
+          <span className="text-xs font-bold text-[#17263A] block">{item.label} Configuration</span>
+          <p className="text-xs text-slate-600">
             {item.description || 'Custom configured navigation module consuming single source of truth.'}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-[8.5px]">
-          <div className="p-2 rounded border border-[#DCE3EC] bg-white">
-            <span className="text-slate-500 block">Required Permissions</span>
+        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+          <div>
+            <span className="text-slate-600 block">Required Permissions</span>
             <span className="font-bold text-[#17263A]">
               {(item.permissions || []).length > 0 ? item.permissions?.join(', ') : 'None (Public)'}
             </span>
           </div>
-          <div className="p-2 rounded border border-[#DCE3EC] bg-white">
-            <span className="text-slate-500 block">Visibility Mode</span>
+          <div>
+            <span className="text-slate-600 block">Visibility Mode</span>
             <span className="font-bold text-[#244A70]">{item.contractTypeVisibility || 'ALL'}</span>
           </div>
         </div>

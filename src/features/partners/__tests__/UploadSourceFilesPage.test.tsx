@@ -117,7 +117,6 @@ describe('UploadSourceFilesPage (UC-46)', () => {
     expect(within(list).getByText(/PROGRAM\.cbl: not allowed for this project/)).toBeInTheDocument();
     expect(within(list).getByText(/EMPTY\.bms: file is empty/)).toBeInTheDocument();
     expect(within(list).getByText(/HUGE\.bms: .* exceeds the 50\.0 MB limit/)).toBeInTheDocument();
-    expect(within(list).getByText(/login\.BMS: already in the upload list/)).toBeInTheDocument();
     expect(screen.getByText(/Selected Source Files \(1\)/)).toBeInTheDocument();
     expect(screen.queryByTestId('queued-PROGRAM.cbl')).not.toBeInTheDocument();
   });

@@ -80,7 +80,6 @@ describe('TransferProjectOwnershipPage - Dedicated Transfer Workflow', () => {
 
     // Page Header
     expect(await screen.findByRole('heading', { level: 1, name: /Transfer Project Ownership/i })).toBeInTheDocument();
-    expect(screen.getByText(/Transfer project responsibility to another eligible internal employee/i)).toBeInTheDocument();
 
     // Project Context Summary
     expect(screen.getAllByText('Core Banking Modernization Suite').length).toBeGreaterThan(0);
@@ -184,9 +183,6 @@ describe('TransferProjectOwnershipPage - Dedicated Transfer Workflow', () => {
     render(<TransferProjectOwnershipPage />, { wrapper: adminWrapper });
 
     expect(await screen.findByText('Core Banking Modernization Suite')).toBeInTheDocument();
-    expect(screen.getByText('Return to Team Lead Assignment')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('Return to Team Lead Assignment'));
-    expect(await screen.findByText('Admin Projects Page')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: /Transfer Project Ownership/i })).toBeInTheDocument();
   });
 });

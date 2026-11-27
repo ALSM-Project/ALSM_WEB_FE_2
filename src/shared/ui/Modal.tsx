@@ -64,11 +64,11 @@ export const Modal: React.FC<ModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#DCE3EC] shrink-0 bg-[#F8FAFC]">
-            <h3 className="text-sm sm:text-base font-bold text-[#17263A] tracking-tight">{title}</h3>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#DCE3EC] shrink-0">
+            <h2 className="text-sm sm:text-base font-bold text-[#17263A] tracking-tight">{title}</h2>
             <button
               onClick={onClose}
-              className="text-[#8491A3] hover:text-[#17263A] p-1.5 rounded-md hover:bg-[#EEF1F6] transition-colors cursor-pointer"
+              className="text-slate-600 hover:text-[#17263A] p-1.5 rounded-md hover:bg-[#EEF1F6] transition-colors cursor-pointer"
               aria-label="Close modal"
             >
               <X className="w-4 h-4" />

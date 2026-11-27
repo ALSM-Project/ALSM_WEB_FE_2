@@ -759,19 +759,19 @@ export const AdminProjectsPage: React.FC = () => {
             setStatusFilter('COMPLETED');
             setAllocationFilter('ALL');
           }}
-          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-indigo-600 hover:shadow-sm ${
+          className={`bg-white rounded-xl border p-4 shadow-2xs cursor-pointer transition-all hover:border-[#244A70] hover:shadow-sm ${
             statusFilter === 'COMPLETED'
-              ? 'border-indigo-600 ring-2 ring-indigo-500/20 bg-indigo-50/15'
+              ? 'border-[#244A70] ring-2 ring-[#244A70]/15 bg-slate-50/40'
               : 'border-[#DCE3EC]'
           }`}
           title="Click to view completed enterprise projects"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Completed Projects</span>
-            <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Completed Projects</span>
+            <CheckCircle2 className="w-4 h-4 text-[#244A70]" />
           </div>
-          <div className="text-2xl font-bold text-indigo-700 mt-2">{completedCount}</div>
-          <div className="text-xs text-indigo-800 font-medium mt-1">Delivered & verified exports</div>
+          <div className="text-2xl font-bold text-[#17263A] mt-2">{completedCount}</div>
+          <div className="text-xs text-slate-600 font-medium mt-1">Delivered & verified exports</div>
         </div>
       </div>
 
@@ -1257,9 +1257,10 @@ export const AdminProjectsPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Section VI.2: Projects Pagination Controls */}
-        <div className="px-4 py-3.5 border-t border-[#DCE3EC] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600 font-medium">
+      {/* Section VI.2: Projects Pagination Controls */}
+      <div className="px-1 py-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-600 font-medium">
           <div className="flex items-center gap-2">
             <span>
               Showing {filteredProjects.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0} to{' '}
@@ -1340,7 +1341,6 @@ export const AdminProjectsPage: React.FC = () => {
             </Button>
           </div>
         </div>
-      </div>
 
       {/* Section VII.1: Create Enterprise Project Modal (Managed Modernization Services) */}
       <Modal
@@ -1349,9 +1349,6 @@ export const AdminProjectsPage: React.FC = () => {
         title="Create New Enterprise Modernization Project"
       >
         <form onSubmit={handleCreateProjectSubmit} className="space-y-4">
-          <p className="text-xs text-[#8491A3]">
-            Initiate a managed enterprise conversion project under the Managed Modernization Services SLA pipeline. Platform-based modernization projects are strictly separated.
-          </p>
 
           <div>
             <label className="block text-xs font-semibold text-[#17263A] mb-1">
@@ -1705,63 +1702,63 @@ export const AdminProjectsPage: React.FC = () => {
         {detailsTargetProject && (
           <div className="space-y-4 text-xs">
             {/* Header info */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <div className="pb-3 border-b border-slate-200 space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-sm text-[#17263A]">{detailsTargetProject.name}</span>
                 <StatusBadge status={detailsTargetProject.status} />
               </div>
-              <div className="flex items-center gap-2 font-mono text-[10px] text-slate-500">
+              <div className="flex items-center gap-2 font-mono text-xs text-slate-600">
                 <span>Project ID: {detailsTargetProject.id}</span>
                 <button
                   onClick={(e) => handleCopyId(detailsTargetProject.id, e)}
                   className="hover:text-blue-600 transition-colors"
                   title="Copy ID"
                 >
-                  <Copy className="w-3 h-3" />
+                  <Copy className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
             {/* Grid properties */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Client Organization</span>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="py-1 space-y-1">
+                <span className="text-xs uppercase font-bold text-slate-600">Client Organization</span>
                 <p className="font-semibold text-slate-800">{detailsTargetProject.organizationName || 'Enterprise Workspace'}</p>
-                <p className="text-[10px] font-mono text-slate-500">{detailsTargetProject.organizationId}</p>
+                <p className="text-xs font-mono text-slate-600">{detailsTargetProject.organizationId}</p>
               </div>
 
-              <div className="p-3 rounded-lg border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Conversion Pipeline</span>
+              <div className="py-1 space-y-1">
+                <span className="text-xs uppercase font-bold text-slate-600">Conversion Pipeline</span>
                 <p className="font-semibold text-slate-800">
                   {detailsTargetProject.conversionType === 'COBOL_TO_JAVA' ? 'COBOL → Java 17' : 'BMS/DSPF → React 19'}
                 </p>
-                <p className="text-[10px] font-mono text-slate-500">{detailsTargetProject.targetFramework || 'Default Framework'}</p>
+                <p className="text-xs font-mono text-slate-600">{detailsTargetProject.targetFramework || 'Default Framework'}</p>
               </div>
 
-              <div className="p-3 rounded-lg border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Assigned Team Lead</span>
+              <div className="py-1 space-y-1">
+                <span className="text-xs uppercase font-bold text-slate-600">Assigned Team Lead</span>
                 <p className="font-semibold text-slate-800">
                   {detailsTargetProject.assignedTeamLeadName || 'Awaiting Team Lead'}
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-xs text-slate-600">
                   {detailsTargetProject.assignedTeamLeadId ? 'Active Management' : 'Needs Allocation'}
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Allocated Staff</span>
+              <div className="py-1 space-y-1">
+                <span className="text-xs uppercase font-bold text-slate-600">Allocated Staff</span>
                 <p className="font-semibold text-slate-800">
                   {detailsTargetProject.assignedStaffName || 'Unallocated'}
                 </p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-xs text-slate-600">
                   {detailsTargetProject.assignedStaffId ? 'Conversion in progress' : 'Awaiting Staff'}
                 </p>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="p-3 rounded-lg border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between text-[11px]">
+            <div className="pt-3 border-t border-slate-200 space-y-2">
+              <div className="flex items-center justify-between text-xs">
                 <span className="font-semibold text-slate-700">Conversion & Verification Progress</span>
                 <span className="font-mono font-bold text-[#244A70]">
                   {(detailsTargetProject.screensCompleted || 0) + (detailsTargetProject.programsCompleted || 0)} / {(detailsTargetProject.screensTotal || 0) + (detailsTargetProject.programsTotal || 0)} items completed
@@ -1786,7 +1783,7 @@ export const AdminProjectsPage: React.FC = () => {
             </div>
 
             {/* Dates */}
-            <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+            <div className="flex items-center justify-between text-xs text-slate-600 pt-1">
               <span>Created: {new Date(detailsTargetProject.createdAt).toLocaleDateString()}</span>
               {detailsTargetProject.lastUpdated && (
                 <span>Updated: {new Date(detailsTargetProject.lastUpdated).toLocaleDateString()}</span>
