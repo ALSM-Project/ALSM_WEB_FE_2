@@ -349,14 +349,14 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-bold text-[#17263A]">
+              <h2 className="text-sm font-bold text-[#17263A]">
                 Company Digital Signature
-              </h3>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              </h2>
+              <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 e-Contract Legal
               </span>
             </div>
-            <p className="text-[11px] text-[#8491A3] mt-0.5">
+            <p className="text-sm text-[#526071] mt-0.5 max-w-[65ch]">
               Configure authorized representative digital signature & corporate electronic seal for automated signing on ALSM.
             </p>
           </div>
@@ -364,12 +364,12 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {signatureImageUrl ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
               Representative signature configured
             </span>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
               No signature pattern set
             </span>
           )}
@@ -379,22 +379,22 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
       {/* 2. Main 2-Column Grid: Left: Signature creation | Right: Seal & Contract Preview */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         {/* Left Column (7 cols): Signature & Stamp Setup */}
-        <div className="xl:col-span-7 space-y-5">
+        <div className="xl:col-span-7 space-y-6">
           {/* Sub-block A: Signature Generation Tabs */}
-          <div className="p-4 rounded-xl border border-[#DCE3EC] bg-[#F8FAFC] space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#17263A] uppercase tracking-wider flex items-center gap-2">
+          <div className="pb-5 border-b border-[#DCE3EC] space-y-4">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <span className="text-sm font-bold text-[#17263A] flex items-center gap-2">
                 <PenTool className="w-4 h-4 text-[#244A70]" />
                 Representative Signature Specimen ({signerName || 'Unnamed'})
               </span>
-              <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-[#DCE3EC]">
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
                 <button
                   type="button"
                   onClick={() => setActiveTab('draw')}
                   className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                     activeTab === 'draw'
                       ? 'bg-[#244A70] text-white shadow-2xs'
-                      : 'text-[#8491A3] hover:text-[#17263A]'
+                      : 'text-[#526071] hover:text-[#17263A]'
                   }`}
                 >
                   Draw Signature
@@ -405,7 +405,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                     activeTab === 'upload'
                       ? 'bg-[#244A70] text-white shadow-2xs'
-                      : 'text-[#8491A3] hover:text-[#17263A]'
+                      : 'text-[#526071] hover:text-[#17263A]'
                   }`}
                 >
                   Upload Image
@@ -416,7 +416,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
                     activeTab === 'type'
                       ? 'bg-[#244A70] text-white shadow-2xs'
-                      : 'text-[#8491A3] hover:text-[#17263A]'
+                      : 'text-[#526071] hover:text-[#17263A]'
                   }`}
                 >
                   Type Name
@@ -427,7 +427,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
             {/* TAB 1: DRAW CANVAS */}
             {activeTab === 'draw' && (
               <div className="space-y-3">
-                <div className="relative border-2 border-dashed border-[#B8C7D9] hover:border-[#244A70] transition-colors rounded-xl bg-white overflow-hidden shadow-inner">
+                <div className="relative border-2 border-dashed border-[#B8C7D9] hover:border-[#244A70] transition-colors rounded-xl bg-white overflow-hidden">
                   <canvas
                     ref={canvasRef}
                     width={960}
@@ -443,10 +443,10 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   />
                   {/* Subtle signing baseline */}
                   <div className="absolute left-6 right-6 bottom-10 pointer-events-none flex items-center justify-between border-b border-dashed border-[#DCE3EC] select-none">
-                    <span className="text-[10px] text-[#8491A3] font-mono">Signing baseline</span>
-                    <span className="text-[10px] text-[#8491A3] font-mono">ALSM e-Sign</span>
+                    <span className="text-xs text-[#526071] font-mono">Signing baseline</span>
+                    <span className="text-xs text-[#526071] font-mono">ALSM e-Sign</span>
                   </div>
-                  <div className="absolute bottom-2.5 left-3 text-[11px] text-[#8491A3] pointer-events-none select-none">
+                  <div className="absolute bottom-2.5 left-3 text-xs text-[#526071] pointer-events-none select-none">
                     Use mouse, stylus, or touch to draw your signature in this box
                   </div>
                 </div>
@@ -455,7 +455,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   <button
                     type="button"
                     onClick={clearCanvas}
-                    className="h-8 px-3 inline-flex items-center gap-1.5 text-xs text-[#8491A3] hover:text-red-600 bg-white border border-[#DCE3EC] hover:border-red-300 rounded-md transition-colors cursor-pointer"
+                    className="h-8 px-3 inline-flex items-center gap-1.5 text-xs text-[#526071] hover:text-red-600 bg-white border border-[#DCE3EC] hover:border-red-300 rounded-md transition-colors cursor-pointer"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>Clear & Redraw</span>
@@ -495,14 +495,14 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                     <span className="text-xs font-semibold text-[#17263A] block">
                       Click to upload signature image
                     </span>
-                    <span className="text-[11px] text-[#8491A3] block mt-0.5">
+                    <span className="text-[11px] text-[#526071] block mt-0.5">
                       Supports PNG, JPG format (Size &lt; 5MB)
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between px-1">
-                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#8491A3]">
+                  <label className="flex items-center gap-2 cursor-pointer select-none text-xs text-[#526071]">
                     <input
                       type="checkbox"
                       checked={autoRemoveBg}
@@ -526,7 +526,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
             {activeTab === 'type' && (
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-[#526071] uppercase tracking-wider mb-1">
                     Enter name to generate cursive signature
                   </label>
                   <div className="flex gap-2">
@@ -555,13 +555,13 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                     className={`p-2.5 rounded-lg border text-center cursor-pointer transition-all ${
                       selectedFont === 'font-dancing'
                         ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70]'
-                        : 'border-[#DCE3EC] bg-white text-[#8491A3] hover:border-[#B8C7D9]'
+                        : 'border-[#DCE3EC] bg-white text-[#526071] hover:border-[#B8C7D9]'
                     }`}
                   >
                     <span className="text-sm italic font-serif block font-bold truncate">
                       {typedName || 'Specimen 1'}
                     </span>
-                    <span className="text-[10px] text-[#8491A3] mt-1 block">Executive Style</span>
+                    <span className="text-[10px] text-[#526071] mt-1 block">Executive Style</span>
                   </div>
 
                   <div
@@ -571,13 +571,13 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                     className={`p-2.5 rounded-lg border text-center cursor-pointer transition-all ${
                       selectedFont === 'font-caveat'
                         ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70]'
-                        : 'border-[#DCE3EC] bg-white text-[#8491A3] hover:border-[#B8C7D9]'
+                        : 'border-[#DCE3EC] bg-white text-[#526071] hover:border-[#B8C7D9]'
                     }`}
                   >
                     <span className="text-sm italic font-sans block font-semibold truncate">
                       {typedName || 'Specimen 2'}
                     </span>
-                    <span className="text-[10px] text-[#8491A3] mt-1 block">Modern Style</span>
+                    <span className="text-[10px] text-[#526071] mt-1 block">Modern Style</span>
                   </div>
 
                   <div
@@ -587,13 +587,13 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                     className={`p-2.5 rounded-lg border text-center cursor-pointer transition-all ${
                       selectedFont === 'font-greatvibes'
                         ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70]'
-                        : 'border-[#DCE3EC] bg-white text-[#8491A3] hover:border-[#B8C7D9]'
+                        : 'border-[#DCE3EC] bg-white text-[#526071] hover:border-[#B8C7D9]'
                     }`}
                   >
                     <span className="text-sm italic font-mono block font-bold truncate">
                       {typedName || 'Specimen 3'}
                     </span>
-                    <span className="text-[10px] text-[#8491A3] mt-1 block">Script Style</span>
+                    <span className="text-[10px] text-[#526071] mt-1 block">Script Style</span>
                   </div>
                 </div>
               </div>
@@ -601,9 +601,9 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
           </div>
 
           {/* Sub-block B: Company Stamp & Seal */}
-          <div className="p-4 rounded-xl border border-[#DCE3EC] bg-[#F8FAFC] space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#17263A] uppercase tracking-wider flex items-center gap-2">
+              <span className="text-sm font-bold text-[#17263A] flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-red-600" />
                 Corporate Legal Stamp & Seal
               </span>
@@ -626,7 +626,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                     className="max-h-full max-w-full object-contain"
                   />
                 ) : (
-                  <div className="text-center text-[10px] text-[#8491A3] p-1">
+                  <div className="text-center text-[10px] text-[#526071] p-1">
                     No stamp configured
                   </div>
                 )}
@@ -655,10 +655,10 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   onClick={() => sealInputRef.current?.click()}
                   className="h-8 px-3 inline-flex items-center gap-1.5 text-xs font-medium text-[#17263A] bg-white border border-[#DCE3EC] hover:bg-[#F4F7FB] rounded-lg transition-colors cursor-pointer"
                 >
-                  <Upload className="w-3.5 h-3.5 text-[#8491A3]" />
+                  <Upload className="w-3.5 h-3.5 text-[#526071]" />
                   <span>Upload round company stamp (.PNG transparent)</span>
                 </button>
-                <p className="text-[11px] text-[#8491A3]">
+                <p className="text-sm text-[#526071] max-w-[60ch]">
                   Official corporate seal issued by regulatory authority, used for legally binding contracts.
                 </p>
               </div>
@@ -666,7 +666,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
 
             {/* Layout options: Signature overlapping vs side by side */}
             <div className="pt-2 border-t border-[#DCE3EC] space-y-2">
-              <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider">
+              <label className="block text-xs font-bold text-[#526071]">
                 Stamp layout on contract signing page:
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
@@ -674,7 +674,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer transition-colors ${
                     stampPosition === 'overlap'
                       ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70] font-semibold'
-                      : 'border-[#DCE3EC] bg-white text-[#8491A3]'
+                      : 'border-[#DCE3EC] bg-white text-[#526071]'
                   }`}
                 >
                   <input
@@ -691,7 +691,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer transition-colors ${
                     stampPosition === 'side_by_side'
                       ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70] font-semibold'
-                      : 'border-[#DCE3EC] bg-white text-[#8491A3]'
+                      : 'border-[#DCE3EC] bg-white text-[#526071]'
                   }`}
                 >
                   <input
@@ -708,7 +708,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                   className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer transition-colors ${
                     stampPosition === 'signature_only'
                       ? 'border-[#244A70] bg-[#EEF1F6]/40 text-[#244A70] font-semibold'
-                      : 'border-[#DCE3EC] bg-white text-[#8491A3]'
+                      : 'border-[#DCE3EC] bg-white text-[#526071]'
                   }`}
                 >
                   <input
@@ -726,25 +726,25 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
         </div>
 
         {/* Right Column (5 cols): Live Contract Signature Preview & CA Infrastructure Status */}
-        <div className="xl:col-span-5 space-y-5">
+        <div className="xl:col-span-5 space-y-6">
           {/* Box 1: Real-time Contract Sign Box Preview */}
-          <div className="p-4 rounded-xl border border-[#DCE3EC] bg-white space-y-3 shadow-xs">
+          <div className="pb-5 border-b border-[#DCE3EC] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#DCE3EC]">
-              <span className="text-xs font-bold text-[#17263A] flex items-center gap-1.5 uppercase tracking-wider">
-                <Layers className="w-3.5 h-3.5 text-[#244A70]" />
+              <span className="text-sm font-bold text-[#17263A] flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[#244A70]" />
                 Preview signing box on ALSM contract
               </span>
-              <span className="text-[10px] text-[#8491A3] bg-[#F4F7FB] px-2 py-0.5 rounded font-mono">
+              <span className="text-xs text-[#526071] bg-[#F4F7FB] px-2 py-0.5 rounded font-mono">
                 PAdES Standard
               </span>
             </div>
 
             {/* Simulated Contract Signature Box */}
             <div className="p-4 rounded-lg border-2 border-blue-900/20 bg-[#F8FAFC] text-center space-y-2 relative overflow-hidden select-none">
-              <div className="text-[11px] font-bold text-[#17263A] uppercase tracking-wide">
-                SERVICE PROVIDER REPRESENTATIVE (PARTY A)
+              <div className="text-xs font-bold text-[#17263A] tracking-wide">
+                Service Provider Representative (Party A)
               </div>
-              <div className="text-[10px] text-[#8491A3] font-medium">
+              <div className="text-xs text-[#526071] font-medium">
                 {companyName || 'ALSM SOFTWARE MODERNIZATION TECHNOLOGY JOINT STOCK COMPANY'}
               </div>
 
@@ -771,7 +771,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                         />
                       </div>
                     ) : (
-                      <div className="text-xs italic text-[#8491A3] border border-dashed border-[#DCE3EC] px-4 py-3 rounded">
+                      <div className="text-xs italic text-[#526071] border border-dashed border-[#DCE3EC] px-4 py-3 rounded">
                         [No representative signature]
                       </div>
                     )}
@@ -799,7 +799,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                         />
                       </div>
                     ) : (
-                      <div className="text-xs italic text-[#8491A3] border border-dashed border-[#DCE3EC] px-3 py-2 rounded">
+                      <div className="text-xs italic text-[#526071] border border-dashed border-[#DCE3EC] px-3 py-2 rounded">
                         [No signature]
                       </div>
                     )}
@@ -816,7 +816,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
                         className="max-h-20 max-w-full object-contain"
                       />
                     ) : (
-                      <div className="text-xs italic text-[#8491A3] border border-dashed border-[#DCE3EC] px-4 py-3 rounded">
+                      <div className="text-xs italic text-[#526071] border border-dashed border-[#DCE3EC] px-4 py-3 rounded">
                         [No representative signature]
                       </div>
                     )}
@@ -826,18 +826,18 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
 
               {/* Signer credentials */}
               <div className="pt-1 border-t border-[#DCE3EC]/60 space-y-0.5">
-                <div className="text-xs font-bold text-[#17263A]">
+                <div className="text-sm font-bold text-[#17263A]">
                   {signerName || 'Nguyen Gia Khanh'}
                 </div>
-                <div className="text-[10px] text-[#8491A3]">
+                <div className="text-xs text-[#526071]">
                   {signerTitle || 'General Director'}
                 </div>
               </div>
 
               {/* Security Watermark Badge */}
-              <div className="mt-2 pt-2 border-t border-dashed border-[#DCE3EC] text-[9.5px] font-mono text-emerald-700 bg-emerald-50/70 py-1 px-2 rounded flex flex-col items-center">
+              <div className="mt-2 pt-2 border-t border-dashed border-[#DCE3EC] text-xs font-mono text-emerald-800 py-1 px-2 flex flex-col items-center">
                 <span>✓ Digital signature verified by: {certProvider || 'VNPT-CA'}</span>
-                <span className="text-[#8491A3]">Serial: {certSerial || 'VNPT-ECA-ALSM-01'}</span>
+                <span className="text-[#526071]">Serial: {certSerial || 'VNPT-ECA-ALSM-01'}</span>
               </div>
             </div>
 
@@ -856,27 +856,27 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
           </div>
 
           {/* Box 2: Certificate Provider & Cryptographic Engine Config */}
-          <div className="p-4 rounded-xl border border-[#DCE3EC] bg-[#F8FAFC] space-y-3.5">
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#17263A] uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm font-bold text-[#17263A] flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-emerald-700" />
                 Digital Certificate & PKI Infrastructure
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+              <span className="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">
                 {certificateStatus === 'active' ? 'Active' : certificateStatus}
               </span>
             </div>
 
             <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between text-[#8491A3]">
+              <div className="flex items-center justify-between text-[#526071]">
                 <span>CA Provider:</span>
                 <span className="font-semibold text-[#17263A]">{certProvider || 'VNPT-CA'}</span>
               </div>
-              <div className="flex items-center justify-between text-[#8491A3]">
+              <div className="flex items-center justify-between text-[#526071]">
                 <span>Certificate Serial:</span>
                 <span className="font-mono text-[#17263A] font-semibold">{certSerial || 'VNPT-ECA-ALSM-01'}</span>
               </div>
-              <div className="flex items-center justify-between text-[#8491A3]">
+              <div className="flex items-center justify-between text-[#526071]">
                 <span>Validity Period:</span>
                 <span className="font-medium text-[#17263A]">{certificateValidUntil}</span>
               </div>
@@ -884,7 +884,7 @@ export const CompanyDigitalSignatureSection: React.FC<CompanyDigitalSignaturePro
 
             {/* Signing Method Selector */}
             <div className="pt-2 border-t border-[#DCE3EC] space-y-1.5">
-              <label className="block text-[11px] font-bold text-[#8491A3] uppercase tracking-wider">
+              <label className="block text-xs font-bold text-[#526071]">
                 Signing connection method:
               </label>
               <select

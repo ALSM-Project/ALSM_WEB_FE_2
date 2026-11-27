@@ -41,7 +41,7 @@ export const ConversionStatusBadge: React.FC<{ status: ItemConversionStatus }> =
   return (
     <span
       data-status={status}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wide ${style.className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-bold tracking-wide ${style.className}`}
     >
       <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} aria-hidden="true" />
       {style.label}

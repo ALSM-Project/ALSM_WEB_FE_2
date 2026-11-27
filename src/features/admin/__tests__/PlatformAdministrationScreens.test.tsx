@@ -601,8 +601,12 @@ describe('Platform Administration UI Enhancements', () => {
   });
 
   describe('Feature H: Platform Audit Logs', () => {
-    it('renders simulated audit log entries with IP addresses, filters, sorting, and export controls', async () => {
-      vi.mocked(adminApi.getAuditLogs).mockResolvedValue([]);
+    it('renders audit log entries with IP addresses, filters, sorting, and export controls', async () => {
+      vi.mocked(adminApi.getAuditLogs).mockResolvedValue([
+        { id: 'log-1', action: 'DISCOUNT_APPROVED', actorEmail: 'vp@alsm.dev', actorName: 'VP Sales', target: 'Quote #101', ipAddress: '192.168.1.42', timestamp: '2026-11-01T10:00:00Z' } as any,
+        { id: 'log-2', action: 'IMPERSONATE', actorEmail: 'support@alsm.dev', actorName: 'Support', target: 'Org Acme', ipAddress: '10.0.4.18', timestamp: '2026-11-01T11:00:00Z' } as any,
+        { id: 'log-3', action: 'USER_LOCKED', actorEmail: 'admin@alsm.dev', actorName: 'Admin', target: 'user@acme.com', ipAddress: '10.0.4.18', timestamp: '2026-11-01T12:00:00Z' } as any,
+      ]);
 
       renderWithContext(<AuditLogsPage />);
 
@@ -610,13 +614,12 @@ describe('Platform Administration UI Enhancements', () => {
         expect(screen.getByText(/(Audit Logs|Activity & Security Audit Log)/)).toBeInTheDocument();
       });
 
-      // Simulation banner
-      expect(screen.getByText(/Simulated Audit Trail/i)).toBeInTheDocument();
-      expect(screen.getByText('Mock Audit Data')).toBeInTheDocument();
+      // Live Audit Trail banner
+      expect(screen.getByText(/Live Immutable Audit Trail/i)).toBeInTheDocument();
 
       // Verify IP address column
-      expect(screen.getByText('IP Address')).toBeInTheDocument();
-      expect(screen.getByText('192.168.1.42')).toBeInTheDocument();
+      expect(await screen.findByText('IP Address')).toBeInTheDocument();
+      expect(await screen.findByText('192.168.1.42')).toBeInTheDocument();
       expect(screen.getAllByText('10.0.4.18').length).toBeGreaterThan(0);
 
       // Verify Actions and Targets

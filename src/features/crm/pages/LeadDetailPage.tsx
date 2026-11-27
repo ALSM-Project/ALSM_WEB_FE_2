@@ -344,19 +344,19 @@ export const LeadDetailPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-[#091E42] tracking-tight">{leadDisplayName}</h1>
               {lead.score !== undefined && (
-                <span className="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
+                <span className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#E8F1FF] text-[#0652CC] border border-[#0652CC]/20">
                   Score: {lead.score}
                 </span>
               )}
     
               {isWon && (
-                <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5 text-emerald-700" />
                   Closed Won
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#6B778C] mt-1">
+            <p className="text-xs text-slate-600 mt-1">
               Primary Contact: <span className="font-semibold text-slate-800">{lead.contactName}</span> ({lead.email})
             </p>
           </div>
@@ -422,7 +422,7 @@ export const LeadDetailPage: React.FC = () => {
       <div className="bg-white rounded-2xl border border-[#E5EAF0] p-3.5 shadow-xs">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-[#6B778C] uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
               Deal Pipeline Stage:
             </span>
             <span className="text-xs font-semibold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-full">
@@ -442,7 +442,7 @@ export const LeadDetailPage: React.FC = () => {
                       ? st === 'LOST'
                         ? 'bg-rose-600 text-white shadow-xs'
                         : 'bg-[#0652CC] text-white shadow-xs'
-                      : 'bg-[#F7F9FC] text-[#6B778C] hover:bg-[#E5EAF0]'
+                      : 'bg-[#F7F9FC] text-slate-700 border border-[#D9E2EC] hover:bg-[#E5EAF0]'
                   }`}
                   title="Click to update lead stage"
                 >
@@ -457,12 +457,12 @@ export const LeadDetailPage: React.FC = () => {
               onClick={() => setShowActivationModal(true)}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer ${
                 isWon
-                  ? 'bg-emerald-600 text-white shadow-xs'
+                  ? 'bg-emerald-700 text-white shadow-xs'
                   : 'bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100'
               }`}
               title={isWon ? 'Customer is Closed Won & Provisioned' : 'Won stage is unlocked only via Customer Activation'}
             >
-              {isWon ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Lock className="w-3 h-3 text-emerald-600" />}
+              {isWon ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Lock className="w-3 h-3 text-emerald-700" />}
               Closed Won (Activation)
             </button>
           </div>
@@ -472,44 +472,44 @@ export const LeadDetailPage: React.FC = () => {
       {/* Overview Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
-          <span className="text-[11px] font-semibold text-[#6B778C] uppercase">Contact Details</span>
+          <span className="text-xs font-semibold text-slate-600 uppercase">Contact Details</span>
           <div className="mt-2 space-y-1.5 text-xs">
             <div className="font-semibold text-[#091E42]">{lead.contactName}</div>
-            <div className="text-[#6B778C] flex items-center gap-1.5">
+            <div className="text-slate-600 flex items-center gap-1.5">
               <Mail className="w-3.5 h-3.5 text-[#0652CC]" /> {lead.email}
             </div>
             {lead.phone && (
-              <div className="text-[#6B778C] flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5 text-emerald-600" /> {lead.phone}
+              <div className="text-slate-600 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 text-emerald-700" /> {lead.phone}
               </div>
             )}
           </div>
         </Card>
 
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
-          <span className="text-[11px] font-semibold text-[#6B778C] uppercase">Source & Representative</span>
+          <span className="text-xs font-semibold text-slate-600 uppercase">Source &amp; Representative</span>
           <div className="mt-2 space-y-1.5 text-xs">
             <div className="text-[#091E42]"><span className="font-semibold">Source:</span> {lead.source}</div>
             <div className="text-[#091E42] flex items-center gap-1">
-              <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+              <UserCheck className="w-3.5 h-3.5 text-slate-500" />
               <span className="font-semibold">Rep:</span> {lead.assignedToName || 'Unassigned'}
             </div>
-            <div className="text-[#6B778C] text-[11px]">
+            <div className="text-slate-600 text-xs">
               Created: {new Date(lead.createdAt).toLocaleDateString()}
             </div>
           </div>
         </Card>
 
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
-          <span className="text-[11px] font-semibold text-[#6B778C] uppercase">Commercial Scope</span>
+          <span className="text-xs font-semibold text-slate-600 uppercase">Commercial Scope</span>
           <div className="mt-2 space-y-1.5 text-xs">
             <div className="text-[#091E42]">
               <span className="font-semibold">Deal Value:</span>{' '}
-              <span className="font-bold text-blue-600">{formatVnd(lead.dealValue || 0)}</span>
+              <span className="font-bold text-blue-700">{formatVnd(lead.dealValue || 0)}</span>
             </div>
             <div className="text-[#091E42]">
               <span className="font-semibold">Payment Status:</span>{' '}
-              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+              <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                 lead.payment?.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
               }`}>
                 {lead.payment?.status || (lead.payment?.required ? 'PENDING' : 'WAIVED')}
@@ -523,29 +523,29 @@ export const LeadDetailPage: React.FC = () => {
                   : 'Standard Assessment'}
               </span>
             </div>
-            <div className="text-[#6B778C] text-[11px]">
+            <div className="text-slate-600 text-xs">
               Last Contact: {lead.lastContactAt ? new Date(lead.lastContactAt).toLocaleDateString() : 'None yet'}
             </div>
           </div>
         </Card>
 
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
-          <span className="text-[11px] font-semibold text-[#6B778C] uppercase">Tenant & Provisioning</span>
+          <span className="text-xs font-semibold text-slate-600 uppercase">Tenant &amp; Provisioning</span>
           <div className="mt-2 space-y-1.5 text-xs">
             {isWon ? (
               <div className="space-y-1">
-                <div className="text-emerald-700 font-semibold flex items-center gap-1">
-                  <Award className="w-4 h-4 text-emerald-600" />
+                <div className="text-emerald-800 font-semibold flex items-center gap-1">
+                  <Award className="w-4 h-4 text-emerald-700" />
                   Customer Tenant Active
                 </div>
-                <div className="text-[11px] text-[#6B778C] font-mono">
+                <div className="text-xs text-slate-600 font-mono break-all">
                   Org: {lead.provisioning?.organizationId || lead.convertedOrganizationId}
                 </div>
               </div>
             ) : (
               <div className="space-y-1">
-                <div className="text-amber-700 font-medium">In Pipeline ({lead.stage})</div>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-amber-800 font-medium">In Pipeline ({lead.stage})</div>
+                <div className="text-xs text-slate-600">
                   {hasLegacySignedStatus
                     ? 'Legacy CRM signature state is unverified; provider evidence is required.'
                     : 'Provider-confirmed signature and stored evidence are required before activation.'}
@@ -572,7 +572,7 @@ export const LeadDetailPage: React.FC = () => {
             className={`pb-3 text-xs font-semibold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
               activeTab === tab.key
                 ? 'border-[#0652CC] text-[#0652CC]'
-                : 'border-transparent text-[#6B778C] hover:text-[#091E42]'
+                : 'border-transparent text-slate-600 hover:text-[#091E42]'
             }`}
           >
             {tab.label}
@@ -585,34 +585,40 @@ export const LeadDetailPage: React.FC = () => {
       {activeTab === 'activity' && (
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
           {!lead.interactions || lead.interactions.length === 0 ? (
-            <p className="text-xs text-[#6B778C] py-8 text-center">
+            <p className="text-xs text-slate-600 py-8 text-center">
               No interactions logged yet. Click "Log Call / Note" above to record client touchpoints.
             </p>
           ) : (
-            <div className="space-y-3">
-              {lead.interactions.map((act) => (
-                <div key={act.id} className="flex items-start gap-3 p-3.5 rounded-xl bg-[#F7F9FC] border border-[#E5EAF0]">
-                  <div className="p-2 rounded-lg bg-white border border-[#E5EAF0] text-[#0652CC]">
-                    {act.type === 'PHONE_CALL' ? <Phone className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-xs text-[#091E42]">{act.summary}</span>
-                      <span className="text-[11px] text-[#6B778C]">{new Date(act.timestamp).toLocaleString()}</span>
+            <div className="divide-y divide-[#E5EAF0]">
+              {lead.interactions.map((act) => {
+                const formattedTimestamp =
+                  act.timestamp && !Number.isNaN(Date.parse(act.timestamp))
+                    ? new Date(act.timestamp).toLocaleString()
+                    : '—';
+                return (
+                  <div key={act.id} className="flex items-start gap-3 py-3.5 first:pt-0 last:pb-0">
+                    <div className="p-2 rounded-lg bg-[#F4F7FB] text-[#0652CC] shrink-0">
+                      {act.type === 'PHONE_CALL' ? <Phone className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                     </div>
-                    {act.outcome && (
-                      <div className="text-[11px] text-blue-700 font-medium mt-0.5">Outcome: {act.outcome}</div>
-                    )}
-                    {act.details && <p className="text-xs text-slate-700 mt-1 leading-relaxed">{act.details}</p>}
-                    {act.actionItems && (
-                      <p className="text-[11px] text-slate-600 mt-1 italic bg-white p-2 rounded border border-slate-200">
-                        Follow-up Action: {act.actionItems}
-                      </p>
-                    )}
-                    <span className="text-[10px] text-[#6B778C] font-mono mt-1.5 block">Logged by: {act.performedBy}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-xs text-[#091E42]">{act.summary}</span>
+                        <span className="text-xs text-slate-600 shrink-0">{formattedTimestamp}</span>
+                      </div>
+                      {act.outcome && (
+                        <div className="text-xs text-blue-700 font-medium mt-0.5">Outcome: {act.outcome}</div>
+                      )}
+                      {act.details && <p className="text-xs text-slate-700 mt-1 leading-relaxed max-w-prose">{act.details}</p>}
+                      {act.actionItems && (
+                        <p className="text-xs text-slate-700 mt-1.5 italic border-l-2 border-[#244A70] pl-3 py-0.5 max-w-prose">
+                          Follow-up Action: {act.actionItems}
+                        </p>
+                      )}
+                      <span className="text-xs text-slate-600 font-mono mt-1.5 block">Logged by: {act.performedBy}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Card>
@@ -623,7 +629,7 @@ export const LeadDetailPage: React.FC = () => {
         <Card variant="default" padding="md" className="bg-white border-[#E5EAF0]">
           {!lead.demos || lead.demos.length === 0 ? (
             <div className="py-8 text-center space-y-3">
-              <p className="text-xs text-[#6B778C]">
+              <p className="text-xs text-slate-600">
                 No meetings scheduled. Click "Schedule" to create one.
               </p>
               <button
@@ -636,17 +642,17 @@ export const LeadDetailPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-[#E5EAF0]">
               {lead.demos.map((d) => (
-                <div key={d.id} className="p-3.5 rounded-xl border border-[#E5EAF0] bg-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div key={d.id} className="py-3.5 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <div className="font-semibold text-xs text-[#091E42] flex items-center gap-2">
                       <Video className="w-4 h-4 text-indigo-600" />
                       {d.topic}
                     </div>
-                    <div className="text-xs text-[#6B778C] mt-1 flex flex-wrap items-center gap-3">
-                      <span><Calendar className="w-3 h-3 inline mr-1 text-slate-400" />{new Date(d.scheduledAt).toLocaleString()}</span>
-                      <span><Clock className="w-3 h-3 inline mr-1 text-slate-400" />{d.durationMinutes} mins</span>
+                    <div className="text-xs text-slate-600 mt-1 flex flex-wrap items-center gap-3">
+                      <span><Calendar className="w-3 h-3 inline mr-1 text-slate-500" />{new Date(d.scheduledAt).toLocaleString()}</span>
+                      <span><Clock className="w-3 h-3 inline mr-1 text-slate-500" />{d.durationMinutes} mins</span>
                       {d.attendees && d.attendees.length > 0 && (
                         <span>Attendees: {d.attendees.join(', ')}</span>
                       )}
@@ -672,7 +678,7 @@ export const LeadDetailPage: React.FC = () => {
       {activeTab === 'quotes' && (
         <Card variant="default" padding="none" className="bg-white border-[#E5EAF0] overflow-hidden">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[#6B778C] text-[11px] uppercase">
+            <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-slate-600 text-xs uppercase">
               <tr>
                 <th className="py-2.5 px-3">Quote #</th>
                 <th className="py-2.5 px-3">Plan</th>
@@ -687,7 +693,7 @@ export const LeadDetailPage: React.FC = () => {
             <tbody className="divide-y divide-[#E5EAF0]">
               {!lead.quotes || lead.quotes.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-[#6B778C]">
+                  <td colSpan={8} className="py-8 text-center text-slate-600">
                     No commercial quotes generated yet. Click "Create Quote" above.
                   </td>
                 </tr>
@@ -696,20 +702,20 @@ export const LeadDetailPage: React.FC = () => {
                   <tr key={q.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-3 font-mono font-semibold text-[#091E42]">{q.quoteNumber}</td>
                     <td className="py-3 px-3 text-[#091E42]">{q.plan}</td>
-                    <td className="py-3 px-3 text-[#6B778C]">{formatVnd(q.basePrice)}</td>
+                    <td className="py-3 px-3 text-slate-600">{formatVnd(q.basePrice)}</td>
                     <td className="py-3 px-3 text-[#091E42]">{q.discountPercent}%</td>
-                    <td className="py-3 px-3 font-semibold text-blue-600">{formatVnd(q.finalPrice)}</td>
+                    <td className="py-3 px-3 font-semibold text-blue-700">{formatVnd(q.finalPrice)}</td>
                     <td className="py-3 px-3">
                       {q.approvalStatus === 'APPROVED' ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">Approved</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Approved</span>
                       ) : q.approvalStatus === 'PENDING' ? (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">Needs Review (&gt;15%)</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Needs Review (&gt;15%)</span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800">Rejected</span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">Rejected</span>
                       )}
                     </td>
                     <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                         q.status === 'ACCEPTED' ? 'bg-emerald-100 text-emerald-800' :
                         q.status === 'SENT' ? 'bg-blue-100 text-blue-800' :
                         'bg-slate-100 text-slate-700'
@@ -766,7 +772,7 @@ export const LeadDetailPage: React.FC = () => {
         </Card>
         <Card variant="default" padding="none" className="bg-white border-[#E5EAF0] overflow-hidden">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-[#6B778C] text-[11px] uppercase">
+            <thead className="bg-[#F7F9FC] border-b border-[#E5EAF0] text-slate-600 text-xs uppercase">
               <tr>
                 <th className="py-2.5 px-3">Contract #</th>
                 <th className="py-2.5 px-3">Title & Plan</th>
@@ -779,7 +785,7 @@ export const LeadDetailPage: React.FC = () => {
             <tbody className="divide-y divide-[#E5EAF0]">
               {(!lead.contracts || lead.contracts.length === 0) && legalContracts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#6B778C]">
+                  <td colSpan={6} className="py-8 text-center text-slate-600">
                     No contract records yet. Create a metadata draft to start internal review.
                   </td>
                 </tr>
@@ -802,23 +808,23 @@ export const LeadDetailPage: React.FC = () => {
                         </td>
                         <td className="py-3 px-3">
                           <div className="font-semibold text-[#091E42]">{item.version.title}</div>
-                          <div className="text-[11px] text-[#6B778C]">{item.version.plan} · v{item.version.versionNumber}</div>
+                          <div className="text-xs text-slate-600">{item.version.plan} · v{item.version.versionNumber}</div>
                         </td>
                         <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(item.version.annualValue)}</td>
                         <td className="py-3 px-3">
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                             {item.contract.lifecycleStatus.replace(/_/g, ' ')} · {item.contract.reviewStatus.replace(/_/g, ' ')}
                           </span>
                           {item.contract.customerDecision && item.contract.customerDecision !== 'NONE' && (
-                            <div className="mt-1 max-w-xs text-[11px] text-rose-800">
+                            <div className="mt-1 max-w-xs text-xs text-rose-800">
                               Customer {item.contract.customerDecision === 'DECLINED' ? 'declined' : 'requested changes'}: {item.contract.customerDecisionReason}
                             </div>
                           )}
                         </td>
-                        <td className="py-3 px-3 text-[11px] text-amber-800">
+                        <td className="py-3 px-3 text-xs text-amber-800">
                           {item.documentAvailable ? 'Final document available' : item.reviewPdfAvailable ? 'Review PDF available; not signed' : 'No downloadable PDF; signing provider unavailable'}
                           {item.signingReadiness && (
-                            <ul className="mt-1 space-y-0.5 text-[10px]" aria-label="Online signing readiness">
+                            <ul className="mt-1 space-y-0.5 text-xs" aria-label="Online signing readiness">
                               {item.signingReadiness.checks.map((check) => (
                                 <li key={check.code} className={check.status === 'READY' ? 'text-emerald-800' : check.status === 'PENDING' ? 'text-amber-800' : 'text-rose-800'}>
                                   {check.status === 'READY' ? '✓ ' : check.status === 'PENDING' ? '○ ' : '× '}{check.code.replace(/_/g, ' ').toLowerCase()}
@@ -847,7 +853,7 @@ export const LeadDetailPage: React.FC = () => {
                             </>
                           )}
                           {item.contract.lifecycleStatus === 'DRAFT' && canCreateContracts && !customerAccountReady && (
-                            <span className="mr-2 text-[11px] text-amber-800">Waiting for verified customer account</span>
+                            <span className="mr-2 text-xs text-amber-800">Waiting for verified customer account</span>
                           )}
                           {canSubmitForReview && canCreateContracts && (
                             <Button variant="primary" size="sm" className="text-xs" disabled={reviewSubmissionId !== null} onClick={() => submitContractReview(item.contract.id)}>
@@ -887,15 +893,15 @@ export const LeadDetailPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-3">
                         <div className="font-semibold text-[#091E42]">{c.title}</div>
-                        <div className="text-[11px] text-[#6B778C]">{c.plan}</div>
+                        <div className="text-xs text-slate-600">{c.plan}</div>
                       </td>
                       <td className="py-3 px-3 font-semibold text-emerald-700">{formatVnd(c.annualValue)}</td>
                       <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
                           {c.status.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-mono text-[11px] text-[#6B778C]">
+                      <td className="py-3 px-3 font-mono text-xs text-slate-600">
                         {c.docusignEnvelopeId ? 'DocuSign Ref' : 'No provider transaction'}
                       </td>
                       <td className="py-3 px-3 text-right">
@@ -922,7 +928,7 @@ export const LeadDetailPage: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-blue-600" />
                 Customer Activation & Organization Provisioning Workflow
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5">
                 Automated 7-step provisioning: signed contract, payment confirmation, tenant creation, and Web 3 workspace binding.
               </p>
             </div>
@@ -932,16 +938,16 @@ export const LeadDetailPage: React.FC = () => {
               onClick={() => setShowActivationModal(true)}
               disabled={!isWon && !hasSignedContract}
               title={isWon ? 'View provisioned tenant' : hasSignedContract ? 'Launch Customer Activation' : 'Activation is blocked until contract is executed.'}
-              className={(isWon || hasSignedContract) ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-slate-400 cursor-not-allowed opacity-70'}
+              className={(isWon || hasSignedContract) ? 'bg-emerald-700 hover:bg-emerald-800' : 'bg-slate-600 cursor-not-allowed opacity-70'}
             >
               {isWon ? 'View Provisioned Tenant Details' : 'Launch Customer Activation'}
             </Button>
           </div>
 
           {/* Provisioning summary checklist preview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-              <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider block">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs pt-1">
+            <div className="space-y-2">
+              <span className="font-bold text-slate-800 text-xs uppercase tracking-wider block">
                 Verification Requirements
               </span>
               <div className="space-y-1.5">
@@ -962,8 +968,8 @@ export const LeadDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-              <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider block">
+            <div className="space-y-2">
+              <span className="font-bold text-slate-800 text-xs uppercase tracking-wider block">
                 Activation Execution State
               </span>
               <div className="space-y-1.5">
@@ -993,33 +999,33 @@ export const LeadDetailPage: React.FC = () => {
               <History className="w-4 h-4 text-blue-600" />
               <span>Immutable Audit Trail & Compliance Ledger</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-600 mt-0.5">
               LEAD STAGE UPDATED and pipeline governance history recorded in immutable ledger.
             </p>
           </div>
           {!lead.stageAudit || lead.stageAudit.length === 0 ? (
-            <p className="text-xs text-[#6B778C] py-8 text-center">
+            <p className="text-xs text-slate-600 py-8 text-center">
               No stage audit transitions recorded yet.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div className="divide-y divide-[#E5EAF0]">
               {lead.stageAudit.map((entry) => (
-                <div key={entry.id} className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+                <div key={entry.id} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3">
                   <History className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                   <div className="flex-1 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-slate-900 flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-blue-100 text-blue-800">LEAD STAGE UPDATED</span>
-                        <span>{entry.fromStage} → <span className="text-blue-600 font-bold">{entry.toStage}</span></span>
+                        <span className="px-1.5 py-0.5 text-xs font-bold rounded bg-blue-100 text-blue-800">LEAD STAGE UPDATED</span>
+                        <span>{entry.fromStage} → <span className="text-blue-700 font-bold">{entry.toStage}</span></span>
                       </span>
-                      <span className="text-[11px] text-slate-500 font-mono">
+                      <span className="text-xs text-slate-600 font-mono">
                         {new Date(entry.timestamp).toLocaleString()}
                       </span>
                     </div>
                     {entry.notes && (
-                      <p className="text-slate-600 mt-1 italic">"{entry.notes}"</p>
+                      <p className="text-slate-700 mt-1 italic">"{entry.notes}"</p>
                     )}
-                    <span className="text-[10px] text-slate-400 font-mono block mt-1">
+                    <span className="text-xs text-slate-600 font-mono block mt-1">
                       Author: {entry.changedBy}
                     </span>
                   </div>

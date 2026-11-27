@@ -222,7 +222,7 @@ export const EmployeeSearchSelect: React.FC<EmployeeSearchSelectProps> = ({
             ) : null}
           </div>
 
-          {helperText && <p className="text-xs text-slate-500 mt-1">{helperText}</p>}
+          {helperText && <p className="text-xs text-slate-600 mt-1 max-w-prose leading-relaxed">{helperText}</p>}
 
           {/* Autocomplete Results Popover */}
           {isOpen && query.trim().length >= 2 && (

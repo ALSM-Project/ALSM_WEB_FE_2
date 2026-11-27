@@ -288,10 +288,11 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
       </div>
 
       {/* Partner Data Table */}
-      <div className="alsm-table-container rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+      <div className="alsm-table-container rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
+        <div className="overflow-x-auto">
         <table className="alsm-table w-full text-xs text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+            <tr className="border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
               <th className="py-3.5 px-4">Partner Name & Domain</th>
               <th className="py-3.5 px-4">Engagement Tier</th>
               <th className="py-3.5 px-4">Assigned Conversion Lead</th>
@@ -392,6 +393,7 @@ export const PartnerListPage: React.FC<PartnerListPageProps> = ({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Centered Register Partner Modal */}

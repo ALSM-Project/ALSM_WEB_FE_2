@@ -160,7 +160,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
       {/* Table Content */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
-          <thead className="bg-[#F8FAFC] text-slate-500 font-semibold border-b border-[#EEF1F6] text-[11px] uppercase tracking-wider select-none">
+          <thead className="text-slate-600 font-semibold border-b border-[#DCE3EC] text-xs uppercase tracking-wider select-none">
             <tr>
               <th className="py-3 px-4">Bank</th>
               <th className="py-3 px-4">Account Holder</th>
@@ -249,13 +249,13 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-[#17263A]">{acc.bankName}</span>
                         {acc.bankCode && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono font-medium">
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono font-medium">
                             {acc.bankCode}
                           </span>
                         )}
                       </div>
                       {acc.bin && (
-                        <span className="text-[11px] font-mono text-slate-500 mt-0.5">
+                        <span className="text-xs font-mono text-slate-600 mt-0.5">
                           BIN: <span className="font-semibold text-slate-700">{acc.bin}</span>
                         </span>
                       )}
@@ -301,7 +301,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
                   {/* Status */}
                   <td className="py-3 px-4">
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                         acc.status === 'active'
                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           : 'bg-slate-100 text-slate-600 border border-slate-300'
@@ -314,7 +314,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
                   {/* Default Status */}
                   <td className="py-3 px-4">
                     {acc.isDefault ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                         <Star className="w-3 h-3 fill-indigo-600 text-indigo-600" /> Default
                       </span>
                     ) : (
@@ -410,7 +410,7 @@ export const BankAccountsTable: React.FC<BankAccountsTableProps> = ({
 
       {/* Pagination Footer */}
       {pagination.total > 0 && (
-        <div className="px-4 py-3 bg-[#F8FAFC] border-t border-[#EEF1F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <div className="px-4 py-3 border-t border-[#EEF1F6] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
           <div className="flex items-center gap-3">
             <span>
               Showing{' '}

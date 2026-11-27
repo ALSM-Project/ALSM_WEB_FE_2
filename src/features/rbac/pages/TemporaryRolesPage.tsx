@@ -654,14 +654,14 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
       )}
 
       {/* Tabs */}
-      <div className="border-b border-[#DCE3EC] flex items-center justify-between">
-        <div className="flex gap-4">
+      <div className="border-b border-[#DCE3EC] flex items-center justify-between gap-4">
+        <div className="flex gap-6">
           <button
             onClick={() => setActiveTab('active')}
-            className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-2.5 px-2 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'active'
                 ? 'border-[#244A70] text-[#244A70]'
-                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
+                : 'border-transparent text-slate-600 hover:text-[#17263A]'
             }`}
           >
             <Clock className="w-4 h-4" />
@@ -669,26 +669,26 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
           </button>
           <button
             onClick={() => setActiveTab('requests')}
-            className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-2.5 px-2 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'requests'
                 ? 'border-[#244A70] text-[#244A70]'
-                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
+                : 'border-transparent text-slate-600 hover:text-[#17263A]'
             }`}
           >
             <KeyRound className="w-4 h-4" />
             Pending Requests ({pendingRequests.length})
             {pendingRequests.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-600 text-white">
                 {pendingRequests.length}
               </span>
             )}
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`pb-3 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-2.5 px-2 text-xs font-semibold border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'history'
                 ? 'border-[#244A70] text-[#244A70]'
-                : 'border-transparent text-[#8491A3] hover:text-[#17263A]'
+                : 'border-transparent text-slate-600 hover:text-[#17263A]'
             }`}
           >
             <History className="w-4 h-4" />
@@ -779,7 +779,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     <th className="py-3 px-4">Elevated Staff User</th>
                     <th className="py-3 px-4">Temporary Role</th>
                     <th className="py-3 px-4">Granted By</th>
@@ -939,7 +939,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     <th className="py-3 px-4">Requester Staff</th>
                     <th className="py-3 px-4">Requested Role</th>
                     <th className="py-3 px-4">Duration</th>
@@ -1134,7 +1134,7 @@ export const TemporaryRolesPage: React.FC<TemporaryRolesPageProps> = ({ initialV
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-[10px] font-bold text-[#8491A3] uppercase tracking-wider">
+                  <tr className="bg-[#F8FAFC] border-b border-[#DCE3EC] text-xs font-semibold text-slate-600 uppercase tracking-wider">
                     <th className="py-3 px-4">Staff User</th>
                     <th className="py-3 px-4">Role Elevated</th>
                     <th className="py-3 px-4">Granted By</th>

@@ -537,7 +537,7 @@ export const BankAccountFormModal: React.FC<BankAccountFormModalProps> = ({
 
             {/* Large Payment QR Preview in Form */}
             {(bin || bankCode) && (accountNumber || (isEditing && initialData?.accountNumberLast4)) && (
-              <div className="sm:col-span-2 p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <div className="sm:col-span-2 pt-3 border-t border-[#EEF1F6]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <QrCode className="w-4 h-4 text-[#244A70]" />
@@ -578,7 +578,7 @@ export const BankAccountFormModal: React.FC<BankAccountFormModalProps> = ({
               </label>
               <div className="px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-[#DCE3EC] rounded-md text-slate-700 font-semibold flex items-center justify-between">
                 <span>VND</span>
-                <span className="text-[11px] font-mono text-slate-400">ISO 4217</span>
+                <span className="text-xs font-mono text-slate-600">ISO 4217</span>
               </div>
             </div>
 
@@ -643,7 +643,7 @@ export const BankAccountFormModal: React.FC<BankAccountFormModalProps> = ({
               />
             </div>
 
-            <div className="flex items-start gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+            <div className="flex items-start gap-2.5 pt-2 border-t border-[#EEF1F6]">
               <input
                 id="isDefaultAccount"
                 type="checkbox"

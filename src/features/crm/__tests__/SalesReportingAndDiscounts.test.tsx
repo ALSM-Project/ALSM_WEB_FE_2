@@ -436,7 +436,7 @@ describe('Section 3.12: Sales Reporting and Discount Approval Workflows', () => 
 
       // Modal should be visible
       await waitFor(() => {
-        expect(screen.getByRole('heading', { level: 3, name: /commercial discount request/i })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 2, name: /commercial discount request/i })).toBeInTheDocument();
       });
 
       // Fill in discount reason

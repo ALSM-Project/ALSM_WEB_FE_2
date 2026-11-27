@@ -467,39 +467,39 @@ export const TransferProjectOwnershipPage: React.FC = () => {
               Project Context & Transfer Overview
             </h2>
           </div>
-          <span className="text-xs text-slate-500 font-mono">
+          <span className="text-xs text-slate-600 font-mono">
             Ref: {project?.contractNumber || project?.id}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           {/* Project Name */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Project Name</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Project Name</span>
             <span className="font-bold text-slate-900 text-sm block truncate" title={project?.name}>
               {project?.name}
             </span>
           </div>
 
           {/* Partner / Customer */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Partner / Customer</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Partner / Customer</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
-              <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              <Building2 className="w-3.5 h-3.5 text-slate-500" />
               <span className="truncate">{project?.partnerName || 'Internal Organization'}</span>
             </div>
           </div>
 
           {/* Legacy Technology */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Legacy Technology</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Legacy Technology</span>
             <div className="flex items-center gap-1.5 font-semibold text-slate-800">
               <Layers className="w-3.5 h-3.5 text-[#244A70]" />
               <div>
                 <span>
                   {project?.conversionType === 'COBOL_TO_JAVA' ? 'IBM COBOL → Java 17' : 'IBM BMS/DSPF → React 19'}
                 </span>
-                <span className="text-[10px] text-slate-500 block">
+                <span className="text-xs text-slate-600 block">
                   {project?.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
                 </span>
               </div>
@@ -507,8 +507,8 @@ export const TransferProjectOwnershipPage: React.FC = () => {
           </div>
 
           {/* Status */}
-          <div className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/70 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-500 block">Project Status</span>
+          <div className="py-1 space-y-1">
+            <span className="text-xs font-semibold text-slate-600 block">Project Status</span>
             <div className="mt-0.5">
               {project?.status && <StatusBadge status={project.status} />}
             </div>
@@ -516,33 +516,33 @@ export const TransferProjectOwnershipPage: React.FC = () => {
         </div>
 
         {/* Ownership Summary Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 text-xs">
-          <div className="p-3 rounded-xl bg-blue-50/50 border border-blue-200/70 flex items-center justify-between">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-slate-100 text-xs">
+          <div className="flex items-center justify-between py-1">
             <div>
-              <span className="text-[10px] font-bold text-blue-900 uppercase tracking-wider block">Current Owner</span>
+              <span className="text-xs font-bold text-blue-900 uppercase tracking-wider block">Current Owner</span>
               <span className="font-bold text-slate-900 mt-0.5 block">{currentOwner.name}</span>
             </div>
             <User className="w-4 h-4 text-[#244A70]" />
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+          <div className="flex items-center justify-between py-1">
             <div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Supervising Team Lead</span>
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Supervising Team Lead</span>
               <span className="font-semibold text-slate-800 mt-0.5 block">
                 {project?.assignedTeamLeadName || 'Unassigned'}
               </span>
             </div>
-            <ShieldCheck className="w-4 h-4 text-slate-400" />
+            <ShieldCheck className="w-4 h-4 text-slate-500" />
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-50 rounded-xl border border-slate-200/70 flex items-center justify-between">
+          <div className="flex items-center justify-between py-1">
             <div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Active Tasks & Queues</span>
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">Active Tasks & Queues</span>
               <span className="font-semibold text-slate-800 mt-0.5 block">
                 {activeTasksCount} items ({project?.screensTotal || 0} screens, {project?.programsTotal || 0} programs)
               </span>
             </div>
-            <Briefcase className="w-4 h-4 text-slate-400" />
+            <Briefcase className="w-4 h-4 text-slate-500" />
           </div>
         </div>
       </div>
@@ -561,7 +561,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
             </div>
           </div>
           {selectedAssignee && (
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
               <Check className="w-3 h-3 text-emerald-600" />
               Assignee Selected: {selectedAssignee.fullName}
             </span>
@@ -570,7 +570,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
 
         {/* Accessible Select / Combobox for Quick Pick & Test Automation */}
         <div>
-          <label htmlFor="new-assignee-select" className="text-[11px] font-bold text-[#8491A3] uppercase tracking-wider block mb-1.5">
+          <label htmlFor="new-assignee-select" className="text-xs font-semibold text-slate-700 block mb-1.5">
             New Assignee (Eligible Internal Employee) *
           </label>
           <select
@@ -597,7 +597,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
         </div>
 
         {/* Filter Toolbar for Directory */}
-        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+        <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
             {/* Search Box */}
             <div className="sm:col-span-2 relative">
@@ -669,8 +669,8 @@ export const TransferProjectOwnershipPage: React.FC = () => {
         {/* Directory Table and Dossier Panel Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Table (8 cols on lg) */}
-          <div className="lg:col-span-8 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
-            <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
+          <div className="lg:col-span-8 bg-white">
+            <div className="px-1 py-2 border-b border-slate-200 flex items-center justify-between text-xs">
               <span className="font-bold text-[#17263A] flex items-center gap-1.5">
                 <Users className="w-3.5 h-3.5 text-[#244A70]" />
                 <span>Eligible Conversion Staff Roster</span>
@@ -678,19 +678,19 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                   {filteredAssignees.length} Engineers
                 </span>
               </span>
-              <span className="text-[11px] text-slate-500">Click a staff member below to inspect and select</span>
+              <span className="text-xs text-slate-600">Click a staff member below to inspect and select</span>
             </div>
 
             {filteredAssignees.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-xs space-y-1">
-                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+              <div className="p-8 text-center text-slate-600 text-xs space-y-1">
+                <Users className="w-8 h-8 text-slate-400 mx-auto mb-2" />
                 <p className="font-semibold text-slate-700">No staff members match the selected criteria.</p>
-                <p className="text-[11px]">Try clearing your search query or adjusting your capacity filter.</p>
+                <p className="text-xs">Try clearing your search query or adjusting your capacity filter.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-[#F8FAFC] text-[#8491A3] font-bold text-[10px] uppercase tracking-wider border-b border-[#DCE3EC]">
+                  <thead className="bg-white text-slate-600 font-bold text-xs uppercase tracking-wider border-b border-[#DCE3EC]">
                     <tr>
                       <th className="py-2.5 px-3">Staff Member</th>
                       <th className="py-2.5 px-2">Department</th>
@@ -724,7 +724,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2.5">
                               <div
-                                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[11px] uppercase shrink-0 ${
+                                className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs uppercase shrink-0 ${
                                   isSelected
                                     ? 'bg-[#244A70] text-white'
                                     : 'bg-slate-200 text-slate-700'
@@ -734,13 +734,13 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                               </div>
                               <div>
                                 <div className="font-bold text-[#17263A] text-xs">{staff.fullName}</div>
-                                <div className="text-[10px] text-[#8491A3] font-mono">{staff.email}</div>
+                                <div className="text-xs text-slate-600 font-mono">{staff.email}</div>
                               </div>
                             </div>
                           </td>
 
                           {/* Department */}
-                          <td className="py-2.5 px-2 text-[#17263A] text-[11px]">{department}</td>
+                          <td className="py-2.5 px-2 text-[#17263A] text-xs">{department}</td>
 
                           {/* Specialization Tags */}
                           <td className="py-2.5 px-2">
@@ -748,13 +748,13 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                               {skills.slice(0, 2).map((sk) => (
                                 <span
                                   key={sk}
-                                  className="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium"
+                                  className="text-xs bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-medium"
                                 >
                                   {sk}
                                 </span>
                               ))}
                               {skills.length > 2 && (
-                                <span className="text-[9px] text-slate-400 font-mono">+{skills.length - 2}</span>
+                                <span className="text-xs text-slate-600 font-mono">+{skills.length - 2}</span>
                               )}
                             </div>
                           </td>
@@ -762,7 +762,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                           {/* Workload Status */}
                           <td className="py-2.5 px-2">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${activeLoadInfo.className}`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${activeLoadInfo.className}`}
                             >
                               {staff.activeWorkload} Active • {activeLoadInfo.label}
                             </span>
@@ -771,7 +771,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                           {/* Action Button */}
                           <td className="py-2.5 px-3 text-right">
                             {isSelected ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#244A70] text-white rounded text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#244A70] text-white rounded text-xs font-semibold">
                                 <Check className="w-3 h-3 stroke-[3]" />
                                 Selected
                               </span>
@@ -783,7 +783,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                                   setSelectedAssigneeId(staff.id);
                                   setIsReviewed(false);
                                 }}
-                                className="px-2.5 py-1 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-[11px] font-medium transition-colors cursor-pointer"
+                                className="px-2.5 py-1 bg-white border border-[#DCE3EC] hover:border-[#244A70] text-[#17263A] hover:text-[#244A70] rounded text-xs font-medium transition-colors cursor-pointer"
                               >
                                 Select
                               </button>
@@ -799,13 +799,13 @@ export const TransferProjectOwnershipPage: React.FC = () => {
 
             {/* Pagination Bar */}
             {filteredAssignees.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-2 border-t border-[#DCE3EC] bg-[#F8FAFC] text-xs">
-                <div className="flex items-center gap-2 text-[11px] text-[#8491A3]">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-1 pt-3 border-t border-[#DCE3EC] bg-white text-xs">
+                <div className="flex items-center gap-2 text-xs text-slate-600">
                   <span>Rows per page:</span>
                   <select
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[11px] font-semibold text-slate-700 outline-none"
+                    className="bg-white border border-slate-200 rounded px-1.5 py-0.5 text-xs font-semibold text-slate-700 outline-none"
                   >
                     <option value={5}>5</option>
                     <option value={6}>6</option>
@@ -819,7 +819,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[11px] text-[#8491A3] mr-2">
+                  <span className="text-xs text-slate-600 mr-2">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
@@ -850,7 +850,7 @@ export const TransferProjectOwnershipPage: React.FC = () => {
           </div>
 
           {/* Dossier Card: Selected Staff Profile (4 cols on lg) */}
-          <div className="lg:col-span-4 bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 shadow-2xs">
+          <div className="lg:col-span-4 lg:border-l lg:border-slate-200 lg:pl-5 space-y-3">
             <div className="font-bold text-xs text-[#17263A] flex items-center gap-1.5 pb-2 border-b border-slate-200">
               <UserCheck className="w-4 h-4 text-[#244A70]" />
               <span>Selected Staff Profile</span>
@@ -865,28 +865,28 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                   </div>
                   <div>
                     <div className="font-bold text-[#17263A] text-sm">{selectedAssignee.fullName}</div>
-                    <div className="text-[11px] text-[#8491A3] font-mono">{selectedAssignee.email}</div>
-                    <div className="text-[10px] font-mono text-[#244A70] font-bold mt-0.5">
+                    <div className="text-xs text-slate-600 font-mono">{selectedAssignee.email}</div>
+                    <div className="text-xs font-mono text-[#244A70] font-bold mt-0.5">
                       EMP-{selectedAssignee.id.slice(-6).toUpperCase()}
                     </div>
                   </div>
                 </div>
 
                 {/* Attributes breakdown */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-200 text-[11px]">
+                <div className="space-y-1.5 pt-2 border-t border-slate-200 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Department:</span>
+                    <span className="text-slate-600">Department:</span>
                     <span className="font-medium text-[#17263A]">Modernization Engineering</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Baseline Role:</span>
+                    <span className="text-slate-600">Baseline Role:</span>
                     <span className="font-semibold text-slate-800">{selectedAssignee.role || 'Conversion Staff'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">Workload Capacity:</span>
+                    <span className="text-slate-600">Workload Capacity:</span>
                     <span
                       data-testid="selected-assignee-badge"
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${workloadLevel(selectedAssignee.activeWorkload).className}`}
+                      className={`text-xs font-bold px-2 py-0.5 rounded-full border ${workloadLevel(selectedAssignee.activeWorkload).className}`}
                     >
                       {workloadLevel(selectedAssignee.activeWorkload).label}
                     </span>
@@ -901,14 +901,14 @@ export const TransferProjectOwnershipPage: React.FC = () => {
 
                 {/* Specialization Tags */}
                 <div className="pt-2 border-t border-slate-200">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                  <span className="text-xs font-bold text-slate-600 uppercase block mb-1">
                     Technical Specializations:
                   </span>
                   <div className="flex flex-wrap gap-1">
                     {getStaffSpecializations(selectedAssignee.id, 0).map((sk) => (
                       <span
                         key={sk}
-                        className="px-2 py-0.5 rounded bg-blue-50 text-[#244A70] border border-blue-200 text-[10px] font-medium"
+                        className="px-2 py-0.5 rounded bg-blue-50 text-[#244A70] border border-blue-200 text-xs font-medium"
                       >
                         {sk}
                       </span>
@@ -917,17 +917,17 @@ export const TransferProjectOwnershipPage: React.FC = () => {
                 </div>
 
                 {isAtCapacity && (
-                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-start gap-1.5">
+                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-1.5">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                     <span>This engineer has 4+ active projects. Additional assignments may affect delivery timelines.</span>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="py-8 text-center text-slate-400 space-y-2">
-                <Users className="w-8 h-8 mx-auto text-slate-300 stroke-[1.5]" />
-                <p className="text-xs font-semibold text-slate-600">No staff member selected</p>
-                <p className="text-[11px] text-slate-400 max-w-[200px] mx-auto">
+              <div className="py-8 text-center text-slate-600 space-y-2">
+                <Users className="w-8 h-8 mx-auto text-slate-400 stroke-[1.5]" />
+                <p className="text-xs font-semibold text-slate-700">No staff member selected</p>
+                <p className="text-xs text-slate-600 max-w-[200px] mx-auto">
                   Select a staff member from the directory or dropdown to view their profile.
                 </p>
               </div>

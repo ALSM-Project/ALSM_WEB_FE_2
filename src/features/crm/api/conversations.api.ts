@@ -21,6 +21,14 @@ export interface CrmConversationItem {
   updatedAt?: string;
 }
 
+export interface ConversationAttachmentItem {
+  fileId?: string;
+  name: string;
+  url?: string;
+  size?: number;
+  mimeType?: string;
+}
+
 export interface CrmConversationMessageItem {
   id: string;
   conversationId: string;
@@ -30,6 +38,7 @@ export interface CrmConversationMessageItem {
   senderRole: 'CUSTOMER' | 'SALES_REP' | 'STAFF' | 'SYSTEM';
   content: string;
   isInternal: boolean;
+  attachments?: ConversationAttachmentItem[];
   createdAt: string;
 }
 
@@ -119,7 +128,15 @@ export const conversationsApi = {
 
   postMessage: (
     conversationId: string,
-    data: { content: string; isInternal?: boolean }
+    data: { content: string; isInternal?: boolean; attachments?: ConversationAttachmentItem[] }
   ): Promise<CrmConversationMessageItem> =>
     apiClient.post<CrmConversationMessageItem>(`/crm/conversations/${encodeURIComponent(conversationId)}/messages`, data),
+
+  uploadAttachment: (file: File): Promise<ConversationAttachmentItem> => {
+    const form = new FormData();
+    form.append('file', file);
+    return apiClient.post<ConversationAttachmentItem>('/support/attachments', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };

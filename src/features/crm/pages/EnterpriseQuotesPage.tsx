@@ -699,8 +699,8 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div className="p-4 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-0 sm:divide-x sm:divide-[#DCE3EC]">
+                <div className="sm:pr-5 space-y-1.5">
                   <span className="text-xs text-slate-600 uppercase tracking-wider block font-semibold">
                     1. Proposed Quotes
                   </span>
@@ -708,16 +708,16 @@ export const EnterpriseQuotesPage: React.FC = () => {
                   <span className="text-xs text-slate-600 font-medium block">{formatVnd(totalPipelineValue)}</span>
                 </div>
 
-                <div className="p-4 bg-amber-50/50 rounded-xl border border-amber-100 space-y-1.5">
-                  <span className="text-xs text-amber-900 uppercase tracking-wider block font-semibold">
+                <div className="sm:px-5 space-y-1.5">
+                  <span className="text-xs text-amber-800 uppercase tracking-wider block font-semibold">
                     2. Awaiting Signature
                   </span>
                   <div className="text-xl font-bold text-amber-950">{pendingSignatureContracts} contracts</div>
                   <span className="text-xs text-amber-800 font-medium block">Awaiting customer countersign</span>
                 </div>
 
-                <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1.5">
-                  <span className="text-xs text-emerald-900 uppercase tracking-wider block font-semibold">
+                <div className="sm:pl-5 space-y-1.5">
+                  <span className="text-xs text-emerald-800 uppercase tracking-wider block font-semibold">
                     3. Executed & Active MSAs
                   </span>
                   <div className="text-xl font-bold text-emerald-950">{activeContracts} executed</div>
@@ -746,8 +746,8 @@ export const EnterpriseQuotesPage: React.FC = () => {
                 <Layers className="w-4 h-4 text-purple-600" />
                 Service Model Breakdown
               </h2>
-              <div className="space-y-3 text-xs">
-                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
+              <div className="divide-y divide-[#F4F7FB] text-xs">
+                <div className="pb-3 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Platform-Based Modernization</span>
                     <span className="text-[#244A70] font-bold">
@@ -759,7 +759,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-100 space-y-1">
+                <div className="pt-3 space-y-1">
                   <div className="flex items-center justify-between font-bold text-slate-800">
                     <span>Managed Modernization Services</span>
                     <span className="text-emerald-800 font-bold">
@@ -790,7 +790,7 @@ export const EnterpriseQuotesPage: React.FC = () => {
                       {pendingSignatureContracts} Pending Customer Signature
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium mt-1 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-slate-600 font-medium mt-1 max-w-[65ch] leading-relaxed">
                     Contracts currently in signature routing, countersigned by ALSM and awaiting customer representative signature to activate service entitlements.
                   </p>
                 </div>

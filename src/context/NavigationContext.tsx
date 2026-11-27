@@ -248,6 +248,40 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         },
       ];
     }
+    const hasConversations = supportGroup.children?.some(
+      (c) => c.path === '/crm/conversations' || c.path === '/sales/conversations',
+    );
+    if (!hasConversations) {
+      supportGroup.children = [
+        ...(supportGroup.children || []),
+        {
+          id: 'web2_support_conversations',
+          label: 'Customer Conversations',
+          icon: 'MessagesSquare',
+          path: '/crm/conversations',
+          order: 3,
+          isVisible: true,
+          permissions: ['conversations.view', 'sales.leads.view', 'organizations.impersonate'],
+          openInNewTab: false,
+        },
+      ];
+    }
+    const hasFeedback = supportGroup.children?.some((c) => c.path === '/support/feedback');
+    if (!hasFeedback) {
+      supportGroup.children = [
+        ...(supportGroup.children || []),
+        {
+          id: 'web2_support_feedback',
+          label: 'Feedback & Reviews',
+          icon: 'Star',
+          path: '/support/feedback',
+          order: 4,
+          isVisible: true,
+          permissions: ['feedback.view', 'conversations.view', 'organizations.impersonate', 'users.manage'],
+          openInNewTab: false,
+        },
+      ];
+    }
 
     const processed = mapped
       .filter((g) => g.id !== 'web2_group_conversions' && g.label?.toLowerCase() !== 'conversions')

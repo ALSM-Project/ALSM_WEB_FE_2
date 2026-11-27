@@ -82,7 +82,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
     return (
       <div className="py-24 text-center">
         <RefreshCw className="w-6 h-6 animate-spin text-[#244A70] mx-auto mb-2" />
-        <p className="text-xs text-[#8491A3]">Loading project overview...</p>
+        <p className="text-sm text-[#526071]">Loading project overview...</p>
       </div>
     );
   }
@@ -90,9 +90,9 @@ export const PartnerProjectOverviewPage: React.FC = () => {
   if (!project) {
     return (
       <div className="p-8 text-center bg-white rounded-xl border border-slate-200">
-        <FolderKanban className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+        <FolderKanban className="w-8 h-8 text-slate-400 mx-auto mb-2" />
         <h3 className="text-sm font-bold text-[#17263A]">Project Not Found</h3>
-        <p className="text-xs text-[#8491A3] mt-1">The specified project could not be located.</p>
+        <p className="text-sm text-[#526071] mt-1">The specified project could not be located.</p>
         <div className="mt-4 flex items-center justify-center gap-2">
           <Button variant="outline" size="sm" onClick={() => navigate('/team-lead/projects')}>
             Back to Employee Allocation
@@ -134,7 +134,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-[#8491A3]">
+          <div className="flex items-center gap-2 text-xs text-[#526071]">
             <Link to="/partners" className="hover:text-[#244A70] transition-colors">
               Partners
             </Link>
@@ -149,7 +149,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#17263A]">{project.name}</h1>
             <PartnerStatusBadge status={project.status} type="project" />
-            <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-gray-100 text-[#8491A3]">
+            <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 text-[#526071]">
               {project.conversionType === 'COBOL_TO_JAVA' ? 'COBOL -> Java' : 'BMS/DSPF -> React'}
             </span>
           </div>
@@ -200,9 +200,9 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           className="bg-white border border-[#DCE3EC] hover:border-[#244A70] p-3.5 rounded-xl text-left cursor-pointer transition-all hover:shadow-xs group"
           title="Click to view all assets in workspace"
         >
-          <div className="text-xs font-semibold text-[#8491A3] group-hover:text-[#244A70] transition-colors">Total Assets</div>
+          <div className="text-xs font-semibold text-[#526071] group-hover:text-[#244A70] transition-colors">Total Assets</div>
           <div className="text-xl font-extrabold text-[#17263A] mt-1">{items.length}</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">{items.filter((i) => i.type === 'SCREEN').length} screens, {items.filter((i) => i.type === 'PROGRAM').length} programs</div>
+          <div className="text-xs text-slate-600 mt-0.5">{items.filter((i) => i.type === 'SCREEN').length} screens, {items.filter((i) => i.type === 'PROGRAM').length} programs</div>
         </button>
 
         <button
@@ -211,9 +211,9 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           className="bg-emerald-50/50 border border-emerald-200 hover:border-emerald-500 p-3.5 rounded-xl text-left cursor-pointer transition-all hover:shadow-xs group"
           title="Click to view converted assets"
         >
-          <div className="text-xs font-bold text-emerald-700">Converted</div>
-          <div className="text-xl font-extrabold text-emerald-800 mt-1">{completedScreens + completedPrograms}</div>
-          <div className="text-[11px] text-emerald-600 mt-0.5">Automated code generated</div>
+          <div className="text-xs font-bold text-emerald-800">Converted</div>
+          <div className="text-xl font-extrabold text-emerald-900 mt-1">{completedScreens + completedPrograms}</div>
+          <div className="text-xs text-emerald-700 mt-0.5">Automated code generated</div>
         </button>
 
         <button
@@ -222,11 +222,11 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           className="bg-amber-50/50 border border-amber-200 hover:border-amber-500 p-3.5 rounded-xl text-left cursor-pointer transition-all hover:shadow-xs group"
           title="Click to view assets needing review"
         >
-          <div className="text-xs font-bold text-amber-700">Review Required</div>
-          <div className="text-xl font-extrabold text-amber-800 mt-1">
+          <div className="text-xs font-bold text-amber-800">Review Required</div>
+          <div className="text-xl font-extrabold text-amber-900 mt-1">
             {items.filter((i) => i.status === 'FAILED' || i.validationStatus === 'WARNINGS').length}
           </div>
-          <div className="text-[11px] text-amber-600 mt-0.5">Pending engineer sign-off</div>
+          <div className="text-xs text-amber-800 mt-0.5">Pending engineer sign-off</div>
         </button>
 
         <button
@@ -235,11 +235,11 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           className="bg-rose-50/50 border border-rose-200 hover:border-rose-400 p-3.5 rounded-xl text-left cursor-pointer transition-all hover:shadow-xs group"
           title="Click to view failed conversions"
         >
-          <div className="text-xs font-bold text-rose-700">Failed / Errors</div>
-          <div className="text-xl font-extrabold text-rose-800 mt-1">
+          <div className="text-xs font-bold text-rose-800">Failed / Errors</div>
+          <div className="text-xl font-extrabold text-rose-900 mt-1">
             {items.filter((i) => i.status === 'FAILED' || i.status === 'DEAD_LETTER').length}
           </div>
-          <div className="text-[11px] text-rose-600 mt-0.5">Syntax or parser diagnostics</div>
+          <div className="text-xs text-rose-700 mt-0.5">Syntax or parser diagnostics</div>
         </button>
       </div>
 
@@ -248,15 +248,15 @@ export const PartnerProjectOverviewPage: React.FC = () => {
         {/* Left Side: Scope & Items Table (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
           {/* Project Details Card */}
-          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3">
+          <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-4">
             <h2 className="text-xs font-bold text-[#17263A] uppercase tracking-wider">
               Project Configuration &amp; Scope
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 rounded-lg bg-slate-50/80 border border-slate-200">
-                <span className="text-[11px] text-[#8491A3]">Partner Organization:</span>
-                <p className="font-semibold text-[#17263A]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-xs text-[#526071] block">Partner Organization</span>
+                <p className="text-sm font-semibold text-[#17263A] mt-0.5">
                   <Link
                     to={`/partners/${project.partnerId}`}
                     className="hover:text-[#244A70] transition-colors"
@@ -266,21 +266,21 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-50/80 border border-slate-200">
-                <span className="text-[11px] text-[#8491A3]">Target Framework &amp; Stack:</span>
-                <p className="font-semibold text-[#17263A]">{project.targetFramework}</p>
+              <div>
+                <span className="text-xs text-[#526071] block">Target Framework &amp; Stack</span>
+                <p className="text-sm font-semibold text-[#17263A] mt-0.5">{project.targetFramework}</p>
               </div>
             </div>
 
             <div>
-              <span className="text-xs font-semibold text-[#17263A]">Scope &amp; Architecture Notes:</span>
-              <p className="text-xs text-[#8491A3] mt-1 leading-relaxed bg-slate-50/80 p-3 rounded-lg border border-slate-200">
+              <span className="text-xs font-semibold text-[#17263A]">Scope &amp; Architecture Notes</span>
+              <p className="text-sm text-[#526071] mt-1 leading-relaxed max-w-[65ch] border-l-2 border-slate-300 pl-3">
                 {project.description || 'No additional scope notes provided for this project.'}
               </p>
             </div>
 
             {/* Dual Metric Progress */}
-            <div className="pt-2">
+            <div className="pt-2 border-t border-slate-100">
               <ProgressBar
                 screensTotal={project.screensTotal}
                 screensCompleted={project.screensCompleted}
@@ -297,7 +297,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 <h2 className="text-xs font-bold text-[#17263A] uppercase tracking-wider">
                   Client Intake Files &amp; Conversion Items ({items.length})
                 </h2>
-                <p className="text-[11px] text-[#8491A3]">
+                <p className="text-sm text-[#526071]">
                   Source files uploaded by customer for modernization
                 </p>
               </div>
@@ -374,10 +374,10 @@ export const PartnerProjectOverviewPage: React.FC = () => {
             )}
 
             {items.length === 0 ? (
-              <div className="p-8 text-center border border-dashed border-slate-300 rounded-md bg-slate-50/50">
-                <FileCode className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-xs font-semibold text-[#17263A]">No source files uploaded yet</p>
-                <p className="text-[11px] text-[#8491A3] mt-1">
+              <div className="py-8 text-center border-t border-slate-200">
+                <FileCode className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-[#17263A]">No source files uploaded yet</p>
+                <p className="text-sm text-[#526071] mt-1 max-w-[55ch] mx-auto">
                   Upload legacy mapsets (BMS/DSPF) or COBOL procedures to begin conversion.
                 </p>
                 <Button
@@ -391,30 +391,30 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 </Button>
               </div>
             ) : filteredItems.length === 0 ? (
-              <div className="p-6 text-center border border-slate-200 rounded-md bg-slate-50/50 text-slate-500 text-xs">
+              <div className="py-6 text-center border-t border-slate-200 text-slate-600 text-sm">
                 No files match your search criteria.
               </div>
             ) : (
-              <div className="space-y-2">
-                <div className="divide-y divide-[#DCE3EC] border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <div className="space-y-3">
+                <div className="divide-y divide-[#DCE3EC] border-t border-b border-slate-200">
                   {paginatedItems.map((item) => (
                     <div
                       key={item.id}
                       onClick={() => navigate(`/partners/projects/${project.id}/items/${item.id}/review`)}
-                      className="p-3 flex items-center justify-between text-xs hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                      className="py-3 px-1 flex items-center justify-between text-xs hover:bg-blue-50/50 cursor-pointer transition-colors group"
                       title="Click to review conversion findings & code"
                     >
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[#17263A] group-hover:text-[#244A70] transition-colors">
+                          <span className="text-sm font-semibold text-[#17263A] group-hover:text-[#244A70] transition-colors">
                             {item.name}
                           </span>
-                          <span className="text-[10px] font-mono text-gray-500 uppercase px-1.5 py-0.5 rounded bg-gray-100">
+                          <span className="text-xs font-mono text-slate-700 uppercase px-1.5 py-0.5 rounded bg-slate-100">
                             {item.type}
                           </span>
                           <PartnerStatusBadge status={item.status} type="item" />
                         </div>
-                        <p className="text-[11px] font-mono text-[#8491A3]">{item.sourceFile}</p>
+                        <p className="text-xs font-mono text-[#526071]">{item.sourceFile}</p>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -427,7 +427,7 @@ export const PartnerProjectOverviewPage: React.FC = () => {
                 </div>
 
                 {/* Pagination Controls */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1 text-xs text-slate-600">
                   <div className="flex items-center gap-2">
                     <span>Rows:</span>
                     <select
@@ -500,45 +500,45 @@ export const PartnerProjectOverviewPage: React.FC = () => {
               </Button>
             </div>
 
-            <div className="space-y-2.5 text-xs">
+            <div className="divide-y divide-slate-200">
               {/* Team Lead */}
-              <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/80 flex items-center justify-between">
+              <div className="pb-3 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-semibold text-[#8491A3] uppercase block">
+                  <span className="text-xs font-semibold text-[#526071] uppercase block">
                     Assigned Team Lead
                   </span>
                   <span className="font-bold text-[#17263A] text-sm">
                     {project.assignedTeamLeadName || 'Unassigned'}
                   </span>
-                  <span className="text-[11px] text-[#8491A3] block mt-0.5">
+                  <span className="text-sm text-[#526071] block mt-0.5">
                     Supervision, quality sign-off, partner review
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-[#244A70]/10 text-[#244A70] flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-full bg-[#244A70]/10 text-[#244A70] flex items-center justify-center text-xs font-bold shrink-0">
                   TL
                 </div>
               </div>
 
               {/* Conversion Staff Engineer */}
-              <div className="p-3 rounded-lg border border-slate-200 bg-slate-50/80 flex items-center justify-between">
+              <div className="pt-3 flex items-center justify-between">
                 <div>
-                  <span className="text-[11px] font-semibold text-[#8491A3] uppercase block">
+                  <span className="text-xs font-semibold text-[#526071] uppercase block">
                     Assigned Conversion Staff
                   </span>
                   <span className="font-bold text-[#17263A] text-sm">
                     {project.assignedStaffName || 'Unallocated (Assign Staff)'}
                   </span>
-                  <span className="text-[11px] text-[#8491A3] block mt-0.5">
+                  <span className="text-sm text-[#526071] block mt-0.5">
                     AST conversion, field mappings, validation triage
                   </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-bold shrink-0">
                   CS
                 </div>
               </div>
             </div>
 
-            <p className="text-[11px] text-[#8491A3] leading-normal">
+            <p className="text-sm text-[#526071] leading-relaxed max-w-[60ch] pt-1 border-t border-slate-100">
               Team Leads monitor workload, assign modernization projects, and approve final code bundles before partner delivery.
             </p>
           </div>
@@ -547,32 +547,32 @@ export const PartnerProjectOverviewPage: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs space-y-3.5">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200">
               <div className="flex items-center gap-2">
-                <DownloadCloud className="w-4 h-4 text-emerald-600" />
+                <DownloadCloud className="w-4 h-4 text-emerald-700" />
                 <h3 className="text-xs font-bold text-[#17263A] uppercase tracking-wider">
                   Partner Delivery &amp; Export
                 </h3>
               </div>
-              <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                 {project.isExported ? 'Delivered' : isExportReady ? 'Ready' : 'In Progress'}
               </span>
             </div>
 
-            <div className="text-xs space-y-2">
+            <div className="space-y-3">
               {project.isExported ? (
-                <div className="p-3 rounded-lg bg-emerald-50/50 border border-emerald-200 space-y-1">
-                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="border-l-2 border-emerald-600 pl-3 py-1 space-y-1">
+                  <div className="flex items-center gap-1.5 text-sm text-emerald-800 font-bold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-700" />
                     <span>Bundle Published to Partner Portal</span>
                   </div>
-                  <p className="text-[11px] text-emerald-700 font-mono">
+                  <p className="text-xs text-emerald-800 font-mono">
                     Package: {exportBundle?.packageName || project.exportedBundleName || 'modernization_bundle_v1.zip'}
                   </p>
-                  <p className="text-[11px] text-[#8491A3]">
+                  <p className="text-xs text-[#526071]">
                     Exported on: {new Date(exportBundle?.exportedAt || project.exportedAt || project.lastUpdated).toLocaleDateString()}
                   </p>
                 </div>
               ) : (
-                <p className="text-[#8491A3] text-[11px] leading-relaxed">
+                <p className="text-[#526071] text-sm leading-relaxed max-w-[55ch]">
                   When all required screens and routines pass AST semantic linting, generate a signed ZIP bundle and notify partner contacts.
                 </p>
               )}

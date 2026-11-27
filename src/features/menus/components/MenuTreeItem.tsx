@@ -164,9 +164,9 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
   } else if (isDraggingMe) {
     borderStyle = 'opacity-40 border-dashed border-2 border-[#244A70] bg-slate-100';
   } else if (isSelected) {
-    borderStyle = 'bg-blue-50/80 text-[#244A70] font-bold border-l-2 border-l-[#244A70] shadow-2xs';
+    borderStyle = 'bg-blue-50 text-[#244A70] font-bold';
   } else {
-    borderStyle = 'bg-transparent text-[#17263A] hover:bg-slate-100/80 border-b border-slate-100/60';
+    borderStyle = 'bg-transparent text-[#17263A] hover:bg-slate-100/80';
   }
 
   return (
@@ -200,33 +200,33 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
 
           <DynamicIcon
             name={item.icon}
-            className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#244A70]' : 'text-[#8491A3]'}`}
+            className={`w-4 h-4 shrink-0 ${isSelected ? 'text-[#244A70]' : 'text-slate-600'}`}
           />
 
           <span className="truncate font-semibold text-xs flex-1 min-w-0" title={item.label}>{item.label}</span>
           {item.status === 'INACTIVE' && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
               Inactive
             </span>
           )}
           {item.isVisible === false && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
               Hidden
             </span>
           )}
           {item.contractTypeVisibility === 'SELF_SERVICE' && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 shrink-0">
               Platform-Based
             </span>
           )}
           {item.contractTypeVisibility === 'WE_CONVERT_FOR_YOU' && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+            <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
               Managed Services
             </span>
           )}
 
           {isInvalid && (
-            <span className="ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+            <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
               Invalid Drop Target
             </span>
           )}

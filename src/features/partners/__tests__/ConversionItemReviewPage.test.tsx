@@ -85,10 +85,10 @@ describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
     await screen.findByRole('heading', { name: /CUSTINQ/i });
 
     // Initially in UI Preview tab
-    expect(screen.getByText('Interactive UI Preview')).toBeInTheDocument();
+    expect(screen.getByText(/http:\/\/localhost:3000\/custinq/i)).toBeInTheDocument();
 
     // Switch to Code tab
-    const codeTabBtn = screen.getByText('Modernized Code & Source');
+    const codeTabBtn = screen.getByRole('button', { name: 'Code' });
     fireEvent.click(codeTabBtn);
     expect(await screen.findByText(/No output generated yet/i)).toBeInTheDocument();
 
@@ -97,8 +97,8 @@ describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
     fireEvent.click(mappingTabBtn);
     expect(await screen.findByText('Source Identifier (AST)')).toBeInTheDocument();
 
-    // Switch to Validation Findings tab
-    const validationTabBtn = screen.getByText(/Validation Findings/i);
+    // Switch to Validation tab
+    const validationTabBtn = screen.getByRole('button', { name: /^Validation/i });
     fireEvent.click(validationTabBtn);
     expect(await screen.findByText('Semantic & AST Validation Findings')).toBeInTheDocument();
   });
@@ -136,11 +136,11 @@ describe('ConversionItemReviewPage (Full-Width Workspace)', () => {
 
     await screen.findByRole('heading', { name: /CUSTINQ/i });
 
-    const revalidateBtn = screen.getByText(/Re-validate/i);
+    const revalidateBtn = screen.getByRole('button', { name: /Run Semantic Validation|Re-validate/i });
     fireEvent.click(revalidateBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Re-validate/i)).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /Run Semantic Validation|Re-validate/i })).not.toBeDisabled();
     });
   });
 });

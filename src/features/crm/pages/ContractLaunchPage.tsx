@@ -115,7 +115,7 @@ export const ContractLaunchPage: React.FC = () => {
                         <h2 className="text-sm font-bold text-[#17263A]">{lead.companyName || lead.contactName}</h2>
                         <p className="mt-1 text-xs text-slate-600 font-medium">{lead.contactName} · {lead.contactEmail}</p>
                         <div className="mt-1.5 flex items-center gap-1.5">
-                          <span className="text-xs text-slate-500 font-medium">Status:</span>
+                          <span className="text-xs text-slate-600 font-medium">Status:</span>
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                             {lead.status}
                           </span>
@@ -132,59 +132,59 @@ export const ContractLaunchPage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-
-                {/* Pagination Controls */}
-                {filteredLeads.length > 0 && (
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3.5 border-t border-[#DCE3EC] bg-white text-xs text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-500">Rows per page:</span>
-                      <select
-                        value={pageSize}
-                        onChange={(e) => {
-                          setPageSize(Number(e.target.value));
-                          setCurrentPage(1);
-                        }}
-                        className="bg-white border border-[#DCE3EC] rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 outline-none focus:border-[#244A70] cursor-pointer shadow-2xs"
-                      >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={20}>20</option>
-                        <option value={50}>50</option>
-                      </select>
-                      <span className="mx-1 text-slate-300">|</span>
-                      <span>
-                        Showing {startIndex + 1} to {endIndex} of {filteredLeads.length} leads
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-slate-700 mr-2">
-                        {safeCurrentPage} / {totalPages}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={safeCurrentPage <= 1}
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                      >
-                        <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
-                        Previous
-                      </button>
-                      <button
-                        type="button"
-                        disabled={safeCurrentPage >= totalPages}
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
-                      >
-                        Next
-                        <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
               </>
             )}
       </section>
+
+      {/* Pagination Controls */}
+      {!loading && !(error && leads.length === 0) && filteredLeads.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-1 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-slate-600">Rows per page:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="bg-white border border-[#DCE3EC] rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700 outline-none focus:border-[#244A70] cursor-pointer"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span className="mx-1 text-slate-300">|</span>
+            <span>
+              Showing {startIndex + 1} to {endIndex} of {filteredLeads.length} leads
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-slate-700 mr-2">
+              {safeCurrentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={safeCurrentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-0.5" />
+              Previous
+            </button>
+            <button
+              type="button"
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              className="inline-flex items-center justify-center rounded-lg border border-[#DCE3EC] bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              Next
+              <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

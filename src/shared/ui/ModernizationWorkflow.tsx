@@ -193,16 +193,13 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
   return (
     <div className={`bg-white border border-[#DCE3EC] rounded-lg overflow-hidden shadow-xs ${className}`}>
       {/* Header */}
-      <div className="px-5 py-3.5 border-b border-[#DCE3EC] flex items-center justify-between bg-[#F8FAFC]">
+      <div className="px-5 py-3.5 border-b border-[#DCE3EC] flex items-center justify-between bg-white">
         <div>
-          <h3 className="text-sm font-bold text-[#17263A] tracking-tight">
+          <h2 className="text-sm font-bold text-[#17263A] tracking-tight">
             Modernization Workflow
-          </h3>
-          <p className="text-xs text-[#8491A3] mt-0.5">
-            Deterministic stage progression for legacy assets
-          </p>
+          </h2>
         </div>
-        <div className="text-xs font-semibold text-[#8491A3]">
+        <div className="text-xs font-semibold text-slate-600">
           Stage <span className="text-[#244A70] font-bold">{currentIndex + 1}</span> of {steps.length}
         </div>
       </div>
@@ -250,12 +247,12 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                           ? 'text-[#244A70]'
                           : isCompleted
                           ? 'text-[#17263A]'
-                          : 'text-[#8491A3] group-hover:text-[#17263A]'
+                          : 'text-slate-600 group-hover:text-[#17263A]'
                       }`}
                     >
                       {step.label}
                     </p>
-                    <p className="text-[11px] font-medium text-[#8491A3] truncate mt-0.5">
+                    <p className="text-xs font-medium text-slate-600 truncate mt-0.5">
                       {step.sublabel}
                     </p>
                   </div>
@@ -309,7 +306,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold">{step.label}</p>
-                  <p className="text-[11px] text-[#8491A3]">{step.sublabel}</p>
+                  <p className="text-xs text-slate-600">{step.sublabel}</p>
                 </div>
               </button>
             );
@@ -318,12 +315,12 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
       </div>
 
       {/* Footer Stage Summary */}
-      <div className="bg-[#F8FAFC] border-t border-[#DCE3EC] px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+      <div className="bg-white border-t border-[#DCE3EC] px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="space-y-0.5">
           <p className="text-[#17263A] font-semibold">
             Current stage: <span className="text-[#244A70] font-bold">{currentStepInfo.label}</span>
           </p>
-          <p className="text-[#8491A3] text-[11px]">{currentStepInfo.description}</p>
+          <p className="text-slate-600 text-xs">{currentStepInfo.description}</p>
         </div>
 
         {(onActionClick || actionLabel) && (

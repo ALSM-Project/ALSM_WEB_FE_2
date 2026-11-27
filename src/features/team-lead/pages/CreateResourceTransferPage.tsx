@@ -329,7 +329,7 @@ export const CreateResourceTransferPage: React.FC = () => {
 
             <div>
               <label htmlFor="notes-textarea" className="text-xs font-bold text-[#17263A] block mb-1.5">
-                Technical Handover & Milestone Briefing
+                Technical Handover &amp; Milestone Briefing
               </label>
               <textarea
                 id="notes-textarea"
@@ -337,9 +337,9 @@ export const CreateResourceTransferPage: React.FC = () => {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="e.g. Specify high-priority screen conversion queues, open PRs, sprint milestone commitments, and handover instructions for the successor..."
-                className="w-full px-3.5 py-2.5 bg-white border border-[#DCE3EC] rounded-xl text-xs text-[#17263A] outline-none focus:ring-2 focus:ring-[#244A70]/15"
+                className="w-full px-3.5 py-2.5 bg-white border border-[#DCE3EC] rounded-xl text-sm text-[#17263A] placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-[#244A70]/15"
               />
-              <p className="text-[11px] text-[#8491A3] mt-1">
+              <p className="text-xs text-slate-600 mt-1.5 max-w-prose leading-relaxed">
                 Provide clear instructions so the successor can pick up ongoing modernization tasks immediately.
               </p>
             </div>
@@ -366,7 +366,7 @@ export const CreateResourceTransferPage: React.FC = () => {
                 required
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-white border border-[#DCE3EC] rounded-xl text-xs text-[#17263A] outline-none focus:ring-2 focus:ring-[#244A70]/15"
+                className="w-full px-3.5 py-2.5 bg-white border border-[#DCE3EC] rounded-xl text-sm text-[#17263A] outline-none focus:ring-2 focus:ring-[#244A70]/15"
               >
                 <option value="Workload Balancing">Workload Balancing</option>
                 <option value="Offboarding">Offboarding</option>
@@ -376,9 +376,9 @@ export const CreateResourceTransferPage: React.FC = () => {
               </select>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#DCE3EC] text-xs">
-              <span className="font-semibold text-[#17263A] block mb-1">Reason Category:</span>
-              <p className="text-[#8491A3]">
+            <div className="border-l-2 border-[#244A70] pl-3.5 py-1 text-xs">
+              <span className="font-semibold text-[#17263A] block mb-0.5">Reason Category:</span>
+              <p className="text-slate-600 leading-relaxed max-w-prose">
                 {reason === 'Workload Balancing' && 'Reallocates tasks to optimize team capacity across active sprint deliverables.'}
                 {reason === 'Offboarding' && 'Handover required due to employee departure or transfer out of the organization.'}
                 {reason === 'Leave of Absence' && 'Temporary or permanent coverage during planned staff leave.'}
@@ -399,39 +399,40 @@ export const CreateResourceTransferPage: React.FC = () => {
 
             <div className="space-y-3">
               {/* Current Assignee */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[10px] font-bold text-[#8491A3] uppercase tracking-wider block">
+              <div className="border-l-2 border-slate-300 pl-3.5 py-1">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block">
                   Current Owner
                 </span>
-                <div className="font-bold text-[#17263A] text-xs mt-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-slate-400" />
+                <div className="font-bold text-[#17263A] text-sm mt-1 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-slate-500" />
                   {selectedProject?.assignedStaffName || 'Unallocated'}
                 </div>
-                <div className="text-[11px] text-[#8491A3]">
+                <div className="text-xs text-slate-600 mt-0.5">
                   {selectedProject ? `${selectedProject.name} (#${selectedProject.id.slice(-8).toUpperCase()})` : 'No project selected'}
                 </div>
               </div>
 
               {/* Arrow */}
-              <div className="flex justify-center text-[#8491A3]">
-                <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
+              <div className="flex items-center gap-2 text-slate-500 pl-1">
+                <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </div>
+                <span className="text-xs text-slate-600">Transfers to</span>
               </div>
 
               {/* Proposed Successor */}
               <div
-                className={`p-3.5 rounded-xl border ${
-                  selectedStaff ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50 border-dashed border-slate-300'
+                className={`border-l-2 pl-3.5 py-1 ${
+                  selectedStaff ? 'border-emerald-600' : 'border-dashed border-slate-300'
                 }`}
               >
-                <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider block">
                   Proposed Successor
                 </span>
-                <div className="font-bold text-emerald-950 text-xs mt-1">
+                <div className="font-bold text-emerald-950 text-sm mt-1">
                   {selectedStaff?.fullName || 'Choose staff member...'}
                 </div>
-                <div className="text-[11px] text-emerald-700">
+                <div className="text-xs text-emerald-800 mt-0.5">
                   {selectedStaff ? `${selectedStaff.email} • #${selectedStaff.employeeCode}` : 'Pending selection'}
                 </div>
               </div>
@@ -440,13 +441,13 @@ export const CreateResourceTransferPage: React.FC = () => {
 
           {/* SLA & Submit Action */}
           <div className="p-6 bg-white border border-[#DCE3EC] rounded-2xl shadow-2xs space-y-4">
-            <div className="text-xs text-[#8491A3] space-y-2">
-              <div className="flex items-center gap-1.5 font-semibold text-[#17263A]">
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-sm font-semibold text-[#17263A]">
                 <ShieldCheck className="w-4 h-4 text-[#244A70]" />
                 Administrative Approval SLA
               </div>
-              <p className="text-[11px]">
-                Upon submission, the request enters <strong className="text-amber-700">Pending Review</strong> status. Once approved by a Team Lead or Platform Admin, project ownership and assignment updates execute immediately across all workspaces.
+              <p className="text-xs text-slate-600 leading-relaxed max-w-prose">
+                Upon submission, the request enters <strong className="text-amber-800">Pending Review</strong> status. Once approved by a Team Lead or Platform Admin, project ownership and assignment updates execute immediately across all workspaces.
               </p>
             </div>
 
@@ -454,16 +455,16 @@ export const CreateResourceTransferPage: React.FC = () => {
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting || !selectedProject || !selectedStaff}
-              className="w-full bg-[#244A70] hover:bg-[#244A70] text-white text-xs h-10 shadow-xs font-semibold cursor-pointer"
+              className="w-full bg-[#244A70] hover:bg-[#1B3856] text-white text-sm h-10 shadow-xs font-semibold cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 shrink-0" />
+              <Plus className="w-4 h-4 shrink-0" />
               <span>{isSubmitting ? 'Submitting Request...' : 'Submit Transfer Request'}</span>
             </Button>
 
             <div className="text-center">
               <Link
                 to="/team-lead/resource-transfers"
-                className="text-[11px] font-medium text-[#8491A3] hover:text-[#17263A] transition-colors"
+                className="text-xs font-medium text-slate-600 hover:text-[#17263A] transition-colors"
               >
                 Cancel and Return
               </Link>

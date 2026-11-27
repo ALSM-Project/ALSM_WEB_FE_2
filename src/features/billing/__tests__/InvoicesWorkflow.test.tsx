@@ -3,9 +3,60 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { InvoicesPage } from '../pages/InvoicesPage';
 import { invoicesApi } from '../api/invoices.api';
 
+const mockInvoices = [
+  {
+    id: 'inv-2026-001',
+    invoiceNumber: 'INV-2026-0891',
+    organizationId: 'org-1',
+    organizationName: 'Fintech Nexus International',
+    customerId: 'cust-1',
+    customerEmail: 'billing@fintechnexus.io',
+    amount: 12500,
+    currency: 'USD',
+    status: 'PAID' as const,
+    issueDate: '2026-10-01T00:00:00Z',
+    dueDate: '2026-10-31T00:00:00Z',
+    subtotal: 12500,
+    tax: 0,
+    items: [
+      { id: 'item-1', description: 'Enterprise Tier 2 Monthly Subscription', quantity: 1, unitPrice: 8000, total: 8000 },
+      { id: 'item-2', description: 'High-Volume Screen Conversion Pack (150 screens)', quantity: 1, unitPrice: 4500, total: 4500 },
+    ],
+  },
+  {
+    id: 'inv-2',
+    invoiceNumber: 'INV-2026-0892',
+    organizationId: 'org-2',
+    organizationName: 'Acme Corporation',
+    customerId: 'cust-2',
+    customerEmail: 'finance@acme.com',
+    amount: 4200,
+    currency: 'USD',
+    status: 'PENDING' as const,
+    issueDate: '2026-10-15T00:00:00Z',
+    dueDate: '2026-11-15T00:00:00Z',
+    items: [],
+  },
+  {
+    id: 'inv-3',
+    invoiceNumber: 'INV-2026-0870',
+    organizationId: 'org-3',
+    organizationName: 'Global Transit Logistics',
+    customerId: 'cust-3',
+    customerEmail: 'ap@globaltransit.com',
+    amount: 3100,
+    currency: 'USD',
+    status: 'OVERDUE' as const,
+    issueDate: '2026-09-01T00:00:00Z',
+    dueDate: '2026-09-30T00:00:00Z',
+    items: [],
+  },
+];
+
 describe('View Invoices Workflow (Enterprise Customer & Admin)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(invoicesApi, 'getInvoices').mockResolvedValue(mockInvoices);
   });
 
   it('renders enterprise invoices list with KPI summary metrics', async () => {

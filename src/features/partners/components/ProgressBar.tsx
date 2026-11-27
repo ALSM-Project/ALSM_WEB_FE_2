@@ -47,19 +47,19 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
 
       {/* Dual metric sub-bars if both or either exist */}
       {showLabels && (screensTotal > 0 || programsTotal > 0) && (
-        <div className="grid grid-cols-2 gap-3 pt-1 text-[11px] text-[#8491A3]">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 pt-1 text-xs text-[#526071]">
           {screensTotal > 0 && (
-            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#DCE3EC]">
+            <div className="flex items-center gap-2">
               <span>Screens:</span>
-              <span className="font-medium text-[#17263A]">
+              <span className="font-semibold text-[#17263A]">
                 {screensCompleted}/{screensTotal} ({screensPct}%)
               </span>
             </div>
           )}
           {programsTotal > 0 && (
-            <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded border border-[#DCE3EC]">
+            <div className="flex items-center gap-2">
               <span>COBOL:</span>
-              <span className="font-medium text-[#17263A]">
+              <span className="font-semibold text-[#17263A]">
                 {programsCompleted}/{programsTotal} ({programsPct}%)
               </span>
             </div>

@@ -66,7 +66,7 @@ describe('PartnerProjectWorkspacePage', () => {
       { wrapper: createWrapper() }
     );
 
-    expect(await screen.findByRole('heading', { name: 'Core Banking Customer Portal' })).toBeInTheDocument();
+    expect(await screen.findByText('Core Banking Customer Portal')).toBeInTheDocument();
     expect(screen.getAllByText(/CUSTINQ/i)[0]).toBeInTheDocument();
     expect(screen.getByText('Run All Conversions')).toBeInTheDocument();
     expect(screen.getByText('Export Code Bundle')).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('PartnerProjectWorkspacePage', () => {
       { wrapper: createWrapper() }
     );
 
-    await screen.findByRole('heading', { name: 'Core Banking Customer Portal' });
+    await screen.findByText('Core Banking Customer Portal');
     const exportBtn = screen.getByText('Export Code Bundle');
     fireEvent.click(exportBtn);
 
@@ -103,7 +103,7 @@ describe('PartnerProjectWorkspacePage', () => {
       { wrapper: createWrapper(['partner_project.view']) }
     );
 
-    expect(await screen.findByRole('heading', { name: 'Core Banking Customer Portal' })).toBeInTheDocument();
+    expect(await screen.findByText('Core Banking Customer Portal')).toBeInTheDocument();
     expect(screen.queryByText('Run All Conversions')).not.toBeInTheDocument();
     expect(screen.queryByText('Export Code Bundle')).not.toBeInTheDocument();
   });
