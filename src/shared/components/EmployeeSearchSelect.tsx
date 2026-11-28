@@ -60,7 +60,7 @@ export const EmployeeSearchSelect: React.FC<EmployeeSearchSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep search parameters in a ref to avoid callback recreation and render loops
   const searchParamsRef = useRef({

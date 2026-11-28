@@ -83,37 +83,6 @@ const setupTestContext = (permissions: string[], isPlatformAdmin: boolean = fals
       ],
     },
     {
-      id: 'web2_group_conversions',
-      key: 'group.conversions',
-      label: 'Conversions',
-      icon: 'Cpu',
-      order: 2,
-      visibility: true,
-      requiredPermissions: [],
-      children: [
-        {
-          id: 'web2_my_assigned_work',
-          key: 'conversions.my_work',
-          label: 'My Assigned Work',
-          icon: 'Briefcase',
-          route: '/my-work',
-          order: 1,
-          visibility: true,
-          requiredPermissions: ['conversions.view'],
-        },
-        {
-          id: 'web2_quality_review',
-          key: 'conversions.quality_review',
-          label: 'Quality Review',
-          icon: 'ShieldCheck',
-          route: '/review',
-          order: 2,
-          visibility: true,
-          requiredPermissions: ['quality-review.manage'],
-        },
-      ],
-    },
-    {
       id: 'web2_group_commercial',
       key: 'group.commercial',
       label: 'CRM & Sales',
@@ -385,28 +354,8 @@ describe('Database-Driven Navigation & Role-Based Permissions', () => {
     expect(screen.getByTestId('group-web2_group_support')).toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_operations')).toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_administration')).toBeInTheDocument();
-    expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
     expect(screen.getByTestId('group-web2_group_commercial')).toBeInTheDocument();
     expect(screen.getByText('Demo Projects')).toBeInTheDocument();
-  });
-
-  it('excludes the legacy Conversions group from sidebar navigation', () => {
-    const staffPermissions = ['conversions.view', 'partner.view'];
-    const { unmount } = render(<NavInspector />, {
-      wrapper: setupTestContext(staffPermissions),
-    });
-
-    expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
-    expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
-    expect(screen.queryByText('Quality Review')).not.toBeInTheDocument();
-    unmount();
-
-    render(<NavInspector />, {
-      wrapper: setupTestContext(['partner.view']),
-    });
-
-    expect(screen.queryByTestId('group-web2_group_conversions')).not.toBeInTheDocument();
-    expect(screen.queryByText('My Assigned Work')).not.toBeInTheDocument();
   });
 
   it('renders the CRM & Sales group for SALES_MANAGER and hides unauthorized reports', () => {

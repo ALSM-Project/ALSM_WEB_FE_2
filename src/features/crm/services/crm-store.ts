@@ -684,12 +684,14 @@ class CrmStore {
         });
         if (stored !== JSON.stringify(this.leads)) this.saveToStorage();
       } else {
-        const isTestEnv = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
+        const isTestEnv =
+          (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV === 'test';
         this.leads = isTestEnv ? [...INITIAL_LEADS] : [];
         this.saveToStorage();
       }
     } catch {
-      const isTestEnv = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
+      const isTestEnv =
+        (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env?.NODE_ENV === 'test';
       this.leads = isTestEnv ? [...INITIAL_LEADS] : [];
     }
   }
