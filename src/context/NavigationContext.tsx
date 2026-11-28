@@ -284,7 +284,6 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     const processed = mapped
-      .filter((g) => g.id !== 'web2_group_conversions' && g.label?.toLowerCase() !== 'conversions')
       .map((group) => {
         // 1. Ensure Partner Management has Partner Directory, Partner Projects, and Demo Projects
         if (group.id === 'web2_group_partners' || group.label?.toLowerCase() === 'partner management') {

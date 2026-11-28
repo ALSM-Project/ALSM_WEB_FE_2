@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { crmStore } from '../services/crm-store';
 import { crmApi } from '../api/crm.api';
 import { apiClient } from '@/services/api/apiClient';
@@ -6,6 +6,11 @@ import { apiClient } from '@/services/api/apiClient';
 describe('Section 3.11: CRM & Sales Lead-to-Customer Activation Workflow', () => {
   beforeEach(() => {
     localStorage.clear();
+    vi.spyOn(apiClient, 'get').mockRejectedValue(new Error('Offline in unit test'));
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('1. Adds a new lead with required contact info, deal value, and rejects duplicate email', async () => {
