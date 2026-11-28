@@ -1,0 +1,161 @@
+name: Deploy ALSM Staff Portal to AWS EC2
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alsm-ec2-staff-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deployment-safety:
+    name: Deployment safety tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate workflow syntax with verified actionlint
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint.tar.gz"
+          curl --fail --silent --show-error --location --proto '=https' \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$archive"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $archive" | sha256sum --check
+          tar -xzf "$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -shellcheck='' .github/workflows/deploy-ec2.yml
+      - name: Test release integrity, isolation and rollback in a temporary sandbox
+        run: |
+          python3 -m py_compile .github/deployment/deploy.py
+          python3 .github/deployment/test_deploy.py
+
+  build:
+    name: Production build
+    needs: deployment-safety
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      manifest-sha: ${{ steps.manifest.outputs.manifest-sha }}
+      deployer-sha: ${{ steps.manifest.outputs.deployer-sha }}
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        # The existing suite currently reports failures and can then hang; fail the deployment gate promptly.
+        timeout-minutes: 10
+        run: npm run test -- --bail=1
+      - name: TypeScript check
+        run: npx --no-install tsc -b
+      - name: Validate verified public production origins
+        env:
+          USER_URL: ${{ vars.ALSM_USER_URL }}
+          STAFF_URL: ${{ vars.ALSM_STAFF_URL }}
+          WEB3_URL: ${{ vars.ALSM_WEB3_URL }}
+        run: |
+          python3 - <<'PY'
+          import importlib.util, os
+          spec = importlib.util.spec_from_file_location('deploy', '.github/deployment/deploy.py')
+          tool = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(tool)
+          for name in ('USER_URL', 'STAFF_URL', 'WEB3_URL'):
+              tool.origin(os.environ[name])
+          PY
+      - name: Build Vite production bundle
+        env:
+          VITE_API_BASE_URL: ${{ vars.ALSM_STAFF_URL }}
+          VITE_USER_PORTAL_URL: ${{ vars.ALSM_USER_URL }}
+          VITE_CONVERSION_WORKSPACE_URL: ${{ vars.ALSM_USER_URL }}
+          VITE_SUPPORT_VIEW_MOCK: 'false'
+          VITE_SUPPORT_VIEW_HTTP: ''
+        run: npm run build -- --mode production
+      - name: Stamp and verify artifact identity
+        id: manifest
+        env:
+          REVISION: ${{ github.sha }}
+          ALSM_USER_URL: ${{ vars.ALSM_USER_URL }}
+          ALSM_STAFF_URL: ${{ vars.ALSM_STAFF_URL }}
+          ALSM_WEB3_URL: ${{ vars.ALSM_WEB3_URL }}
+        run: |
+          set -euo pipefail
+          python3 .github/deployment/deploy.py stamp --portal staff --revision "$REVISION" --artifact dist >> "$GITHUB_OUTPUT"
+          echo "deployer-sha=$(sha256sum .github/deployment/deploy.py | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Upload immutable build artifact
+        id: upload
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: alsm-staff-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: Deploy production
+    needs: build
+    # PRs and the CI/CD preparation branch never enter the production runner.
+    if: >-
+      github.repository == 'ALSM-Project/ALSM_WEB_FE_2' &&
+      github.ref == 'refs/heads/develop' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on:
+      group: alsm-frontend-production
+      labels: [self-hosted, linux, x64, alsm-deploy]
+    environment:
+      name: production
+      url: ${{ vars.ALSM_STAFF_URL }}
+    concurrency:
+      group: alsm-production-staff
+      cancel-in-progress: false
+    timeout-minutes: 15
+    steps:
+      - name: Verify administrator-installed deploy tool
+        env:
+          EXPECTED_SHA: ${{ needs.build.outputs.deployer-sha }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{64}$ ]]
+          echo "$EXPECTED_SHA  /usr/local/lib/alsm-deploy/deploy.py" | sha256sum --check
+          install -d -m 700 "$RUNNER_TEMP/alsm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+      - name: Download this run's verified artifact by ID
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          artifact-ids: ${{ needs.build.outputs.artifact-id }}
+          path: ${{ runner.temp }}/alsm-${{ github.run_id }}-${{ github.run_attempt }}/dist
+          merge-multiple: true
+      - name: Publish release, verify HTTPS commit and roll back on failure
+        env:
+          REVISION: ${{ github.sha }}
+          MANIFEST_SHA: ${{ needs.build.outputs.manifest-sha }}
+        run: |
+          set -euo pipefail
+          python3 /usr/local/lib/alsm-deploy/deploy.py deploy --portal staff \
+            --revision "$REVISION" --manifest-sha "$MANIFEST_SHA" \
+            --artifact "$RUNNER_TEMP/alsm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/dist"
+          printf 'Verified staff release: %s\n' "$REVISION" >> "$GITHUB_STEP_SUMMARY"
+      - name: Clean this run's downloaded artifact
+        if: always()
+        run: |
+          set -euo pipefail
+          target="$RUNNER_TEMP/alsm-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          [[ "$GITHUB_RUN_ID" =~ ^[0-9]+$ && "$GITHUB_RUN_ATTEMPT" =~ ^[0-9]+$ ]]
+          [[ -n "$RUNNER_TEMP" && "$target" == "$RUNNER_TEMP"/alsm-* ]]
+          rm -rf -- "$target"
